@@ -43,6 +43,13 @@
       "when": 1762000348059,
       "tag": "0005_wakeful_arachne",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1762646704400,
+      "tag": "0006_far_captain_universe",
+      "breakpoints": true
     }
   ]
 }

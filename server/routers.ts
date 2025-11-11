@@ -33,9 +33,11 @@ import { notifyOwner } from "./_core/notification";
 import { sendNewLeadNotification, sendNewAppointmentEmail } from "./email";
 import { trackLead, trackCompleteRegistration } from "./facebookConversion";
 import { sendWelcomeMessage, sendBookingConfirmation, sendCustomMessage } from "./whatsapp";
+import { offersRouter } from "./routers/offers";
 
 export const appRouter = router({
   system: systemRouter,
+  offers: offersRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

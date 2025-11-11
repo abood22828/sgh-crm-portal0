@@ -46,6 +46,10 @@ export type InsertCampaign = typeof campaigns.$inferInsert;
 /**
  * Leads table - stores customer registration data
  */
+/**
+ * Leads table - stores customer registration data from various sources
+ * يخزن بيانات تسجيل العملاء من مصادر مختلفة (عروض، أطباء، مخيمات)
+ */
 export const leads = mysqlTable("leads", {
   id: int("id").autoincrement().primaryKey(),
   campaignId: int("campaignId").notNull(),
@@ -58,6 +62,8 @@ export const leads = mysqlTable("leads", {
   utmMedium: varchar("utmMedium", { length: 100 }),
   utmCampaign: varchar("utmCampaign", { length: 100 }),
   utmContent: varchar("utmContent", { length: 100 }),
+  sourceType: mysqlEnum("sourceType", ["offer", "doctor", "camp", "campaign"]).default("campaign").notNull(), // Track the source type
+  sourceId: int("sourceId"), // ID of the offer, doctor, or camp
   notes: text("notes"),
   emailSent: boolean("emailSent").default(false).notNull(),
   whatsappSent: boolean("whatsappSent").default(false).notNull(),
@@ -102,10 +108,15 @@ export type InsertSetting = typeof settings.$inferInsert;
 /**
  * Doctors table - stores information about hospital doctors
  */
+/**
+ * Doctors table - stores information about hospital doctors
+ * يخزن معلومات أطباء المستشفى
+ */
 export const doctors = mysqlTable("doctors", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   specialty: varchar("specialty", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(), // Unique URL-friendly identifier for landing pages
   image: varchar("image", { length: 500 }),
   bio: text("bio"),
   available: mysqlEnum("available", ["yes", "no"]).default("yes").notNull(),
@@ -157,3 +168,43 @@ export const accessRequests = mysqlTable("accessRequests", {
 
 export type AccessRequest = typeof accessRequests.$inferSelect;
 export type InsertAccessRequest = typeof accessRequests.$inferInsert;
+
+/**
+ * Offers table - stores special medical offers and promotions
+ * يخزن العروض الطبية الخاصة والعروض الترويجية
+ */
+export const offers = mysqlTable("offers", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(), // Offer title (e.g., "OB/GYN Delivery Special")
+  slug: varchar("slug", { length: 255 }).notNull().unique(), // URL-friendly identifier for landing pages
+  description: text("description"), // Detailed offer description
+  imageUrl: varchar("imageUrl", { length: 500 }), // Offer promotional image
+  isActive: boolean("isActive").default(true).notNull(), // Is the offer currently active?
+  startDate: timestamp("startDate"), // Offer start date
+  endDate: timestamp("endDate"), // Offer end date
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Offer = typeof offers.$inferSelect;
+export type InsertOffer = typeof offers.$inferInsert;
+
+/**
+ * Camps table - stores information about medical camps
+ * يخزن معلومات المخيمات الطبية
+ */
+export const camps = mysqlTable("camps", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(), // Camp name (e.g., "General Surgery Camp")
+  slug: varchar("slug", { length: 255 }).notNull().unique(), // URL-friendly identifier for landing pages
+  description: text("description"), // Detailed camp description
+  imageUrl: varchar("imageUrl", { length: 500 }), // Camp promotional image
+  startDate: timestamp("startDate"), // Camp start date
+  endDate: timestamp("endDate"), // Camp end date
+  isActive: boolean("isActive").default(true).notNull(), // Is the camp currently active?
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Camp = typeof camps.$inferSelect;
+export type InsertCamp = typeof camps.$inferInsert;
