@@ -21,6 +21,7 @@ function Router() {
       <Route path={"/thank-you"} component={ThankYou} />
       <Route path={"/unauthorized"} component={Unauthorized} />
       <Route path={"/access-request"} component={AccessRequest} />
+      <Route path={"/dashboard/*"} component={AdminDashboard} />
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

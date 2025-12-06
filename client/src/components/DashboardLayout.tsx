@@ -28,8 +28,11 @@ import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "لوحة التحكم", path: "/dashboard" },
+  { icon: Users, label: "إدارة المستخدمين", path: "/dashboard/users" },
+  { icon: Users, label: "الحجوزات", path: "/dashboard/appointments" },
+  { icon: Users, label: "العملاء", path: "/dashboard/leads" },
+  { icon: Users, label: "الحملات", path: "/dashboard/campaigns" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
