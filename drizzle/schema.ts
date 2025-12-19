@@ -157,3 +157,43 @@ export const accessRequests = mysqlTable("accessRequests", {
 
 export type AccessRequest = typeof accessRequests.$inferSelect;
 export type InsertAccessRequest = typeof accessRequests.$inferInsert;
+
+/**
+ * Offers table - stores special medical offers and promotions
+ * يخزن العروض الطبية الخاصة والعروض الترويجية
+ */
+export const offers = mysqlTable("offers", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  description: text("description"),
+  imageUrl: varchar("imageUrl", { length: 500 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  startDate: timestamp("startDate"),
+  endDate: timestamp("endDate"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Offer = typeof offers.$inferSelect;
+export type InsertOffer = typeof offers.$inferInsert;
+
+/**
+ * Camps table - stores information about medical camps
+ * يخزن معلومات المخيمات الطبية
+ */
+export const camps = mysqlTable("camps", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  description: text("description"),
+  imageUrl: varchar("imageUrl", { length: 500 }),
+  startDate: timestamp("startDate"),
+  endDate: timestamp("endDate"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Camp = typeof camps.$inferSelect;
+export type InsertCamp = typeof camps.$inferInsert;

@@ -30,6 +30,8 @@ import {
   rejectAccessRequest,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
+import { offersRouter } from "./routers/offers";
+import { campsRouter } from "./routers/camps";
 import { sendNewLeadNotification, sendNewAppointmentEmail } from "./email";
 import { trackLead, trackCompleteRegistration } from "./facebookConversion";
 import { sendWelcomeMessage, sendBookingConfirmation, sendCustomMessage } from "./whatsapp";
@@ -391,6 +393,12 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // Offers management
+  offers: offersRouter,
+
+  // Camps management
+  camps: campsRouter,
 
   accessRequests: router({
     list: protectedProcedure.query(async () => {

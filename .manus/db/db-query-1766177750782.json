@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `offers` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `title` varchar(255) NOT NULL,\n  `slug` varchar(255) NOT NULL,\n  `description` text,\n  `imageUrl` varchar(500),\n  `isActive` boolean NOT NULL DEFAULT true,\n  `startDate` timestamp NULL,\n  `endDate` timestamp NULL,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY(`id`),\n  UNIQUE KEY `offers_slug_unique` (`slug`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute CREATE TABLE IF NOT EXISTS `offers` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `title` varchar(255) NOT NULL,\n  `slug` varchar(255) NOT NULL,\n  `description` text,\n  `imageUrl` varchar(500),\n  `isActive` boolean NOT NULL DEFAULT true,\n  `startDate` timestamp NULL,\n  `endDate` timestamp NULL,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY(`id`),\n  UNIQUE KEY `offers_slug_unique` (`slug`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 261
+}

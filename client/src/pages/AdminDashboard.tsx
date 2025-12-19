@@ -71,7 +71,7 @@ export default function AdminDashboard() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [statusNotes, setStatusNotes] = useState("");
-  const [activeTab, setActiveTab] = useState<"leads" | "requests" | "appointments">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "requests" | "appointments" | "offers" | "camps">("leads");
 
   const { data: accessRequests, refetch: refetchRequests } = trpc.accessRequests.pending.useQuery();
   
@@ -361,6 +361,20 @@ export default function AdminDashboard() {
           >
             <Calendar className="w-4 h-4 ml-2" />
             مواعيد الأطباء
+          </Button>
+          <Button
+            variant={activeTab === "offers" ? "default" : "outline"}
+            onClick={() => setActiveTab("offers")}
+          >
+            <TrendingUp className="w-4 h-4 ml-2" />
+            العروض الطبية
+          </Button>
+          <Button
+            variant={activeTab === "camps" ? "default" : "outline"}
+            onClick={() => setActiveTab("camps")}
+          >
+            <Calendar className="w-4 h-4 ml-2" />
+            المخيمات الطبية
           </Button>
         </div>
 
@@ -753,6 +767,16 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
         )}
+
+        {/* Offers Management */}
+        {activeTab === "offers" && (
+        <OffersManagement />
+        )}
+
+        {/* Camps Management */}
+        {activeTab === "camps" && (
+        <CampsManagement />
+        )}
       </main>
 
       {/* Status Update Dialog */}
@@ -915,5 +939,558 @@ export default function AdminDashboard() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// Offers Management Component
+function OffersManagement() {
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    slug: "",
+    description: "",
+    imageUrl: "",
+    isActive: true,
+    startDate: "",
+    endDate: "",
+  });
+
+  const { data: offers, isLoading, refetch } = trpc.offers.getAll.useQuery();
+  
+  const createMutation = trpc.offers.create.useMutation({
+    onSuccess: () => {
+      toast.success("تم إنشاء العرض بنجاح");
+      refetch();
+      setShowAddDialog(false);
+      resetForm();
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء إنشاء العرض");
+    },
+  });
+
+  const updateMutation = trpc.offers.update.useMutation({
+    onSuccess: () => {
+      toast.success("تم تحديث العرض بنجاح");
+      refetch();
+      setEditingOffer(null);
+      resetForm();
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء تحديث العرض");
+    },
+  });
+
+  const deleteMutation = trpc.offers.delete.useMutation({
+    onSuccess: () => {
+      toast.success("تم حذف العرض بنجاح");
+      refetch();
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء حذف العرض");
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      slug: "",
+      description: "",
+      imageUrl: "",
+      isActive: true,
+      startDate: "",
+      endDate: "",
+    });
+  };
+
+  const handleSubmit = () => {
+    if (editingOffer) {
+      updateMutation.mutate({
+        id: editingOffer.id,
+        ...formData,
+        startDate: formData.startDate ? new Date(formData.startDate) : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      });
+    } else {
+      createMutation.mutate({
+        ...formData,
+        startDate: formData.startDate ? new Date(formData.startDate) : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      });
+    }
+  };
+
+  const handleEdit = (offer: any) => {
+    setEditingOffer(offer);
+    setFormData({
+      title: offer.title,
+      slug: offer.slug,
+      description: offer.description || "",
+      imageUrl: offer.imageUrl || "",
+      isActive: offer.isActive,
+      startDate: offer.startDate ? new Date(offer.startDate).toISOString().split('T')[0] : "",
+      endDate: offer.endDate ? new Date(offer.endDate).toISOString().split('T')[0] : "",
+    });
+    setShowAddDialog(true);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>إدارة العروض الطبية</CardTitle>
+            <CardDescription>إضافة وتعديل وحذف العروض الطبية</CardDescription>
+          </div>
+          <Button onClick={() => { resetForm(); setEditingOffer(null); setShowAddDialog(true); }}>
+            إضافة عرض جديد
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : offers && offers.length > 0 ? (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">العنوان</TableHead>
+                  <TableHead className="text-right">الرابط</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
+                  <TableHead className="text-right">تاريخ البداية</TableHead>
+                  <TableHead className="text-right">تاريخ النهاية</TableHead>
+                  <TableHead className="text-right">الإجراءات</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {offers.map((offer) => (
+                  <TableRow key={offer.id}>
+                    <TableCell className="font-medium">{offer.title}</TableCell>
+                    <TableCell>
+                      <a href={`/offers?id=${offer.slug}`} target="_blank" className="text-blue-600 hover:underline">
+                        {offer.slug}
+                      </a>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={offer.isActive ? "bg-green-500" : "bg-gray-500"}>
+                        {offer.isActive ? "نشط" : "غير نشط"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {offer.startDate ? new Date(offer.startDate).toLocaleDateString('ar-YE') : "-"}
+                    </TableCell>
+                    <TableCell>
+                      {offer.endDate ? new Date(offer.endDate).toLocaleDateString('ar-YE') : "-"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(offer)}>
+                          تعديل
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          onClick={() => {
+                            if (confirm("هل أنت متأكد من حذف هذا العرض؟")) {
+                              deleteMutation.mutate({ id: offer.id });
+                            }
+                          }}
+                        >
+                          حذف
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            لا توجد عروض حالياً. قم بإضافة عرض جديد.
+          </div>
+        )}
+      </CardContent>
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-[600px]" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>{editingOffer ? "تعديل العرض" : "إضافة عرض جديد"}</DialogTitle>
+            <DialogDescription>
+              {editingOffer ? "قم بتعديل بيانات العرض" : "أدخل بيانات العرض الجديد"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">عنوان العرض *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="مثال: عرض الولادة الخاص"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="slug">الرابط (slug) *</Label>
+              <Input
+                id="slug"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="مثال: birth-offer"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">الوصف</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="وصف تفصيلي للعرض..."
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="imageUrl">رابط الصورة</Label>
+              <Input
+                id="imageUrl"
+                value={formData.imageUrl}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                dir="ltr"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">تاريخ البداية</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endDate">تاريخ النهاية</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isActive"
+                checked={formData.isActive}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                className="rounded"
+              />
+              <Label htmlFor="isActive">العرض نشط</Label>
+            </div>
+            <div className="flex gap-2 justify-end pt-4">
+              <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); setEditingOffer(null); }}>
+                إلغاء
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                disabled={!formData.title || !formData.slug || createMutation.isPending || updateMutation.isPending}
+              >
+                {(createMutation.isPending || updateMutation.isPending) ? (
+                  <>
+                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    جاري الحفظ...
+                  </>
+                ) : editingOffer ? "حفظ التغييرات" : "إضافة العرض"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
+
+// Camps Management Component
+function CampsManagement() {
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingCamp, setEditingCamp] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    slug: "",
+    description: "",
+    imageUrl: "",
+    isActive: true,
+    startDate: "",
+    endDate: "",
+  });
+
+  const { data: camps, isLoading, refetch } = trpc.camps.getAll.useQuery();
+  
+  const createMutation = trpc.camps.create.useMutation({
+    onSuccess: () => {
+      toast.success("تم إنشاء المخيم بنجاح");
+      refetch();
+      setShowAddDialog(false);
+      resetForm();
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء إنشاء المخيم");
+    },
+  });
+
+  const updateMutation = trpc.camps.update.useMutation({
+    onSuccess: () => {
+      toast.success("تم تحديث المخيم بنجاح");
+      refetch();
+      setEditingCamp(null);
+      resetForm();
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء تحديث المخيم");
+    },
+  });
+
+  const deleteMutation = trpc.camps.delete.useMutation({
+    onSuccess: () => {
+      toast.success("تم حذف المخيم بنجاح");
+      refetch();
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء حذف المخيم");
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      slug: "",
+      description: "",
+      imageUrl: "",
+      isActive: true,
+      startDate: "",
+      endDate: "",
+    });
+  };
+
+  const handleSubmit = () => {
+    if (editingCamp) {
+      updateMutation.mutate({
+        id: editingCamp.id,
+        ...formData,
+        startDate: formData.startDate ? new Date(formData.startDate) : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      });
+    } else {
+      createMutation.mutate({
+        ...formData,
+        startDate: formData.startDate ? new Date(formData.startDate) : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      });
+    }
+  };
+
+  const handleEdit = (camp: any) => {
+    setEditingCamp(camp);
+    setFormData({
+      name: camp.name,
+      slug: camp.slug,
+      description: camp.description || "",
+      imageUrl: camp.imageUrl || "",
+      isActive: camp.isActive,
+      startDate: camp.startDate ? new Date(camp.startDate).toISOString().split('T')[0] : "",
+      endDate: camp.endDate ? new Date(camp.endDate).toISOString().split('T')[0] : "",
+    });
+    setShowAddDialog(true);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>إدارة المخيمات الطبية</CardTitle>
+            <CardDescription>إضافة وتعديل وحذف المخيمات الطبية</CardDescription>
+          </div>
+          <Button onClick={() => { resetForm(); setEditingCamp(null); setShowAddDialog(true); }}>
+            إضافة مخيم جديد
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : camps && camps.length > 0 ? (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">الاسم</TableHead>
+                  <TableHead className="text-right">الرابط</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
+                  <TableHead className="text-right">تاريخ البداية</TableHead>
+                  <TableHead className="text-right">تاريخ النهاية</TableHead>
+                  <TableHead className="text-right">الإجراءات</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {camps.map((camp) => (
+                  <TableRow key={camp.id}>
+                    <TableCell className="font-medium">{camp.name}</TableCell>
+                    <TableCell>
+                      <a href={`/camps?id=${camp.slug}`} target="_blank" className="text-green-600 hover:underline">
+                        {camp.slug}
+                      </a>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={camp.isActive ? "bg-green-500" : "bg-gray-500"}>
+                        {camp.isActive ? "نشط" : "غير نشط"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {camp.startDate ? new Date(camp.startDate).toLocaleDateString('ar-YE') : "-"}
+                    </TableCell>
+                    <TableCell>
+                      {camp.endDate ? new Date(camp.endDate).toLocaleDateString('ar-YE') : "-"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(camp)}>
+                          تعديل
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          onClick={() => {
+                            if (confirm("هل أنت متأكد من حذف هذا المخيم؟")) {
+                              deleteMutation.mutate({ id: camp.id });
+                            }
+                          }}
+                        >
+                          حذف
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            لا توجد مخيمات حالياً. قم بإضافة مخيم جديد.
+          </div>
+        )}
+      </CardContent>
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-[600px]" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>{editingCamp ? "تعديل المخيم" : "إضافة مخيم جديد"}</DialogTitle>
+            <DialogDescription>
+              {editingCamp ? "قم بتعديل بيانات المخيم" : "أدخل بيانات المخيم الجديد"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">اسم المخيم *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="مثال: مخيم الجراحة العامة"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="slug">الرابط (slug) *</Label>
+              <Input
+                id="slug"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="مثال: surgery-camp"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">الوصف</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="وصف تفصيلي للمخيم..."
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="imageUrl">رابط الصورة</Label>
+              <Input
+                id="imageUrl"
+                value={formData.imageUrl}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                dir="ltr"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">تاريخ البداية</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endDate">تاريخ النهاية</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isActive"
+                checked={formData.isActive}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                className="rounded"
+              />
+              <Label htmlFor="isActive">المخيم نشط</Label>
+            </div>
+            <div className="flex gap-2 justify-end pt-4">
+              <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); setEditingCamp(null); }}>
+                إلغاء
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                disabled={!formData.name || !formData.slug || createMutation.isPending || updateMutation.isPending}
+              >
+                {(createMutation.isPending || updateMutation.isPending) ? (
+                  <>
+                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    جاري الحفظ...
+                  </>
+                ) : editingCamp ? "حفظ التغييرات" : "إضافة المخيم"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Card>
   );
 }
