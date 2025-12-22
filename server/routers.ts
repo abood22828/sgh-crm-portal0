@@ -32,6 +32,8 @@ import {
 import { notifyOwner } from "./_core/notification";
 import { offersRouter } from "./routers/offers";
 import { campsRouter } from "./routers/camps";
+import { offerLeadsRouter } from "./routers/offerLeads";
+import { campRegistrationsRouter } from "./routers/campRegistrations";
 import { sendNewLeadNotification, sendNewAppointmentEmail } from "./email";
 import { trackLead, trackCompleteRegistration } from "./facebookConversion";
 import { sendWelcomeMessage, sendBookingConfirmation, sendCustomMessage } from "./whatsapp";
@@ -406,6 +408,12 @@ export const appRouter = router({
 
   // Camps management
   camps: campsRouter,
+
+  // Offer leads management
+  offerLeads: offerLeadsRouter,
+
+  // Camp registrations management
+  campRegistrations: campRegistrationsRouter,
 
   accessRequests: router({
     list: protectedProcedure.query(async () => {

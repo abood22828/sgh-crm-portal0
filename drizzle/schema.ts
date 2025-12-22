@@ -201,3 +201,47 @@ export const camps = mysqlTable("camps", {
 
 export type Camp = typeof camps.$inferSelect;
 export type InsertCamp = typeof camps.$inferInsert;
+
+/**
+ * Offer Leads table - stores customer requests for special offers
+ * يخزن طلبات العملاء للعروض الخاصة
+ */
+export const offerLeads = mysqlTable("offerLeads", {
+  id: int("id").autoincrement().primaryKey(),
+  offerId: int("offerId").notNull(),
+  fullName: varchar("fullName", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  notes: text("notes"),
+  status: mysqlEnum("status", ["new", "contacted", "booked", "not_interested", "no_answer"]).default("new").notNull(),
+  statusNotes: text("statusNotes"),
+  source: varchar("source", { length: 100 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type OfferLead = typeof offerLeads.$inferSelect;
+export type InsertOfferLead = typeof offerLeads.$inferInsert;
+
+/**
+ * Camp Registrations table - stores registrations for medical camps
+ * يخزن تسجيلات المخيمات الطبية
+ */
+export const campRegistrations = mysqlTable("campRegistrations", {
+  id: int("id").autoincrement().primaryKey(),
+  campId: int("campId").notNull(),
+  fullName: varchar("fullName", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  age: int("age"),
+  medicalCondition: text("medicalCondition"),
+  notes: text("notes"),
+  status: mysqlEnum("status", ["pending", "confirmed", "attended", "cancelled"]).default("pending").notNull(),
+  statusNotes: text("statusNotes"),
+  source: varchar("source", { length: 100 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CampRegistration = typeof campRegistrations.$inferSelect;
+export type InsertCampRegistration = typeof campRegistrations.$inferInsert;

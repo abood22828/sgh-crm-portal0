@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS offerLeads (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  offerId INT NOT NULL,\n  fullName VARCHAR(255) NOT NULL,\n  phone VARCHAR(20) NOT NULL,\n  email VARCHAR(320),\n  notes TEXT,\n  status ENUM('new', 'contacted', 'booked', 'not_interested', 'no_answer') DEFAULT 'new' NOT NULL,\n  statusNotes TEXT,\n  source VARCHAR(100),\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n)",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute CREATE TABLE IF NOT EXISTS offerLeads (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  offerId INT NOT NULL,\n  fullName VARCHAR(255) NOT NULL,\n  phone VARCHAR(20) NOT NULL,\n  email VARCHAR(320),\n  notes TEXT,\n  status ENUM('new', 'contacted', 'booked', 'not_interested', 'no_answer') DEFAULT 'new' NOT NULL,\n  statusNotes TEXT,\n  source VARCHAR(100),\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n)",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 207
+}
