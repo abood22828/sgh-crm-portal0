@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import OfferLeadsManagement from "@/components/OfferLeadsManagement";
 import CampRegistrationsManagement from "@/components/CampRegistrationsManagement";
+import ManualRegistrationForm from "@/components/ManualRegistrationForm";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -44,8 +45,10 @@ import {
   MessageSquare,
   Loader2,
   Eye,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
+import { exportToExcel, formatLeadsForExport, formatAppointmentsForExport } from "@/lib/exportToExcel";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
 
@@ -252,6 +255,7 @@ export default function AdminDashboard() {
                 <p className="text-sm font-semibold">{user.name}</p>
                 <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
+              <ManualRegistrationForm />
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 ml-2" />
                 تسجيل الخروج
@@ -414,6 +418,22 @@ export default function AdminDashboard() {
                     className="pr-10 w-80"
                   />
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!filteredLeads || filteredLeads.length === 0) {
+                      toast.error("لا توجد بيانات لتصديرها");
+                      return;
+                    }
+                    const formattedData = formatLeadsForExport(filteredLeads);
+                    exportToExcel(formattedData, `leads-${new Date().toISOString().split('T')[0]}`, 'العملاء');
+                    toast.success("تم تصدير البيانات بنجاح");
+                  }}
+                >
+                  <Download className="w-4 h-4 ml-1" />
+                  تصدير Excel
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -490,6 +510,18 @@ export default function AdminDashboard() {
                             >
                               <Eye className="w-4 h-4 ml-1" />
                               تحديث الحالة
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              onClick={() => {
+                                const message = `مرحباً ${lead.fullName}،\n\nشكراً لتسجيلك في منصتنا. نود التواصل معك.\n\nالمستشفى السعودي الألماني - صنعاء`;
+                                window.open(`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+                              }}
+                            >
+                              <MessageSquare className="w-4 h-4 ml-1" />
+                              واتساب
                             </Button>
                           </div>
                         </TableCell>
@@ -613,6 +645,22 @@ export default function AdminDashboard() {
                     className="pr-10 w-80"
                   />
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!filteredAppointments || filteredAppointments.length === 0) {
+                      toast.error("لا توجد بيانات لتصديرها");
+                      return;
+                    }
+                    const formattedData = formatAppointmentsForExport(filteredAppointments);
+                    exportToExcel(formattedData, `appointments-${new Date().toISOString().split('T')[0]}`, 'مواعيد الأطباء');
+                    toast.success("تم تصدير البيانات بنجاح");
+                  }}
+                >
+                  <Download className="w-4 h-4 ml-1" />
+                  تصدير Excel
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -771,6 +819,19 @@ export default function AdminDashboard() {
                             >
                               <Eye className="w-4 h-4 ml-1" />
                               تحديث الحالة
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              onClick={() => {
+                                const doctorName = appointment.doctorName || `طبيب #${appointment.doctorId}`;
+                                const message = `مرحباً ${appointment.fullName}،\n\nشكراً لحجز موعدك مع ${doctorName}. نود التواصل معك لتأكيد الموعد.\n\nالمستشفى السعودي الألماني - صنعاء`;
+                                window.open(`https://wa.me/${appointment.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+                              }}
+                            >
+                              <MessageSquare className="w-4 h-4 ml-1" />
+                              واتساب
                             </Button>
                           </div>
                         </TableCell>

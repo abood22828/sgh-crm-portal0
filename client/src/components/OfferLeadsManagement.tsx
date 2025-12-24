@@ -38,8 +38,11 @@ import {
   Loader2,
   Eye,
   Tag,
+  MessageCircle,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
+import { exportToExcel, formatOfferLeadsForExport } from "@/lib/exportToExcel";
 
 const statusLabels = {
   new: "جديد",
@@ -172,8 +175,27 @@ export default function OfferLeadsManagement() {
       {/* Search and Filter */}
       <Card>
         <CardHeader>
-          <CardTitle>حجوزات العروض</CardTitle>
-          <CardDescription>إدارة ومتابعة جميع حجوزات العروض الطبية</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>حجوزات العروض</CardTitle>
+              <CardDescription>إدارة ومتابعة جميع حجوزات العروض الطبية</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!offerLeads || offerLeads.length === 0) {
+                  toast.error("لا توجد بيانات لتصديرها");
+                  return;
+                }
+                const formattedData = formatOfferLeadsForExport(offerLeads);
+                exportToExcel(formattedData, `offer-leads-${new Date().toISOString().split('T')[0]}`, 'حجوزات العروض');
+                toast.success("تم تصدير البيانات بنجاح");
+              }}
+            >
+              <Download className="h-4 w-4 ml-2" />
+              تصدير Excel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
@@ -248,18 +270,32 @@ export default function OfferLeadsManagement() {
                         {new Date(lead.createdAt).toLocaleDateString("ar-SA")}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedLead(lead);
-                            setNewStatus(lead.status);
-                            setStatusDialogOpen(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4 ml-2" />
-                          عرض التفاصيل
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedLead(lead);
+                              setNewStatus(lead.status);
+                              setStatusDialogOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 ml-2" />
+                            عرض التفاصيل
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => {
+                              const message = `مرحباً ${lead.fullName}،\n\nشكراً لاهتمامك بعرضنا الطبي. نود التواصل معك لتأكيد حجزك.\n\nالمستشفى السعودي الألماني - صنعاء`;
+                              window.open(`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+                            }}
+                          >
+                            <MessageCircle className="h-4 w-4 ml-2" />
+                            واتساب
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

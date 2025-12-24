@@ -39,8 +39,11 @@ import {
   Eye,
   Tent,
   Calendar,
+  MessageCircle,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
+import { exportToExcel, formatCampRegistrationsForExport } from "@/lib/exportToExcel";
 
 const statusLabels = {
   pending: "قيد الانتظار",
@@ -160,8 +163,27 @@ export default function CampRegistrationsManagement() {
       {/* Search and Filter */}
       <Card>
         <CardHeader>
-          <CardTitle>تسجيلات المخيمات الطبية</CardTitle>
-          <CardDescription>إدارة ومتابعة جميع تسجيلات المخيمات الطبية الخيرية</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>تسجيلات المخيمات</CardTitle>
+              <CardDescription>إدارة ومتابعة جميع تسجيلات المخيمات الطبية</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!registrations || registrations.length === 0) {
+                  toast.error("لا توجد بيانات لتصديرها");
+                  return;
+                }
+                const formattedData = formatCampRegistrationsForExport(registrations);
+                exportToExcel(formattedData, `camp-registrations-${new Date().toISOString().split('T')[0]}`, 'تسجيلات المخيمات');
+                toast.success("تم تصدير البيانات بنجاح");
+              }}
+            >
+              <Download className="h-4 w-4 ml-2" />
+              تصدير Excel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
@@ -244,18 +266,32 @@ export default function CampRegistrationsManagement() {
                         {new Date(reg.createdAt).toLocaleDateString("ar-SA")}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedRegistration(reg);
-                            setNewStatus(reg.status);
-                            setStatusDialogOpen(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4 ml-2" />
-                          عرض التفاصيل
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedRegistration(reg);
+                              setNewStatus(reg.status);
+                              setStatusDialogOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 ml-2" />
+                            عرض التفاصيل
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => {
+                              const message = `مرحباً ${reg.fullName}،\n\nشكراً لتسجيلك في المخيم الطبي الخيري. نود التواصل معك لتأكيد تسجيلك.\n\nالمستشفى السعودي الألماني - صنعاء`;
+                              window.open(`https://wa.me/${reg.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+                            }}
+                          >
+                            <MessageCircle className="h-4 w-4 ml-2" />
+                            واتساب
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
