@@ -83,3 +83,8 @@
 - [x] إصلاح مشكلة إرسال النماذج
 - [x] تحديث OfferDetailPage لاستخدام offerLeads.submit
 - [x] تحديث CampDetailPage لاستخدام campRegistrations.submit
+
+### إصلاح عاجل: Nested Anchor Tags ✅ مكتمل
+- [x] إصلاح nested `<a>` tags في Navbar - Logo
+- [x] إصلاح nested `<a>` tags في Navbar - Desktop Navigation
+- [x] إصلاح nested `<a>` tags في Navbar - Mobile Navigation

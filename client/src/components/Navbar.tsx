@@ -23,28 +23,28 @@ export default function Navbar() {
         <div className="flex items-center justify-between py-4">
           {/* Logo and Title */}
           <Link href="/">
-            <a className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
               <img src={APP_LOGO} alt={APP_TITLE} className="h-12 w-auto" />
               <div className="hidden md:block">
                 <h1 className="text-lg font-bold text-green-900">{APP_TITLE}</h1>
                 <p className="text-xs text-gray-500">نرعاكم كأهالينا</p>
               </div>
-            </a>
+            </div>
           </Link>
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-6">
             {navItems.map((item) => (
               <Link key={item.path} href={item.path}>
-                <a
-                  className={`text-sm font-medium transition-colors hover:text-green-600 ${
+                <span
+                  className={`text-sm font-medium transition-colors hover:text-green-600 cursor-pointer ${
                     location === item.path
                       ? "text-green-600 border-b-2 border-green-600 pb-1"
                       : "text-gray-700"
                   }`}
                 >
                   {item.label}
-                </a>
+                </span>
               </Link>
             ))}
           </nav>
@@ -63,15 +63,15 @@ export default function Navbar() {
         <nav className="md:hidden flex items-center gap-4 pb-3 overflow-x-auto">
           {navItems.map((item) => (
             <Link key={item.path} href={item.path}>
-              <a
-                className={`text-sm font-medium whitespace-nowrap transition-colors hover:text-green-600 ${
+              <span
+                className={`text-sm font-medium whitespace-nowrap transition-colors hover:text-green-600 cursor-pointer ${
                   location === item.path
                     ? "text-green-600 border-b-2 border-green-600 pb-1"
                     : "text-gray-700"
                 }`}
               >
                 {item.label}
-              </a>
+              </span>
             </Link>
           ))}
         </nav>
