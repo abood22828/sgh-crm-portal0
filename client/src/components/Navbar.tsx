@@ -13,6 +13,7 @@ export default function Navbar() {
   const navItems = [
     { label: "الرئيسية", path: "/" },
     { label: "الأطباء", path: "/doctors" },
+    { label: "الأطباء الزائرين", path: "/visiting-doctors" },
     { label: "العروض", path: "/offers" },
     { label: "المخيمات الطبية", path: "/camps" },
   ];

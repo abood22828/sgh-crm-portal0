@@ -192,6 +192,7 @@ export default function AdminDashboard() {
     updateAppointmentStatusMutation.mutate({
       id: selectedAppointment.id,
       status: newAppointmentStatus as any,
+      staffNotes: appointmentStatusNotes || undefined,
     });
   };
 
@@ -760,12 +761,11 @@ export default function AdminDashboard() {
                     <TableRow>
                       <TableHead className="text-right">اسم المريض</TableHead>
                       <TableHead className="text-right">الهاتف</TableHead>
-                      <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                      <TableHead className="text-right">العمر</TableHead>
                       <TableHead className="text-right">الطبيب</TableHead>
+                      <TableHead className="text-right">الإجراء</TableHead>
                       <TableHead className="text-right">التاريخ المفضل</TableHead>
-                      <TableHead className="text-right">الوقت المفضل</TableHead>
                       <TableHead className="text-right">الحالة</TableHead>
-                      <TableHead className="text-right">تاريخ التسجيل</TableHead>
                       <TableHead className="text-right">الإجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -780,13 +780,10 @@ export default function AdminDashboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {appointment.email ? (
-                            <div className="flex items-center gap-2">
-                              <Mail className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm" dir="ltr">{appointment.email}</span>
-                            </div>
+                          {appointment.age ? (
+                            <span className="font-medium">{appointment.age} سنة</span>
                           ) : (
-                            <span className="text-muted-foreground text-sm">غير متوفر</span>
+                            <span className="text-muted-foreground text-sm">غير محدد</span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -798,10 +795,14 @@ export default function AdminDashboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {appointment.preferredDate || <span className="text-muted-foreground text-sm">غير محدد</span>}
+                          {appointment.procedure ? (
+                            <span className="text-sm">{appointment.procedure}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">غير محدد</span>
+                          )}
                         </TableCell>
                         <TableCell>
-                          {appointment.preferredTime || <span className="text-muted-foreground text-sm">غير محدد</span>}
+                          {appointment.preferredDate || <span className="text-muted-foreground text-sm">غير محدد</span>}
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -988,9 +989,15 @@ export default function AdminDashboard() {
                   {selectedAppointment.email && (
                     <p className="text-sm"><span className="font-semibold">البريد:</span> {selectedAppointment.email}</p>
                   )}
+                  {selectedAppointment.age && (
+                    <p className="text-sm"><span className="font-semibold">العمر:</span> {selectedAppointment.age} سنة</p>
+                  )}
                   <p className="text-sm"><span className="font-semibold">الطبيب:</span> {selectedAppointment.doctorName || `طبيب #${selectedAppointment.doctorId}`}</p>
                   {selectedAppointment.doctorSpecialty && (
                     <p className="text-sm"><span className="font-semibold">التخصص:</span> {selectedAppointment.doctorSpecialty}</p>
+                  )}
+                  {selectedAppointment.procedure && (
+                    <p className="text-sm"><span className="font-semibold">الإجراء المطلوب:</span> {selectedAppointment.procedure}</p>
                   )}
                   {selectedAppointment.preferredDate && (
                     <p className="text-sm"><span className="font-semibold">التاريخ المفضل:</span> {selectedAppointment.preferredDate}</p>
@@ -998,8 +1005,11 @@ export default function AdminDashboard() {
                   {selectedAppointment.preferredTime && (
                     <p className="text-sm"><span className="font-semibold">الوقت المفضل:</span> {selectedAppointment.preferredTime}</p>
                   )}
-                  {selectedAppointment.notes && (
-                    <p className="text-sm"><span className="font-semibold">ملاحظات:</span> {selectedAppointment.notes}</p>
+                  {selectedAppointment.additionalNotes && (
+                    <p className="text-sm"><span className="font-semibold">ملاحظات المريض:</span> {selectedAppointment.additionalNotes}</p>
+                  )}
+                  {selectedAppointment.staffNotes && (
+                    <p className="text-sm"><span className="font-semibold">ملاحظات الموظف:</span> {selectedAppointment.staffNotes}</p>
                   )}
                 </div>
               </div>
@@ -1017,6 +1027,17 @@ export default function AdminDashboard() {
                     <SelectItem value="completed">مكتمل</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="appointment-staff-notes">ملاحظات الموظف (اختياري)</Label>
+                <Textarea
+                  id="appointment-staff-notes"
+                  placeholder="أضف أي ملاحظات حول هذا الموعد..."
+                  value={appointmentStatusNotes}
+                  onChange={(e) => setAppointmentStatusNotes(e.target.value)}
+                  rows={3}
+                />
               </div>
 
               <div className="flex gap-2 justify-end pt-4">

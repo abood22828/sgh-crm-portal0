@@ -319,9 +319,11 @@ export const appRouter = router({
         phone: z.string(),
         email: z.string().optional(),
         doctorId: z.number(),
+        age: z.number().optional(),
+        procedure: z.string().optional(),
         preferredDate: z.string().optional(),
         preferredTime: z.string().optional(),
-        notes: z.string().optional(),
+        additionalNotes: z.string().optional(),
         campaignSlug: z.string(),
         utmSource: z.string().optional(),
         utmMedium: z.string().optional(),
@@ -342,9 +344,11 @@ export const appRouter = router({
           fullName: input.fullName,
           phone: input.phone,
           email: input.email,
+          age: input.age,
+          procedure: input.procedure,
           preferredDate: input.preferredDate,
           preferredTime: input.preferredTime,
-          notes: input.notes,
+          additionalNotes: input.additionalNotes,
           status: "pending",
           utmSource: input.utmSource,
           utmMedium: input.utmMedium,
@@ -400,9 +404,10 @@ export const appRouter = router({
       .input(z.object({
         id: z.number(),
         status: z.string(),
+        staffNotes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        await updateAppointmentStatus(input.id, input.status);
+        await updateAppointmentStatus(input.id, input.status, input.staffNotes);
         return { success: true };
       }),
   }),

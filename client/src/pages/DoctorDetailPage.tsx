@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -31,12 +32,19 @@ export default function DoctorDetailPage() {
     fullName: "",
     phone: "",
     email: "",
+    age: "",
+    procedure: "",
     preferredDate: "",
     preferredTime: "",
-    notes: "",
+    additionalNotes: "",
   });
 
   const [submitted, setSubmitted] = useState(false);
+
+  // Parse procedures from doctor data (comma-separated string)
+  const availableProcedures = doctor?.procedures 
+    ? doctor.procedures.split(',').map(p => p.trim()).filter(Boolean)
+    : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +60,11 @@ export default function DoctorDetailPage() {
         fullName: formData.fullName,
         phone: formData.phone,
         email: formData.email || undefined,
+        age: formData.age ? parseInt(formData.age) : undefined,
+        procedure: formData.procedure || undefined,
         preferredDate: formData.preferredDate,
         preferredTime: formData.preferredTime || undefined,
-        notes: formData.notes || undefined,
+        additionalNotes: formData.additionalNotes || undefined,
         campaignSlug: `doctor-${slug}`,
       });
 
@@ -66,9 +76,11 @@ export default function DoctorDetailPage() {
         fullName: "",
         phone: "",
         email: "",
+        age: "",
+        procedure: "",
         preferredDate: "",
         preferredTime: "",
-        notes: "",
+        additionalNotes: "",
       });
     } catch (error) {
       toast.error("حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى");
@@ -285,19 +297,38 @@ export default function DoctorDetailPage() {
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="phone" className="text-base">
-                      رقم الهاتف *
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      required
-                      placeholder="مثال: 771234567"
-                      className="mt-1"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="phone" className="text-base">
+                        رقم الهاتف *
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        required
+                        placeholder="مثال: 771234567"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="age" className="text-base">
+                        العمر *
+                      </Label>
+                      <Input
+                        id="age"
+                        type="number"
+                        min="1"
+                        max="150"
+                        value={formData.age}
+                        onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                        required
+                        placeholder="مثال: 30"
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -313,6 +344,29 @@ export default function DoctorDetailPage() {
                       className="mt-1"
                     />
                   </div>
+
+                  {availableProcedures.length > 0 && (
+                    <div>
+                      <Label htmlFor="procedure" className="text-base">
+                        الإجراء المطلوب (اختياري)
+                      </Label>
+                      <Select
+                        value={formData.procedure}
+                        onValueChange={(value) => setFormData({ ...formData, procedure: value })}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="اختر الإجراء المطلوب" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableProcedures.map((proc, index) => (
+                            <SelectItem key={index} value={proc}>
+                              {proc}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -349,14 +403,14 @@ export default function DoctorDetailPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="notes" className="text-base">
+                    <Label htmlFor="additionalNotes" className="text-base">
                       ملاحظات إضافية (اختياري)
                     </Label>
                     <Textarea
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      placeholder="أي معلومات إضافية تود إخبارنا بها"
+                      id="additionalNotes"
+                      value={formData.additionalNotes}
+                      onChange={(e) => setFormData({ ...formData, additionalNotes: e.target.value })}
+                      placeholder="أي معلومات إضافية تود إخبارنا بها (مثل: الأعراض، التاريخ المرضي، إلخ)"
                       rows={4}
                       className="mt-1"
                     />

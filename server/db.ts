@@ -377,9 +377,12 @@ export async function getAllAppointments() {
       fullName: appointments.fullName,
       phone: appointments.phone,
       email: appointments.email,
+      age: appointments.age,
+      procedure: appointments.procedure,
       preferredDate: appointments.preferredDate,
       preferredTime: appointments.preferredTime,
-      notes: appointments.notes,
+      additionalNotes: appointments.additionalNotes,
+      staffNotes: appointments.staffNotes,
       status: appointments.status,
       utmSource: appointments.utmSource,
       utmMedium: appointments.utmMedium,
@@ -396,7 +399,7 @@ export async function getAllAppointments() {
   return result;
 }
 
-export async function updateAppointmentStatus(id: number, status: string) {
+export async function updateAppointmentStatus(id: number, status: string, staffNotes?: string) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot update appointment: database not available");
@@ -404,7 +407,11 @@ export async function updateAppointmentStatus(id: number, status: string) {
   }
 
   try {
-    await db.update(appointments).set({ status: status as any }).where(eq(appointments.id, id));
+    const updateData: any = { status: status as any };
+    if (staffNotes !== undefined) {
+      updateData.staffNotes = staffNotes;
+    }
+    await db.update(appointments).set(updateData).where(eq(appointments.id, id));
   } catch (error) {
     console.error("[Database] Failed to update appointment:", error);
     throw error;

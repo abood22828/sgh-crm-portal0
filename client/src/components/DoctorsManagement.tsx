@@ -58,6 +58,8 @@ export default function DoctorsManagement() {
     experience: "",
     languages: "",
     consultationFee: "",
+    procedures: "",
+    isVisiting: "no" as "yes" | "no",
     available: "yes" as "yes" | "no",
   });
 
@@ -132,6 +134,8 @@ export default function DoctorsManagement() {
       experience: "",
       languages: "",
       consultationFee: "",
+      procedures: "",
+      isVisiting: "no",
       available: "yes",
     });
     setEditingDoctor(null);
@@ -149,6 +153,8 @@ export default function DoctorsManagement() {
         experience: doctor.experience || "",
         languages: doctor.languages || "",
         consultationFee: doctor.consultationFee || "",
+        procedures: doctor.procedures || "",
+        isVisiting: doctor.isVisiting || "no",
         available: doctor.available || "yes",
       });
     } else {
@@ -467,6 +473,38 @@ export default function DoctorsManagement() {
                 onChange={(e) => setFormData({ ...formData, consultationFee: e.target.value })}
                 placeholder="200 ريال"
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="procedures">الإجراءات المتاحة (فصل بفاصلة)</Label>
+              <Textarea
+                id="procedures"
+                value={formData.procedures}
+                onChange={(e) => setFormData({ ...formData, procedures: e.target.value })}
+                placeholder="مثال: كشف عام, تخطيط قلب, إيكو على القلب"
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                سيتم عرضها في نموذج الحجز كخيارات للمريض
+              </p>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="isVisiting">طبيب زائر</Label>
+              <Select
+                value={formData.isVisiting}
+                onValueChange={(value: "yes" | "no") =>
+                  setFormData({ ...formData, isVisiting: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="no">لا</SelectItem>
+                  <SelectItem value="yes">نعم</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid gap-2">

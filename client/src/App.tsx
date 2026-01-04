@@ -19,6 +19,7 @@ import DoctorDetailPage from "./pages/DoctorDetailPage";
 import OfferDetailPage from "./pages/OfferDetailPage";
 import CampDetailPage from "./pages/CampDetailPage";
 import SocialMediaReports from "./pages/SocialMediaReports";
+import VisitingDoctors from "./pages/VisitingDoctors";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -27,6 +28,7 @@ function Router() {
       <Route path={"/"} component={HomePage} />
       <Route path="/campaign/:slug" component={CampaignLanding} />
       <Route path={"/doctors"} component={Doctors} />
+      <Route path={"/visiting-doctors"} component={VisitingDoctors} />
       <Route path={"/book-appointment"} component={DoctorAppointments} />
       <Route path={"/doctors/:slug"} component={DoctorDetailPage} />
       <Route path={"/offers"} component={OffersListPage} />
