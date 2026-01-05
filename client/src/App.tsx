@@ -20,6 +20,7 @@ import OfferDetailPage from "./pages/OfferDetailPage";
 import CampDetailPage from "./pages/CampDetailPage";
 import SocialMediaReports from "./pages/SocialMediaReports";
 import VisitingDoctors from "./pages/VisitingDoctors";
+import PWAManager from "./components/PWAManager";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -62,6 +63,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
+          <PWAManager />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

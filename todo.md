@@ -225,3 +225,19 @@
 
 #### الشريط أعلى الصفحة
 - [x] header محسّن مسبقاً في التحديث السابق
+
+### تحويل المنصة إلى PWA ✅ مكتمل
+- [x] إنشاء manifest.json مع البيانات الأساسية (name, icons, theme_color, shortcuts)
+- [x] إنشاء أيقونات PWA بأحجام مختلفة (72-512px)
+- [x] إنشاء favicon.ico و apple-touch-icon.png
+- [x] إنشاء Service Worker (sw.js) لدعم offline caching
+- [x] إضافة استراتيجية cache-first للملفات الثابتة
+- [x] إضافة network-first للصفحات
+- [x] إضافة دعم Push Notifications API
+- [x] إضافة notification click handler
+- [x] تحديث index.html بـ PWA meta tags و manifest link
+- [x] إنشاء PWAManager component
+- [x] إضافة زر تثبيت عائم (floating button)
+- [x] إضافة dialog للتثبيت بعد 30 ثانية
+- [x] إضافة زر تفعيل الإشعارات
+- [x] دمج PWAManager في App.tsx
