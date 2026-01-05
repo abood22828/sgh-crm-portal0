@@ -1,0 +1,8 @@
+{
+  "query": "UPDATE doctors SET isVisiting = CASE WHEN isVisiting = 1 THEN 'yes' ELSE 'no' END;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute UPDATE doctors SET isVisiting = CASE WHEN isVisiting = 1 THEN 'yes' ELSE 'no' END;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1292 (22007) at line 1: Truncated incorrect DOUBLE value: '?'"
+  ]
+}

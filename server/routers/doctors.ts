@@ -48,6 +48,8 @@ export const doctorsRouter = router({
         experience: z.string().optional(),
         languages: z.string().optional(),
         consultationFee: z.string().optional(),
+        procedures: z.string().optional(),
+        isVisiting: z.enum(["yes", "no"]).default("no"),
         available: z.enum(["yes", "no"]).default("yes"),
       })
     )
@@ -73,6 +75,8 @@ export const doctorsRouter = router({
         experience: z.string().optional(),
         languages: z.string().optional(),
         consultationFee: z.string().optional(),
+        procedures: z.string().optional(),
+        isVisiting: z.enum(["yes", "no"]),
         available: z.enum(["yes", "no"]),
       })
     )

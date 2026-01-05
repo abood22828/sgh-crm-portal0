@@ -71,6 +71,13 @@
       "when": 1767373617898,
       "tag": "0009_regular_risque",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1767629690854,
+      "tag": "0010_puzzling_warpath",
+      "breakpoints": true
     }
   ]
 }

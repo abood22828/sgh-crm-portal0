@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE doctors SET isVisiting = 0 WHERE isVisiting != 0;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute UPDATE doctors SET isVisiting = 0 WHERE isVisiting != 0;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 63
+}

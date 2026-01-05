@@ -174,3 +174,10 @@
 - [x] الأعمدة في doctors (procedures, isVisiting) موجودة مسبقاً
 - [x] إصلاح خطأ "Campaign not found" - إنشاء campaign تلقائياً
 - [x] إصلاح أخطاء TypeScript
+
+### إصلاح حقل "طبيب زائر" ✅ مكتمل
+- [x] فحص DoctorsManagement component وحقل isVisiting
+- [x] فحص doctors.create و doctors.update في server/routers/doctors.ts
+- [x] إضافة procedures و isVisiting إلى input schema
+- [x] تغيير isVisiting في schema.ts من boolean إلى mysqlEnum
+- [x] تحديث قاعدة البيانات (حذف وإعادة إضافة العمود)

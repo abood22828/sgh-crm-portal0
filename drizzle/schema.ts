@@ -113,7 +113,7 @@ export const doctors = mysqlTable("doctors", {
   languages: varchar("languages", { length: 255 }),
   consultationFee: varchar("consultationFee", { length: 100 }),
   procedures: text("procedures"), // JSON array of available procedures
-  isVisiting: boolean("isVisiting").default(false).notNull(), // Visiting doctor flag
+  isVisiting: mysqlEnum("isVisiting", ["yes", "no"]).default("no").notNull(), // Visiting doctor flag
   available: mysqlEnum("available", ["yes", "no"]).default("yes").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
