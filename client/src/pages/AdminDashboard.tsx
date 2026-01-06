@@ -80,6 +80,7 @@ export default function AdminDashboard() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [statusNotes, setStatusNotes] = useState("");
+  const [leadsDateFilter, setLeadsDateFilter] = useState("all");
   const [activeTab, setActiveTab] = useState<"leads" | "requests" | "appointments" | "offerLeads" | "campRegistrations" | "offers" | "camps" | "doctors">("leads");
 
   const { data: accessRequests, refetch: refetchRequests } = trpc.accessRequests.pending.useQuery();
@@ -107,12 +108,15 @@ export default function AdminDashboard() {
   const { data: leads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.list.useQuery();
   const { data: stats } = trpc.leads.stats.useQuery();
   const { data: appointments, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.list.useQuery();
+  const { data: doctors = [] } = trpc.doctors.list.useQuery();
   
   const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
   const [newAppointmentStatus, setNewAppointmentStatus] = useState("");
   const [appointmentStatusNotes, setAppointmentStatusNotes] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
 
   const updateStatusMutation = trpc.leads.updateStatus.useMutation({
     onSuccess: () => {
@@ -144,29 +148,92 @@ export default function AdminDashboard() {
 
   const filteredLeads = useMemo(() => {
     if (!leads) return [];
-    if (!searchTerm) return leads;
     
-    const term = searchTerm.toLowerCase();
-    return leads.filter(
-      (lead) =>
-        lead.fullName.toLowerCase().includes(term) ||
-        lead.phone.includes(term) ||
-        (lead.email && lead.email.toLowerCase().includes(term))
-    );
-  }, [leads, searchTerm]);
+    let filtered = leads;
+    
+    // Filter by search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (lead) =>
+          lead.fullName.toLowerCase().includes(term) ||
+          lead.phone.includes(term) ||
+          (lead.email && lead.email.toLowerCase().includes(term))
+      );
+    }
+    
+    // Filter by date
+    if (leadsDateFilter && leadsDateFilter !== "all") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter(lead => {
+        const leadDate = new Date(lead.createdAt);
+        
+        if (leadsDateFilter === "today") {
+          return leadDate >= today;
+        } else if (leadsDateFilter === "week") {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return leadDate >= weekAgo;
+        } else if (leadsDateFilter === "month") {
+          const monthAgo = new Date(today);
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          return leadDate >= monthAgo;
+        }
+        return true;
+      });
+    }
+    
+    return filtered;
+  }, [leads, searchTerm, leadsDateFilter]);
 
   const filteredAppointments = useMemo(() => {
     if (!appointments) return [];
-    if (!appointmentSearchTerm) return appointments;
     
-    const term = appointmentSearchTerm.toLowerCase();
-    return appointments.filter(
-      (apt) =>
-        apt.fullName.toLowerCase().includes(term) ||
-        apt.phone.includes(term) ||
-        (apt.email && apt.email.toLowerCase().includes(term))
-    );
-  }, [appointments, appointmentSearchTerm]);
+    let filtered = appointments;
+    
+    // Filter by search term
+    if (appointmentSearchTerm) {
+      const term = appointmentSearchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (apt) =>
+          apt.fullName.toLowerCase().includes(term) ||
+          apt.phone.includes(term) ||
+          (apt.email && apt.email.toLowerCase().includes(term))
+      );
+    }
+    
+    // Filter by doctor
+    if (selectedDoctor && selectedDoctor !== "all") {
+      filtered = filtered.filter(apt => apt.doctorId === parseInt(selectedDoctor));
+    }
+    
+    // Filter by date
+    if (dateFilter && dateFilter !== "all") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter(apt => {
+        const aptDate = new Date(apt.createdAt);
+        
+        if (dateFilter === "today") {
+          return aptDate >= today;
+        } else if (dateFilter === "week") {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return aptDate >= weekAgo;
+        } else if (dateFilter === "month") {
+          const monthAgo = new Date(today);
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          return aptDate >= monthAgo;
+        }
+        return true;
+      });
+    }
+    
+    return filtered;
+  }, [appointments, appointmentSearchTerm, selectedDoctor, dateFilter]);
 
   const appointmentStats = useMemo(() => {
     if (!appointments) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
@@ -463,7 +530,7 @@ export default function AdminDashboard() {
                 <CardTitle>قائمة العملاء المسجلين</CardTitle>
                 <CardDescription>إدارة ومتابعة جميع العملاء المسجلين في الحملات</CardDescription>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 mt-4 sm:mt-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mt-4 sm:mt-0">
                 <div className="flex-1 max-w-md">
                   <div className="relative">
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -475,6 +542,17 @@ export default function AdminDashboard() {
                     />
                   </div>
                 </div>
+                <Select value={leadsDateFilter} onValueChange={setLeadsDateFilter}>
+                  <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
+                    <SelectValue placeholder="كل الفترات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الفترات</SelectItem>
+                    <SelectItem value="today">اليوم</SelectItem>
+                    <SelectItem value="week">هذا الأسبوع</SelectItem>
+                    <SelectItem value="month">هذا الشهر</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="outline"
                   size="sm"
@@ -715,17 +793,41 @@ export default function AdminDashboard() {
                 <CardTitle>مواعيد الأطباء</CardTitle>
                 <CardDescription>إدارة ومتابعة جميع مواعيد حجز الأطباء</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="relative">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mt-4 sm:mt-0">
+                <div className="relative flex-1 max-w-md">
                   <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="بحث بالاسم، الهاتف، أو البريد..."
                     value={appointmentSearchTerm}
                     onChange={(e) => setAppointmentSearchTerm(e.target.value)}
-                    className="pr-10 w-80"
+                    className="pr-10 h-9 md:h-10"
                   />
                 </div>
+                <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+                  <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10">
+                    <SelectValue placeholder="كل الأطباء" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الأطباء</SelectItem>
+                    {doctors.map((doctor) => (
+                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                        {doctor.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
+                    <SelectValue placeholder="كل الفترات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الفترات</SelectItem>
+                    <SelectItem value="today">اليوم</SelectItem>
+                    <SelectItem value="week">هذا الأسبوع</SelectItem>
+                    <SelectItem value="month">هذا الشهر</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="outline"
                   size="sm"

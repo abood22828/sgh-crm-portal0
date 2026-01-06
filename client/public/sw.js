@@ -1,14 +1,18 @@
 // Service Worker for SGH CRM Portal PWA
-const CACHE_NAME = 'sgh-crm-v1';
-const RUNTIME_CACHE = 'sgh-runtime-v1';
+const CACHE_NAME = 'sgh-crm-v2';
+const RUNTIME_CACHE = 'sgh-runtime-v2';
+const OFFLINE_URL = '/offline';
 
 // Files to cache immediately on install
 const PRECACHE_URLS = [
-  '/',
+  '/dashboard',
+  '/offline',
   '/index.html',
   '/manifest.json',
   '/icon-192x192.png',
   '/icon-512x512.png',
+  '/apple-touch-icon.png',
+  '/favicon.ico',
 ];
 
 // Install event - cache essential files
@@ -77,7 +81,7 @@ self.addEventListener('fetch', (event) => {
                 return cachedResponse;
               }
               // Return offline page if available
-              return caches.match('/');
+              return caches.match(OFFLINE_URL);
             });
         })
     );
@@ -160,8 +164,80 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncAppointments() {
-  // Placeholder for syncing appointments when back online
-  console.log('[SW] Syncing appointments...');
+  try {
+    console.log('[SW] Syncing appointments...');
+    
+    // Open IndexedDB
+    const db = await openDB();
+    const pendingAppointments = await getPendingAppointments(db);
+    
+    if (pendingAppointments.length === 0) {
+      console.log('[SW] No pending appointments to sync');
+      return;
+    }
+    
+    // Sync each pending appointment
+    for (const appointment of pendingAppointments) {
+      try {
+        const response = await fetch('/api/trpc/appointments.submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(appointment.data),
+        });
+        
+        if (response.ok) {
+          // Remove from pending queue
+          await removeAppointment(db, appointment.id);
+          console.log('[SW] Synced appointment:', appointment.id);
+        }
+      } catch (error) {
+        console.error('[SW] Failed to sync appointment:', appointment.id, error);
+      }
+    }
+    
+    console.log('[SW] Sync complete');
+  } catch (error) {
+    console.error('[SW] Sync failed:', error);
+  }
+}
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('SGH_CRM_DB', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('appointments')) {
+        db.createObjectStore('appointments', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('pendingSync')) {
+        db.createObjectStore('pendingSync', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
+
+function getPendingAppointments(db) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['pendingSync'], 'readonly');
+    const store = transaction.objectStore('pendingSync');
+    const request = store.getAll();
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+  });
+}
+
+function removeAppointment(db, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['pendingSync'], 'readwrite');
+    const store = transaction.objectStore('pendingSync');
+    const request = store.delete(id);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve();
+  });
 }
 
 // Message event - for communication with clients

@@ -67,6 +67,7 @@ export default function CampRegistrationsManagement() {
   const [selectedRegistration, setSelectedRegistration] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
+  const [dateFilter, setDateFilter] = useState("all");
 
   const { data: registrations, isLoading, refetch } = trpc.campRegistrations.list.useQuery();
   const { data: stats } = trpc.campRegistrations.stats.useQuery();
@@ -115,8 +116,31 @@ export default function CampRegistrationsManagement() {
       );
     }
     
+    // Filter by date
+    if (dateFilter && dateFilter !== "all") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter((reg: any) => {
+        const regDate = new Date(reg.createdAt);
+        
+        if (dateFilter === "today") {
+          return regDate >= today;
+        } else if (dateFilter === "week") {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return regDate >= weekAgo;
+        } else if (dateFilter === "month") {
+          const monthAgo = new Date(today);
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          return regDate >= monthAgo;
+        }
+        return true;
+      });
+    }
+    
     return filtered;
-  }, [registrations, searchTerm, selectedCamp]);
+  }, [registrations, searchTerm, selectedCamp, dateFilter]);
 
   const handleStatusUpdate = () => {
     if (!selectedRegistration || !newStatus) return;
@@ -210,18 +234,18 @@ export default function CampRegistrationsManagement() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="البحث بالاسم، الهاتف، أو البريد الإلكتروني..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
+                className="pr-10 h-9 md:h-10"
               />
             </div>
             <Select value={selectedCamp} onValueChange={setSelectedCamp}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10">
                 <SelectValue placeholder="فلترة حسب المخيم" />
               </SelectTrigger>
               <SelectContent>
@@ -231,6 +255,17 @@ export default function CampRegistrationsManagement() {
                     {camp.name}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
+                <SelectValue placeholder="كل الفترات" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الفترات</SelectItem>
+                <SelectItem value="today">اليوم</SelectItem>
+                <SelectItem value="week">هذا الأسبوع</SelectItem>
+                <SelectItem value="month">هذا الشهر</SelectItem>
               </SelectContent>
             </Select>
           </div>

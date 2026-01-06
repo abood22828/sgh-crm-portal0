@@ -16,8 +16,18 @@ export default function PWAManager() {
   const [showInstallDialog, setShowInstallDialog] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
+  const [isDashboard, setIsDashboard] = useState(false);
 
   useEffect(() => {
+    // Check if we're on dashboard route
+    const checkRoute = () => {
+      setIsDashboard(window.location.pathname.startsWith('/dashboard'));
+    };
+    checkRoute();
+    
+    // Listen for route changes
+    window.addEventListener('popstate', checkRoute);
+    
     // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
@@ -77,6 +87,7 @@ export default function PWAManager() {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('popstate', checkRoute);
     };
   }, [isInstalled]);
 
@@ -163,6 +174,11 @@ export default function PWAManager() {
       outputArray[i] = rawData.charCodeAt(i);
     }
     return outputArray;
+  }
+
+  // Don't render PWA features if not on dashboard
+  if (!isDashboard) {
+    return null;
   }
 
   return (
