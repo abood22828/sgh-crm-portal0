@@ -242,39 +242,60 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" dir="rtl">
       {/* Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="container py-3 md:py-4">
+          <div className="flex items-center justify-between gap-2">
+            {/* Logo and Title */}
+            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
               <img 
                 src="/assets/logo-color.png" 
                 alt="المستشفى السعودي الألماني" 
-                className="h-12"
+                className="h-10 md:h-12 flex-shrink-0"
               />
-              <div>
-                <h1 className="text-xl font-bold text-foreground">لوحة التحكم الإدارية</h1>
-                <p className="text-sm text-muted-foreground">إدارة حملات التسويق والعملاء</p>
+              <div className="min-w-0">
+                <h1 className="text-base md:text-xl font-bold text-foreground truncate">لوحة التحكم الإدارية</h1>
+                <p className="text-xs md:text-sm text-muted-foreground hidden sm:block truncate">إدارة حملات التسويق والعملاء</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 md:gap-4">
-              <div className="text-left hidden md:block">
-                <p className="text-sm font-semibold">{user.name}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
+            
+            {/* Actions */}
+            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+              {/* User Info - Desktop Only */}
+              <div className="text-left hidden lg:block">
+                <p className="text-sm font-semibold truncate max-w-[150px]">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate max-w-[150px]">{user.email}</p>
               </div>
+              
+              {/* Social Media Reports - Desktop Only */}
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => setLocation("/reports/social-media")}
-                className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200 hidden lg:flex"
+                className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200 hidden xl:flex"
               >
                 <BarChart3 className="w-4 h-4 ml-2" />
-                تقارير السوشيال ميديا
+                <span className="hidden 2xl:inline">تقارير السوشيال ميديا</span>
+                <span className="xl:inline 2xl:hidden">تقارير</span>
               </Button>
+              
+              {/* Manual Registration */}
               <ManualRegistrationForm />
-              <Button variant="outline" size="sm" onClick={handleLogout} className="hidden md:flex">
-                <LogOut className="w-4 h-4 ml-2" />
-                تسجيل الخروج
+              
+              {/* Logout Button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLogout} 
+                className="hidden sm:flex"
+              >
+                <LogOut className="w-4 h-4 md:ml-2" />
+                <span className="hidden md:inline">تسجيل الخروج</span>
               </Button>
-              <Button variant="outline" size="icon" onClick={handleLogout} className="md:hidden">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={handleLogout} 
+                className="sm:hidden h-9 w-9"
+              >
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -1222,17 +1243,44 @@ function OffersManagement() {
     setShowAddDialog(true);
   };
 
+  // Calculate stats
+  const totalOffers = offers?.length || 0;
+  const activeOffers = offers?.filter(o => o.isActive === true).length || 0;
+  const inactiveOffers = offers?.filter(o => o.isActive === false).length || 0;
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <CardTitle>إدارة العروض الطبية</CardTitle>
             <CardDescription>إضافة وتعديل وحذف العروض الطبية</CardDescription>
           </div>
-          <Button onClick={() => { resetForm(); setEditingOffer(null); setShowAddDialog(true); }}>
+          <Button onClick={() => { resetForm(); setEditingOffer(null); setShowAddDialog(true); }} className="w-full sm:w-auto">
             إضافة عرض جديد
           </Button>
+        </div>
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-3 gap-3 mt-4">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-3 md:p-4">
+              <div className="text-xs md:text-sm text-blue-700 mb-1">إجمالي العروض</div>
+              <div className="text-xl md:text-2xl font-bold text-blue-900">{totalOffers}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-3 md:p-4">
+              <div className="text-xs md:text-sm text-green-700 mb-1">عروض نشطة</div>
+              <div className="text-xl md:text-2xl font-bold text-green-900">{activeOffers}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+            <CardContent className="p-3 md:p-4">
+              <div className="text-xs md:text-sm text-gray-700 mb-1">عروض غير نشطة</div>
+              <div className="text-xl md:text-2xl font-bold text-gray-900">{inactiveOffers}</div>
+            </CardContent>
+          </Card>
         </div>
       </CardHeader>
       <CardContent>
@@ -1499,17 +1547,44 @@ function CampsManagement() {
     setShowAddDialog(true);
   };
 
+  // Calculate stats
+  const totalCamps = camps?.length || 0;
+  const activeCamps = camps?.filter(c => c.isActive === true).length || 0;
+  const inactiveCamps = camps?.filter(c => c.isActive === false).length || 0;
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <CardTitle>إدارة المخيمات الطبية</CardTitle>
             <CardDescription>إضافة وتعديل وحذف المخيمات الطبية</CardDescription>
           </div>
-          <Button onClick={() => { resetForm(); setEditingCamp(null); setShowAddDialog(true); }}>
+          <Button onClick={() => { resetForm(); setEditingCamp(null); setShowAddDialog(true); }} className="w-full sm:w-auto">
             إضافة مخيم جديد
           </Button>
+        </div>
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-3 gap-3 mt-4">
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardContent className="p-3 md:p-4">
+              <div className="text-xs md:text-sm text-purple-700 mb-1">إجمالي المخيمات</div>
+              <div className="text-xl md:text-2xl font-bold text-purple-900">{totalCamps}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-3 md:p-4">
+              <div className="text-xs md:text-sm text-green-700 mb-1">مخيمات نشطة</div>
+              <div className="text-xl md:text-2xl font-bold text-green-900">{activeCamps}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+            <CardContent className="p-3 md:p-4">
+              <div className="text-xs md:text-sm text-gray-700 mb-1">مخيمات غير نشطة</div>
+              <div className="text-xl md:text-2xl font-bold text-gray-900">{inactiveCamps}</div>
+            </CardContent>
+          </Card>
         </div>
       </CardHeader>
       <CardContent>
