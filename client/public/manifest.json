@@ -1,13 +1,13 @@
 {
-  "name": "لوحة التحكم - المستشفى السعودي الألماني",
-  "short_name": "SGH إدارة",
-  "description": "لوحة التحكم الإدارية للمستشفى السعودي الألماني - صنعاء. إدارة الحجوزات والمواعيد",
-  "start_url": "/dashboard",
+  "name": "منصة الحجز - المستشفى السعودي الألماني",
+  "short_name": "SGH صنعاء",
+  "description": "منصة الحجز الإلكترونية للمستشفى السعودي الألماني - صنعاء. احجز موعدك مع أفضل الأطباء",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#00A651",
   "orientation": "portrait-primary",
-  "scope": "/dashboard",
+  "scope": "/",
   "lang": "ar",
   "dir": "rtl",
   "icons": [

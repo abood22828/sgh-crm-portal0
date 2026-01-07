@@ -288,3 +288,11 @@
 - [x] تحديث vite.config.ts لإصلاح WebSocket connection في sandbox
 - [x] إضافة server.hmr configuration (protocol: wss, clientPort: 443)
 - [x] إعادة تشغيل dev server وتطبيق الإعدادات الجديدة
+
+### إصلاح PWA 404 عند فتح التطبيق ✅ مكتمل
+- [x] تحليل المشكلة: start_url=/dashboard يتطلب تسجيل دخول → 404
+- [x] تغيير start_url في manifest.json من /dashboard إلى /
+- [x] تغيير scope في manifest.json من /dashboard إلى /
+- [x] تحديث اسم ووصف التطبيق ليكون عام (منصة الحجز)
+- [x] إضافة auto-redirect في HomePage: إذا admin مسجل دخول → /dashboard
+- [x] إضافة loading state أثناء فحص المصادقة

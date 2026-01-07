@@ -10,9 +10,26 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { APP_LOGO, APP_TITLE } from "@/const";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useEffect } from "react";
 
 export default function HomePage() {
+  const { isAuthenticated, user, loading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  // Auto-redirect authenticated admins to dashboard
+  useEffect(() => {
+    if (!loading && isAuthenticated && user?.role === 'admin') {
+      setLocation('/dashboard');
+    }
+  }, [loading, isAuthenticated, user, setLocation]);
+
+  // Show nothing while checking auth or redirecting
+  if (loading || (isAuthenticated && user?.role === 'admin')) {
+    return null;
+  }
+
   const services = [
     {
       icon: Stethoscope,
