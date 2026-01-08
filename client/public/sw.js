@@ -1,13 +1,12 @@
 // Service Worker for SGH CRM Portal PWA
-const CACHE_NAME = 'sgh-crm-v2';
-const RUNTIME_CACHE = 'sgh-runtime-v2';
+const CACHE_NAME = 'sgh-crm-v3';
+const RUNTIME_CACHE = 'sgh-runtime-v3';
 const OFFLINE_URL = '/offline';
 
 // Files to cache immediately on install
 const PRECACHE_URLS = [
-  '/dashboard',
+  '/',
   '/offline',
-  '/index.html',
   '/manifest.json',
   '/icon-192x192.png',
   '/icon-512x512.png',

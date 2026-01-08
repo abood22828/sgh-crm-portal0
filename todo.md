@@ -320,3 +320,10 @@
 - [x] تحسين Doctors Grid: grid-cols-2 sm:grid-cols-3 md:grid-cols-4
 - [x] تحسين Doctor Cards: line-clamp للأسماء الطويلة
 - [x] تحسين Form: text-xl sm:text-2xl md:text-3xl
+
+### إصلاح PWA 404 بسبب Caching ✅ مكتمل
+- [x] تحديث Service Worker CACHE_NAME: v2 → v3
+- [x] تحديث RUNTIME_CACHE: v2 → v3
+- [x] تغيير PRECACHE_URLS: /dashboard → /
+- [x] activate event يحذف old caches تلقائياً
+- [x] manifest.json صحيح: start_url="/", scope="/"
