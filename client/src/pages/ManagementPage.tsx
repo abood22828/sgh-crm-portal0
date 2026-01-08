@@ -7,8 +7,8 @@ import { LogOut, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import DashboardSidebar from "@/components/DashboardSidebar";
-import OfferLeadsManagement from "@/components/OfferLeadsManagement";
-import CampRegistrationsManagement from "@/components/CampRegistrationsManagement";
+import OffersManagement from "@/components/OffersManagement";
+import CampsManagement from "@/components/CampsManagement";
 import DoctorsManagement from "@/components/DoctorsManagement";
 
 export default function ManagementPage() {
@@ -113,11 +113,11 @@ export default function ManagementPage() {
             </TabsList>
             
             <TabsContent value="offers" className="space-y-6">
-              <OfferLeadsManagement />
+              <OffersManagement />
             </TabsContent>
             
             <TabsContent value="camps" className="space-y-6">
-              <CampRegistrationsManagement />
+              <CampsManagement />
             </TabsContent>
             
             <TabsContent value="doctors" className="space-y-6">

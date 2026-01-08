@@ -175,10 +175,11 @@ export default function ManualRegistrationForm() {
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          <PhoneIcon className="h-4 w-4" />
-          تسجيل يدوي (هاتفي)
+        <Button size="sm" className="gap-1 md:gap-2">
+          <Plus className="h-3 w-3 md:h-4 md:w-4" />
+          <PhoneIcon className="h-3 w-3 md:h-4 md:w-4" />
+          <span className="hidden md:inline">تسجيل يدوي (هاتفي)</span>
+          <span className="md:hidden text-xs">تسجيل</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">

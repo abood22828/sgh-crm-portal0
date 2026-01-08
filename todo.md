@@ -436,3 +436,28 @@
 - [x] إزالة 3 تبويبات إدارة (العروض، المخيمات، الأطباء)
 - [x] إزالة 3 components من AdminDashboard
 - [x] تحديث layout: flex + sidebar + main content
+
+## إصلاحات عاجلة 🔄 جاري العمل
+
+### 1. إصلاح صفحة الإدارة
+- [ ] استبدال OfferLeadsManagement بـ OffersManagement في ManagementPage
+- [ ] استبدال CampRegistrationsManagement بـ CampsManagement في ManagementPage
+- [ ] التأكد من أن التسجيلات تبقى في لوحة التحكم الرئيسية
+
+### 2. إزالة زر تسجيل يدوي
+- [ ] إزالة ManualRegistrationForm من جانب تبويب العملاء في AdminDashboard
+
+### 3. تحسين responsive design
+- [ ] تحسين header للوحة التحكم للجوال
+- [ ] تحسين stat cards للجوال
+- [ ] تحسين tables للجوال
+- [ ] تحسين Sidebar للجوال
+- [ ] تحسين spacing وpadding عام
+
+### إصلاح صفحة الإدارة ✅ مكتمل
+- [x] نقل OffersManagement من AdminDashboard.tsx إلى ملف منفصل (/components/OffersManagement.tsx)
+- [x] نقل CampsManagement من AdminDashboard.tsx إلى ملف منفصل (/components/CampsManagement.tsx)
+- [x] تحديث ManagementPage.tsx لاستيراد المكونات الجديدة
+- [x] إزالة زر "تسجيل يدوي" من جانب تبويب العملاء المسجلين
+- [x] تحسين زر "تسجيل يدوي" في header (responsive: نص كامل على الديسكتوب، نص مختصر على الجوال)
+- [x] التحقق من عمل جميع الميزات بشكل صحيح

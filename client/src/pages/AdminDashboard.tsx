@@ -524,9 +524,7 @@ export default function AdminDashboard() {
               <span className="hidden sm:inline">العملاء المسجلين</span>
               <span className="sm:hidden">العملاء</span>
             </Button>
-            {activeTab === "leads" && (
-              <ManualRegistrationForm />
-            )}
+
           </div>
           <Button
             variant={activeTab === "requests" ? "default" : "outline"}
