@@ -352,3 +352,33 @@
 - [x] إضافة عمود "نوع التسجيل" في الجدول
 - [x] إضافة badges ملونة: أزرق (موعد طبيب) + بنفسجي (عرض) + أخضر (مخيم)
 - [ ] إضافة فلترة حسب نوع التسجيل (اختياري)
+
+## تحسينات جديدة 🔄 جاري العمل
+
+### 1. تعديل موعد الحجز مع إشعار WhatsApp
+- [ ] إضافة حقل appointmentDate في جدول appointments
+- [ ] تحديث schema.ts وتطبيق migration
+- [ ] إضافة نموذج تعديل الموعد في AdminDashboard
+- [ ] تحديث appointments router لدعم تعديل الموعد
+- [ ] إضافة دالة إرسال WhatsApp عند تأكيد الموعد
+- [ ] تضمين تفاصيل الموعد في رسالة WhatsApp
+
+### 2. تحسين RTL للصفحات المتبقية
+- [ ] VisitingDoctors: dir="rtl" + text-right
+- [ ] DoctorDetailPage: RTL للنصوص والأيقونات
+- [ ] OfferDetailPage: RTL للنماذج
+- [ ] CampDetailPage: RTL للنماذج
+- [ ] DoctorAppointments: RTL للنموذج
+- [ ] جميع النماذج الأخرى
+
+### 3. تصغير بطاقات الإحصائيات
+- [ ] تقليل padding من p-6 إلى p-4
+- [ ] تصغير الأيقونات من h-8 w-8 إلى h-6 w-6
+- [ ] تصغير النصوص (text-3xl → text-2xl)
+- [ ] تطبيق على جميع stat cards في Dashboard
+
+### 4. تحسين بطاقات الأطباء للجوال
+- [ ] تحسين grid: grid-cols-1 sm:grid-cols-2 md:grid-cols-3
+- [ ] تصغير صور الأطباء
+- [ ] تحسين spacing وpadding
+- [ ] تطبيق في Doctors.tsx و DoctorAppointments.tsx

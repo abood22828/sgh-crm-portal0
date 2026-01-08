@@ -115,6 +115,7 @@ export default function AdminDashboard() {
   const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
   const [newAppointmentStatus, setNewAppointmentStatus] = useState("");
   const [appointmentStatusNotes, setAppointmentStatusNotes] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
 
@@ -143,6 +144,21 @@ export default function AdminDashboard() {
     },
     onError: () => {
       toast.error("حدث خطأ أثناء تحديث الحالة");
+    },
+  });
+
+  const updateAppointmentMutation = trpc.appointments.updateAppointment.useMutation({
+    onSuccess: () => {
+      toast.success("تم تحديث الموعد بنجاح");
+      refetchAppointments();
+      setAppointmentStatusDialogOpen(false);
+      setSelectedAppointment(null);
+      setNewAppointmentStatus("");
+      setAppointmentStatusNotes("");
+      setAppointmentDate("");
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء تحديث الموعد");
     },
   });
 
@@ -258,10 +274,32 @@ export default function AdminDashboard() {
   const handleAppointmentStatusUpdate = () => {
     if (!selectedAppointment || !newAppointmentStatus) return;
     
-    updateAppointmentStatusMutation.mutate({
+    // إرسال WhatsApp إذا كانت الحالة "confirmed" ويوجد موعد محدد
+    const shouldSendWhatsApp = newAppointmentStatus === 'confirmed' && appointmentDate;
+    
+    updateAppointmentMutation.mutate({
       id: selectedAppointment.id,
       status: newAppointmentStatus as any,
+      appointmentDate: appointmentDate || undefined,
       staffNotes: appointmentStatusNotes || undefined,
+    }, {
+      onSuccess: () => {
+        if (shouldSendWhatsApp) {
+          // إرسال رسالة WhatsApp
+          const formattedDate = new Date(appointmentDate).toLocaleDateString('ar-YE', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          const message = `مرحباً ${selectedAppointment.fullName}،\n\nتم تأكيد موعدك في المستشفى السعودي الألماني - صنعاء\n\nالطبيب: ${selectedAppointment.doctorName || 'غير محدد'}\nالتاريخ والوقت: ${formattedDate}\n${selectedAppointment.procedure ? `الإجراء: ${selectedAppointment.procedure}\n` : ''}\nيرجى الحضور قبل الموعد بـ 15 دقيقة.\n\nللاستفسار: 8000018`;
+          
+          window.open(`https://wa.me/${selectedAppointment.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+      }
     });
   };
 
@@ -374,70 +412,70 @@ export default function AdminDashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
           <Card>
-            <CardContent className="pt-4 md:pt-6">
+            <CardContent className="pt-4 pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs md:text-sm text-muted-foreground mb-1">إجمالي العملاء</p>
-                  <p className="text-xl md:text-2xl font-bold">{unifiedLeads?.length || 0}</p>
+                  <p className="text-xs text-muted-foreground mb-1">إجمالي العملاء</p>
+                  <p className="text-lg md:text-xl font-bold">{unifiedLeads?.length || 0}</p>
                 </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Users className="w-6 h-6 text-primary" />
+                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Users className="w-5 h-5 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">جديد</p>
-                  <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600">{stats?.new || 0}</p>
+                  <p className="text-xs text-muted-foreground mb-1">جديد</p>
+                  <p className="text-lg md:text-xl font-bold text-blue-600">{stats?.new || 0}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 pb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">تم التواصل</p>
-                  <p className="text-xl md:text-2xl lg:text-3xl font-bold text-yellow-600">{stats?.contacted || 0}</p>
+                  <p className="text-lg md:text-xl font-bold text-yellow-600">{stats?.contacted || 0}</p>
                 </div>
-                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <Phone className="w-6 h-6 text-yellow-600" />
+                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-yellow-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 pb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">تم الحجز</p>
-                  <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{stats?.booked || 0}</p>
+                  <p className="text-lg md:text-xl font-bold text-green-600">{stats?.booked || 0}</p>
                 </div>
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <UserCheck className="w-6 h-6 text-green-600" />
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <UserCheck className="w-5 h-5 text-green-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 pb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">غير مهتم</p>
-                  <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-600">{stats?.notInterested || 0}</p>
+                  <p className="text-lg md:text-xl font-bold text-red-600">{stats?.notInterested || 0}</p>
                 </div>
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <UserX className="w-6 h-6 text-red-600" />
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <UserX className="w-5 h-5 text-red-600" />
                 </div>
               </div>
             </CardContent>
@@ -581,7 +619,7 @@ export default function AdminDashboard() {
               </div>
             ) : filteredLeads.length === 0 ? (
               <div className="text-center py-12">
-                <Users className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground mx-auto mb-4" />
+                <Users className="w-5 h-5 md:w-8 md:h-8 text-muted-foreground mx-auto mb-4" />
                 <p className="text-lg font-semibold text-muted-foreground">
                   {searchTerm ? "لا توجد نتائج للبحث" : "لا يوجد عملاء مسجلين بعد"}
                 </p>
@@ -862,56 +900,56 @@ export default function AdminDashboard() {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">إجمالي المواعيد</p>
-                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-primary">{appointmentStats.total}</p>
+                      <p className="text-lg md:text-xl font-bold text-primary">{appointmentStats.total}</p>
                     </div>
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-primary" />
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-primary" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">قيد الانتظار</p>
-                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-yellow-600">{appointmentStats.pending}</p>
+                      <p className="text-lg md:text-xl font-bold text-yellow-600">{appointmentStats.pending}</p>
                     </div>
-                    <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-yellow-600" />
+                    <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-yellow-600" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">مؤكد</p>
-                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600">{appointmentStats.confirmed}</p>
+                      <p className="text-lg md:text-xl font-bold text-green-600">{appointmentStats.confirmed}</p>
                     </div>
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-green-600" />
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-green-600" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">ملغي</p>
-                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-red-600">{appointmentStats.cancelled}</p>
+                      <p className="text-lg md:text-xl font-bold text-red-600">{appointmentStats.cancelled}</p>
                     </div>
-                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-red-600" />
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-red-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -1202,6 +1240,18 @@ export default function AdminDashboard() {
                     <p className="text-sm"><span className="font-semibold">ملاحظات الموظف:</span> {selectedAppointment.staffNotes}</p>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="appointment-date">تاريخ ووقت الموعد المحدد (اختياري)</Label>
+                <Input
+                  id="appointment-date"
+                  type="datetime-local"
+                  value={appointmentDate}
+                  onChange={(e) => setAppointmentDate(e.target.value)}
+                  className="text-right"
+                />
+                <p className="text-xs text-muted-foreground">سيتم إرسال رسالة WhatsApp للعميل عند تأكيد الموعد</p>
               </div>
 
               <div className="space-y-2">

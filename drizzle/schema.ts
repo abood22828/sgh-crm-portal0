@@ -136,6 +136,7 @@ export const appointments = mysqlTable("appointments", {
   procedure: varchar("procedure", { length: 255 }), // Selected procedure
   preferredDate: varchar("preferredDate", { length: 50 }),
   preferredTime: varchar("preferredTime", { length: 50 }),
+  appointmentDate: timestamp("appointmentDate"), // Confirmed appointment date/time
   notes: text("notes"), // Patient notes
   additionalNotes: text("additionalNotes"), // Additional patient notes
   staffNotes: text("staffNotes"), // Staff notes (admin only)

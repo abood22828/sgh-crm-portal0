@@ -122,51 +122,52 @@ export default function Doctors() {
                     className="hover:shadow-lg transition-all cursor-pointer group"
                     onClick={() => setLocation(`/doctors/${doctor.slug}`)}
                   >
-                    <CardHeader className="text-center">
-                      <div className="mx-auto mb-4 relative">
+                    <CardHeader className="text-center pb-3">
+                      <div className="mx-auto mb-3 relative">
                         {doctor.image ? (
                           <img
                             src={doctor.image}
                             alt={doctor.name}
-                            className="w-32 h-32 rounded-full object-cover border-4 border-emerald-100 group-hover:border-emerald-200 transition-colors"
+                            className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border-2 sm:border-3 border-emerald-100 group-hover:border-emerald-200 transition-colors"
                           />
                         ) : (
-                          <div className="w-32 h-32 rounded-full bg-emerald-100 flex items-center justify-center border-4 border-emerald-200">
-                            <Stethoscope className="w-16 h-16 text-emerald-600" />
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full bg-emerald-100 flex items-center justify-center border-2 sm:border-3 border-emerald-200">
+                            <Stethoscope className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-emerald-600" />
                           </div>
                         )}
                       </div>
-                      <CardTitle className="text-lg sm:text-xl text-gray-900 group-hover:text-emerald-600 transition-colors">
+                      <CardTitle className="text-sm sm:text-base md:text-lg text-gray-900 group-hover:text-emerald-600 transition-colors line-clamp-2">
                         {doctor.name}
                       </CardTitle>
-                      <CardDescription className="text-sm sm:text-base">
+                      <CardDescription className="text-xs sm:text-sm line-clamp-1">
                         {doctor.specialty}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="text-center space-y-3">
+                    <CardContent className="text-center space-y-2 pt-3">
                       {doctor.experience && (
-                        <p className="text-sm text-gray-600 text-right">
+                        <p className="text-xs sm:text-sm text-gray-600 text-right line-clamp-1">
                           <span className="font-semibold">الخبرة:</span> {doctor.experience}
                         </p>
                       )}
                       {doctor.languages && (
-                        <p className="text-sm text-gray-600 text-right">
+                        <p className="text-xs sm:text-sm text-gray-600 text-right line-clamp-1">
                           <span className="font-semibold">اللغات:</span> {doctor.languages}
                         </p>
                       )}
                       {doctor.consultationFee && (
-                        <p className="text-sm text-emerald-600 font-semibold text-center">
+                        <p className="text-xs sm:text-sm text-emerald-600 font-semibold text-center">
                           رسوم الاستشارة: {doctor.consultationFee}
                         </p>
                       )}
                       <Button
-                        className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700"
+                        size="sm"
+                        className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-xs sm:text-sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           setLocation(`/doctors/${doctor.slug}`);
                         }}
                       >
-                        <Calendar className="w-4 h-4 ml-2" />
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
                         احجز موعد
                       </Button>
                     </CardContent>

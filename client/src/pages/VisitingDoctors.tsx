@@ -68,7 +68,7 @@ export default function VisitingDoctors() {
         description="تعرف على الأطباء الزائرين في المستشفى السعودي الألماني - صنعاء. استشاريون متخصصون من مختلف التخصصات الطبية. احجز موعدك الآن: 8000018"
         keywords="أطباء زائرين, استشاريين, تخصصات طبية, المستشفى السعودي الألماني, صنعاء"
       />
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-green-50 to-white">
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-green-50 to-white" dir="rtl">
         <Navbar />
 
         {/* Hero Section */}
@@ -80,7 +80,7 @@ export default function VisitingDoctors() {
                   <Users className="h-12 w-12" />
                 </div>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4 text-right">
                 الأطباء الزائرين
               </h1>
               <p className="text-lg md:text-xl text-green-100">
@@ -158,7 +158,7 @@ export default function VisitingDoctors() {
                     ? "لا توجد نتائج للبحث"
                     : "لا يوجد أطباء زائرين حالياً"}
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-lg sm:text-xl opacity-90 text-right">
                   {searchTerm || selectedSpecialty !== "all"
                     ? "جرب البحث بكلمات مختلفة أو اختر تخصص آخر"
                     : "سيتم إضافة الأطباء الزائرين قريباً"}

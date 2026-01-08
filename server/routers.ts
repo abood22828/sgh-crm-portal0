@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { eq } from "drizzle-orm";
+import { getDb } from "./db";
+import { appointments } from "../drizzle/schema";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -438,6 +441,32 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await updateAppointmentStatus(input.id, input.status, input.staffNotes);
+        return { success: true };
+      }),
+
+    updateAppointment: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        appointmentDate: z.string().optional(),
+        status: z.string().optional(),
+        staffNotes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+
+        const updateData: any = {};
+        if (input.appointmentDate) {
+          updateData.appointmentDate = new Date(input.appointmentDate);
+        }
+        if (input.status) {
+          updateData.status = input.status;
+        }
+        if (input.staffNotes !== undefined) {
+          updateData.staffNotes = input.staffNotes;
+        }
+
+        await db.update(appointments).set(updateData).where(eq(appointments.id, input.id));
         return { success: true };
       }),
   }),
