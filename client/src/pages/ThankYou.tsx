@@ -60,7 +60,7 @@ export default function ThankYou() {
 
           <div className="mt-8 pt-6 border-t border-border">
             <img 
-              src="/assets/logo-color.png" 
+              src="/assets/new-logo.png" 
               alt="المستشفى السعودي الألماني" 
               className="h-16 mx-auto mb-3"
             />

@@ -25,7 +25,7 @@ export default function Navbar() {
           {/* Logo and Title */}
           <Link href="/">
             <div className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-              <img src={APP_LOGO} alt={APP_TITLE} className="h-12 w-auto" />
+              <img src="/assets/new-logo.png" alt={APP_TITLE} className="h-12 w-auto" />
               <div className="hidden md:block">
                 <h1 className="text-lg font-bold text-green-900">{APP_TITLE}</h1>
                 <p className="text-xs text-gray-500">نرعاكم كأهالينا</p>

@@ -65,9 +65,9 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <img
-              src={APP_LOGO}
+              src="/assets/new-logo.png"
               alt={APP_TITLE}
-              className="h-20 w-auto mx-auto mb-6 brightness-0 invert"
+              className="h-20 w-auto mx-auto mb-6"
             />
             <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">{APP_TITLE}</h1>
             <p className="text-lg sm:text-xl md:text-2xl mb-2 text-green-100">

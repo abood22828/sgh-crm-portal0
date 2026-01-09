@@ -133,7 +133,7 @@ export default function DoctorDetailPage() {
       <SEO 
         title={seoTitle}
         description={seoDescription}
-        image={doctor.image || "/assets/logo-color.png"}
+        image={doctor.image || "/assets/new-logo.png"}
         type="profile"
         keywords={`${doctor.name}, ${doctor.specialty}, طبيب, استشاري, صنعاء, حجز موعد`}
       />

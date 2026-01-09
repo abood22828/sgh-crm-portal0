@@ -14,7 +14,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img 
-                src="/assets/logo-color.png" 
+                src="/assets/new-logo.png" 
                 alt="المستشفى السعودي الألماني" 
                 className="h-12"
               />

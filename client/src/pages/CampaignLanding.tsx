@@ -70,7 +70,7 @@ export default function CampaignLanding() {
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <img 
-              src="/assets/logo-color.png" 
+              src="/assets/new-logo.png" 
               alt="المستشفى السعودي الألماني" 
               className="h-16 md:h-20"
             />

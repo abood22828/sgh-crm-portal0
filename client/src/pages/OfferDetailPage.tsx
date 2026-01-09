@@ -87,7 +87,7 @@ export default function OfferDetailPage() {
       <SEO 
         title={seoTitle}
         description={seoDescription}
-        image={offer.imageUrl || "/assets/logo-color.png"}
+        image={offer.imageUrl || "/assets/new-logo.png"}
         type="article"
         keywords={`${offer.title}, عرض طبي, صنعاء, المستشفى السعودي الألماني`}
       />

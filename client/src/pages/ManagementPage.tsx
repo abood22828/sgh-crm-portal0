@@ -57,7 +57,7 @@ export default function ManagementPage() {
               {/* Logo and Title */}
               <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
                 <img 
-                  src="/assets/logo-color.png" 
+                  src="/assets/new-logo.png" 
                   alt="المستشفى السعودي الألماني" 
                   className="h-10 md:h-12 flex-shrink-0"
                 />

@@ -117,9 +117,9 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
-        <div className="grid grid-cols-4 gap-1 p-2">
-          {navItems.slice(0, 4).map((item) => {
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50 overflow-x-auto">
+        <div className="flex gap-1 p-2 min-w-max">
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPath === item.href || 
               (item.href !== "/dashboard" && currentPath.startsWith(item.href));
@@ -128,11 +128,11 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
               <Button
                 key={item.href}
                 variant={isActive ? "default" : "ghost"}
-                className="flex-col h-auto py-2 px-1"
+                className="flex-col h-auto py-2 px-3 min-w-[80px]"
                 onClick={() => setLocation(item.href)}
               >
-                <Icon className="h-5 w-5 mb-1" />
-                <span className="text-xs">{item.title}</span>
+                <Icon className="h-5 w-5 mb-1 flex-shrink-0" />
+                <span className="text-xs whitespace-nowrap">{item.title}</span>
               </Button>
             );
           })}

@@ -86,7 +86,7 @@ export default function CampDetailPage() {
       <SEO 
         title={seoTitle}
         description={seoDescription}
-        image={camp.imageUrl || "/assets/logo-color.png"}
+        image={camp.imageUrl || "/assets/new-logo.png"}
         type="article"
         keywords={`${camp.name}, مخيم طبي, مجاني, صنعاء, المستشفى السعودي الألماني`}
       />

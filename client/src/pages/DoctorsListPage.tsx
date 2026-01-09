@@ -86,7 +86,7 @@ export default function DoctorAppointments() {
           <div className="container py-4">
             <div className="flex items-center justify-between">
               <img 
-                src="/assets/logo-color.png" 
+                src="/assets/new-logo.png" 
                 alt="المستشفى السعودي الألماني" 
                 className="h-16 md:h-20"
               />
@@ -144,7 +144,7 @@ export default function DoctorAppointments() {
                     <CardContent className="p-4">
                       <div className="aspect-square rounded-lg overflow-hidden mb-3">
                         <img 
-                          src={doctor.image || '/assets/logo-color.png'} 
+                          src={doctor.image || '/assets/new-logo.png'} 
                           alt={doctor.name}
                           className="w-full h-full object-cover"
                         />
@@ -176,7 +176,7 @@ export default function DoctorAppointments() {
                     {selectedDoctor && (
                       <div className="bg-primary/5 p-4 rounded-lg flex items-center gap-4">
                         <img 
-                          src={selectedDoctor.image || '/assets/logo-color.png'} 
+                          src={selectedDoctor.image || '/assets/new-logo.png'} 
                           alt={selectedDoctor.name}
                           className="w-16 h-16 rounded-full object-cover"
                         />
