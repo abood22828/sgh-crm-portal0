@@ -121,6 +121,10 @@ export default function AdminDashboard() {
   const [appointmentDate, setAppointmentDate] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [appointmentStatusFilter, setAppointmentStatusFilter] = useState("all");
+  const [leadsStatusFilter, setLeadsStatusFilter] = useState("all");
+  const [offerLeadsStatusFilter, setOfferLeadsStatusFilter] = useState("all");
+  const [campRegistrationsStatusFilter, setCampRegistrationsStatusFilter] = useState("all");
 
   const updateStatusMutation = trpc.leads.updateStatus.useMutation({
     onSuccess: () => {
@@ -204,8 +208,13 @@ export default function AdminDashboard() {
       });
     }
     
+    // Filter by status
+    if (leadsStatusFilter && leadsStatusFilter !== "all") {
+      filtered = filtered.filter(lead => lead.status === leadsStatusFilter);
+    }
+    
     return filtered;
-  }, [unifiedLeads, searchTerm, leadsDateFilter]);
+  }, [unifiedLeads, searchTerm, leadsDateFilter, leadsStatusFilter]);
 
   const filteredAppointments = useMemo(() => {
     if (!appointments) return [];
@@ -251,8 +260,13 @@ export default function AdminDashboard() {
       });
     }
     
+    // Filter by status
+    if (appointmentStatusFilter && appointmentStatusFilter !== "all") {
+      filtered = filtered.filter(apt => apt.status === appointmentStatusFilter);
+    }
+    
     return filtered;
-  }, [appointments, appointmentSearchTerm, selectedDoctor, dateFilter]);
+  }, [appointments, appointmentSearchTerm, selectedDoctor, dateFilter, appointmentStatusFilter]);
 
   const appointmentStats = useMemo(() => {
     if (!appointments) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
@@ -401,6 +415,22 @@ export default function AdminDashboard() {
                 <Settings className="w-4 h-4" />
               </Button>
               
+              {/* Access Requests Button */}
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => setActiveTab("requests")}
+                className="h-9 w-9 relative"
+                title="طلبات التصريح"
+              >
+                <UserCheck className="w-4 h-4" />
+                {accessRequests && accessRequests.length > 0 && (
+                  <Badge className="absolute -top-1 -left-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500">
+                    {accessRequests.length}
+                  </Badge>
+                )}
+              </Button>
+              
               {/* Offline Page Button */}
               <Button 
                 variant="outline" 
@@ -526,20 +556,7 @@ export default function AdminDashboard() {
             </Button>
 
           </div>
-          <Button
-            variant={activeTab === "requests" ? "default" : "outline"}
-            onClick={() => setActiveTab("requests")}
-            className="relative whitespace-nowrap"
-          >
-            <UserCheck className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">طلبات التصريح</span>
-            <span className="sm:hidden">الطلبات</span>
-            {accessRequests && accessRequests.length > 0 && (
-              <Badge className="absolute -top-2 -left-2 bg-red-500">
-                {accessRequests.length}
-              </Badge>
-            )}
-          </Button>
+
           <Button
             variant={activeTab === "appointments" ? "default" : "outline"}
             onClick={() => setActiveTab("appointments")}
@@ -600,6 +617,19 @@ export default function AdminDashboard() {
                     <SelectItem value="today">اليوم</SelectItem>
                     <SelectItem value="week">هذا الأسبوع</SelectItem>
                     <SelectItem value="month">هذا الشهر</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={leadsStatusFilter} onValueChange={setLeadsStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
+                    <SelectValue placeholder="كل الحالات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الحالات</SelectItem>
+                    <SelectItem value="new">جديد</SelectItem>
+                    <SelectItem value="contacted">تم التواصل</SelectItem>
+                    <SelectItem value="booked">تم الحجز</SelectItem>
+                    <SelectItem value="not_interested">غير مهتم</SelectItem>
+                    <SelectItem value="no_answer">لم يرد</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
@@ -886,6 +916,18 @@ export default function AdminDashboard() {
                     <SelectItem value="today">اليوم</SelectItem>
                     <SelectItem value="week">هذا الأسبوع</SelectItem>
                     <SelectItem value="month">هذا الشهر</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={appointmentStatusFilter} onValueChange={setAppointmentStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
+                    <SelectValue placeholder="كل الحالات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الحالات</SelectItem>
+                    <SelectItem value="pending">قيد الانتظار</SelectItem>
+                    <SelectItem value="confirmed">مؤكد</SelectItem>
+                    <SelectItem value="cancelled">ملغي</SelectItem>
+                    <SelectItem value="completed">مكتمل</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button

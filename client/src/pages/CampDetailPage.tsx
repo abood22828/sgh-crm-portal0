@@ -26,7 +26,20 @@ export default function CampDetailPage() {
     fullName: "",
     phone: "",
     email: "",
+    age: "",
+    procedures: [] as string[],
   });
+
+  // Sample procedures list - should come from camp data in production
+  const availableProcedures = [
+    "فحص عام",
+    "فحص ضغط الدم",
+    "فحص السكري",
+    "فحص العيون",
+    "فحص الأسنان",
+    "استشارة طبية",
+    "تحاليل مخبرية",
+  ];
 
   useEffect(() => {
     if (!isLoading && !camp) {
@@ -43,6 +56,11 @@ export default function CampDetailPage() {
       return;
     }
 
+    if (!formData.age || parseInt(formData.age) <= 0) {
+      toast.error("الرجاء إدخال العمر بشكل صحيح");
+      return;
+    }
+
     if (!camp) return;
 
     try {
@@ -51,10 +69,12 @@ export default function CampDetailPage() {
         fullName: formData.fullName,
         phone: formData.phone,
         email: formData.email || undefined,
+        age: parseInt(formData.age),
+        procedures: formData.procedures.length > 0 ? JSON.stringify(formData.procedures) : undefined,
       });
 
       toast.success("تم تسجيلك بنجاح! سنتواصل معك قريباً");
-      setFormData({ fullName: "", phone: "", email: "" });
+      setFormData({ fullName: "", phone: "", email: "", age: "", procedures: [] });
     } catch (error) {
       toast.error("حدث خطأ أثناء التسجيل");
     }
@@ -232,6 +252,61 @@ export default function CampDetailPage() {
                       placeholder="example@email.com"
                       className="text-right pr-12"
                     />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="age" className="text-right block mb-2">
+                    العمر <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="age"
+                    type="number"
+                    min="1"
+                    max="120"
+                    value={formData.age}
+                    onChange={(e) =>
+                      setFormData({ ...formData, age: e.target.value })
+                    }
+                    placeholder="أدخل عمرك"
+                    required
+                    className="text-right"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-right block mb-3">
+                    الإجراءات المطلوبة (اختر واحد أو أكثر)
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {availableProcedures.map((procedure) => (
+                      <label
+                        key={procedure}
+                        className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.procedures.includes(procedure)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                procedures: [...formData.procedures, procedure],
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                procedures: formData.procedures.filter(
+                                  (p) => p !== procedure
+                                ),
+                              });
+                            }
+                          }}
+                          className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                        />
+                        <span className="text-sm text-gray-700">{procedure}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
 

@@ -234,7 +234,7 @@ export default function OffersManagement() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="title">عنوان العرض *</Label>
+              <Label className="text-right block" htmlFor="title">عنوان العرض *</Label>
               <Input
                 id="title"
                 value={formData.title}
@@ -243,7 +243,7 @@ export default function OffersManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">الرابط (slug) *</Label>
+              <Label className="text-right block" htmlFor="slug">الرابط (slug) *</Label>
               <Input
                 id="slug"
                 value={formData.slug}
@@ -253,7 +253,7 @@ export default function OffersManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">الوصف</Label>
+              <Label className="text-right block" htmlFor="description">الوصف</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -263,7 +263,7 @@ export default function OffersManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">رابط الصورة</Label>
+              <Label className="text-right block" htmlFor="imageUrl">رابط الصورة</Label>
               <Input
                 id="imageUrl"
                 value={formData.imageUrl}
@@ -274,7 +274,7 @@ export default function OffersManagement() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="startDate">تاريخ البداية</Label>
+                <Label className="text-right block" htmlFor="startDate">تاريخ البداية</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -283,7 +283,7 @@ export default function OffersManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endDate">تاريخ النهاية</Label>
+                <Label className="text-right block" htmlFor="endDate">تاريخ النهاية</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -300,7 +300,7 @@ export default function OffersManagement() {
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                 className="rounded"
               />
-              <Label htmlFor="isActive">العرض نشط</Label>
+              <Label className="text-right block" htmlFor="isActive">العرض نشط</Label>
             </div>
             <div className="flex gap-2 justify-end pt-4">
               <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); setEditingOffer(null); }}>

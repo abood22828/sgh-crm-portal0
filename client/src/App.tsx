@@ -23,6 +23,7 @@ import VisitingDoctors from "./pages/VisitingDoctors";
 import OfflinePage from "./pages/OfflinePage";
 import SettingsPage from "./pages/SettingsPage";
 import ManagementPage from "./pages/ManagementPage";
+import ContentManagementPage from "./pages/ContentManagementPage";
 import PublishingPage from "./pages/PublishingPage";
 import WhatsAppPage from "./pages/WhatsAppPage";
 import MessagesPage from "./pages/MessagesPage";
@@ -49,6 +50,7 @@ function Router() {
       <Route path={"/access-request"} component={AccessRequest} />
       <Route path={"/dashboard"} component={AdminDashboard} />
       <Route path={"/dashboard/management"} component={ManagementPage} />
+      <Route path={"/dashboard/content"} component={ContentManagementPage} />
       <Route path={"/dashboard/publishing"} component={PublishingPage} />
       <Route path={"/dashboard/whatsapp"} component={WhatsAppPage} />
       <Route path={"/dashboard/messages"} component={MessagesPage} />

@@ -9,7 +9,8 @@ import {
   BarChart3,
   MessageCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileEdit
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -30,6 +31,11 @@ const navItems: NavItem[] = [
     title: "الإدارة",
     href: "/dashboard/management",
     icon: SettingsIcon,
+  },
+  {
+    title: "إدارة المحتوى",
+    href: "/dashboard/content",
+    icon: FileEdit,
   },
   {
     title: "النشر",

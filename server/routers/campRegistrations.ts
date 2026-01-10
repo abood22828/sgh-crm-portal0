@@ -15,6 +15,7 @@ export const campRegistrationsRouter = router({
         phone: z.string().min(1),
         email: z.string().email().optional(),
         age: z.number().optional(),
+        procedures: z.string().optional(), // JSON string of selected procedures
         medicalCondition: z.string().optional(),
         notes: z.string().optional(),
         source: z.string().optional(),
@@ -30,6 +31,7 @@ export const campRegistrationsRouter = router({
         phone: input.phone,
         email: input.email,
         age: input.age,
+        procedures: input.procedures,
         medicalCondition: input.medicalCondition,
         notes: input.notes,
         source: input.source || "website",
@@ -70,6 +72,7 @@ export const campRegistrationsRouter = router({
         phone: campRegistrations.phone,
         email: campRegistrations.email,
         age: campRegistrations.age,
+        procedures: campRegistrations.procedures,
         medicalCondition: campRegistrations.medicalCondition,
         notes: campRegistrations.notes,
         source: campRegistrations.source,

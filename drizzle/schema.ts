@@ -243,6 +243,7 @@ export const campRegistrations = mysqlTable("campRegistrations", {
   phone: varchar("phone", { length: 20 }).notNull(),
   email: varchar("email", { length: 320 }),
   age: int("age"),
+  procedures: text("procedures"), // JSON array of selected procedures
   medicalCondition: text("medicalCondition"),
   notes: text("notes"),
   status: mysqlEnum("status", ["pending", "confirmed", "attended", "cancelled"]).default("pending").notNull(),

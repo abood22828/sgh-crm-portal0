@@ -439,7 +439,7 @@ export default function DoctorsManagement() {
 
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">الاسم *</Label>
+              <Label className="text-right block" htmlFor="name">الاسم *</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -454,7 +454,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="slug">الرابط (Slug) *</Label>
+              <Label className="text-right block" htmlFor="slug">الرابط (Slug) *</Label>
               <Input
                 id="slug"
                 value={formData.slug}
@@ -467,7 +467,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="specialty">التخصص *</Label>
+              <Label className="text-right block" htmlFor="specialty">التخصص *</Label>
               <Input
                 id="specialty"
                 value={formData.specialty}
@@ -477,7 +477,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="image">رابط الصورة</Label>
+              <Label className="text-right block" htmlFor="image">رابط الصورة</Label>
               <Input
                 id="image"
                 value={formData.image}
@@ -487,7 +487,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="bio">نبذة عن الطبيب</Label>
+              <Label className="text-right block" htmlFor="bio">نبذة عن الطبيب</Label>
               <Textarea
                 id="bio"
                 value={formData.bio}
@@ -498,7 +498,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="experience">سنوات الخبرة</Label>
+              <Label className="text-right block" htmlFor="experience">سنوات الخبرة</Label>
               <Input
                 id="experience"
                 value={formData.experience}
@@ -508,7 +508,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="languages">اللغات</Label>
+              <Label className="text-right block" htmlFor="languages">اللغات</Label>
               <Input
                 id="languages"
                 value={formData.languages}
@@ -518,7 +518,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="consultationFee">رسوم الاستشارة</Label>
+              <Label className="text-right block" htmlFor="consultationFee">رسوم الاستشارة</Label>
               <Input
                 id="consultationFee"
                 value={formData.consultationFee}
@@ -528,7 +528,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="procedures">الإجراءات المتاحة (فصل بفاصلة)</Label>
+              <Label className="text-right block" htmlFor="procedures">الإجراءات المتاحة (فصل بفاصلة)</Label>
               <Textarea
                 id="procedures"
                 value={formData.procedures}
@@ -542,7 +542,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="isVisiting">طبيب زائر</Label>
+              <Label className="text-right block" htmlFor="isVisiting">طبيب زائر</Label>
               <Select
                 value={formData.isVisiting}
                 onValueChange={(value: "yes" | "no") =>
@@ -560,7 +560,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="available">الحالة</Label>
+              <Label className="text-right block" htmlFor="available">الحالة</Label>
               <Select
                 value={formData.available}
                 onValueChange={(value: "yes" | "no") =>

@@ -234,8 +234,8 @@ export default function CampsManagement() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">اسم المخيم *</Label>
-              <Input
+              <Label className="text-right block" htmlFor="name">اسم المخيم *</Label>
+              <Input className="text-right"
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -243,8 +243,8 @@ export default function CampsManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">الرابط (slug) *</Label>
-              <Input
+              <Label className="text-right block" htmlFor="slug">الرابط (slug) *</Label>
+              <Input className="text-right"
                 id="slug"
                 value={formData.slug}
                 onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
@@ -253,8 +253,8 @@ export default function CampsManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">الوصف</Label>
-              <Textarea
+              <Label className="text-right block" htmlFor="description">الوصف</Label>
+              <Textarea className="text-right"
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -263,8 +263,8 @@ export default function CampsManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">رابط الصورة</Label>
-              <Input
+              <Label className="text-right block" htmlFor="imageUrl">رابط الصورة</Label>
+              <Input className="text-right"
                 id="imageUrl"
                 value={formData.imageUrl}
                 onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
@@ -274,8 +274,8 @@ export default function CampsManagement() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="startDate">تاريخ البداية</Label>
-                <Input
+                <Label className="text-right block" htmlFor="startDate">تاريخ البداية</Label>
+                <Input className="text-right"
                   id="startDate"
                   type="date"
                   value={formData.startDate}
@@ -283,8 +283,8 @@ export default function CampsManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endDate">تاريخ النهاية</Label>
-                <Input
+                <Label className="text-right block" htmlFor="endDate">تاريخ النهاية</Label>
+                <Input className="text-right"
                   id="endDate"
                   type="date"
                   value={formData.endDate}
@@ -300,7 +300,7 @@ export default function CampsManagement() {
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                 className="rounded"
               />
-              <Label htmlFor="isActive">المخيم نشط</Label>
+              <Label className="text-right block" htmlFor="isActive">المخيم نشط</Label>
             </div>
             <div className="flex gap-2 justify-end pt-4">
               <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); setEditingCamp(null); }}>

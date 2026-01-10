@@ -68,6 +68,7 @@ export default function CampRegistrationsManagement() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: registrations, isLoading, refetch } = trpc.campRegistrations.list.useQuery();
   const { data: stats } = trpc.campRegistrations.stats.useQuery();
@@ -139,8 +140,13 @@ export default function CampRegistrationsManagement() {
       });
     }
     
+    // Filter by status
+    if (statusFilter && statusFilter !== "all") {
+      filtered = filtered.filter((reg: any) => reg.status === statusFilter);
+    }
+    
     return filtered;
-  }, [registrations, searchTerm, selectedCamp, dateFilter]);
+  }, [registrations, searchTerm, selectedCamp, dateFilter, statusFilter]);
 
   const handleStatusUpdate = () => {
     if (!selectedRegistration || !newStatus) return;
@@ -266,6 +272,18 @@ export default function CampRegistrationsManagement() {
                 <SelectItem value="today">اليوم</SelectItem>
                 <SelectItem value="week">هذا الأسبوع</SelectItem>
                 <SelectItem value="month">هذا الشهر</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
+                <SelectValue placeholder="كل الحالات" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الحالات</SelectItem>
+                <SelectItem value="pending">قيد الانتظار</SelectItem>
+                <SelectItem value="confirmed">مؤكد</SelectItem>
+                <SelectItem value="attended">حضر</SelectItem>
+                <SelectItem value="cancelled">ملغي</SelectItem>
               </SelectContent>
             </Select>
           </div>

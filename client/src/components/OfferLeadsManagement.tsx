@@ -69,6 +69,7 @@ export default function OfferLeadsManagement() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: offerLeads, isLoading, refetch } = trpc.offerLeads.list.useQuery();
   const { data: stats } = trpc.offerLeads.stats.useQuery();
@@ -140,8 +141,13 @@ export default function OfferLeadsManagement() {
       });
     }
     
+    // Filter by status
+    if (statusFilter && statusFilter !== "all") {
+      filtered = filtered.filter((lead: any) => lead.status === statusFilter);
+    }
+    
     return filtered;
-  }, [offerLeads, searchTerm, selectedOffer, dateFilter]);
+  }, [offerLeads, searchTerm, selectedOffer, dateFilter, statusFilter]);
 
   const handleStatusUpdate = () => {
     if (!selectedLead || !newStatus) return;
@@ -278,6 +284,19 @@ export default function OfferLeadsManagement() {
                 <SelectItem value="today">اليوم</SelectItem>
                 <SelectItem value="week">هذا الأسبوع</SelectItem>
                 <SelectItem value="month">هذا الشهر</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
+                <SelectValue placeholder="كل الحالات" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الحالات</SelectItem>
+                <SelectItem value="new">جديد</SelectItem>
+                <SelectItem value="contacted">تم التواصل</SelectItem>
+                <SelectItem value="booked">تم الحجز</SelectItem>
+                <SelectItem value="not_interested">غير مهتم</SelectItem>
+                <SelectItem value="no_answer">لم يرد</SelectItem>
               </SelectContent>
             </Select>
           </div>
