@@ -22,7 +22,8 @@ export default function CampsManagement() {
     isActive: true,
     startDate: "",
     endDate: "",
-    campOffers: "",
+    freeOffers: "",
+    discountedOffers: "",
     availableProcedures: "",
     galleryImages: "",
   });
@@ -72,7 +73,8 @@ export default function CampsManagement() {
       isActive: true,
       startDate: "",
       endDate: "",
-      campOffers: "",
+      freeOffers: "",
+      discountedOffers: "",
       availableProcedures: "",
       galleryImages: "",
     });
@@ -105,7 +107,8 @@ export default function CampsManagement() {
       isActive: camp.isActive,
       startDate: camp.startDate ? new Date(camp.startDate).toISOString().split('T')[0] : "",
       endDate: camp.endDate ? new Date(camp.endDate).toISOString().split('T')[0] : "",
-      campOffers: camp.campOffers || "",
+      freeOffers: camp.freeOffers || "",
+      discountedOffers: camp.discountedOffers || "",
       availableProcedures: camp.availableProcedures || "",
       galleryImages: camp.galleryImages || "",
     });
@@ -282,12 +285,22 @@ export default function CampsManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-right block" htmlFor="campOffers">عروض المخيم</Label>
+              <Label className="text-right block" htmlFor="freeOffers">العروض المجانية</Label>
               <Textarea className="text-right"
-                id="campOffers"
-                value={formData.campOffers}
-                onChange={(e) => setFormData({ ...formData, campOffers: e.target.value })}
-                placeholder="أدخل عروض المخيم (كل عرض في سطر جديد)"
+                id="freeOffers"
+                value={formData.freeOffers}
+                onChange={(e) => setFormData({ ...formData, freeOffers: e.target.value })}
+                placeholder="أدخل العروض المجانية (كل عرض في سطر جديد)"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-right block" htmlFor="discountedOffers">العروض المخفضة</Label>
+              <Textarea className="text-right"
+                id="discountedOffers"
+                value={formData.discountedOffers}
+                onChange={(e) => setFormData({ ...formData, discountedOffers: e.target.value })}
+                placeholder="أدخل العروض المخفضة (كل عرض في سطر جديد)"
                 rows={3}
               />
             </div>

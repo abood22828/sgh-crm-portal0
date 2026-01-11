@@ -141,6 +141,7 @@ export const appointments = mysqlTable("appointments", {
   additionalNotes: text("additionalNotes"), // Additional patient notes
   staffNotes: text("staffNotes"), // Staff notes (admin only)
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled", "completed"]).default("pending").notNull(),
+  source: varchar("source", { length: 100 }), // Booking source (web, phone, manual)
   utmSource: varchar("utmSource", { length: 100 }),
   utmMedium: varchar("utmMedium", { length: 100 }),
   utmCampaign: varchar("utmCampaign", { length: 100 }),
@@ -205,7 +206,8 @@ export const camps = mysqlTable("camps", {
   endDate: timestamp("endDate"),
   isActive: boolean("isActive").default(true).notNull(),
   // New fields for advanced camp management
-  campOffers: text("campOffers"), // JSON string of camp offers
+  freeOffers: text("freeOffers"), // Free offers (one per line)
+  discountedOffers: text("discountedOffers"), // Discounted offers (one per line)
   availableProcedures: text("availableProcedures"), // JSON array of available procedures
   galleryImages: text("galleryImages"), // JSON array of image URLs
   createdAt: timestamp("createdAt").defaultNow().notNull(),

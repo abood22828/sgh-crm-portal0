@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE camps \nADD COLUMN IF NOT EXISTS freeOffers TEXT COMMENT 'Free offers (one per line)',\nADD COLUMN IF NOT EXISTS discountedOffers TEXT COMMENT 'Discounted offers (one per line)';\n\n-- Copy data from campOffers to freeOffers if exists\nUPDATE camps SET freeOffers = campOffers WHERE campOffers IS NOT NULL AND freeOffers IS NULL;\n\n-- Drop old column\nALTER TABLE camps DROP COLUMN IF EXISTS campOffers;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute ALTER TABLE camps \nADD COLUMN IF NOT EXISTS freeOffers TEXT COMMENT 'Free offers (one per line)',\nADD COLUMN IF NOT EXISTS discountedOffers TEXT COMMENT 'Discounted offers (one per line)';\n\n-- Copy data from campOffers to freeOffers if exists\nUPDATE camps SET freeOffers = campOffers WHERE campOffers IS NOT NULL AND freeOffers IS NULL;\n\n-- Drop old column\nALTER TABLE camps DROP COLUMN IF EXISTS campOffers;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1633
+}

@@ -26,7 +26,8 @@ const campInputSchema = z.object({
   endDate: z.date().optional(),
   isActive: z.boolean().default(true),
   // New fields for advanced camp management
-  campOffers: z.string().optional(), // JSON string
+  freeOffers: z.string().optional(), // Free offers (one per line)
+  discountedOffers: z.string().optional(), // Discounted offers (one per line)
   availableProcedures: z.string().optional(), // JSON string
   galleryImages: z.string().optional(), // JSON string
 });
@@ -143,7 +144,8 @@ export const campsRouter = router({
         startDate: input.startDate,
         endDate: input.endDate,
         isActive: input.isActive,
-        campOffers: input.campOffers,
+        freeOffers: input.freeOffers,
+        discountedOffers: input.discountedOffers,
         availableProcedures: input.availableProcedures,
         galleryImages: input.galleryImages,
       });
@@ -196,7 +198,8 @@ export const campsRouter = router({
           startDate: data.startDate,
           endDate: data.endDate,
           isActive: data.isActive,
-          campOffers: data.campOffers,
+          freeOffers: data.freeOffers,
+          discountedOffers: data.discountedOffers,
           availableProcedures: data.availableProcedures,
           galleryImages: data.galleryImages,
         })

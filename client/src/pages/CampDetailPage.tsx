@@ -189,17 +189,39 @@ export default function CampDetailPage() {
       </section>
 
       {/* Camp Offers Section */}
-      {camp.campOffers && (
+      {/* Free Offers Section */}
+      {camp.freeOffers && (
         <section className="py-16 bg-gradient-to-br from-green-50 to-blue-50">
           <div className="container mx-auto px-4 max-w-4xl">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
-              عروض المخيم
+              العروض المجانية
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {camp.campOffers.split('\n').filter((offer: string) => offer.trim()).map((offer: string, index: number) => (
+              {camp.freeOffers.split('\n').filter((offer: string) => offer.trim()).map((offer: string, index: number) => (
                 <div key={index} className="bg-white p-6 rounded-lg shadow-md border-r-4 border-green-600">
                   <div className="flex items-start gap-3">
                     <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0" />
+                    <p className="text-gray-700 text-right flex-1">{offer.trim()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Discounted Offers Section */}
+      {camp.discountedOffers && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
+              العروض المخفضة
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {camp.discountedOffers.split('\n').filter((offer: string) => offer.trim()).map((offer: string, index: number) => (
+                <div key={index} className="bg-white p-6 rounded-lg shadow-md border-r-4 border-blue-600">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
                     <p className="text-gray-700 text-right flex-1">{offer.trim()}</p>
                   </div>
                 </div>
