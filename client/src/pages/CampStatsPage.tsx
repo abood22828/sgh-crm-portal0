@@ -6,10 +6,14 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight } from "lucide-react";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function CampStatsPage() {
+  const [, setLocation] = useLocation();
   const [selectedCamp, setSelectedCamp] = useState<string>("all");
   
   const { data: camps, isLoading: campsLoading } = trpc.camps.getAll.useQuery();
@@ -17,9 +21,11 @@ export default function CampStatsPage() {
 
   if (campsLoading || registrationsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" dir="rtl">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen" dir="rtl">
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -105,21 +111,30 @@ export default function CampStatsPage() {
   ].filter(item => item.value > 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4 md:p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              تقارير إحصائية للمخيمات
-            </h1>
-            <p className="text-gray-600 mt-1">
-              تحليل شامل لتسجيلات المخيمات الطبية
-            </p>
-          </div>
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-3 sm:p-4 md:p-6 lg:p-8" dir="rtl">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5 md:space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div>
+              <Button
+                variant="ghost"
+                onClick={() => setLocation('/dashboard')}
+                className="mb-4 hover:bg-green-100"
+              >
+                <ArrowRight className="w-4 h-4 ml-2" />
+                عودة إلى لوحة التحكم
+              </Button>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                تقارير إحصائية للمخيمات
+              </h1>
+              <p className="text-gray-600 mt-1">
+                تحليل شامل لتسجيلات المخيمات الطبية
+              </p>
+            </div>
 
           {/* Camp Filter */}
-          <div className="w-full md:w-64">
+          <div className="w-full sm:w-56 md:w-64">
             <Select value={selectedCamp} onValueChange={setSelectedCamp}>
               <SelectTrigger>
                 <SelectValue placeholder="اختر المخيم" />
@@ -137,7 +152,7 @@ export default function CampStatsPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
@@ -323,7 +338,8 @@ export default function CampStatsPage() {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

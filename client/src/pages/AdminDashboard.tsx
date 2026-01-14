@@ -1048,6 +1048,7 @@ export default function AdminDashboard() {
                         <TableHead className="text-right">الطبيب</TableHead>
                         <TableHead className="text-right">الإجراء</TableHead>
                         <TableHead className="text-right">التاريخ المفضل</TableHead>
+                        <TableHead className="text-right">المصدر</TableHead>
                         <TableHead className="text-right">الحالة</TableHead>
                         <TableHead className="text-right">الإجراءات</TableHead>
                       </TableRow>
@@ -1086,6 +1087,11 @@ export default function AdminDashboard() {
                           </TableCell>
                           <TableCell>
                             {appointment.preferredDate || <span className="text-muted-foreground text-sm">غير محدد</span>}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {(appointment as any).source === 'web' ? 'موقع' : (appointment as any).source === 'phone' ? 'هاتف' : (appointment as any).source === 'manual' ? 'يدوي' : (appointment as any).source || 'غير محدد'}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge

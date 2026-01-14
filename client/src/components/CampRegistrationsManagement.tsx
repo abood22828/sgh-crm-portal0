@@ -336,6 +336,7 @@ export default function CampRegistrationsManagement() {
                   <TableHead className="text-right">البريد الإلكتروني</TableHead>
                   <TableHead className="text-right">العمر</TableHead>
                   <TableHead className="text-right">المخيم</TableHead>
+                  <TableHead className="text-right">المصدر</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
                   <TableHead className="text-right">تاريخ التسجيل</TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
@@ -344,7 +345,7 @@ export default function CampRegistrationsManagement() {
               <TableBody>
                 {filteredRegistrations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       لا توجد تسجيلات متاحة
                     </TableCell>
                   </TableRow>
@@ -384,6 +385,11 @@ export default function CampRegistrationsManagement() {
                           <Tent className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">{reg.campName || "غير محدد"}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {reg.source === 'web' ? 'موقع' : reg.source === 'phone' ? 'هاتف' : reg.source === 'manual' ? 'يدوي' : reg.source || 'غير محدد'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge className={statusColors[reg.status as keyof typeof statusColors]}>

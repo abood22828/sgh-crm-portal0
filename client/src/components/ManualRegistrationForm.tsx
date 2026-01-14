@@ -388,7 +388,7 @@ export default function ManualRegistrationForm() {
                   <SelectContent>
                     {camps?.map((camp: any) => (
                       <SelectItem key={camp.id} value={camp.id.toString()}>
-                        {camp.title}
+                        {camp.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

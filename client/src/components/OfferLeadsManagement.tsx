@@ -347,6 +347,7 @@ export default function OfferLeadsManagement() {
                   <TableHead className="text-right">رقم الهاتف</TableHead>
                   <TableHead className="text-right">البريد الإلكتروني</TableHead>
                   <TableHead className="text-right">العرض</TableHead>
+                  <TableHead className="text-right">المصدر</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
                   <TableHead className="text-right">تاريخ التسجيل</TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
@@ -355,7 +356,7 @@ export default function OfferLeadsManagement() {
               <TableBody>
                 {filteredLeads.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       لا توجد حجوزات متاحة
                     </TableCell>
                   </TableRow>
@@ -388,6 +389,11 @@ export default function OfferLeadsManagement() {
                           <Tag className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">{lead.offerTitle || "غير محدد"}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {lead.source === 'web' ? 'موقع' : lead.source === 'phone' ? 'هاتف' : lead.source === 'manual' ? 'يدوي' : lead.source || 'غير محدد'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge className={statusColors[lead.status as keyof typeof statusColors]}>

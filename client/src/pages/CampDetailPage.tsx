@@ -298,10 +298,11 @@ export default function CampDetailPage() {
         return null;
       })()}
 
-      {/* Registration Form Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4 max-w-2xl">
-          <Card className="shadow-xl border-t-4 border-green-600">
+      {/* Registration Form Section - Only show for active camps */}
+      {camp.isActive && (
+        <section className="py-16">
+          <div className="container mx-auto px-4 max-w-2xl">
+            <Card className="shadow-xl border-t-4 border-green-600">
             <CardContent className="p-8">
               <div className="text-center mb-8">
                 <Heart className="h-16 w-16 text-red-500 fill-red-500 mx-auto mb-4" />
@@ -388,41 +389,53 @@ export default function CampDetailPage() {
                   />
                 </div>
 
-                <div>
-                  <Label className="text-right block mb-3">
-                    الإجراءات المطلوبة (اختر واحد أو أكثر)
-                  </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {availableProcedures.map((procedure: string) => (
-                      <label
-                        key={procedure}
-                        className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.procedures.includes(procedure)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFormData({
-                                ...formData,
-                                procedures: [...formData.procedures, procedure],
-                              });
-                            } else {
-                              setFormData({
-                                ...formData,
-                                procedures: formData.procedures.filter(
-                                  (p) => p !== procedure
-                                ),
-                              });
-                            }
-                          }}
-                          className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                        />
-                        <span className="text-sm text-gray-700">{procedure}</span>
-                      </label>
-                    ))}
+                {availableProcedures.length > 0 && (
+                  <div>
+                    <Label className="text-right block mb-3 text-base font-medium">
+                      الإجراءات المطلوبة (اختر واحد أو أكثر)
+                    </Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {availableProcedures.map((procedure: string) => (
+                        <label
+                          key={procedure}
+                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                            formData.procedures.includes(procedure)
+                              ? 'border-green-600 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.procedures.includes(procedure)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({
+                                  ...formData,
+                                  procedures: [...formData.procedures, procedure],
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  procedures: formData.procedures.filter(
+                                    (p) => p !== procedure
+                                  ),
+                                });
+                              }
+                            }}
+                            className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                          />
+                          <span className={`text-sm font-medium ${
+                            formData.procedures.includes(procedure)
+                              ? 'text-green-900'
+                              : 'text-gray-700'
+                          }`}>
+                            {procedure}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <Button
                   type="submit"
@@ -446,6 +459,35 @@ export default function CampDetailPage() {
           </Card>
         </div>
       </section>
+      )}
+
+      {/* Expired Camp Notice */}
+      {!camp.isActive && (
+        <section className="py-16">
+          <div className="container mx-auto px-4 max-w-2xl">
+            <Card className="shadow-xl border-t-4 border-gray-400">
+              <CardContent className="p-8 text-center">
+                <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="h-10 w-10 text-gray-500" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                  المخيم منتهي
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  هذا المخيم قد انتهى ولا يمكن التسجيل فيه حالياً. تابعنا للحصول على آخر التحديثات عن المخيمات القادمة.
+                </p>
+                <Button
+                  onClick={() => setLocation('/camps')}
+                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                >
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                  عودة إلى المخيمات
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
 
       {/* Contact Section */}
       <section className="bg-gradient-to-br from-green-600 to-blue-600 text-white py-12">
