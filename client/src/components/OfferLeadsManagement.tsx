@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +62,7 @@ const statusColors = {
   no_answer: "bg-gray-500",
 };
 
-export default function OfferLeadsManagement() {
+export default function OfferLeadsManagement({ onPendingCountChange }: { onPendingCountChange?: (count: number) => void }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOffer, setSelectedOffer] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<any>(null);
@@ -73,6 +73,18 @@ export default function OfferLeadsManagement() {
 
   const { data: offerLeads, isLoading, refetch } = trpc.offerLeads.list.useQuery();
   const { data: stats } = trpc.offerLeads.stats.useQuery();
+  
+  // Count pending offerLeads (status = 'new')
+  const pendingCount = useMemo(() => {
+    return offerLeads?.filter(l => l.status === 'new').length || 0;
+  }, [offerLeads]);
+  
+  // Notify parent of pending count changes
+  useEffect(() => {
+    if (onPendingCountChange) {
+      onPendingCountChange(pendingCount);
+    }
+  }, [pendingCount, onPendingCountChange]);
 
   const updateStatusMutation = trpc.offerLeads.updateStatus.useMutation({
     onSuccess: () => {

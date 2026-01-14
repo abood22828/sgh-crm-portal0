@@ -29,6 +29,9 @@ export default function CampDetailPage() {
     age: "",
     procedures: [] as string[],
   });
+  const [showAllFreeOffers, setShowAllFreeOffers] = useState(false);
+  const [showAllDiscountedOffers, setShowAllDiscountedOffers] = useState(false);
+  const [showProcedures, setShowProcedures] = useState(false);
 
   // Get available procedures from camp data
   const availableProcedures = useMemo(() => {
@@ -202,14 +205,19 @@ export default function CampDetailPage() {
 
       {/* Camp Offers Section */}
       {/* Free Offers Section */}
-      {camp.freeOffers && (
+      {camp.freeOffers && (() => {
+        const allOffers = camp.freeOffers.split('\n').filter((offer: string) => offer.trim());
+        const displayedOffers = showAllFreeOffers ? allOffers : allOffers.slice(0, 2);
+        const hasMore = allOffers.length > 2;
+        
+        return (
         <section className="py-16 bg-gradient-to-br from-green-50 to-blue-50">
           <div className="container mx-auto px-4 max-w-4xl">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
               العروض المجانية
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {camp.freeOffers.split('\n').filter((offer: string) => offer.trim()).map((offer: string, index: number) => (
+              {displayedOffers.map((offer: string, index: number) => (
                 <div key={index} className="bg-white p-6 rounded-lg shadow-md border-r-4 border-green-600">
                   <div className="flex items-start gap-3">
                     <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0" />
@@ -218,19 +226,36 @@ export default function CampDetailPage() {
                 </div>
               ))}
             </div>
+            {hasMore && (
+              <div className="text-center mt-8">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAllFreeOffers(!showAllFreeOffers)}
+                  className="gap-2"
+                >
+                  {showAllFreeOffers ? 'إخفاء' : `عرض المزيد (${allOffers.length - 2} عرض)`}
+                </Button>
+              </div>
+            )}
           </div>
         </section>
-      )}
+        );
+      })()}
 
       {/* Discounted Offers Section */}
-      {camp.discountedOffers && (
+      {camp.discountedOffers && (() => {
+        const allOffers = camp.discountedOffers.split('\n').filter((offer: string) => offer.trim());
+        const displayedOffers = showAllDiscountedOffers ? allOffers : allOffers.slice(0, 2);
+        const hasMore = allOffers.length > 2;
+        
+        return (
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4 max-w-4xl">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
               العروض المخفضة
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {camp.discountedOffers.split('\n').filter((offer: string) => offer.trim()).map((offer: string, index: number) => (
+              {displayedOffers.map((offer: string, index: number) => (
                 <div key={index} className="bg-white p-6 rounded-lg shadow-md border-r-4 border-blue-600">
                   <div className="flex items-start gap-3">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
@@ -239,9 +264,21 @@ export default function CampDetailPage() {
                 </div>
               ))}
             </div>
+            {hasMore && (
+              <div className="text-center mt-8">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAllDiscountedOffers(!showAllDiscountedOffers)}
+                  className="gap-2"
+                >
+                  {showAllDiscountedOffers ? 'إخفاء' : `عرض المزيد (${allOffers.length - 2} عرض)`}
+                </Button>
+              </div>
+            )}
           </div>
         </section>
-      )}
+        );
+      })()}
 
       {/* Gallery Section */}
       {camp.galleryImages && (() => {
@@ -392,48 +429,76 @@ export default function CampDetailPage() {
                 {availableProcedures.length > 0 && (
                   <div>
                     <Label className="text-right block mb-3 text-base font-medium">
-                      الإجراءات المطلوبة (اختر واحد أو أكثر)
+                      الإجراءات المطلوبة (اختياري)
                     </Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {availableProcedures.map((procedure: string) => (
-                        <label
-                          key={procedure}
-                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                            formData.procedures.includes(procedure)
-                              ? 'border-green-600 bg-green-50'
-                              : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={formData.procedures.includes(procedure)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData({
-                                  ...formData,
-                                  procedures: [...formData.procedures, procedure],
-                                });
-                              } else {
-                                setFormData({
-                                  ...formData,
-                                  procedures: formData.procedures.filter(
-                                    (p) => p !== procedure
-                                  ),
-                                });
-                              }
-                            }}
-                            className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                          />
-                          <span className={`text-sm font-medium ${
-                            formData.procedures.includes(procedure)
-                              ? 'text-green-900'
-                              : 'text-gray-700'
-                          }`}>
-                            {procedure}
+                    
+                    {!showProcedures ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowProcedures(true)}
+                        className="w-full py-6 text-base border-2 border-dashed border-gray-300 hover:border-green-500 hover:bg-green-50"
+                      >
+                        <Heart className="w-5 h-5 ml-2" />
+                        اضغط لاختيار الإجراءات المطلوبة
+                        {formData.procedures.length > 0 && (
+                          <span className="mr-2 bg-green-600 text-white px-3 py-1 rounded-full text-sm">
+                            {formData.procedures.length} مختار
                           </span>
-                        </label>
-                      ))}
-                    </div>
+                        )}
+                      </Button>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {availableProcedures.map((procedure: string) => (
+                            <label
+                              key={procedure}
+                              className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                                formData.procedures.includes(procedure)
+                                  ? 'border-green-600 bg-green-50'
+                                  : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={formData.procedures.includes(procedure)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({
+                                      ...formData,
+                                      procedures: [...formData.procedures, procedure],
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      procedures: formData.procedures.filter(
+                                        (p) => p !== procedure
+                                      ),
+                                    });
+                                  }
+                                }}
+                                className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                              />
+                              <span className={`text-sm font-medium ${
+                                formData.procedures.includes(procedure)
+                                  ? 'text-green-900'
+                                  : 'text-gray-700'
+                              }`}>
+                                {procedure}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowProcedures(false)}
+                          className="w-full"
+                        >
+                          إخفاء الإجراءات
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
 

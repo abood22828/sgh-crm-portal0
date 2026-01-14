@@ -91,6 +91,17 @@ export default function AdminDashboard() {
   const { data: appointments, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.list.useQuery();
   const { data: doctors = [] } = trpc.doctors.list.useQuery();
   
+  // Count pending (not updated) bookings
+  const pendingCounts = useMemo(() => {
+    const leadsPending = unifiedLeads?.filter(l => l.status === 'pending').length || 0;
+    const appointmentsPending = appointments?.filter(a => a.status === 'pending').length || 0;
+    // offerLeads and campRegistrations will be counted in their components
+    return {
+      leads: leadsPending,
+      appointments: appointmentsPending,
+    };
+  }, [unifiedLeads, appointments]);
+  
   const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
@@ -510,20 +521,30 @@ export default function AdminDashboard() {
           <Button
             variant={activeTab === "leads" ? "default" : "outline"}
             onClick={() => setActiveTab("leads")}
-            className="whitespace-nowrap flex-shrink-0"
+            className="whitespace-nowrap flex-shrink-0 relative"
           >
             <Users className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">العملاء المسجلين</span>
             <span className="sm:hidden">العملاء</span>
+            {pendingCounts.leads > 0 && (
+              <Badge className="absolute -top-2 -left-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500">
+                {pendingCounts.leads}
+              </Badge>
+            )}
           </Button>
           <Button
             variant={activeTab === "appointments" ? "default" : "outline"}
             onClick={() => setActiveTab("appointments")}
-            className="whitespace-nowrap flex-shrink-0"
+            className="whitespace-nowrap flex-shrink-0 relative"
           >
             <Calendar className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">مواعيد الأطباء</span>
             <span className="sm:hidden">المواعيد</span>
+            {pendingCounts.appointments > 0 && (
+              <Badge className="absolute -top-2 -left-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500">
+                {pendingCounts.appointments}
+              </Badge>
+            )}
           </Button>
           <Button
             variant={activeTab === "offerLeads" ? "default" : "outline"}
@@ -661,7 +682,7 @@ export default function AdminDashboard() {
                     </TableHeader>
                     <TableBody>
                       {filteredLeads.map((lead) => (
-                        <TableRow key={lead.id}>
+                        <TableRow key={lead.id} className={lead.status === 'pending' ? 'bg-red-50 hover:bg-red-100' : ''}>
                           <TableCell className="font-medium">{lead.fullName}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -924,7 +945,7 @@ export default function AdminDashboard() {
                     </TableHeader>
                     <TableBody>
                       {filteredAppointments.map((appointment) => (
-                        <TableRow key={appointment.id}>
+                        <TableRow key={appointment.id} className={appointment.status === 'pending' ? 'bg-red-50 hover:bg-red-100' : ''}>
                           <TableCell className="font-medium">{appointment.fullName}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
