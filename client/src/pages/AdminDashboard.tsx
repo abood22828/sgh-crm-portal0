@@ -394,38 +394,13 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            {/* Global Search */}
-            <div className="hidden lg:flex flex-1 justify-center max-w-md mx-4">
-              <GlobalSearch />
-            </div>
-            
             {/* Actions */}
             <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-              {/* Mobile Search */}
-              <div className="lg:hidden">
-                <GlobalSearch />
-              </div>
-              
-              {/* Notification Center */}
-              <NotificationCenter />
-              
               {/* User Info - Desktop Only */}
               <div className="text-left hidden lg:block">
                 <p className="text-sm font-semibold truncate max-w-[150px]">{user.name}</p>
                 <p className="text-xs text-muted-foreground truncate max-w-[150px]">{user.email}</p>
               </div>
-              
-              {/* Social Media Reports - Desktop Only */}
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setLocation("/reports/social-media")}
-                className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200 hidden xl:flex"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                <span className="hidden 2xl:inline">تقارير السوشيال ميديا</span>
-                <span className="xl:inline 2xl:hidden">تقارير</span>
-              </Button>
               
               {/* Settings Button */}
               <Button 
@@ -449,9 +424,6 @@ export default function AdminDashboard() {
               >
                 <WifiOff className="w-4 h-4" />
               </Button>
-              
-              {/* Manual Registration */}
-              <ManualRegistrationForm />
               
               {/* Logout Button */}
               <Button 
@@ -565,75 +537,15 @@ export default function AdminDashboard() {
           <NotificationCenter />
         </div>
 
-        {/* Analytics & Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6 md:mb-8">
+        {/* Analytics */}
+        <div className="mb-6 md:mb-8">
           <SourceAnalytics />
-          <RecentActivity />
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-4 md:mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-          <Button
-            variant={activeTab === "leads" ? "default" : "outline"}
-            onClick={() => setActiveTab("leads")}
-            className="whitespace-nowrap flex-shrink-0 relative"
-          >
-            <Users className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">العملاء المسجلين</span>
-            <span className="sm:hidden">العملاء</span>
-            {pendingCounts.leads > 0 && (
-              <Badge className="absolute -top-2 -left-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500">
-                {pendingCounts.leads}
-              </Badge>
-            )}
-          </Button>
-          <Button
-            variant={activeTab === "appointments" ? "default" : "outline"}
-            onClick={() => setActiveTab("appointments")}
-            className="whitespace-nowrap flex-shrink-0 relative"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">مواعيد الأطباء</span>
-            <span className="sm:hidden">المواعيد</span>
-            {pendingCounts.appointments > 0 && (
-              <Badge className="absolute -top-2 -left-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500">
-                {pendingCounts.appointments}
-              </Badge>
-            )}
-          </Button>
-          <Button
-            variant={activeTab === "offerLeads" ? "default" : "outline"}
-            onClick={() => setActiveTab("offerLeads")}
-            className="whitespace-nowrap flex-shrink-0 relative"
-          >
-            <TrendingUp className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">حجوزات العروض</span>
-            <span className="sm:hidden">العروض</span>
-            {pendingCounts.offerLeads > 0 && (
-              <Badge className="absolute -top-2 -left-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500">
-                {pendingCounts.offerLeads}
-              </Badge>
-            )}
-          </Button>
-          <Button
-            variant={activeTab === "campRegistrations" ? "default" : "outline"}
-            onClick={() => setActiveTab("campRegistrations")}
-            className="whitespace-nowrap flex-shrink-0 relative"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">تسجيلات المخيمات</span>
-            <span className="sm:hidden">المخيمات</span>
-            {pendingCounts.campRegistrations > 0 && (
-              <Badge className="absolute -top-2 -left-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500">
-                {pendingCounts.campRegistrations}
-              </Badge>
-            )}
-          </Button>
+        {/* Tabs removed - moved to Bookings Management Page */}
 
-        </div>
-
-        {/* Leads Table */}
-        {activeTab === "leads" && (
+        {/* Leads Table removed */}
+        {false && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -840,8 +752,8 @@ export default function AdminDashboard() {
         </Card>
         )}
 
-        {/* Appointments Table */}
-        {activeTab === "appointments" && (
+        {/* Appointments Table removed */}
+        {false && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -1128,15 +1040,8 @@ export default function AdminDashboard() {
         </Card>
         )}
 
-        {/* Offer Leads Management */}
-        {activeTab === "offerLeads" && (
-        <OfferLeadsManagement onPendingCountChange={setOfferLeadsPendingCount} />
-        )}
-
-        {/* Camp Registrations Management */}
-        {activeTab === "campRegistrations" && (
-        <CampRegistrationsManagement onPendingCountChange={setCampRegistrationsPendingCount} />
-        )}
+        {/* Offer Leads Management removed */}
+        {/* Camp Registrations Management removed */}
 
 
       </main>

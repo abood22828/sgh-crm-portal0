@@ -31,6 +31,7 @@ import { UserPlus, Edit, Trash2, Power, Search, ArrowRight, UserCheck, UserX, Ma
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useLocation } from "wouter";
+import RecentActivity from "@/components/RecentActivity";
 
 const roleLabels: Record<string, string> = {
   admin: "مسؤول",
@@ -51,7 +52,7 @@ const roleColors: Record<string, string> = {
 export default function UsersManagementPage() {
   const [, setLocation] = useLocation();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [activeSection, setActiveSection] = useState<"users" | "requests">("users");
+  const [activeSection, setActiveSection] = useState<"users" | "requests" | "activity">("users");
   const [editingUser, setEditingUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({
@@ -215,11 +216,11 @@ export default function UsersManagementPage() {
         </Button>
 
         {/* Section Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           <Button
             variant={activeSection === "users" ? "default" : "outline"}
             onClick={() => setActiveSection("users")}
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none whitespace-nowrap"
           >
             <UserPlus className="w-4 h-4 mr-2" />
             إدارة المستخدمين
@@ -227,7 +228,7 @@ export default function UsersManagementPage() {
           <Button
             variant={activeSection === "requests" ? "default" : "outline"}
             onClick={() => setActiveSection("requests")}
-            className="flex-1 sm:flex-none relative"
+            className="flex-1 sm:flex-none relative whitespace-nowrap"
           >
             <UserCheck className="w-4 h-4 mr-2" />
             طلبات التصريح
@@ -236,6 +237,14 @@ export default function UsersManagementPage() {
                 {accessRequests.length}
               </Badge>
             )}
+          </Button>
+          <Button
+            variant={activeSection === "activity" ? "default" : "outline"}
+            onClick={() => setActiveSection("activity")}
+            className="flex-1 sm:flex-none whitespace-nowrap"
+          >
+            <UserCheck className="w-4 h-4 mr-2" />
+            تتبع النشاط
           </Button>
         </div>
 
@@ -569,6 +578,19 @@ export default function UsersManagementPage() {
                 </Table>
               </div>
             )}
+          </CardContent>
+        </Card>
+        )}
+
+        {/* Activity Section */}
+        {activeSection === "activity" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>تتبع النشاط الحي</CardTitle>
+            <CardDescription>عرض آخر الأنشطة في النظام</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RecentActivity />
           </CardContent>
         </Card>
         )}

@@ -18,7 +18,7 @@ import CampsListPage from "./pages/CampsListPage";
 import DoctorDetailPage from "./pages/DoctorDetailPage";
 import OfferDetailPage from "./pages/OfferDetailPage";
 import CampDetailPage from "./pages/CampDetailPage";
-import SocialMediaReports from "./pages/SocialMediaReports";
+
 import VisitingDoctors from "./pages/VisitingDoctors";
 import OfflinePage from "./pages/OfflinePage";
 import SettingsPage from "./pages/SettingsPage";
@@ -64,7 +64,7 @@ function Router() {
        <Route path={"/dashboard/camp-stats"} component={CampStatsPage} />
       <Route path={"/dashboard/bookings"} component={BookingsManagementPage} />
       <Route path={"/admin"} component={AdminDashboard} />
-      <Route path={"/reports/social-media"} component={SocialMediaReports} />
+
       <Route path={"/offline"} component={OfflinePage} />
       <Route path={"/settings"} component={SettingsPage} />
       <Route path={"/404"} component={NotFound} />

@@ -419,41 +419,41 @@ export default function BookingsManagementPage() {
         {activeTab === "leads" && (
           <div className="space-y-4">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">إجمالي العملاء</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium">إجمالي العملاء</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats?.total || 0}</div>
+                  <div className="text-xl md:text-2xl font-bold">{stats?.total || 0}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">جديد</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium">جديد</CardTitle>
                   <UserCheck className="h-4 w-4 text-blue-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats?.new || 0}</div>
+                  <div className="text-xl md:text-2xl font-bold">{stats?.new || 0}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">تم التواصل</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium">تم التواصل</CardTitle>
                   <Phone className="h-4 w-4 text-yellow-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats?.contacted || 0}</div>
+                  <div className="text-xl md:text-2xl font-bold">{stats?.contacted || 0}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">تم الحجز</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium">تم الحجز</CardTitle>
                   <Calendar className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats?.booked || 0}</div>
+                  <div className="text-xl md:text-2xl font-bold">{stats?.booked || 0}</div>
                 </CardContent>
               </Card>
             </div>
@@ -641,41 +641,41 @@ export default function BookingsManagementPage() {
         {activeTab === "appointments" && (
           <div className="space-y-4">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">إجمالي المواعيد</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium">إجمالي المواعيد</CardTitle>
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{appointmentStats.total}</div>
+                  <div className="text-xl md:text-2xl font-bold">{appointmentStats.total}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">قيد الانتظار</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium">قيد الانتظار</CardTitle>
                   <Calendar className="h-4 w-4 text-yellow-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{appointmentStats.pending}</div>
+                  <div className="text-xl md:text-2xl font-bold">{appointmentStats.pending}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">مؤكد</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium">مؤكد</CardTitle>
                   <Calendar className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{appointmentStats.confirmed}</div>
+                  <div className="text-xl md:text-2xl font-bold">{appointmentStats.confirmed}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">ملغي</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium">ملغي</CardTitle>
                   <Calendar className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{appointmentStats.cancelled}</div>
+                  <div className="text-xl md:text-2xl font-bold">{appointmentStats.cancelled}</div>
                 </CardContent>
               </Card>
             </div>
