@@ -2,6 +2,10 @@ import { useState, useMemo } from "react";
 import OfferLeadsManagement from "@/components/OfferLeadsManagement";
 import CampRegistrationsManagement from "@/components/CampRegistrationsManagement";
 import ManualRegistrationForm from "@/components/ManualRegistrationForm";
+import GlobalSearch from "@/components/GlobalSearch";
+import NotificationCenter from "@/components/NotificationCenter";
+import SourceAnalytics from "@/components/SourceAnalytics";
+import RecentActivity from "@/components/RecentActivity";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DoctorsManagement from "@/components/DoctorsManagement";
 import LeadCard from "@/components/LeadCard";
@@ -389,8 +393,21 @@ export default function AdminDashboard() {
               </div>
             </div>
             
+            {/* Global Search */}
+            <div className="hidden lg:flex flex-1 justify-center max-w-md mx-4">
+              <GlobalSearch />
+            </div>
+            
             {/* Actions */}
             <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+              {/* Mobile Search */}
+              <div className="lg:hidden">
+                <GlobalSearch />
+              </div>
+              
+              {/* Notification Center */}
+              <NotificationCenter />
+              
               {/* User Info - Desktop Only */}
               <div className="text-left hidden lg:block">
                 <p className="text-sm font-semibold truncate max-w-[150px]">{user.name}</p>
@@ -530,6 +547,12 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Analytics & Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6 md:mb-8">
+          <SourceAnalytics />
+          <RecentActivity />
         </div>
 
         {/* Tabs */}
