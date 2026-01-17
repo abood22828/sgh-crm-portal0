@@ -6,6 +6,7 @@ import GlobalSearch from "@/components/GlobalSearch";
 import NotificationCenter from "@/components/NotificationCenter";
 import SourceAnalytics from "@/components/SourceAnalytics";
 import RecentActivity from "@/components/RecentActivity";
+import QuickPatientSearch from "@/components/QuickPatientSearch";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DoctorsManagement from "@/components/DoctorsManagement";
 import LeadCard from "@/components/LeadCard";
@@ -547,6 +548,21 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Quick Patient Search & Manual Registration */}
+        <div className="flex flex-col md:flex-row gap-3 mb-6 md:mb-8">
+          <div className="flex-1">
+            <QuickPatientSearch />
+          </div>
+          <div className="flex-shrink-0">
+            <ManualRegistrationForm />
+          </div>
+        </div>
+
+        {/* Notification Center */}
+        <div className="mb-6 md:mb-8">
+          <NotificationCenter />
         </div>
 
         {/* Analytics & Recent Activity */}
