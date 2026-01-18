@@ -249,11 +249,13 @@ export const campRegistrations = mysqlTable("campRegistrations", {
   phone: varchar("phone", { length: 20 }).notNull(),
   email: varchar("email", { length: 320 }),
   age: int("age"),
+  gender: mysqlEnum("gender", ["male", "female"]),
   procedures: text("procedures"), // JSON array of selected procedures
   medicalCondition: text("medicalCondition"),
   notes: text("notes"),
   status: mysqlEnum("status", ["pending", "confirmed", "attended", "cancelled"]).default("pending").notNull(),
   statusNotes: text("statusNotes"),
+  attendanceDate: timestamp("attendanceDate"),
   source: varchar("source", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

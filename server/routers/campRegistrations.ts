@@ -110,19 +110,29 @@ export const campRegistrationsRouter = router({
         id: z.number(),
         status: z.enum(["pending", "confirmed", "attended", "cancelled"]),
         notes: z.string().optional(),
+        fullName: z.string().optional(),
+        phone: z.string().optional(),
+        attendanceDate: z.date().optional(),
       })
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
+      const updateData: any = {
+        status: input.status,
+        statusNotes: input.notes,
+        updatedAt: new Date(),
+      };
+
+      // إضافة البيانات المعدلة إذا تم توفيرها
+      if (input.fullName) updateData.fullName = input.fullName;
+      if (input.phone) updateData.phone = input.phone;
+      if (input.attendanceDate) updateData.attendanceDate = input.attendanceDate;
+
       await db
         .update(campRegistrations)
-        .set({
-          status: input.status,
-          statusNotes: input.notes,
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(campRegistrations.id, input.id));
 
       return { success: true };

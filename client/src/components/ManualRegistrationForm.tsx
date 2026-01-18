@@ -146,7 +146,7 @@ export default function ManualRegistrationForm() {
       phone,
       email: email || undefined,
       notes: notes || undefined,
-      source: "phone" as const,
+      source: "manual" as const,
     };
 
     switch (registrationType) {

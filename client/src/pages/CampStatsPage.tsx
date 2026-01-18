@@ -99,15 +99,23 @@ export default function CampStatsPage() {
 
   // Registrations by source
   const sourceCounts = {
+    facebook: filteredRegistrations.filter((r: any) => r.source === "facebook").length,
+    instagram: filteredRegistrations.filter((r: any) => r.source === "instagram").length,
+    telegram: filteredRegistrations.filter((r: any) => r.source === "telegram").length,
+    manual: filteredRegistrations.filter((r: any) => r.source === "manual").length,
+    // للتوافق مع التسجيلات القديمة
     web: filteredRegistrations.filter((r: any) => r.source === "web" || r.source === "website").length,
     phone: filteredRegistrations.filter((r: any) => r.source === "phone").length,
-    manual: filteredRegistrations.filter((r: any) => r.source === "manual").length,
   };
 
   const sourceData = [
+    { name: "فيسبوك", value: sourceCounts.facebook, color: "#1877F2" },
+    { name: "إنستغرام", value: sourceCounts.instagram, color: "#E4405F" },
+    { name: "تيليجرام", value: sourceCounts.telegram, color: "#0088CC" },
+    { name: "يدوي", value: sourceCounts.manual, color: "#FFA500" },
+    // للتوافق مع التسجيلات القديمة
     { name: "موقع الويب", value: sourceCounts.web, color: "#0066CC" },
     { name: "هاتف", value: sourceCounts.phone, color: "#00A651" },
-    { name: "يدوي", value: sourceCounts.manual, color: "#FFA500" },
   ].filter(item => item.value > 0);
 
   return (

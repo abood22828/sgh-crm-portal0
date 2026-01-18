@@ -68,6 +68,9 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
+  const [editedName, setEditedName] = useState("");
+  const [editedPhone, setEditedPhone] = useState("");
+  const [attendanceDate, setAttendanceDate] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
@@ -170,10 +173,19 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
   const handleStatusUpdate = () => {
     if (!selectedRegistration || !newStatus) return;
     
-    updateStatusMutation.mutate({
+    const updateData: any = {
       id: selectedRegistration.id,
       status: newStatus as any,
-    });
+    };
+
+    // إضافة البيانات المعدلة إذا كانت الحالة مؤكد أو حضر
+    if (newStatus === 'confirmed' || newStatus === 'attended') {
+      if (editedName) updateData.fullName = editedName;
+      if (editedPhone) updateData.phone = editedPhone;
+      if (attendanceDate) updateData.attendanceDate = new Date(attendanceDate);
+    }
+    
+    updateStatusMutation.mutate(updateData);
   };
 
   if (isLoading) {
@@ -349,6 +361,9 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                   onEdit={() => {
                     setSelectedRegistration(reg);
                     setNewStatus(reg.status);
+                    setEditedName(reg.fullName);
+                    setEditedPhone(reg.phone);
+                    setAttendanceDate(reg.attendanceDate ? new Date(reg.attendanceDate).toISOString().slice(0, 16) : "");
                     setStatusDialogOpen(true);
                   }}
                   onViewDetails={() => {
@@ -441,6 +456,9 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                             onClick={() => {
                               setSelectedRegistration(reg);
                               setNewStatus(reg.status);
+                              setEditedName(reg.fullName);
+                              setEditedPhone(reg.phone);
+                              setAttendanceDate(reg.attendanceDate ? new Date(reg.attendanceDate).toISOString().slice(0, 16) : "");
                               setStatusDialogOpen(true);
                             }}
                           >
@@ -532,6 +550,37 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                 </SelectContent>
               </Select>
             </div>
+
+            {(newStatus === 'confirmed' || newStatus === 'attended') && (
+              <>
+                <div className="space-y-2">
+                  <Label>الاسم الكامل</Label>
+                  <Input
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    placeholder="الاسم الكامل"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>رقم الهاتف</Label>
+                  <Input
+                    value={editedPhone}
+                    onChange={(e) => setEditedPhone(e.target.value)}
+                    placeholder="رقم الهاتف"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>موعد الحضور</Label>
+                  <Input
+                    type="datetime-local"
+                    value={attendanceDate}
+                    onChange={(e) => setAttendanceDate(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
 
             <div className="flex gap-2 justify-end">
               <Button
