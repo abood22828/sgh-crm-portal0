@@ -84,6 +84,7 @@ const statusColors = {
 export default function AdminDashboard() {
   const { user, loading: authLoading, logout } = useAuth();
   const [, setLocation] = useLocation();
+  const utils = trpc.useUtils();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
@@ -1183,6 +1184,7 @@ export default function AdminDashboard() {
 
 // Offers Management Component
 function OffersManagement() {
+  const utils = trpc.useUtils();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingOffer, setEditingOffer] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -1225,6 +1227,9 @@ function OffersManagement() {
     onSuccess: () => {
       toast.success("تم حذف العرض بنجاح");
       refetch();
+      // Invalidate all related queries to update stats
+      utils.offerLeads.list.invalidate();
+      utils.leads.unifiedList.invalidate();
     },
     onError: () => {
       toast.error("حدث خطأ أثناء حذف العرض");
@@ -1487,6 +1492,7 @@ function OffersManagement() {
 
 // Camps Management Component
 function CampsManagement() {
+  const utils = trpc.useUtils();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingCamp, setEditingCamp] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -1529,6 +1535,9 @@ function CampsManagement() {
     onSuccess: () => {
       toast.success("تم حذف المخيم بنجاح");
       refetch();
+      // Invalidate all related queries to update stats
+      utils.campRegistrations.list.invalidate();
+      utils.leads.unifiedList.invalidate();
     },
     onError: () => {
       toast.error("حدث خطأ أثناء حذف المخيم");
