@@ -189,3 +189,306 @@
     }
   }
 }
+
+@layer components {
+  /* ============================================
+     Responsive Table Utilities
+     ============================================ */
+  
+  /* Make tables scrollable on mobile */
+  .table-responsive {
+    @apply w-full overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0;
+  }
+
+  .table-responsive table {
+    @apply min-w-full;
+  }
+
+  /* Sticky first column for mobile tables */
+  .table-sticky-col tbody tr td:first-child,
+  .table-sticky-col thead tr th:first-child {
+    @apply sticky right-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)];
+  }
+
+  /* ============================================
+     Mobile-Optimized Card Utilities
+     ============================================ */
+  
+  /* Compact card for mobile */
+  .card-mobile-compact {
+    @apply p-3 md:p-6;
+  }
+
+  /* Stack card content vertically on mobile */
+  .card-stack-mobile {
+    @apply flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4;
+  }
+
+  /* ============================================
+     Form & Input Enhancements
+     ============================================ */
+  
+  /* Better touch targets for mobile */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Full-width inputs on mobile */
+  .input-responsive {
+    @apply w-full md:w-auto;
+  }
+
+  /* ============================================
+     Typography Enhancements for Arabic
+     ============================================ */
+  
+  /* Better line height for Arabic text */
+  .text-arabic {
+    @apply leading-relaxed;
+    font-feature-settings: 'liga' 1, 'calt' 1;
+  }
+
+  /* Responsive font sizes */
+  .text-responsive-sm {
+    @apply text-xs md:text-sm;
+  }
+
+  .text-responsive-base {
+    @apply text-sm md:text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-base md:text-lg;
+  }
+
+  .text-responsive-xl {
+    @apply text-lg md:text-xl;
+  }
+
+  .text-responsive-2xl {
+    @apply text-xl md:text-2xl;
+  }
+
+  /* ============================================
+     Spacing & Layout Utilities
+     ============================================ */
+  
+  /* Responsive spacing */
+  .space-responsive {
+    @apply space-y-3 md:space-y-4 lg:space-y-6;
+  }
+
+  .gap-responsive {
+    @apply gap-3 md:gap-4 lg:gap-6;
+  }
+
+  /* Responsive grid */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4;
+  }
+
+  /* ============================================
+     Button Enhancements
+     ============================================ */
+  
+  /* Responsive button sizes */
+  .btn-responsive {
+    @apply text-sm md:text-base px-3 py-2 md:px-4 md:py-2;
+  }
+
+  /* Icon button with proper spacing */
+  .btn-icon-responsive {
+    @apply gap-1 md:gap-2;
+  }
+
+  /* ============================================
+     Loading & Skeleton States
+     ============================================ */
+  
+  /* Skeleton loading animation */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  .skeleton-text {
+    @apply h-4 bg-muted rounded;
+  }
+
+  .skeleton-avatar {
+    @apply h-10 w-10 bg-muted rounded-full;
+  }
+
+  /* ============================================
+     Smooth Transitions
+     ============================================ */
+  
+  .transition-smooth {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .transition-smooth-slow {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* ============================================
+     Accessibility Enhancements
+     ============================================ */
+  
+  /* Focus visible styles */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  /* Skip to content link */
+  .skip-to-content {
+    @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:right-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md;
+  }
+
+  /* ============================================
+     Print Styles
+     ============================================ */
+  
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+
+    body {
+      @apply text-black bg-white;
+    }
+
+    .print-break-before {
+      page-break-before: always;
+    }
+
+    .print-break-after {
+      page-break-after: always;
+    }
+
+    .print-avoid-break {
+      page-break-inside: avoid;
+    }
+  }
+
+  /* ============================================
+     Mobile-Specific Utilities
+     ============================================ */
+  
+  /* Hide on mobile */
+  .hide-mobile {
+    @apply hidden md:block;
+  }
+
+  /* Show only on mobile */
+  .show-mobile {
+    @apply block md:hidden;
+  }
+
+  /* Full width on mobile */
+  .full-mobile {
+    @apply w-full md:w-auto;
+  }
+
+  /* ============================================
+     Dialog & Modal Enhancements
+     ============================================ */
+  
+  /* Responsive dialog */
+  .dialog-responsive {
+    @apply w-[95vw] md:w-full md:max-w-lg;
+  }
+
+  .dialog-responsive-lg {
+    @apply w-[95vw] md:w-full md:max-w-2xl;
+  }
+
+  .dialog-responsive-xl {
+    @apply w-[95vw] md:w-full md:max-w-4xl;
+  }
+
+  /* ============================================
+     Chart & Visualization Enhancements
+     ============================================ */
+  
+  /* Responsive chart container */
+  .chart-responsive {
+    @apply h-[250px] md:h-[300px] lg:h-[400px];
+  }
+
+  /* ============================================
+     Custom Scrollbar
+     ============================================ */
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-muted rounded;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded hover:bg-muted-foreground/50;
+  }
+
+  /* ============================================
+     Safe Area Insets (for mobile notches)
+     ============================================ */
+  
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+}
+
+/* ============================================
+   Global Enhancements
+   ============================================ */
+
+/* Better tap highlight for mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better text rendering */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent horizontal scroll */
+body {
+  overflow-x: hidden;
+}
+
+/* Better selection color */
+::selection {
+  background-color: oklch(0.623 0.15 220 / 0.3);
+  color: inherit;
+}
