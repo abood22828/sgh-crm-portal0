@@ -101,8 +101,62 @@ function BookingCard({ booking }: { booking: any }) {
   );
 }
 
+// Date range presets
+type DatePreset = 'last7' | 'last30' | 'thisMonth' | 'lastMonth' | 'last3Months' | 'thisYear';
+
+const getDateRangeFromPreset = (preset: DatePreset): { from: Date; to: Date } => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  switch (preset) {
+    case 'last7':
+      return {
+        from: new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000),
+        to: today,
+      };
+    case 'last30':
+      return {
+        from: new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000),
+        to: today,
+      };
+    case 'thisMonth':
+      return {
+        from: new Date(now.getFullYear(), now.getMonth(), 1),
+        to: today,
+      };
+    case 'lastMonth': {
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      return {
+        from: lastMonthStart,
+        to: lastMonthEnd,
+      };
+    }
+    case 'last3Months':
+      return {
+        from: new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()),
+        to: today,
+      };
+    case 'thisYear':
+      return {
+        from: new Date(now.getFullYear(), 0, 1),
+        to: today,
+      };
+  }
+};
+
+const datePresets: { label: string; value: DatePreset }[] = [
+  { label: 'آخر 7 أيام', value: 'last7' },
+  { label: 'آخر 30 يوم', value: 'last30' },
+  { label: 'هذا الشهر', value: 'thisMonth' },
+  { label: 'الشهر السابق', value: 'lastMonth' },
+  { label: 'آخر 3 أشهر', value: 'last3Months' },
+  { label: 'هذه السنة', value: 'thisYear' },
+];
+
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [selectedPreset, setSelectedPreset] = useState<DatePreset | null>(null);
 
   // Format dates for API
   const startDate = dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : undefined;
@@ -135,6 +189,12 @@ export default function ReportsPage() {
   );
 
   const isLoading = loadingBookings || loadingLeads || loadingConversion || loadingRevenue;
+
+  const handlePresetClick = (preset: DatePreset) => {
+    const range = getDateRangeFromPreset(preset);
+    setDateRange(range);
+    setSelectedPreset(preset);
+  };
 
   const handleRefresh = () => {
     refetchBookings();
@@ -259,6 +319,20 @@ export default function ReportsPage() {
       <div className="space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-3">
+          {/* Quick Date Presets */}
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <Button
+                key={preset.value}
+                variant={selectedPreset === preset.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePresetClick(preset.value)}
+                className="text-xs"
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             {/* Date Range Picker */}
@@ -285,7 +359,10 @@ export default function ReportsPage() {
                 <Calendar
                   mode="range"
                   selected={{ from: dateRange.from, to: dateRange.to }}
-                  onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
+                  onSelect={(range) => {
+                    setDateRange({ from: range?.from, to: range?.to });
+                    setSelectedPreset(null); // إلغاء الخيار السريع عند الاختيار اليدوي
+                  }}
                   numberOfMonths={1}
                   locale={ar}
                 />
