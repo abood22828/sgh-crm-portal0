@@ -3,7 +3,7 @@ import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import DashboardSidebar from "./DashboardSidebar";
-import PendingRequestsNotification from "./PendingRequestsNotification";
+
 import { useLocation } from "wouter";
 
 export default function DashboardLayout({
@@ -60,11 +60,6 @@ export default function DashboardLayout({
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:pb-0 pb-20">
-        {/* Top Bar with Notifications */}
-        <div className="bg-white border-b shadow-sm p-4 flex justify-end items-center gap-4">
-          <PendingRequestsNotification />
-        </div>
-        
         {children}
       </div>
     </div>
