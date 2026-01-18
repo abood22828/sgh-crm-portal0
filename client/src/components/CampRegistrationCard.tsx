@@ -21,6 +21,7 @@ interface CampRegistrationCardProps {
 }
 
 const statusColors: Record<string, string> = {
+  pending: "bg-orange-100 text-orange-800",
   new: "bg-blue-100 text-blue-800",
   contacted: "bg-yellow-100 text-yellow-800",
   confirmed: "bg-green-100 text-green-800",
@@ -28,6 +29,7 @@ const statusColors: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
+  pending: "قيد الانتظار",
   new: "جديد",
   contacted: "تم التواصل",
   confirmed: "مؤكد",
@@ -47,7 +49,7 @@ export default function CampRegistrationCard({ registration, onEdit, onViewDetai
   };
 
   return (
-    <Card className="mb-3 hover:shadow-md transition-shadow">
+    <Card className={`mb-3 hover:shadow-md transition-shadow ${registration.status === 'pending' ? 'bg-orange-50 border-orange-200' : ''}`}>
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">

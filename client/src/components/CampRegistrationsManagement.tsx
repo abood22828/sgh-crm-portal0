@@ -626,6 +626,21 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                   </p>
                 </div>
               </div>
+              {selectedRegistration.procedures && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">الإجراءات المختارة</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(typeof selectedRegistration.procedures === 'string' 
+                      ? JSON.parse(selectedRegistration.procedures) 
+                      : selectedRegistration.procedures
+                    ).map((proc: string, idx: number) => (
+                      <Badge key={idx} variant="secondary" className="text-sm">
+                        {proc}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
               {selectedRegistration.notes && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-2">ملاحظات</p>
