@@ -86,6 +86,7 @@ export default function BookingsManagementPage() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     const type = params.get('type');
+    const tab = params.get('tab');
     
     if (id && type) {
       // Switch to appropriate tab
@@ -95,6 +96,14 @@ export default function BookingsManagementPage() {
         setActiveTab('offerLeads');
       } else if (type === 'camp') {
         setActiveTab('campRegistrations');
+      }
+      
+      // Clear query parameters after handling
+      window.history.replaceState({}, '', '/dashboard/bookings');
+    } else if (tab) {
+      // Handle tab parameter from NotificationCenter
+      if (tab === 'appointments' || tab === 'offerLeads' || tab === 'campRegistrations' || tab === 'leads') {
+        setActiveTab(tab as any);
       }
       
       // Clear query parameters after handling

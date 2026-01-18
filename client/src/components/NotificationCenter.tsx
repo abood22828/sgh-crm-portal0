@@ -3,8 +3,10 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, Users, Calendar, TrendingUp, UserCheck } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function NotificationCenter() {
+  const [, setLocation] = useLocation();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     campRegistrations: false,
     appointments: false,
@@ -15,6 +17,30 @@ export default function NotificationCenter() {
   const { data: appointments } = trpc.appointments.list.useQuery();
   const { data: offerLeads } = trpc.offerLeads.list.useQuery();
   const { data: campRegistrations } = trpc.campRegistrations.list.useQuery();
+
+  // Get last 5 pending items for each type
+  const pendingItems = useMemo(() => {
+    const pendingAppointments = (appointments || [])
+      .filter(a => a.status === 'pending')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+    
+    const pendingOfferLeads = (offerLeads || [])
+      .filter(o => o.status === 'new')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+    
+    const pendingCampRegistrations = (campRegistrations || [])
+      .filter(c => c.status === 'pending')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+
+    return {
+      appointments: pendingAppointments,
+      offerLeads: pendingOfferLeads,
+      campRegistrations: pendingCampRegistrations,
+    };
+  }, [appointments, offerLeads, campRegistrations]);
 
   // Count pending items
   const counts = useMemo(() => ({
@@ -32,33 +58,44 @@ export default function NotificationCenter() {
     }));
   };
 
+  const handleItemClick = (type: string) => {
+    // Navigate to bookings management page with the appropriate tab
+    setLocation(`/dashboard/bookings?tab=${type}`);
+  };
+
   const sections = [
     {
       id: 'campRegistrations',
       title: 'تسجيلات المخيمات',
       count: counts.campRegistrations,
+      items: pendingItems.campRegistrations,
       icon: UserCheck,
       color: 'text-teal-600',
       bgColor: 'bg-teal-50',
       borderColor: 'border-teal-200',
+      type: 'campRegistrations',
     },
     {
       id: 'appointments',
       title: 'مواعيد الأطباء',
       count: counts.appointments,
+      items: pendingItems.appointments,
       icon: Calendar,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200',
+      type: 'appointments',
     },
     {
       id: 'offerLeads',
       title: 'حجوزات العروض',
       count: counts.offerLeads,
+      items: pendingItems.offerLeads,
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
+      type: 'offerLeads',
     },
   ];
 
@@ -66,7 +103,7 @@ export default function NotificationCenter() {
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">الإشعارات</h2>
+        <h2 className="text-xl font-bold">طلبات قيد الانتظار</h2>
         {totalCount > 0 && (
           <Badge variant="destructive" className="text-sm">
             {totalCount} إشعار
@@ -79,7 +116,7 @@ export default function NotificationCenter() {
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
             <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p>لا توجد إشعارات جديدة</p>
+            <p>لا توجد طلبات قيد الانتظار</p>
             <p className="text-sm mt-1">جميع الحجوزات محدثة</p>
           </CardContent>
         </Card>
@@ -125,12 +162,31 @@ export default function NotificationCenter() {
                     </div>
                   </button>
 
-                  {/* Expanded Content */}
+                  {/* Expanded Content - Show last 5 requests */}
                   {isExpanded && (
-                    <div className="border-t p-4 bg-white">
-                      <p className="text-sm text-muted-foreground">
-                        يمكنك عرض التفاصيل الكاملة من صفحة <strong>إدارة الحجوزات</strong>
-                      </p>
+                    <div className="border-t bg-white">
+                      {section.items.length > 0 ? (
+                        <div className="divide-y">
+                          {section.items.map((item: any, index: number) => (
+                            <button
+                              key={index}
+                              onClick={() => handleItemClick(section.type)}
+                              className="w-full p-3 text-right hover:bg-gray-50 transition-colors flex items-center justify-between group"
+                            >
+                              <span className="font-medium group-hover:text-primary transition-colors">
+                                {item.fullName || item.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(item.createdAt).toLocaleDateString('ar-EG')}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          لا توجد طلبات
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
