@@ -31,6 +31,9 @@ const createCampaignSchema = z.object({
   targetLeads: z.number().optional(),
   targetBookings: z.number().optional(),
   targetROI: z.number().optional(),
+  targetRevenue: z.number().optional(),
+  kpis: z.string().optional(),
+  notes: z.string().optional(),
   teamLeaderId: z.number().optional(),
   teamMembers: z.string().optional(), // JSON string
   metaPixelId: z.string().optional(),
@@ -41,6 +44,9 @@ const createCampaignSchema = z.object({
 
 const updateCampaignSchema = createCampaignSchema.partial().extend({
   id: z.number(),
+  targetRevenue: z.number().optional(),
+  kpis: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export const campaignsRouter = router({
