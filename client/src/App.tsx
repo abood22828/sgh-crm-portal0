@@ -81,7 +81,7 @@ function Router() {
       <Route path={"/dashboard/teams/media"} component={MediaTeamPage} />
       <Route path={"/dashboard/teams/field-marketing"} component={FieldMarketingTeamPage} />
       <Route path={"/dashboard/teams/customer-service"} component={CustomerServiceTeamPage} />
-      <Route path={"/dashboard/projects"} component={ProjectsManagementPage} />
+      <Route path={"/dashboard/projects"} component={CampaignsPage} />
       <Route path={"/dashboard/review-approval"} component={ReviewApprovalPage} />
       <Route path={"/admin"} component={AdminDashboard} />
 
