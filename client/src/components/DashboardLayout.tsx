@@ -69,6 +69,11 @@ export default function DashboardLayout({
           <div className="flex items-center justify-between px-4 py-3 md:px-6">
             {/* Logo and Title */}
             <div className="flex items-center gap-3">
+              <img
+                src="/assets/new-logo.png"
+                alt="المستشفى السعودي الألماني"
+                className="h-10 md:h-12 w-auto object-contain flex-shrink-0"
+              />
               <div className="flex-1 text-right">
                 <h1 className="text-xl md:text-2xl font-bold text-primary">
                   {pageTitle || APP_TITLE}
@@ -79,11 +84,6 @@ export default function DashboardLayout({
                   </p>
                 )}
               </div>
-              <img
-                src="/assets/new-logo.png"
-                alt="المستشفى السعودي الألماني"
-                className="h-10 md:h-12 w-auto object-contain flex-shrink-0"
-              />
             </div>
             
             {/* User Info */}
