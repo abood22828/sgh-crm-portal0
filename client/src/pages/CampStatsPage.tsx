@@ -97,26 +97,33 @@ export default function CampStatsPage() {
     .sort((a, b) => b.value - a.value)
     .slice(0, 10); // Top 10 procedures
 
-  // Registrations by source
-  const sourceCounts = {
-    facebook: filteredRegistrations.filter((r: any) => r.source === "facebook").length,
-    instagram: filteredRegistrations.filter((r: any) => r.source === "instagram").length,
-    telegram: filteredRegistrations.filter((r: any) => r.source === "telegram").length,
-    manual: filteredRegistrations.filter((r: any) => r.source === "manual").length,
+  // Registrations by source - Dynamic detection
+  const sourceCountsMap = new Map<string, number>();
+  filteredRegistrations.forEach((r: any) => {
+    const source = r.source || "direct";
+    sourceCountsMap.set(source, (sourceCountsMap.get(source) || 0) + 1);
+  });
+
+  // Map sources to Arabic names and colors
+  const sourceDisplayMap: Record<string, { name: string; color: string }> = {
+    facebook: { name: "فيسبوك", color: "#1877F2" },
+    instagram: { name: "إنستغرام", color: "#E4405F" },
+    telegram: { name: "تيليجرام", color: "#0088CC" },
+    manual: { name: "يدوي", color: "#FFA500" },
+    direct: { name: "مباشر", color: "#6B7280" },
     // للتوافق مع التسجيلات القديمة
-    web: filteredRegistrations.filter((r: any) => r.source === "web" || r.source === "website").length,
-    phone: filteredRegistrations.filter((r: any) => r.source === "phone").length,
+    web: { name: "موقع الويب", color: "#0066CC" },
+    website: { name: "موقع الويب", color: "#0066CC" },
+    phone: { name: "هاتف", color: "#00A651" },
   };
 
-  const sourceData = [
-    { name: "فيسبوك", value: sourceCounts.facebook, color: "#1877F2" },
-    { name: "إنستغرام", value: sourceCounts.instagram, color: "#E4405F" },
-    { name: "تيليجرام", value: sourceCounts.telegram, color: "#0088CC" },
-    { name: "يدوي", value: sourceCounts.manual, color: "#FFA500" },
-    // للتوافق مع التسجيلات القديمة
-    { name: "موقع الويب", value: sourceCounts.web, color: "#0066CC" },
-    { name: "هاتف", value: sourceCounts.phone, color: "#00A651" },
-  ].filter(item => item.value > 0);
+  const sourceData = Array.from(sourceCountsMap.entries())
+    .map(([source, value]) => ({
+      name: sourceDisplayMap[source]?.name || source,
+      value,
+      color: sourceDisplayMap[source]?.color || "#9CA3AF",
+    }))
+    .sort((a, b) => b.value - a.value);
 
   return (
     <DashboardLayout>

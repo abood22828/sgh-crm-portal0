@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowRight, Phone, Mail, Calendar, CheckCircle2, Loader2 } from "lucide-react";
+import { getRegistrationSource } from "@/lib/tracking";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -52,6 +53,7 @@ export default function OfferDetailPage() {
         fullName: formData.fullName,
         phone: formData.phone,
         email: formData.email || undefined,
+        source: getRegistrationSource(), // Auto-detect source from UTM
       });
 
       toast.success("تم إرسال طلبك بنجاح! سنتواصل معك قريباً");

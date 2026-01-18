@@ -1,4 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
+import { useEffect } from "react";
+import { initializeTracking } from "./lib/tracking";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -80,6 +82,11 @@ function Router() {
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
+  // Initialize UTM tracking on mount
+  useEffect(() => {
+    initializeTracking();
+  }, []);
+
   return (
     <ErrorBoundary>
       <ThemeProvider

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Gift, Calendar, Phone, Mail, User, CheckCircle } from "lucide-react";
+import { getRegistrationSource } from "@/lib/tracking";
 import { APP_LOGO, APP_TITLE } from "@/const";
 
 interface OfferFormData {
@@ -61,8 +62,8 @@ export default function OffersPage() {
         fullName: formData.fullName,
         phone: formData.phone,
         email: formData.email || undefined,
-        
         campaignSlug: "offers",
+        source: getRegistrationSource(), // Auto-detect source from UTM
         utmSource: "website",
         utmMedium: "offers-page",
         utmCampaign: `offer-${selectedOffer}`,

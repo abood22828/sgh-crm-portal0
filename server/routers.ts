@@ -68,6 +68,7 @@ export const appRouter = router({
         fullName: z.string().min(1),
         phone: z.string().min(1),
         email: z.string().email().optional(),
+        source: z.string().optional(), // Auto-detected source from UTM
         utmSource: z.string().optional(),
         utmMedium: z.string().optional(),
         utmCampaign: z.string().optional(),
@@ -99,6 +100,7 @@ export const appRouter = router({
           phone: input.phone,
           email: input.email,
           status: "new",
+          source: input.source || "direct", // Use auto-detected source or default to direct
           utmSource: input.utmSource,
           utmMedium: input.utmMedium,
           utmCampaign: input.utmCampaign,
@@ -348,6 +350,7 @@ export const appRouter = router({
         preferredTime: z.string().optional(),
         additionalNotes: z.string().optional(),
         campaignSlug: z.string(),
+        source: z.string().optional(), // Auto-detected source from UTM
         utmSource: z.string().optional(),
         utmMedium: z.string().optional(),
         utmCampaign: z.string().optional(),
@@ -385,6 +388,7 @@ export const appRouter = router({
           preferredTime: input.preferredTime,
           additionalNotes: input.additionalNotes,
           status: "pending",
+          source: input.source || "direct", // Use auto-detected source or default to direct
           utmSource: input.utmSource,
           utmMedium: input.utmMedium,
           utmCampaign: input.utmCampaign,

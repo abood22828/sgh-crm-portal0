@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Phone, Mail, Calendar, MapPin, Loader2, Heart } from "lucide-react";
+import { getRegistrationSource } from "@/lib/tracking";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -78,6 +79,7 @@ export default function CampDetailPage() {
         email: formData.email || undefined,
         age: parseInt(formData.age),
         procedures: formData.procedures.length > 0 ? JSON.stringify(formData.procedures) : undefined,
+        source: getRegistrationSource(), // Auto-detect source from UTM
       });
 
       toast.success("تم تسجيلك بنجاح! سنتواصل معك قريباً");

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Calendar, Phone, Mail, User, CheckCircle, Heart } from "lucide-react";
+import { getRegistrationSource } from "@/lib/tracking";
 import { APP_LOGO, APP_TITLE } from "@/const";
 
 interface CampFormData {
@@ -61,6 +62,7 @@ export default function CampsPage() {
         phone: formData.phone,
         email: formData.email || undefined,
         campaignSlug: "camps",
+        source: getRegistrationSource(), // Auto-detect source from UTM
         utmSource: "website",
         utmMedium: "camps-page",
         utmCampaign: `camp-${selectedCamp}`,

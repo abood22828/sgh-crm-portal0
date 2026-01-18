@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { useRoute, Link, useLocation } from "wouter";
 import { ArrowRight, Calendar, Phone, Award, Loader2, CheckCircle } from "lucide-react";
+import { getRegistrationSource } from "@/lib/tracking";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ export default function DoctorDetailPage() {
         preferredTime: formData.preferredTime || undefined,
         additionalNotes: formData.additionalNotes || undefined,
         campaignSlug: `doctor-${slug}`,
+        source: getRegistrationSource(), // Auto-detect source from UTM
       });
 
       setSubmitted(true);

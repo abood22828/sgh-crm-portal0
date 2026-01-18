@@ -803,3 +803,30 @@
 - [x] تعديل مصادر التسجيل من (موقع، هاتف، يدوي) إلى (فيسبوك، إنستغرام، تيليجرام، يدوي)
 - [x] تحديث schema في قاعدة البيانات لإضافة حقل attendanceDate و gender
 - [x] تحديث backend procedures لحفظ موعد الحضور والبيانات المعدلة
+
+## نظام تتبع المصادر التلقائي عبر UTM Parameters
+- [x] إنشاء utility function لقراءة utm_source من URL
+- [x] حفظ المصدر في localStorage عند فتح الصفحة
+- [ ] تحديث نماذج التسجيل (CampRegistrationForm, OfferLeadForm, AppointmentForm) لإرسال المصدر تلقائياً
+- [ ] إزالة dropdown اختيار المصدر من النماذج
+- [ ] تحديث CampStatsPage لعرض جميع المصادر ديناميكياً (بدون قائمة ثابتة)
+- [ ] إضافة مصدر "direct" للزوار المباشرين (بدون utm_source)
+- [ ] الحفاظ على "manual" للتسجيلات اليدوية من لوحة التحكم
+
+
+### نظام تتبع UTM التلقائي ✅ مكتمل
+- [x] إنشاء trackingUtils.ts لالتقاط معاملات UTM من URL
+- [x] حفظ المصدر في sessionStorage
+- [x] توفير دالة getRegistrationSource() لاسترجاع المصدر
+- [x] تحديث DoctorDetailPage لإرسال المصدر تلقائياً
+- [x] تحديث CampDetailPage لإرسال المصدر تلقائياً (تم مسبقاً)
+- [x] تحديث OfferDetailPage لإرسال المصدر تلقائياً (تم مسبقاً)
+- [x] تحديث CampsPage لإرسال المصدر تلقائياً
+- [x] تحديث OffersPage لإرسال المصدر تلقائياً
+- [x] التحقق من ManualRegistrationForm يرسل "manual" (تم مسبقاً)
+- [x] تحديث appointments.submit router لقبول source
+- [x] تحديث leads.submit router لقبول source
+- [x] تحديث CampStatsPage لعرض المصادر ديناميكياً
+- [x] تحديث SourceAnalytics component لعرض المصادر ديناميكياً
+- [x] إنشاء اختبار tracking.test.ts
+- [x] تحديث vitest.config لدعم اختبارات client
