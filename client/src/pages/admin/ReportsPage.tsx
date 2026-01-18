@@ -155,9 +155,11 @@ export default function ReportsPage() {
         id: booking.id,
         patientName: booking.fullName || 'غير محدد',
         phone: booking.phone || '',
-        specialty: booking.specialty || 'غير محدد',
+        specialty: booking.specialty || booking.service || 'غير محدد',
         status: booking.status || 'pending',
         createdAt: new Date(booking.createdAt),
+        type: booking.type || 'appointment',
+        source: booking.source || 'direct',
       }));
 
       const stats: ReportStats = {
@@ -187,9 +189,11 @@ export default function ReportsPage() {
         id: booking.id,
         patientName: booking.fullName || 'غير محدد',
         phone: booking.phone || '',
-        specialty: booking.specialty || 'غير محدد',
+        specialty: booking.specialty || booking.service || 'غير محدد',
         status: booking.status || 'pending',
         createdAt: new Date(booking.createdAt),
+        type: booking.type || 'appointment',
+        source: booking.source || 'direct',
       }));
 
       const stats: ReportStats = {
