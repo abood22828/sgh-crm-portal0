@@ -7,6 +7,7 @@ import NotificationCenter from "@/components/NotificationCenter";
 import SourceAnalytics from "@/components/SourceAnalytics";
 import RecentActivity from "@/components/RecentActivity";
 import QuickPatientSearch from "@/components/QuickPatientSearch";
+import DetailedStatsCards from "@/components/DetailedStatsCards";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DoctorsManagement from "@/components/DoctorsManagement";
 import LeadCard from "@/components/LeadCard";
@@ -449,78 +450,8 @@ export default function AdminDashboard() {
       </header>
 
       <main className="container py-4 md:py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">إجمالي العملاء</p>
-                  <p className="text-lg md:text-xl font-bold">{unifiedLeads?.length || 0}</p>
-                </div>
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Users className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">جديد</p>
-                  <p className="text-lg md:text-xl font-bold text-blue-600">{stats?.new || 0}</p>
-                </div>
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">تم التواصل</p>
-                  <p className="text-lg md:text-xl font-bold text-yellow-600">{stats?.contacted || 0}</p>
-                </div>
-                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-yellow-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">تم الحجز</p>
-                  <p className="text-lg md:text-xl font-bold text-green-600">{stats?.booked || 0}</p>
-                </div>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <UserCheck className="w-5 h-5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">غير مهتم</p>
-                  <p className="text-lg md:text-xl font-bold text-red-600">{stats?.notInterested || 0}</p>
-                </div>
-                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                  <UserX className="w-5 h-5 text-red-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Detailed Stats Cards */}
+        <DetailedStatsCards />
 
         {/* Quick Patient Search & Manual Registration */}
         <div className="flex flex-col md:flex-row gap-3 mb-6 md:mb-8">
