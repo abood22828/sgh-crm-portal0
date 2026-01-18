@@ -3,6 +3,16 @@ import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import DashboardSidebar from "./DashboardSidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { User, Settings, LogOut } from "lucide-react";
+import { toast } from "sonner";
 
 import { useLocation } from "wouter";
 
@@ -15,8 +25,8 @@ export default function DashboardLayout({
   pageTitle?: string;
   pageDescription?: string;
 }) {
-  const { loading, user } = useAuth();
-  const [location] = useLocation();
+  const { loading, user, logout } = useAuth();
+  const [location, setLocation] = useLocation();
 
   if (loading) {
     return <DashboardLayoutSkeleton />
@@ -86,18 +96,57 @@ export default function DashboardLayout({
               </div>
             </div>
             
-            {/* User Info */}
-            <div className="flex items-center gap-2">
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-muted-foreground">{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-semibold">
-                  {user.name?.charAt(0) || 'U'}
-                </span>
-              </div>
-            </div>
+            {/* User Info with Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer focus:outline-none">
+                  <div className="text-right hidden md:block">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</p>
+                  </div>
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-semibold">
+                      {user.name?.charAt(0) || 'U'}
+                    </span>
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="text-right">
+                  <div>
+                    <p className="font-medium">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email || 'لا يوجد بريد إلكتروني'}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer text-right"
+                  onClick={() => setLocation('/dashboard/profile')}
+                >
+                  <User className="ml-2 h-4 w-4" />
+                  <span>الملف الشخصي</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer text-right"
+                  onClick={() => setLocation('/dashboard/settings')}
+                >
+                  <Settings className="ml-2 h-4 w-4" />
+                  <span>الإعدادات</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer text-right text-red-600 focus:text-red-600"
+                  onClick={async () => {
+                    await logout();
+                    toast.success('تم تسجيل الخروج بنجاح');
+                    setLocation('/');
+                  }}
+                >
+                  <LogOut className="ml-2 h-4 w-4" />
+                  <span>تسجيل الخروج</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         
