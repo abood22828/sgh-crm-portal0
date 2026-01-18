@@ -571,8 +571,8 @@ function TaskFormDialog({
       priority: formData.priority as "low" | "medium" | "high" | "urgent",
       status: formData.status as "todo" | "in_progress" | "review" | "completed" | "cancelled",
       category: formData.category as "content" | "design" | "ads" | "seo" | "social_media" | "analytics" | "other",
-      assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : undefined,
-      campaignId: formData.campaignId ? parseInt(formData.campaignId) : undefined,
+      assignedTo: formData.assignedTo && formData.assignedTo !== "none" ? parseInt(formData.assignedTo) : undefined,
+      campaignId: formData.campaignId && formData.campaignId !== "none" ? parseInt(formData.campaignId) : undefined,
       dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
       estimatedHours: formData.estimatedHours ? parseInt(formData.estimatedHours) : undefined,
     };
@@ -683,7 +683,7 @@ function TaskFormDialog({
                   <SelectValue placeholder="اختر عضو الفريق" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">غير معيّن</SelectItem>
+                  <SelectItem value="none">غير معيّن</SelectItem>
                   {users?.map((user: any) => (
                     <SelectItem key={user.id} value={user.id.toString()}>
                       {user.name || user.username}
@@ -705,7 +705,7 @@ function TaskFormDialog({
                   <SelectValue placeholder="اختر حملة" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">بدون حملة</SelectItem>
+                  <SelectItem value="none">بدون حملة</SelectItem>
                   {campaigns?.map((campaign: any) => (
                     <SelectItem key={campaign.id} value={campaign.id.toString()}>
                       {campaign.name}
