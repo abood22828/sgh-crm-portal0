@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { getDb } from "./db";
-import { appointments } from "../drizzle/schema";
+import { appointments, users } from "../drizzle/schema";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -58,6 +58,29 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+    updateProfile: protectedProcedure
+      .input(z.object({
+        name: z.string().min(2, 'الاسم يجب أن يكون حرفين على الأقل').optional(),
+        email: z.string().email('بريد إلكتروني غير صحيح').optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('فشل الاتصال بقاعدة البيانات');
+
+        const updateData: any = {};
+        if (input.name !== undefined) updateData.name = input.name;
+        if (input.email !== undefined) updateData.email = input.email;
+
+        if (Object.keys(updateData).length === 0) {
+          throw new Error('لا توجد بيانات للتحديث');
+        }
+
+        await db.update(users).set(updateData).where(eq(users.id, ctx.user.id));
+
+        // Return updated user
+        const updatedUser = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        return updatedUser[0];
+      }),
   }),
 
   // Leads management

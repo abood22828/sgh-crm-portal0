@@ -24,6 +24,7 @@ import CampDetailPage from "./pages/CampDetailPage";
 import VisitingDoctors from "./pages/VisitingDoctors";
 import OfflinePage from "./pages/OfflinePage";
 import SettingsPage from "./pages/SettingsPage";
+import ProfilePage from "./pages/ProfilePage";
 import ManagementPage from "./pages/ManagementPage";
 import ContentManagementPage from "./pages/ContentManagementPage";
 import UsersManagementPage from "./pages/UsersManagementPage";
@@ -62,6 +63,7 @@ function Router() {
       <Route path={"/unauthorized"} component={Unauthorized} />
       <Route path={"/access-request"} component={AccessRequest} />
       <Route path={"/dashboard"} component={AdminDashboard} />
+      <Route path={"/dashboard/profile"} component={ProfilePage} />
       <Route path={"/dashboard/management"} component={ManagementPage} />
       <Route path={"/dashboard/content"} component={ContentManagementPage} />
       <Route path={"/dashboard/users"} component={UsersManagementPage} />
