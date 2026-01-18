@@ -910,3 +910,11 @@
 - [ ] AdminDashboard - تحسين الجداول للجوال
 - [ ] BookingsManagementPage - تحسين الجداول والفلاتر
 - [ ] CampStatsPage - تحسين الرسوم البيانية
+
+
+### تطبيق CSS Utilities على الصفحات الكبيرة ✅ مكتمل
+- [x] تطبيق table-responsive على جداول AdminDashboard (4 جداول)
+- [x] تطبيق table-responsive على جداول BookingsManagementPage (2 جداول)
+- [x] إضافة TableSkeleton component
+- [x] استبدال Loader2 بـ TableSkeleton في AdminDashboard
+- [x] إضافة table-sticky-col للعمود الأول في جداول العروض والمخيمات

@@ -581,7 +581,7 @@ export default function BookingsManagementPage() {
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden md:block rounded-md border">
+                <div className="table-responsive">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -813,7 +813,7 @@ export default function BookingsManagementPage() {
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden md:block rounded-md border">
+                <div className="table-responsive">
                   <Table>
                     <TableHeader>
                       <TableRow>

@@ -11,6 +11,7 @@ import DetailedStatsCards from "@/components/DetailedStatsCards";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DoctorsManagement from "@/components/DoctorsManagement";
 import LeadCard from "@/components/LeadCard";
+import TableSkeleton from "@/components/TableSkeleton";
 import AppointmentCard from "@/components/AppointmentCard";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -555,9 +556,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             {leadsLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
+              <TableSkeleton rows={5} columns={7} />
             ) : filteredLeads.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="w-5 h-5 md:w-8 md:h-8 text-muted-foreground mx-auto mb-4" />
@@ -587,7 +586,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden md:block overflow-x-auto">
+                <div className="table-responsive">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -831,9 +830,7 @@ export default function AdminDashboard() {
             </div>
 
             {appointmentsLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
+              <TableSkeleton rows={5} columns={9} />
             ) : filteredAppointments.length === 0 ? (
               <div className="text-center py-12">
                 <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
@@ -859,7 +856,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden md:block overflow-x-auto">
+                <div className="table-responsive">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1321,15 +1318,13 @@ function OffersManagement() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
+          <TableSkeleton rows={3} columns={6} />
         ) : offers && offers.length > 0 ? (
-          <div className="rounded-md border">
+          <div className="table-responsive">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-right">العنوان</TableHead>
+                  <TableHead className="text-right table-sticky-col">العنوان</TableHead>
                   <TableHead className="text-right">الرابط</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
                   <TableHead className="text-right">تاريخ البداية</TableHead>
@@ -1340,7 +1335,7 @@ function OffersManagement() {
               <TableBody>
                 {offers.map((offer) => (
                   <TableRow key={offer.id}>
-                    <TableCell className="font-medium">{offer.title}</TableCell>
+                    <TableCell className="font-medium table-sticky-col">{offer.title}</TableCell>
                     <TableCell>
                       <a href={`/offers?id=${offer.slug}`} target="_blank" className="text-blue-600 hover:underline">
                         {offer.slug}
