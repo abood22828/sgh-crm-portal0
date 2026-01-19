@@ -548,27 +548,27 @@ export default function MediaTeamPage() {
     <DashboardLayout
       pageTitle="فريق وحدة الإعلام"
       pageDescription="إدارة مهام الإنتاج الإعلامي">
-      <div className="container py-6 md:py-8">
+      <div className="container py-4 md:py-6 lg:py-8" dir="rtl">
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 mb-4 md:mb-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1">
               فريق وحدة الإعلام
             </h1>
-            <p className="text-sm md:text-base text-muted-foreground">
+            <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
               إدارة مهام الإنتاج الإعلامي (فيديو، تصميم، تصوير، مونتاج)
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => refetchTasks()}>
-              <RefreshCw className="h-4 w-4 ml-2" />
-              تحديث
+            <Button variant="outline" size="icon" onClick={() => refetchTasks()} className="h-9 w-9">
+              <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 ml-2" />
-                  مهمة جديدة
+                <Button className="h-9 text-sm">
+                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1.5 sm:ml-2" />
+                  <span className="hidden sm:inline">مهمة جديدة</span>
+                  <span className="sm:hidden">جديد</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -593,41 +593,41 @@ export default function MediaTeamPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-4 md:mb-6">
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-foreground">{stats.total}</div>
-              <div className="text-sm text-muted-foreground">إجمالي المهام</div>
+            <CardContent className="p-3 md:p-4">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">{stats.total}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">إجمالي المهام</div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-gray-600">{stats.pending}</div>
-              <div className="text-sm text-muted-foreground">قيد الانتظار</div>
+            <CardContent className="p-3 md:p-4">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-600">{stats.pending}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">قيد الانتظار</div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
-              <div className="text-sm text-muted-foreground">قيد التنفيذ</div>
+            <CardContent className="p-3 md:p-4">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">قيد التنفيذ</div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-orange-600">{stats.review}</div>
-              <div className="text-sm text-muted-foreground">مراجعة</div>
+            <CardContent className="p-3 md:p-4">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-orange-600">{stats.review}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">مراجعة</div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-              <div className="text-sm text-muted-foreground">مكتمل</div>
+            <CardContent className="p-3 md:p-4">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">{stats.completed}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">مكتمل</div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
-              <div className="text-sm text-muted-foreground">متأخر</div>
+            <CardContent className="p-3 md:p-4">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-red-600">{stats.overdue}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">متأخر</div>
             </CardContent>
           </Card>
         </div>

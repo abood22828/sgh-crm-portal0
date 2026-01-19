@@ -816,105 +816,106 @@ export default function DigitalMarketingTasksPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 md:gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">إدارة مهام فريق التسويق الرقمي</h1>
-            <p className="text-muted-foreground">إنشاء وتوزيع ومتابعة المهام</p>
+            <h1 className="text-xl sm:text-2xl font-bold">إدارة مهام فريق التسويق الرقمي</h1>
+            <p className="text-sm text-muted-foreground">إنشاء وتوزيع ومتابعة المهام</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4" />
+            <Button variant="outline" size="icon" onClick={() => refetch()} className="h-9 w-9">
+              <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
-            <Button onClick={handleCreateNew}>
-              <Plus className="h-4 w-4 me-2" />
-              مهمة جديدة
+            <Button onClick={handleCreateNew} className="h-9 text-sm">
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 me-1.5 sm:me-2" />
+              <span className="hidden sm:inline">مهمة جديدة</span>
+              <span className="sm:hidden">جديد</span>
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-100 rounded-lg">
+                <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
                   <Target className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">الإجمالي</p>
-                  <p className="text-xl font-bold">{stats?.total || 0}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">الإجمالي</p>
+                  <p className="text-lg sm:text-xl font-bold">{stats?.total || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-gray-100 rounded-lg">
+                <div className="p-1.5 sm:p-2 bg-gray-100 rounded-lg">
                   <Circle className="h-4 w-4 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">قيد الانتظار</p>
-                  <p className="text-xl font-bold">{stats?.todo || 0}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">قيد الانتظار</p>
+                  <p className="text-lg sm:text-xl font-bold">{stats?.todo || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-100 rounded-lg">
+                <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
                   <TrendingUp className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">قيد التنفيذ</p>
-                  <p className="text-xl font-bold">{stats?.inProgress || 0}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">قيد التنفيذ</p>
+                  <p className="text-lg sm:text-xl font-bold">{stats?.inProgress || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-yellow-100 rounded-lg">
+                <div className="p-1.5 sm:p-2 bg-yellow-100 rounded-lg">
                   <Clock className="h-4 w-4 text-yellow-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">مراجعة</p>
-                  <p className="text-xl font-bold">{stats?.review || 0}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">مراجعة</p>
+                  <p className="text-lg sm:text-xl font-bold">{stats?.review || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-green-100 rounded-lg">
+                <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">مكتمل</p>
-                  <p className="text-xl font-bold">{stats?.completed || 0}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">مكتمل</p>
+                  <p className="text-lg sm:text-xl font-bold">{stats?.completed || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-red-100 rounded-lg">
+                <div className="p-1.5 sm:p-2 bg-red-100 rounded-lg">
                   <AlertCircle className="h-4 w-4 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">متأخر</p>
-                  <p className="text-xl font-bold">{stats?.overdue || 0}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">متأخر</p>
+                  <p className="text-lg sm:text-xl font-bold">{stats?.overdue || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -923,21 +924,21 @@ export default function DigitalMarketingTasksPage() {
 
         {/* Filters & View Toggle */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <CardContent className="p-3 md:p-4">
+            <div className="flex flex-col gap-3 md:gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="relative flex-1 min-w-[200px]">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="relative flex-1 min-w-[150px] sm:min-w-[200px]">
+                  <Search className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                   <Input
                     placeholder="بحث في المهام..."
-                    className="pe-9"
+                    className="pe-8 sm:pe-9 text-sm"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-[120px] sm:w-[140px] text-sm">
                     <SelectValue placeholder="الحالة" />
                   </SelectTrigger>
                   <SelectContent>
@@ -951,7 +952,7 @@ export default function DigitalMarketingTasksPage() {
                 </Select>
                 
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-[120px] sm:w-[140px] text-sm">
                     <SelectValue placeholder="الأولوية" />
                   </SelectTrigger>
                   <SelectContent>
@@ -964,7 +965,7 @@ export default function DigitalMarketingTasksPage() {
                 </Select>
                 
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-[120px] sm:w-[140px] text-sm">
                     <SelectValue placeholder="التصنيف" />
                   </SelectTrigger>
                   <SelectContent>
@@ -980,22 +981,26 @@ export default function DigitalMarketingTasksPage() {
                 </Select>
               </div>
               
-              <div className="flex items-center gap-1 border rounded-lg p-1">
+              <div className="flex items-center gap-0.5 sm:gap-1 border rounded-lg p-0.5 sm:p-1">
                 <Button
                   variant={viewMode === "kanban" ? "secondary" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("kanban")}
+                  className="h-8 text-xs sm:text-sm"
                 >
-                  <LayoutGrid className="h-4 w-4 me-1" />
-                  Kanban
+                  <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4 me-1" />
+                  <span className="hidden sm:inline">Kanban</span>
+                  <span className="sm:hidden">K</span>
                 </Button>
                 <Button
                   variant={viewMode === "list" ? "secondary" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("list")}
+                  className="h-8 text-xs sm:text-sm"
                 >
-                  <List className="h-4 w-4 me-1" />
-                  قائمة
+                  <List className="h-3.5 w-3.5 sm:h-4 sm:w-4 me-1" />
+                  <span className="hidden sm:inline">قائمة</span>
+                  <span className="sm:hidden">ق</span>
                 </Button>
               </div>
             </div>

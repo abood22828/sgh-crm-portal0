@@ -325,53 +325,53 @@ export default function CampaignsPage() {
       pageTitle="إدارة الحملات والمشاريع"
       pageDescription="إدارة شاملة للحملات التسويقية والمشاريع"
     >
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Overview Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-blue-700 flex items-center gap-2">
-                <Activity className="h-4 w-4" />
+            <CardHeader className="pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-blue-700 flex items-center gap-1.5">
+                <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 إجمالي الحملات
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4 pt-0">
               {loadingOverview ? (
-                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-blue-600" />
               ) : (
-                <div className="text-2xl font-bold text-blue-800">{overview?.totalCampaigns || 0}</div>
+                <div className="text-xl sm:text-2xl font-bold text-blue-800">{overview?.totalCampaigns || 0}</div>
               )}
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-green-700 flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
+            <CardHeader className="pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-green-700 flex items-center gap-1.5">
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 نشطة
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4 pt-0">
               {loadingOverview ? (
-                <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+                <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-green-600" />
               ) : (
-                <div className="text-2xl font-bold text-green-800">{overview?.activeCampaigns || 0}</div>
+                <div className="text-xl sm:text-2xl font-bold text-green-800">{overview?.activeCampaigns || 0}</div>
               )}
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-yellow-700 flex items-center gap-2">
-                <PauseCircle className="h-4 w-4" />
+            <CardHeader className="pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-yellow-700 flex items-center gap-1.5">
+                <PauseCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 متوقفة
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4 pt-0">
               {loadingOverview ? (
-                <Loader2 className="h-6 w-6 animate-spin text-yellow-600" />
+                <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-yellow-600" />
               ) : (
-                <div className="text-2xl font-bold text-yellow-800">
+                <div className="text-xl sm:text-2xl font-bold text-yellow-800">
                   {campaigns?.filter((c: any) => c.status === "paused").length || 0}
                 </div>
               )}
@@ -379,55 +379,55 @@ export default function CampaignsPage() {
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-purple-700 flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
+            <CardHeader className="pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-purple-700 flex items-center gap-1.5">
+                <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 الميزانية المخططة
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4 pt-0">
               {loadingOverview ? (
-                <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+                <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-purple-600" />
               ) : (
-                <div className="text-lg font-bold text-purple-800">
+                <div className="text-base sm:text-lg font-bold text-purple-800">
                   {(overview?.totalPlannedBudget || 0).toLocaleString()}
-                  <span className="text-xs mr-1">ريال</span>
+                  <span className="text-[10px] sm:text-xs mr-1">ريال</span>
                 </div>
               )}
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-orange-700 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
+            <CardHeader className="pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-orange-700 flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 الميزانية الفعلية
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4 pt-0">
               {loadingOverview ? (
-                <Loader2 className="h-6 w-6 animate-spin text-orange-600" />
+                <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-orange-600" />
               ) : (
-                <div className="text-lg font-bold text-orange-800">
+                <div className="text-base sm:text-lg font-bold text-orange-800">
                   {(overview?.totalActualBudget || 0).toLocaleString()}
-                  <span className="text-xs mr-1">ريال</span>
+                  <span className="text-[10px] sm:text-xs mr-1">ريال</span>
                 </div>
               )}
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-teal-700 flex items-center gap-2">
-                <Target className="h-4 w-4" />
+            <CardHeader className="pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium text-teal-700 flex items-center gap-1.5">
+                <Target className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 إجمالي الأهداف
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 md:p-4 pt-0">
               {loadingOverview ? (
-                <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
+                <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-teal-600" />
               ) : (
-                <div className="text-lg font-bold text-teal-800">
+                <div className="text-base sm:text-lg font-bold text-teal-800">
                   {campaigns?.reduce((sum: number, c: any) => sum + (c.targetLeads || 0), 0).toLocaleString() || 0}
                   <span className="text-xs mr-1">عميل</span>
                 </div>
@@ -460,18 +460,18 @@ export default function CampaignsPage() {
           </CardHeader>
           <CardContent>
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="relative flex-1">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute right-2.5 sm:right-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400" />
                 <Input
                   placeholder="بحث في الحملات..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10"
+                  className="pr-8 sm:pr-10 text-sm"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[160px] text-sm">
                   <SelectValue placeholder="الحالة" />
                 </SelectTrigger>
                 <SelectContent>
@@ -484,7 +484,7 @@ export default function CampaignsPage() {
                 </SelectContent>
               </Select>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[160px] text-sm">
                   <SelectValue placeholder="النوع" />
                 </SelectTrigger>
                 <SelectContent>
@@ -499,21 +499,21 @@ export default function CampaignsPage() {
 
             {/* Table */}
             {loadingCampaigns ? (
-              <div className="flex justify-center py-8">
+              <div className="flex justify-center py-6 sm:py-8">
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
             ) : campaigns && campaigns.length > 0 ? (
-              <div className="rounded-md border overflow-x-auto">
+              <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-right">الحملة</TableHead>
-                      <TableHead className="text-right">النوع</TableHead>
-                      <TableHead className="text-right">الحالة</TableHead>
-                      <TableHead className="text-right hidden md:table-cell">الميزانية</TableHead>
-                      <TableHead className="text-right hidden lg:table-cell">التقدم</TableHead>
-                      <TableHead className="text-right hidden md:table-cell">الفترة</TableHead>
-                      <TableHead className="text-right">الإجراءات</TableHead>
+                    <TableRow className="text-xs sm:text-sm">
+                      <TableHead className="text-right min-w-[150px]">الحملة</TableHead>
+                      <TableHead className="text-right min-w-[80px]">النوع</TableHead>
+                      <TableHead className="text-right min-w-[90px]">الحالة</TableHead>
+                      <TableHead className="text-right hidden md:table-cell min-w-[100px]">الميزانية</TableHead>
+                      <TableHead className="text-right hidden lg:table-cell min-w-[120px]">التقدم</TableHead>
+                      <TableHead className="text-right hidden md:table-cell min-w-[100px]">الفترة</TableHead>
+                      <TableHead className="text-right min-w-[100px]">الإجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
