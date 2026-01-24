@@ -73,8 +73,9 @@ export default function SourceAnalytics() {
 
   // Calculate source statistics dynamically
   const sourceStats = useMemo(() => {
+    // Note: leads are the same people who made bookings, so we don't include them
+    // Only count actual bookings: appointments, offerLeads, campRegistrations
     const allBookings = [
-      ...(leads || []),
       ...(appointments || []),
       ...(offerLeads || []),
       ...(campRegistrations || []),
