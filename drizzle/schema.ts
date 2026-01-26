@@ -449,3 +449,134 @@ export const taskAttachments = mysqlTable("task_attachments", {
 
 export type TaskAttachment = typeof taskAttachments.$inferSelect;
 export type InsertTaskAttachment = typeof taskAttachments.$inferInsert;
+
+/**
+ * WhatsApp Conversations table - stores all WhatsApp conversations
+ * جدول محادثات واتساب - يخزن جميع محادثات واتساب
+ */
+export const whatsappConversations = mysqlTable("whatsapp_conversations", {
+  id: int("id").autoincrement().primaryKey(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  customerName: varchar("customerName", { length: 255 }),
+  lastMessage: text("lastMessage"),
+  lastMessageAt: timestamp("lastMessageAt"),
+  unreadCount: int("unreadCount").default(0).notNull(),
+  isImportant: int("isImportant").default(0).notNull(), // 0 = false, 1 = true
+  isArchived: int("isArchived").default(0).notNull(),
+  // Link to booking/appointment
+  leadId: int("leadId"),
+  appointmentId: int("appointmentId"),
+  offerLeadId: int("offerLeadId"),
+  campRegistrationId: int("campRegistrationId"),
+  assignedToUserId: int("assignedToUserId"), // Assigned staff member
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WhatsAppConversation = typeof whatsappConversations.$inferSelect;
+export type InsertWhatsAppConversation = typeof whatsappConversations.$inferInsert;
+
+/**
+ * WhatsApp Messages table - stores all messages in conversations
+ * جدول رسائل واتساب - يخزن جميع الرسائل في المحادثات
+ */
+export const whatsappMessages = mysqlTable("whatsapp_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversationId").notNull(),
+  direction: mysqlEnum("direction", ["inbound", "outbound"]).notNull(),
+  content: text("content").notNull(),
+  messageType: mysqlEnum("messageType", ["text", "image", "document", "audio", "video", "location"]).default("text").notNull(),
+  mediaUrl: varchar("mediaUrl", { length: 500 }),
+  status: mysqlEnum("status", ["sent", "delivered", "read", "failed"]).default("sent").notNull(),
+  whatsappMessageId: varchar("whatsappMessageId", { length: 255 }), // WhatsApp API message ID
+  sentBy: int("sentBy"), // User ID who sent (for outbound)
+  isAutomated: int("isAutomated").default(0).notNull(), // 0 = manual, 1 = automated
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type WhatsAppMessage = typeof whatsappMessages.$inferSelect;
+export type InsertWhatsAppMessage = typeof whatsappMessages.$inferInsert;
+
+/**
+ * WhatsApp Templates table - stores message templates
+ * جدول قوالب واتساب - يخزن قوالب الرسائل
+ */
+export const whatsappTemplates = mysqlTable("whatsapp_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: mysqlEnum("category", ["confirmation", "reminder", "thank_you", "follow_up", "cancellation", "custom"]).notNull(),
+  content: text("content").notNull(),
+  variables: text("variables"), // JSON array of variable names like ["name", "date", "time"]
+  isActive: int("isActive").default(1).notNull(),
+  usageCount: int("usageCount").default(0).notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WhatsAppTemplate = typeof whatsappTemplates.$inferSelect;
+export type InsertWhatsAppTemplate = typeof whatsappTemplates.$inferInsert;
+
+/**
+ * WhatsApp Broadcasts table - stores broadcast campaigns
+ * جدول الرسائل الجماعية - يخزن حملات الرسائل الجماعية
+ */
+export const whatsappBroadcasts = mysqlTable("whatsapp_broadcasts", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  templateId: int("templateId"),
+  targetFilter: text("targetFilter"), // JSON filter criteria
+  recipientCount: int("recipientCount").default(0).notNull(),
+  sentCount: int("sentCount").default(0).notNull(),
+  deliveredCount: int("deliveredCount").default(0).notNull(),
+  readCount: int("readCount").default(0).notNull(),
+  failedCount: int("failedCount").default(0).notNull(),
+  status: mysqlEnum("status", ["draft", "scheduled", "sending", "completed", "failed"]).default("draft").notNull(),
+  scheduledAt: timestamp("scheduledAt"),
+  completedAt: timestamp("completedAt"),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type WhatsAppBroadcast = typeof whatsappBroadcasts.$inferSelect;
+export type InsertWhatsAppBroadcast = typeof whatsappBroadcasts.$inferInsert;
+
+/**
+ * WhatsApp Auto Replies table - stores automatic reply rules
+ * جدول الردود التلقائية - يخزن قواعد الردود التلقائية
+ */
+export const whatsappAutoReplies = mysqlTable("whatsapp_auto_replies", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  triggerType: mysqlEnum("triggerType", ["keyword", "outside_hours", "first_message", "faq"]).notNull(),
+  triggerValue: varchar("triggerValue", { length: 500 }), // Keyword or FAQ question
+  replyMessage: text("replyMessage").notNull(),
+  isActive: int("isActive").default(1).notNull(),
+  priority: int("priority").default(0).notNull(), // Higher priority rules are checked first
+  usageCount: int("usageCount").default(0).notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WhatsAppAutoReply = typeof whatsappAutoReplies.$inferSelect;
+export type InsertWhatsAppAutoReply = typeof whatsappAutoReplies.$inferInsert;
+
+/**
+ * WhatsApp Analytics table - stores daily analytics data
+ * جدول تحليلات واتساب - يخزن بيانات التحليلات اليومية
+ */
+export const whatsappAnalytics = mysqlTable("whatsapp_analytics", {
+  id: int("id").autoincrement().primaryKey(),
+  date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD
+  messagesSent: int("messagesSent").default(0).notNull(),
+  messagesReceived: int("messagesReceived").default(0).notNull(),
+  conversationsStarted: int("conversationsStarted").default(0).notNull(),
+  averageResponseTime: int("averageResponseTime").default(0).notNull(), // in minutes
+  conversionRate: int("conversionRate").default(0).notNull(), // percentage * 100
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type WhatsAppAnalytics = typeof whatsappAnalytics.$inferSelect;
+export type InsertWhatsAppAnalytics = typeof whatsappAnalytics.$inferInsert;

@@ -1431,3 +1431,22 @@
 - [x] campRegistrations: pending, confirmed, completed, cancelled
 - [x] إصلاح خطأ SyntaxError عند عرض التفاصيل - إضافة try-catch و validation
 - [x] إضافة sanitizeLead function لتنظيف البيانات قبل عرضها
+
+### تطوير WhatsApp Integration - المرحلة الثانية (الأساسية) 🔄 جاري العمل
+- [x] **قاعدة البيانات**
+  - [x] إنشاء جداول WhatsApp (conversations, messages, templates, broadcasts, auto_replies, analytics)
+
+- [ ] **Backend API**
+  - [ ] إنشاء db.ts functions للمحادثات والرسائل
+  - [ ] إنشاء tRPC routers للمحادثات والقوالب
+
+- [ ] **صفحة إدارة المحادثات**
+  - [ ] واجهة عرض المحادثات (قائمة + نافذة محادثة)
+  - [ ] البحث والفلترة (غير مقروءة، مهمة)
+  - [ ] إرسال رسائل يدوية
+
+- [ ] **نظام القوالب البسيط**
+  - [ ] واجهة إدارة القوالب (إنشاء، تعديل، حذف)
+  - [ ] قوالب جاهزة (تأكيد، تذكير)
+  - [ ] متغيرات ديناميكية {name}, {date}, {time}
+  - [ ] استخدام القوالب عند إرسال الرسائل
