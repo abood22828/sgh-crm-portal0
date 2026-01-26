@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Users, 
   UserCheck, 
@@ -40,6 +41,8 @@ import {
   Tag,
   MessageCircle,
   Download,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatOfferLeadsForExport } from "@/lib/exportToExcel";
@@ -71,6 +74,10 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
   const [dateFilter, setDateFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
+  const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState("");
+  const [bulkNotes, setBulkNotes] = useState("");
 
   const { data: offerLeads, isLoading, refetch } = trpc.offerLeads.list.useQuery();
   const { data: stats } = trpc.offerLeads.stats.useQuery();
@@ -94,6 +101,20 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
       setStatusDialogOpen(false);
       setSelectedLead(null);
       setNewStatus("");
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء تحديث الحالة");
+    },
+  });
+
+  const bulkUpdateMutation = trpc.offerLeads.bulkUpdateStatus.useMutation({
+    onSuccess: (data) => {
+      toast.success(`تم تحديث ${data.count} حجز بنجاح`);
+      refetch();
+      setBulkUpdateDialogOpen(false);
+      setSelectedLeads([]);
+      setBulkStatus("");
+      setBulkNotes("");
     },
     onError: () => {
       toast.error("حدث خطأ أثناء تحديث الحالة");

@@ -1501,3 +1501,23 @@
 - [x] إضافة postinstall script إلى package.json
 - [x] اختبار الـ script - يعمل بنجاح!
 - [x] Chrome يثبت تلقائياً عند pnpm install
+
+
+### ميزة تحديث الحالة المتعدد (Bulk Status Update) 🔄 جاري العمل
+- [x] إضافة bulk update endpoints في Backend:
+  - [x] campRegistrations.bulkUpdateStatus
+  - [x] offerLeads.bulkUpdateStatus  
+  - [x] bulkUpdateAppointmentStatus في db.ts
+- [ ] إضافة checkbox "تحديد الكل" في صفحة التسجيلات
+- [ ] إضافة checkboxes لكل تسجيل
+- [ ] إضافة زر "تحديث الحالة المحددة" مع dialog
+- [ ] تطبيق نفس الميزة في صفحة المواعيد
+- [ ] تطبيق نفس الميزة في صفحة الحجوزات
+- [ ] إضافة toast notifications للنجاح/الفشل
+
+### تحسين فلتر المصادر 🔄 جاري العمل
+- [ ] تحديد جميع المصادر المتاحة (Facebook, Instagram, WhatsApp, Website, Walk-in, Phone, Manual)
+- [ ] إضافة dropdown filter للمصادر في صفحة التسجيلات
+- [ ] إضافة dropdown filter للمصادر في صفحة المواعيد
+- [ ] إضافة dropdown filter للمصادر في صفحة الحجوزات
+- [ ] تحسين UI للفلاتر (تصميم موحد)

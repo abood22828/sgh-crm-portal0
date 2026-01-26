@@ -152,6 +152,36 @@ export const campRegistrationsRouter = router({
       return { success: true };
     }),
 
+  // Bulk update status for multiple registrations (protected)
+  bulkUpdateStatus: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.number()),
+        status: z.enum(["pending", "confirmed", "attended", "cancelled"]),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const updateData: any = {
+        status: input.status,
+        statusNotes: input.notes,
+        updatedAt: new Date(),
+      };
+
+      // Update all selected registrations
+      for (const id of input.ids) {
+        await db
+          .update(campRegistrations)
+          .set(updateData)
+          .where(eq(campRegistrations.id, id));
+      }
+
+      return { success: true, count: input.ids.length };
+    }),
+
   // Delete camp registration (protected)
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))

@@ -418,6 +418,31 @@ export async function updateAppointmentStatus(id: number, status: string, staffN
   }
 }
 
+export async function bulkUpdateAppointmentStatus(ids: number[], status: string, staffNotes?: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot bulk update appointments: database not available");
+    return { success: false, count: 0 };
+  }
+
+  try {
+    const updateData: any = { status: status as any };
+    if (staffNotes !== undefined) {
+      updateData.staffNotes = staffNotes;
+    }
+    
+    // Update all selected appointments
+    for (const id of ids) {
+      await db.update(appointments).set(updateData).where(eq(appointments.id, id));
+    }
+    
+    return { success: true, count: ids.length };
+  } catch (error) {
+    console.error("[Database] Failed to bulk update appointments:", error);
+    throw error;
+  }
+}
+
 /**
  * Get all unified leads from all sources
  * Combines: appointments, offer leads, camp registrations, visiting doctor appointments

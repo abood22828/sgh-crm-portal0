@@ -133,6 +133,34 @@ export const offerLeadsRouter = router({
       return { success: true };
     }),
 
+  // Bulk update status for multiple offer leads (protected)
+  bulkUpdateStatus: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.number()),
+        status: z.enum(["new", "contacted", "booked", "not_interested", "no_answer"]),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      // Update all selected offer leads
+      for (const id of input.ids) {
+        await db
+          .update(offerLeads)
+          .set({
+            status: input.status,
+            statusNotes: input.notes,
+            updatedAt: new Date(),
+          })
+          .where(eq(offerLeads.id, id));
+      }
+
+      return { success: true, count: input.ids.length };
+    }),
+
   // Delete offer lead (protected)
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
