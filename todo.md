@@ -1515,9 +1515,11 @@
 - [ ] تطبيق نفس الميزة في صفحة الحجوزات
 - [ ] إضافة toast notifications للنجاح/الفشل
 
-### تحسين فلتر المصادر 🔄 جاري العمل
-- [ ] تحديد جميع المصادر المتاحة (Facebook, Instagram, WhatsApp, Website, Walk-in, Phone, Manual)
-- [ ] إضافة dropdown filter للمصادر في صفحة التسجيلات
-- [ ] إضافة dropdown filter للمصادر في صفحة المواعيد
-- [ ] إضافة dropdown filter للمصادر في صفحة الحجوزات
-- [ ] تحسين UI للفلاتر (تصميم موحد)
+### تحسين فلتر المصادر ✅ مكتمل
+- [x] تحديد جميع المصادر المتاحة في shared/sources.ts:
+  - [x] Facebook, Instagram, Telegram, WhatsApp
+  - [x] Walk-in, Phone, Manual, Website
+  - [x] SOURCE_OPTIONS array للاستخدام في dropdowns
+- [x] إضافة dropdown filter للمصادر في OfferLeadsManagement
+- [x] إضافة dropdown filter للمصادر في CampRegistrationsManagement
+- [x] توحيد UI للفلاتر (نفس العرض 180px)

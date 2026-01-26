@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatCampRegistrationsForExport } from "@/lib/exportToExcel";
+import { SOURCE_OPTIONS } from "@shared/sources";
 import CampRegistrationCard from "@/components/CampRegistrationCard";
 import CardSkeleton from "@/components/CardSkeleton";
 
@@ -336,14 +337,16 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
               </SelectContent>
             </Select>
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
+              <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10">
                 <SelectValue placeholder="كل المصادر" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">كل المصادر</SelectItem>
-                <SelectItem value="website">موقع</SelectItem>
-                <SelectItem value="phone">هاتف</SelectItem>
-                <SelectItem value="manual">يدوي</SelectItem>
+                {SOURCE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
