@@ -30,6 +30,7 @@ import ContentManagementPage from "./pages/ContentManagementPage";
 import UsersManagementPage from "./pages/UsersManagementPage";
 import PublishingPage from "./pages/PublishingPage";
 import WhatsAppPage from "./pages/WhatsAppPage";
+import WhatsAppTemplatesPage from "./pages/WhatsAppTemplatesPage";
 import MessagesPage from "./pages/MessagesPage";
 import ReportsPage from "./pages/ReportsPage";
 import ReportsPageNew from "./pages/admin/ReportsPage";
@@ -78,6 +79,7 @@ function Router() {
       <Route path={"/dashboard/users"} component={UsersManagementPage} />
       <Route path={"/dashboard/publishing"} component={PublishingPage} />
       <Route path={"/dashboard/whatsapp"} component={WhatsAppPage} />
+      <Route path={"/dashboard/whatsapp/templates"} component={WhatsAppTemplatesPage} />
       <Route path={"/dashboard/messages"} component={MessagesPage} />
       <Route path={"/dashboard/reports"} component={ReportsPageNew} />
       <Route path={"/dashboard/campaigns"} component={CampaignsPage} />

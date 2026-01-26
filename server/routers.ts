@@ -42,6 +42,7 @@ import { usersRouter } from "./routers/users";
 import { reportsRouter } from "./routers/reports";
 import { campaignsRouter } from "./routers/campaigns";
 import { tasksRouter } from "./routers/tasks";
+import { whatsappRouter } from "./routers/whatsapp";
 import { sendNewLeadNotification, sendNewAppointmentEmail } from "./email";
 import { trackLead, trackCompleteRegistration } from "./facebookConversion";
 import { sendWelcomeMessage, sendBookingConfirmation, sendCustomMessage } from "./whatsapp";
@@ -53,6 +54,7 @@ export const appRouter = router({
   campaigns: campaignsRouter,
   tasks: tasksRouter,
   system: systemRouter,
+  whatsapp: whatsappRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

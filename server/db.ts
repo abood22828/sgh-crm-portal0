@@ -519,3 +519,139 @@ export async function getAllUnifiedLeads() {
     return [];
   }
 }
+
+// WhatsApp queries
+export async function getAllWhatsAppConversations() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { whatsappConversations } = await import('../drizzle/schema');
+  return db.select().from(whatsappConversations).orderBy(desc(whatsappConversations.lastMessageAt));
+}
+
+export async function getWhatsAppConversationById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const { whatsappConversations } = await import('../drizzle/schema');
+  const result = await db.select().from(whatsappConversations).where(eq(whatsappConversations.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getWhatsAppConversationByPhone(phone: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const { whatsappConversations } = await import('../drizzle/schema');
+  const result = await db.select().from(whatsappConversations).where(eq(whatsappConversations.phoneNumber, phone)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createWhatsAppConversation(conversation: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { whatsappConversations } = await import('../drizzle/schema');
+  const result = await db.insert(whatsappConversations).values(conversation);
+  return result;
+}
+
+export async function updateWhatsAppConversation(id: number, conversation: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { whatsappConversations } = await import('../drizzle/schema');
+  return db.update(whatsappConversations).set(conversation).where(eq(whatsappConversations.id, id));
+}
+
+export async function getWhatsAppMessagesByConversation(conversationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { whatsappMessages } = await import('../drizzle/schema');
+  return db.select().from(whatsappMessages).where(eq(whatsappMessages.conversationId, conversationId)).orderBy(whatsappMessages.createdAt);
+}
+
+export async function createWhatsAppMessage(message: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { whatsappMessages } = await import('../drizzle/schema');
+  const result = await db.insert(whatsappMessages).values(message);
+  return result;
+}
+
+export async function updateWhatsAppMessage(id: number, message: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { whatsappMessages } = await import('../drizzle/schema');
+  return db.update(whatsappMessages).set(message).where(eq(whatsappMessages.id, id));
+}
+
+export async function getAllWhatsAppTemplates() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { whatsappTemplates } = await import('../drizzle/schema');
+  return db.select().from(whatsappTemplates).where(eq(whatsappTemplates.isActive, 1)).orderBy(whatsappTemplates.name);
+}
+
+export async function getWhatsAppTemplateById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const { whatsappTemplates } = await import('../drizzle/schema');
+  const result = await db.select().from(whatsappTemplates).where(eq(whatsappTemplates.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createWhatsAppTemplate(template: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { whatsappTemplates } = await import('../drizzle/schema');
+  const result = await db.insert(whatsappTemplates).values(template);
+  return result;
+}
+
+export async function updateWhatsAppTemplate(id: number, template: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { whatsappTemplates } = await import('../drizzle/schema');
+  return db.update(whatsappTemplates).set(template).where(eq(whatsappTemplates.id, id));
+}
+
+export async function deleteWhatsAppTemplate(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { whatsappTemplates } = await import('../drizzle/schema');
+  return db.delete(whatsappTemplates).where(eq(whatsappTemplates.id, id));
+}
+
+export async function searchWhatsAppConversations(searchTerm: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { whatsappConversations } = await import('../drizzle/schema');
+  return db.select().from(whatsappConversations).where(
+    or(
+      like(whatsappConversations.customerName, `%${searchTerm}%`),
+      like(whatsappConversations.phoneNumber, `%${searchTerm}%`)
+    )
+  ).orderBy(desc(whatsappConversations.lastMessageAt));
+}
+
+export async function getUnreadWhatsAppConversationsCount() {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const { whatsappConversations } = await import('../drizzle/schema');
+  const result = await db.select({
+    count: sql<number>`count(*)`
+  }).from(whatsappConversations).where(eq(whatsappConversations.unreadCount, 0));
+  
+  return result[0]?.count || 0;
+}
