@@ -271,21 +271,32 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
               <CardTitle>حجوزات العروض</CardTitle>
               <CardDescription>إدارة ومتابعة جميع حجوزات العروض الطبية</CardDescription>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (!offerLeads || offerLeads.length === 0) {
-                  toast.error("لا توجد بيانات لتصديرها");
-                  return;
-                }
-                const formattedData = formatOfferLeadsForExport(offerLeads);
-                exportToExcel(formattedData, `offer-leads-${new Date().toISOString().split('T')[0]}`, 'حجوزات العروض');
-                toast.success("تم تصدير البيانات بنجاح");
-              }}
-            >
-              <Download className="h-4 w-4 ml-2" />
-              تصدير Excel
-            </Button>
+            <div className="flex gap-2">
+              {selectedIds.length > 0 && (
+                <Button
+                  variant="default"
+                  onClick={() => setBulkUpdateDialogOpen(true)}
+                >
+                  <CheckSquare className="h-4 w-4 ml-2" />
+                  تحديث الحالة ({selectedIds.length})
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (!offerLeads || offerLeads.length === 0) {
+                    toast.error("لا توجد بيانات لتصديرها");
+                    return;
+                  }
+                  const formattedData = formatOfferLeadsForExport(offerLeads);
+                  exportToExcel(formattedData, `offer-leads-${new Date().toISOString().split('T')[0]}`, 'حجوزات العروض');
+                  toast.success("تم تصدير البيانات بنجاح");
+                }}
+              >
+                <Download className="h-4 w-4 ml-2" />
+                تصدير Excel
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -411,6 +422,20 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.length === filteredLeads.length && filteredLeads.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds(filteredLeads.map(lead => lead.id));
+                        } else {
+                          setSelectedIds([]);
+                        }
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                  </TableHead>
                   <TableHead className="text-right">الاسم الكامل</TableHead>
                   <TableHead className="text-right">رقم الهاتف</TableHead>
                   <TableHead className="text-right">البريد الإلكتروني</TableHead>
@@ -424,13 +449,27 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
               <TableBody>
                 {filteredLeads.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       لا توجد حجوزات متاحة
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredLeads.map((lead: any) => (
                     <TableRow key={lead.id} className={lead.status === 'new' ? 'bg-red-50 hover:bg-red-100' : ''}>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(lead.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds([...selectedIds, lead.id]);
+                            } else {
+                              setSelectedIds(selectedIds.filter(id => id !== lead.id));
+                            }
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">{lead.fullName}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -582,6 +621,24 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Update Dialog */}
+      <BulkUpdateDialog
+        open={bulkUpdateDialogOpen}
+        onOpenChange={setBulkUpdateDialogOpen}
+        selectedCount={selectedIds.length}
+        statusOptions={[
+          { value: "new", label: "جديد" },
+          { value: "contacted", label: "تم التواصل" },
+          { value: "confirmed", label: "مؤكد" },
+          { value: "cancelled", label: "ملغي" },
+          { value: "completed", label: "مكتمل" },
+        ]}
+        onConfirm={(newStatus) => {
+          bulkUpdateMutation.mutate({ ids: selectedIds, status: newStatus as "new" | "contacted" | "booked" | "not_interested" | "no_answer" });
+        }}
+        isLoading={bulkUpdateMutation.isPending}
+      />
     </div>
   );
 }

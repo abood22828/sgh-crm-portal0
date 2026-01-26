@@ -248,6 +248,13 @@
 - [x] إصلاح ملف exportUtils.ts للتوافق مع jsPDF 2.x
 - [x] إعادة تشغيل الخادم والتحقق من عمل المكتبات
 
+### Bulk Update لجميع الصفحات ✅ مكتمل
+- [x] إضافة bulk update endpoints في Backend (campRegistrations, offerLeads, appointments)
+- [x] إنشاء BulkUpdateDialog component قابل لإعادة الاستخدام
+- [x] إضافة checkboxes وزر bulk update في OfferLeadsManagement
+- [x] إضافة checkboxes وزر bulk update في CampRegistrationsManagement
+- [x] تحسين فلتر المصادر بإضافة WhatsApp و Walk-in
+
 ### تحسينات شاملة للوحة التحكم 🔄 جاري العمل
 
 #### 1. إصلاح header لوحة التحكم للجوال ✅

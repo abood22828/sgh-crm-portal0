@@ -47,6 +47,8 @@ import { exportToExcel, formatCampRegistrationsForExport } from "@/lib/exportToE
 import { SOURCE_OPTIONS } from "@shared/sources";
 import CampRegistrationCard from "@/components/CampRegistrationCard";
 import CardSkeleton from "@/components/CardSkeleton";
+import { Checkbox } from "@/components/ui/checkbox";
+import BulkUpdateDialog from "@/components/BulkUpdateDialog";
 
 const statusLabels = {
   pending: "قيد الانتظار",
@@ -75,6 +77,8 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
   const [dateFilter, setDateFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
 
   const { data: registrations, isLoading, refetch } = trpc.campRegistrations.list.useQuery();
   const { data: stats } = trpc.campRegistrations.stats.useQuery();
@@ -90,6 +94,18 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
       onPendingCountChange(pendingCount);
     }
   }, [pendingCount, onPendingCountChange]);
+
+  const bulkUpdateMutation = trpc.campRegistrations.bulkUpdateStatus.useMutation({
+    onSuccess: () => {
+      toast.success(`تم تحديث حالة ${selectedIds.length} تسجيل بنجاح`);
+      refetch();
+      setSelectedIds([]);
+      setBulkUpdateDialogOpen(false);
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء تحديث الحالات");
+    },
+  });
 
   const updateStatusMutation = trpc.campRegistrations.updateStatus.useMutation({
     onSuccess: () => {
@@ -170,6 +186,22 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
     
     return filtered;
   }, [registrations, selectedCamp, searchTerm, dateFilter, statusFilter, sourceFilter]);
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === filteredRegistrations.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredRegistrations.map((reg: any) => reg.id));
+    }
+  };
+
+  const handleSelectOne = (id: number) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
 
   const handleStatusUpdate = () => {
     if (!selectedRegistration || !newStatus) return;
@@ -396,11 +428,38 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
             )}
           </div>
 
+          {/* Bulk Update Button */}
+          {selectedIds.length > 0 && (
+            <div className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedIds.length === filteredRegistrations.length}
+                  onCheckedChange={handleSelectAll}
+                />
+                <span className="text-sm font-medium">
+                  تم تحديد {selectedIds.length} من {filteredRegistrations.length}
+                </span>
+              </div>
+              <Button
+                onClick={() => setBulkUpdateDialogOpen(true)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              >
+                تحديث الحالة المحددة ({selectedIds.length})
+              </Button>
+            </div>
+          )}
+
           {/* Desktop Table View */}
           <div className="hidden md:block border rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedIds.length === filteredRegistrations.length && filteredRegistrations.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead className="text-right">الاسم الكامل</TableHead>
                   <TableHead className="text-right">رقم الهاتف</TableHead>
                   <TableHead className="text-right">البريد الإلكتروني</TableHead>
@@ -415,13 +474,19 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
               <TableBody>
                 {filteredRegistrations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       لا توجد تسجيلات متاحة
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredRegistrations.map((reg: any) => (
                     <TableRow key={reg.id} className={reg.status === 'pending' ? 'bg-red-50 hover:bg-red-100' : ''}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.includes(reg.id)}
+                          onCheckedChange={() => handleSelectOne(reg.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">{reg.fullName}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -729,6 +794,23 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Update Dialog */}
+      <BulkUpdateDialog
+        open={bulkUpdateDialogOpen}
+        onOpenChange={setBulkUpdateDialogOpen}
+        selectedCount={selectedIds.length}
+        statusOptions={[
+          { value: "pending", label: "قيد الانتظار" },
+          { value: "confirmed", label: "مؤكد" },
+          { value: "attended", label: "حضر" },
+          { value: "cancelled", label: "ملغي" },
+        ]}
+        onConfirm={(newStatus) => {
+          bulkUpdateMutation.mutate({ ids: selectedIds, status: newStatus as "pending" | "confirmed" | "attended" | "cancelled" });
+        }}
+        isLoading={bulkUpdateMutation.isPending}
+      />
     </div>
   );
 }
