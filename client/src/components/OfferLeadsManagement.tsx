@@ -49,6 +49,7 @@ import { exportToExcel, formatOfferLeadsForExport } from "@/lib/exportToExcel";
 import { SOURCE_OPTIONS } from "@shared/sources";
 import OfferLeadCard from "@/components/OfferLeadCard";
 import CardSkeleton from "@/components/CardSkeleton";
+import BulkUpdateDialog from "@/components/BulkUpdateDialog";
 
 const statusLabels = {
   new: "جديد",
@@ -75,10 +76,8 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
   const [dateFilter, setDateFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
-  const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
-  const [bulkStatus, setBulkStatus] = useState("");
-  const [bulkNotes, setBulkNotes] = useState("");
 
   const { data: offerLeads, isLoading, refetch } = trpc.offerLeads.list.useQuery();
   const { data: stats } = trpc.offerLeads.stats.useQuery();
@@ -113,9 +112,7 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
       toast.success(`تم تحديث ${data.count} حجز بنجاح`);
       refetch();
       setBulkUpdateDialogOpen(false);
-      setSelectedLeads([]);
-      setBulkStatus("");
-      setBulkNotes("");
+      setSelectedIds([]);
     },
     onError: () => {
       toast.error("حدث خطأ أثناء تحديث الحالة");

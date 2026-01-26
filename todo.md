@@ -1508,12 +1508,19 @@
   - [x] campRegistrations.bulkUpdateStatus
   - [x] offerLeads.bulkUpdateStatus  
   - [x] bulkUpdateAppointmentStatus في db.ts
-- [ ] إضافة checkbox "تحديد الكل" في صفحة التسجيلات
-- [ ] إضافة checkboxes لكل تسجيل
-- [ ] إضافة زر "تحديث الحالة المحددة" مع dialog
-- [ ] تطبيق نفس الميزة في صفحة المواعيد
-- [ ] تطبيق نفس الميزة في صفحة الحجوزات
-- [ ] إضافة toast notifications للنجاح/الفشل
+- [x] إنشاء BulkUpdateDialog component قابل لإعادة الاستخدام
+- [ ] إضافة bulk update UI في OfferLeadsManagement:
+  - [x] إضافة selectedIds state
+  - [x] إضافة bulkUpdateMutation
+  - [ ] إضافة checkbox "تحديد الكل" في header
+  - [ ] إضافة checkboxes لكل عنصر (جدول + cards)
+  - [ ] إضافة زر "تحديث الحالة المحددة"
+  - [ ] ربط BulkUpdateDialog
+- [ ] إضافة bulk update UI في CampRegistrationsManagement:
+  - [ ] إضافة selectedIds state
+  - [ ] إضافة checkbox "تحديد الكل"
+  - [ ] إضافة checkboxes لكل عنصر
+  - [ ] إضافة زر + ربط BulkUpdateDialog
 
 ### تحسين فلتر المصادر ✅ مكتمل
 - [x] تحديد جميع المصادر المتاحة في shared/sources.ts:
