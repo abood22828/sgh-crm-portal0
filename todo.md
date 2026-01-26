@@ -1495,3 +1495,9 @@
 - [x] تثبيت puppeteer package (v24.36.0)
 - [x] استخدام puppeteer.executablePath() للحصول على المسار الديناميكي
 - [x] إعادة تشغيل الخادم والتحقق من عدم وجود أخطاء
+
+
+### إضافة postinstall script لتثبيت Chrome تلقائياً ✅ مكتمل
+- [x] إضافة postinstall script إلى package.json
+- [x] اختبار الـ script - يعمل بنجاح!
+- [x] Chrome يثبت تلقائياً عند pnpm install
