@@ -357,8 +357,8 @@ export async function createAppointment(appointment: InsertAppointment) {
   }
 
   try {
-    await db.insert(appointments).values(appointment);
-    return { success: true };
+    const result = await db.insert(appointments).values(appointment);
+    return { success: true, insertId: Number(result[0].insertId) };
   } catch (error) {
     console.error("[Database] Failed to create appointment:", error);
     throw error;
@@ -679,4 +679,55 @@ export async function getUnreadWhatsAppConversationsCount() {
   }).from(whatsappConversations).where(eq(whatsappConversations.unreadCount, 0));
   
   return result[0]?.count || 0;
+}
+
+// ==================== Message Settings Functions ====================
+
+export async function getAllMessageSettings() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { messageSettings } = await import('../drizzle/schema');
+  return db.select().from(messageSettings).orderBy(messageSettings.category, messageSettings.id);
+}
+
+export async function getMessageSettingsByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { messageSettings } = await import('../drizzle/schema');
+  const { sql } = await import('drizzle-orm');
+  return db.select().from(messageSettings).where(sql`${messageSettings.category} = ${category}`).orderBy(messageSettings.id);
+}
+
+export async function getMessageSettingByType(messageType: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const { messageSettings } = await import('../drizzle/schema');
+  const result = await db.select().from(messageSettings).where(eq(messageSettings.messageType, messageType)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateMessageSetting(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { messageSettings } = await import('../drizzle/schema');
+  const { id, ...updateData } = data;
+  return db.update(messageSettings).set(updateData).where(eq(messageSettings.id, id));
+}
+
+export async function toggleMessageSettingEnabled(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { messageSettings } = await import('../drizzle/schema');
+  
+  // Get current value
+  const current = await db.select().from(messageSettings).where(eq(messageSettings.id, id)).limit(1);
+  if (current.length === 0) throw new Error("Message setting not found");
+  
+  const newValue = current[0].isEnabled === 1 ? 0 : 1;
+  return db.update(messageSettings).set({ isEnabled: newValue }).where(eq(messageSettings.id, id));
 }

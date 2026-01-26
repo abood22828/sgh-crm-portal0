@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `message_settings` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`messageType` varchar(100) NOT NULL,\n\t`displayName` varchar(255) NOT NULL,\n\t`category` enum('patient_journey','executive_reports','task_management','doctor_notifications') NOT NULL,\n\t`messageContent` text NOT NULL,\n\t`isEnabled` int NOT NULL DEFAULT 1,\n\t`deliveryChannel` enum('whatsapp_api','whatsapp_integration','both') NOT NULL DEFAULT 'whatsapp_integration',\n\t`availableVariables` text,\n\t`description` text,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `message_settings_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `message_settings_messageType_unique` UNIQUE(`messageType`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute CREATE TABLE IF NOT EXISTS `message_settings` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`messageType` varchar(100) NOT NULL,\n\t`displayName` varchar(255) NOT NULL,\n\t`category` enum('patient_journey','executive_reports','task_management','doctor_notifications') NOT NULL,\n\t`messageContent` text NOT NULL,\n\t`isEnabled` int NOT NULL DEFAULT 1,\n\t`deliveryChannel` enum('whatsapp_api','whatsapp_integration','both') NOT NULL DEFAULT 'whatsapp_integration',\n\t`availableVariables` text,\n\t`description` text,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `message_settings_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `message_settings_messageType_unique` UNIQUE(`messageType`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 518
+}

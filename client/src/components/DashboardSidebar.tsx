@@ -72,6 +72,11 @@ const navItems: NavItem[] = [
     icon: MessageSquare,
   },
   {
+    title: "إعدادات الرسائل",
+    href: "/dashboard/message-settings",
+    icon: SettingsIcon,
+  },
+  {
     title: "التقارير",
     href: "/dashboard/reports",
     icon: FileText,

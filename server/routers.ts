@@ -43,6 +43,7 @@ import { reportsRouter } from "./routers/reports";
 import { campaignsRouter } from "./routers/campaigns";
 import { tasksRouter } from "./routers/tasks";
 import { whatsappRouter } from "./routers/whatsapp";
+import { messageSettingsRouter } from "./routers/messageSettings";
 import { sendNewLeadNotification, sendNewAppointmentEmail } from "./email";
 import { trackLead, trackCompleteRegistration } from "./facebookConversion";
 import { sendWelcomeMessage, sendBookingConfirmation, sendCustomMessage } from "./whatsapp";
@@ -55,6 +56,7 @@ export const appRouter = router({
   tasks: tasksRouter,
   system: systemRouter,
   whatsapp: whatsappRouter,
+  messageSettings: messageSettingsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -425,6 +427,21 @@ export const appRouter = router({
           preferredTime: input.preferredTime,
         });
 
+        // Send automated booking confirmation message (Patient Journey)
+        if (appointment) {
+          const { sendBookingConfirmationInteractive } = await import("./messaging");
+          await sendBookingConfirmationInteractive({
+            phone: input.phone,
+            name: input.fullName,
+            date: input.preferredDate || "غير محدد",
+            time: input.preferredTime || "غير محدد",
+            doctor: doctor?.name || "غير محدد",
+            service: input.procedure || "فحص عام",
+            bookingId: appointment.insertId,
+            bookingType: "appointment",
+          });
+        }
+
         return appointment;
       }),
 
@@ -467,6 +484,36 @@ export const appRouter = router({
 
         await db.update(appointments).set(updateData).where(eq(appointments.id, input.id));
         return { success: true };
+      }),
+
+    // Send patient arrival welcome message
+    sendArrivalWelcome: protectedProcedure
+      .input(z.object({
+        appointmentId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+
+        // Get appointment details
+        const appointment = await db.select().from(appointments).where(eq(appointments.id, input.appointmentId)).limit(1);
+        if (appointment.length === 0) {
+          throw new Error("الحجز غير موجود");
+        }
+
+        const appt = appointment[0];
+        const doctor = await getDoctorById(appt.doctorId);
+
+        // Send automated arrival welcome message
+        const { sendPatientArrivalWelcome, formatTimeForMessage } = await import("./messaging");
+        const result = await sendPatientArrivalWelcome({
+          phone: appt.phone,
+          name: appt.fullName,
+          doctor: doctor?.name || "غير محدد",
+          time: appt.appointmentDate ? formatTimeForMessage(new Date(appt.appointmentDate)) : "غير محدد",
+        });
+
+        return result;
       }),
   }),
 

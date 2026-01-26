@@ -580,3 +580,32 @@ export const whatsappAnalytics = mysqlTable("whatsapp_analytics", {
 
 export type WhatsAppAnalytics = typeof whatsappAnalytics.$inferSelect;
 export type InsertWhatsAppAnalytics = typeof whatsappAnalytics.$inferInsert;
+
+/**
+ * Message Settings table - stores automated message configurations
+ * جدول إعدادات الرسائل - يخزن إعدادات الرسائل التلقائية
+ */
+export const messageSettings = mysqlTable("message_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  // Message Type Identifier
+  messageType: varchar("messageType", { length: 100 }).notNull().unique(),
+  // Display name in Arabic
+  displayName: varchar("displayName", { length: 255 }).notNull(),
+  // Category: patient_journey, executive_reports, task_management, doctor_notifications
+  category: mysqlEnum("category", ["patient_journey", "executive_reports", "task_management", "doctor_notifications"]).notNull(),
+  // Message content template
+  messageContent: text("messageContent").notNull(),
+  // Enabled/Disabled
+  isEnabled: int("isEnabled").default(1).notNull(), // 1 = enabled, 0 = disabled
+  // Delivery channel: whatsapp_api, whatsapp_integration, both
+  deliveryChannel: mysqlEnum("deliveryChannel", ["whatsapp_api", "whatsapp_integration", "both"]).default("whatsapp_integration").notNull(),
+  // Variables available in template (JSON array)
+  availableVariables: text("availableVariables"), // ["name", "date", "time", "doctor", "service"]
+  // Description
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MessageSetting = typeof messageSettings.$inferSelect;
+export type InsertMessageSetting = typeof messageSettings.$inferInsert;
