@@ -1667,3 +1667,21 @@
 - النظام الحالي يستخدم placeholders جاهزة للتكامل المستقبلي ✅
 - WhatsApp Integration (QR Code) للاختبار السريع حالياً
 - التكامل الكامل مع WhatsApp Business API سيكون في مرحلة لاحقة
+
+## تحديث: التوافق مع متطلبات Meta ✅ مكتمل
+
+### المهام المكتملة:
+- [x] قراءة وتوثيق متطلبات Meta من الصفحة الرسمية
+- [x] إنشاء ملف توثيق شامل: `docs/whatsapp-marketing-messages-requirements.md`
+- [x] إضافة جدول `message_templates` لحفظ القوالب المعتمدة من Meta
+- [x] إنشاء Webhook endpoint: `/api/webhooks/whatsapp` (webhooksRouter)
+- [x] تحديث helper functions لاستخدام WhatsApp Business API
+- [x] إنشاء `server/whatsappBusinessAPI.ts` للتكامل مع Meta API
+- [x] إضافة fallback تلقائي لـ WhatsApp Integration إذا لم يكن API مُعد
+
+### الخطوات التالية (للمستقبل):
+- [ ] إنشاء القوالب في WhatsApp Manager وإرسالها للموافقة
+- [ ] الحصول على WHATSAPP_PHONE_NUMBER_ID و META_ACCESS_TOKEN
+- [ ] تسجيل Webhook URL في Meta App Dashboard
+- [ ] اختبار إرسال الرسائل التفاعلية الفعلية
+- [ ] إضافة صفحة إدارة القوالب في لوحة التحكم

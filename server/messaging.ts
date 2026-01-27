@@ -48,26 +48,48 @@ export async function sendBookingConfirmationInteractive(data: {
     service: data.service,
   });
 
-  // TODO: Implement WhatsApp Business API call with interactive buttons
-  // For now, we'll use the regular WhatsApp Integration
-  console.log("[Messaging] Sending booking confirmation (interactive):", {
-    phone: data.phone,
-    message,
-    bookingId: data.bookingId,
-    bookingType: data.bookingType,
-  });
-
-  // Placeholder: In production, call WhatsApp Business API
-  // const result = await sendWhatsAppBusinessAPIMessage({
-  //   phone: data.phone,
-  //   message,
-  //   buttons: [
-  //     { id: `confirm_${data.bookingType}_${data.bookingId}`, title: "تأكيد الحجز ✅" },
-  //     { id: `cancel_${data.bookingType}_${data.bookingId}`, title: "إلغاء الحجز ❌" },
-  //   ],
-  // });
-
-  return { success: true, message };
+  // Try to send via WhatsApp Business API if configured
+  const { sendBookingConfirmationWithButtons, isWhatsAppBusinessAPIConfigured } = await import("./whatsappBusinessAPI");
+  
+  if (isWhatsAppBusinessAPIConfigured()) {
+    console.log("[Messaging] Sending via WhatsApp Business API (interactive buttons)");
+    
+    const bookingTypeMap = {
+      appointment: "APPOINTMENT",
+      offer: "OFFER",
+      camp: "CAMP",
+    };
+    
+    const result = await sendBookingConfirmationWithButtons({
+      phone: data.phone,
+      templateName: "booking_confirmation_interactive", // Must match template name in Meta
+      variables: {
+        name: data.name,
+        date: data.date,
+        time: data.time,
+        doctor: data.doctor,
+        service: data.service,
+      },
+      buttons: [
+        {
+          text: "تأكيد الحجز ✅",
+          payload: `CONFIRM_${bookingTypeMap[data.bookingType]}_${data.bookingId}`,
+        },
+        {
+          text: "إلغاء الحجز ❌",
+          payload: `CANCEL_${bookingTypeMap[data.bookingType]}_${data.bookingId}`,
+        },
+      ],
+    });
+    
+    return { success: result.success, message, messageId: result.messageId, error: result.error };
+  } else {
+    // Fallback to WhatsApp Integration (without interactive buttons)
+    console.log("[Messaging] WhatsApp Business API not configured, using WhatsApp Integration");
+    const { sendCustomMessage } = await import("./whatsapp");
+    const success = await sendCustomMessage(data.phone, message);
+    return { success, message };
+  }
 }
 
 /**

@@ -609,3 +609,44 @@ export const messageSettings = mysqlTable("message_settings", {
 
 export type MessageSetting = typeof messageSettings.$inferSelect;
 export type InsertMessageSetting = typeof messageSettings.$inferInsert;
+
+/**
+ * Message Templates table - stores WhatsApp Business API approved templates
+ * جدول قوالب الرسائل - يخزن القوالب المعتمدة من Meta لـ WhatsApp Business API
+ */
+export const messageTemplates = mysqlTable("message_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  // Template name in Meta (must match exactly)
+  templateName: varchar("templateName", { length: 255 }).notNull().unique(),
+  // Display name in Arabic for UI
+  displayName: varchar("displayName", { length: 255 }).notNull(),
+  // Template category in Meta
+  category: mysqlEnum("category", ["MARKETING", "UTILITY", "AUTHENTICATION"]).notNull(),
+  // Template language code (e.g., "ar", "en")
+  languageCode: varchar("languageCode", { length: 10 }).default("ar").notNull(),
+  // Template status from Meta
+  status: mysqlEnum("status", ["PENDING", "APPROVED", "REJECTED", "DISABLED"]).default("PENDING").notNull(),
+  // Template content (for reference)
+  headerText: text("headerText"),
+  bodyText: text("bodyText").notNull(),
+  footerText: text("footerText"),
+  // Buttons configuration (JSON)
+  buttons: text("buttons"), // [{"type": "QUICK_REPLY", "text": "تأكيد الحجز ✅"}, {"type": "QUICK_REPLY", "text": "إلغاء الحجز ❌"}]
+  // Variables in template (JSON array)
+  variables: text("variables"), // ["name", "date", "time", "doctor"]
+  // Meta template ID (if available)
+  metaTemplateId: varchar("metaTemplateId", { length: 255 }),
+  // Link to message_settings (optional)
+  linkedMessageType: varchar("linkedMessageType", { length: 100 }),
+  // Usage tracking
+  usageCount: int("usageCount").default(0).notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+  // Metadata
+  description: text("description"),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MessageTemplate = typeof messageTemplates.$inferSelect;
+export type InsertMessageTemplate = typeof messageTemplates.$inferInsert;

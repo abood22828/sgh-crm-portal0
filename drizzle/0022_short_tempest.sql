@@ -1,0 +1,23 @@
+CREATE TABLE `message_templates` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`templateName` varchar(255) NOT NULL,
+	`displayName` varchar(255) NOT NULL,
+	`category` enum('MARKETING','UTILITY','AUTHENTICATION') NOT NULL,
+	`languageCode` varchar(10) NOT NULL DEFAULT 'ar',
+	`status` enum('PENDING','APPROVED','REJECTED','DISABLED') NOT NULL DEFAULT 'PENDING',
+	`headerText` text,
+	`bodyText` text NOT NULL,
+	`footerText` text,
+	`buttons` text,
+	`variables` text,
+	`metaTemplateId` varchar(255),
+	`linkedMessageType` varchar(100),
+	`usageCount` int NOT NULL DEFAULT 0,
+	`lastUsedAt` timestamp,
+	`description` text,
+	`createdBy` int NOT NULL,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `message_templates_id` PRIMARY KEY(`id`),
+	CONSTRAINT `message_templates_templateName_unique` UNIQUE(`templateName`)
+);
