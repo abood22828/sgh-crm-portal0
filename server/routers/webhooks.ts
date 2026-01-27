@@ -17,8 +17,8 @@ const verifyWebhookSchema = z.object({
   "hub.challenge": z.string(),
 });
 
-// Button response schema
-const buttonResponseSchema = z.object({
+// Enhanced webhook schema to support multiple webhook types
+const webhookSchema = z.object({
   object: z.string(),
   entry: z.array(
     z.object({
@@ -44,6 +44,28 @@ const buttonResponseSchema = z.object({
                       text: z.string(),
                     })
                     .optional(),
+                  // Support for text messages
+                  text: z
+                    .object({
+                      body: z.string(),
+                    })
+                    .optional(),
+                })
+              )
+              .optional(),
+            // Support for statuses (message delivery/read status)
+            statuses: z
+              .array(
+                z.object({
+                  id: z.string(),
+                  status: z.enum(["sent", "delivered", "read", "failed"]),
+                  timestamp: z.string(),
+                  recipient_id: z.string(),
+                  errors: z.array(z.object({
+                    code: z.number(),
+                    title: z.string(),
+                    message: z.string().optional(),
+                  })).optional(),
                 })
               )
               .optional(),
@@ -85,9 +107,9 @@ export const webhooksRouter = router({
 
   /**
    * Webhook receiver endpoint (POST)
-   * يستقبل ردود المستخدمين على الأزرار التفاعلية
+   * يستقبل ردود المستخدمين على الأزرار التفاعلية وحالة الرسائل
    */
-  receive: publicProcedure.input(buttonResponseSchema).mutation(async ({ input }) => {
+  receive: publicProcedure.input(webhookSchema).mutation(async ({ input }) => {
     try {
       console.log("[Webhook] Received:", JSON.stringify(input, null, 2));
 
@@ -102,13 +124,32 @@ export const webhooksRouter = router({
       // معالجة كل entry
       for (const entry of input.entry) {
         for (const change of entry.changes) {
+          // معالجة message statuses (sent, delivered, read, failed)
+          const statuses = change.value.statuses;
+          if (statuses && statuses.length > 0) {
+            for (const status of statuses) {
+              console.log(`[Webhook] Message status: ${status.status} for message ${status.id}`);
+              
+              // Log failed messages
+              if (status.status === 'failed' && status.errors) {
+                for (const error of status.errors) {
+                  console.error(`[Webhook] Message failed - Code: ${error.code}, Title: ${error.title}, Message: ${error.message || 'N/A'}`);
+                }
+              }
+              
+              // TODO: Store message status in database for tracking
+            }
+          }
+
+          // معالجة incoming messages
           const messages = change.value.messages;
           if (!messages || messages.length === 0) continue;
 
           for (const message of messages) {
+            const userPhone = message.from;
+            
             if (message.type === "button" && message.button) {
               const payload = message.button.payload;
-              const userPhone = message.from;
 
               console.log(`[Webhook] Button clicked: ${payload} from ${userPhone}`);
 
@@ -155,11 +196,16 @@ export const webhooksRouter = router({
               }
 
               // TODO: إرسال رسالة تأكيد للمستخدم بعد تحديث الحالة
+            } else if (message.type === "text" && message.text) {
+              // معالجة الرسائل النصية الواردة
+              console.log(`[Webhook] Text message from ${userPhone}: ${message.text.body}`);
+              // TODO: معالجة الرسائل النصية (مثل الردود التلقائية)
             }
           }
         }
       }
 
+      // Always return 200 OK to Meta (even if processing failed internally)
       return { success: true, message: "Webhook processed successfully" };
     } catch (error) {
       console.error("[Webhook] Error processing webhook:", error);

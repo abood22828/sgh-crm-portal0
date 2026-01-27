@@ -366,6 +366,32 @@
 - [x] إضافة badges ملونة: أزرق (موعد طبيب) + بنفسجي (عرض) + أخضر (مخيم)
 - [ ] إضافة فلترة حسب نوع التسجيل (اختياري)
 
+## تحديث: التحسينات الحرجة لنظام WhatsApp ✅ مكتمل
+
+### المرحلة 1 - تحديث Marketing Messages API ✅
+- [x] إضافة دعم Marketing Messages API endpoint
+- [x] إضافة parameter `category` لتحديد نوع الرسالة (marketing/utility/authentication)
+- [x] تحديث `sendWhatsAppTemplateMessage` لاستخدام endpoint المناسب
+- [x] تحديث `sendBookingConfirmationWithButtons` لدعم category parameter
+
+### المرحلة 2 - تحسين معالجة الأخطاء ✅
+- [x] إضافة قائمة WhatsApp Error Codes الشائعة
+- [x] إنشاء دالة `parseWhatsAppError` لتحليل الأخطاء
+- [x] إضافة `sendWhatsAppTemplateMessageEnhanced` مع retry mechanism
+- [x] دعم exponential backoff للمحاولات الفاشلة
+
+### المرحلة 3 - تحسين نظام Webhooks ✅
+- [x] إضافة دعم message statuses (sent, delivered, read, failed)
+- [x] إضافة معالجة الرسائل النصية الواردة
+- [x] تحسين error logging للرسائل الفاشلة
+- [x] ضمان إرجاع HTTP 200 دائماً (Meta requirement)
+
+### المرحلة 4 - التوثيق ✅
+- [x] إنشاء `docs/whatsapp-api-research-findings.md` - نتائج مراجعة الوثائق
+- [x] إنشاء `docs/whatsapp-improvements-plan.md` - خطة التحسينات الشاملة
+
+---
+
 ## تحسينات جديدة 🔄 جاري العمل
 
 ### 1. تعديل موعد الحجز مع إشعار WhatsApp
