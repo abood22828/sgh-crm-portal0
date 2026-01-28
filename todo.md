@@ -1735,3 +1735,19 @@
 - [x] توثيق الـ credentials المطلوبة (WHATSAPP_PHONE_NUMBER_ID, META_ACCESS_TOKEN)
 - [x] إنشاء ملف توثيق شامل: `docs/whatsapp-business-api-setup-guide.md`
 - [x] حفظ checkpoint وتسليم الدليل الشامل
+
+## مهمة جديدة: تعديل تصنيف قوالب WhatsApp إلى UTILITY ✅ مكتمل
+
+### الهدف:
+تعديل جميع القوالب من MARKETING إلى UTILITY وفقاً لتعليمات Meta
+
+### المهام:
+- [x] مراجعة تعليمات Meta حول Template Categorization
+- [x] تحديد الفرق بين MARKETING و UTILITY و AUTHENTICATION
+- [x] تحديث message_settings في قاعدة البيانات (category: utility)
+- [x] الكود يدعم بالفعل category parameter - لا حاجة لتعديلات
+- [x] تحديث docs/whatsapp-business-api-setup-guide.md
+- [x] إنشاء docs/whatsapp-template-categories-analysis.md - تحليل شامل
+- [x] حفظ checkpoint
+
+---
