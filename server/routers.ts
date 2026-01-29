@@ -45,6 +45,7 @@ import { tasksRouter } from "./routers/tasks";
 import { whatsappRouter } from "./routers/whatsapp";
 import { messageSettingsRouter } from "./routers/messageSettings";
 import { webhooksRouter } from "./routers/webhooks";
+
 import { sendNewLeadNotification, sendNewAppointmentEmail } from "./email";
 import { trackLead, trackCompleteRegistration } from "./facebookConversion";
 import { sendWelcomeMessage, sendBookingConfirmation, sendCustomMessage } from "./whatsapp";
@@ -459,6 +460,25 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await updateAppointmentStatus(input.id, input.status, input.staffNotes);
+        
+        // Send welcome message when status changes to "attended" (Patient Journey)
+        if (input.status === "حضر" || input.status === "attended") {
+          const db = await getDb();
+          if (db) {
+            const [appointment] = await db.select().from(appointments).where(eq(appointments.id, input.id)).limit(1);
+            if (appointment && appointment.phone) {
+              const { sendPatientArrivalWelcome } = await import("./messaging");
+              const doctor = await getDoctorById(appointment.doctorId || 0);
+              await sendPatientArrivalWelcome({
+                phone: appointment.phone,
+                name: appointment.fullName || "المريض",
+                doctor: doctor?.name || "غير محدد",
+                time: appointment.preferredTime || "غير محدد",
+              });
+            }
+          }
+        }
+        
         return { success: true };
       }),
 

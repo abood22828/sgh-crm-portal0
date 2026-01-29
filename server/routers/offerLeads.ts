@@ -143,6 +143,21 @@ export const offerLeadsRouter = router({
         })
         .where(eq(offerLeads.id, input.id));
 
+      // Send welcome message when status changes to "booked" (Patient Journey)
+      if (input.status === "booked") {
+        const [lead] = await db.select().from(offerLeads).where(eq(offerLeads.id, input.id)).limit(1);
+        if (lead && lead.phone) {
+          const { sendOfferPatientArrivalWelcome } = await import("../messaging");
+          const { offers } = await import("../../drizzle/schema");
+          const [offer] = await db.select().from(offers).where(eq(offers.id, lead.offerId)).limit(1);
+          await sendOfferPatientArrivalWelcome({
+            phone: lead.phone,
+            name: lead.fullName || "المريض",
+            service: offer?.title || "العرض",
+          });
+        }
+      }
+
       return { success: true };
     }),
 

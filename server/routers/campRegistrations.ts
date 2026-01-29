@@ -163,6 +163,21 @@ export const campRegistrationsRouter = router({
         .set(updateData)
         .where(eq(campRegistrations.id, input.id));
 
+      // Send welcome message when status changes to "attended" (Patient Journey)
+      if (input.status === "attended") {
+        const [registration] = await db.select().from(campRegistrations).where(eq(campRegistrations.id, input.id)).limit(1);
+        if (registration && registration.phone) {
+          const { sendCampPatientArrivalWelcome } = await import("../messaging");
+          const { camps } = await import("../../drizzle/schema");
+          const [camp] = await db.select().from(camps).where(eq(camps.id, registration.campId)).limit(1);
+          await sendCampPatientArrivalWelcome({
+            phone: registration.phone,
+            name: registration.fullName || "المريض",
+            campName: camp?.name || "المخيم",
+          });
+        }
+      }
+
       return { success: true };
     }),
 

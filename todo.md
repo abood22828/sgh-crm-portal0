@@ -1751,3 +1751,32 @@
 - [x] حفظ checkpoint
 
 ---
+
+## مهمة جديدة: اختبار WhatsApp Business API 🧪 جاري العمل
+
+### الهدف:
+إضافة Access Token من Meta واختبار إرسال رسالة تجريبية
+
+### المهام:
+- [x] إضافة META_ACCESS_TOKEN و WHATSAPP_PHONE_NUMBER_ID عبر webdev_request_secrets
+- [x] إنشاء vitest للتحقق من صحة credentials - جميع الاختبارات نجحت
+- [x] إنشاء صفحة اختبار WhatsApp في لوحة التحكم
+- [x] إضافة tRPC procedure لإرسال رسالة اختبار
+- [x] إضافة route و sidebar link لصفحة الاختبار
+- [ ] اختبار إرسال رسالة لرقم الاختبار (+2195 168 555 14)
+- [ ] التحقق من استلام الرسالة والـ webhook callbacks
+- [ ] حفظ checkpoint
+
+## مهمة جديدة: تفعيل نظام الرسائل التلقائية الدائم 🚀 ✅ مكتمل
+
+### الهدف:
+تفعيل النظام الدائم بربط جميع الرسائل بالأحداث الفعلية وإزالة صفحة الاختبار
+
+### المهام:
+- [x] التحقق من ربط رسائل تأكيد الحجز بالأحداث (appointments, offerLeads, campRegistrations)
+- [x] تفعيل رسالة الترحيب عند تحديث الحالة إلى "حضر" / "booked" / "attended"
+- [x] إزالة WhatsAppTestPage وwhatsappTest router
+- [x] إزالة link من DashboardSidebar و route من App.tsx
+- [x] حذف server/routers/whatsappTest.ts
+- [x] إعادة تشغيل السيرفر
+- [x] حفظ checkpoint نهائي
