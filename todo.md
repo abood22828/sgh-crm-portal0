@@ -1780,3 +1780,40 @@
 - [x] حذف server/routers/whatsappTest.ts
 - [x] إعادة تشغيل السيرفر
 - [x] حفظ checkpoint نهائي
+
+## مهمة جديدة: تطوير نظام طوابير الرسائل (BullMQ) 🚀 جاري العمل
+
+### الهدف:
+تطوير نظام طوابير موثوق لإرسال رسائل WhatsApp بشكل async وتجنب الضغط على السيرفر
+
+### المهام:
+
+#### المرحلة 1: البنية التحتية
+- [ ] تثبيت bullmq و ioredis
+- [ ] إعداد Redis connection
+- [ ] إنشاء ملف تكوين للطوابير
+
+#### المرحلة 2: Queue و Workers
+- [ ] إنشاء WhatsApp Message Queue
+- [ ] إنشاء Worker لمعالجة الرسائل
+- [ ] إضافة retry mechanism و error handling
+- [ ] إضافة logging للطوابير
+
+#### المرحلة 3: تحديث Messaging Functions
+- [x] تحديث sendBookingConfirmationInteractive لاستخدام الطابور
+- [x] تحديث sendOfferBookingConfirmationInteractive لاستخدام الطابور
+- [x] تحديث sendCampRegistrationConfirmationInteractive لاستخدام الطابور
+- [x] تحديث جميع رسائل التأكيد لاستخدام Queue
+#### المرحلة 4: Dashboard للمراقبة
+- [x] إنشاء صفحة Queue Dashboard
+- [x] عرض إحصائيات الطوابير (waiting, active, completed, failed)
+- [x] عرض قائمة الرسائل الأخيرة
+- [x] إضافة auto-refresh للبيانات
+- [x] إضافة queue router في server
+- [x] إضافة route و sidebar link sidebar link
+
+#### المرحلة 5: الاختبار
+- [ ] اختبار إرسال رسالة عبر الطابور
+- [ ] التحقق من retry mechanism
+- [ ] اختبار Dashboard
+- [ ] حفظ checkpoint نهائي
