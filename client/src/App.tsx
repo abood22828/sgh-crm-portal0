@@ -49,6 +49,7 @@ import ReviewApprovalPage from "./pages/ReviewApprovalPage";
 import CampaignsPage from "./pages/admin/CampaignsPage";
 import DigitalMarketingTasksPage from "./pages/admin/DigitalMarketingTasksPage";
 import MessageSettingsPage from "./pages/MessageSettingsPage";
+import QueueDashboard from "./pages/QueueDashboard";
 
 
 function Router() {
@@ -86,6 +87,7 @@ function Router() {
       <Route path={"/dashboard/whatsapp/connection"} component={WhatsAppConnectionPage} />
       <Route path={"/dashboard/messages"} component={MessagesPage} />
       <Route path={"/dashboard/message-settings"} component={MessageSettingsPage} />
+      <Route path={"/dashboard/queue"} component={QueueDashboard} />
       <Route path={"/dashboard/reports"} component={ReportsPageNew} />
       <Route path={"/dashboard/campaigns"} component={CampaignsPage} />
       <Route path={"/dashboard/analytics"} component={AnalyticsPage} />

@@ -52,6 +52,7 @@ import { sendWelcomeMessage, sendBookingConfirmation, sendCustomMessage } from "
 import { sendNewLeadTelegram, sendNewAppointmentTelegram } from "./telegram";
 import { getCombinedSocialMediaStats } from "./metaGraphAPI";
 import { runDeactivationJobs } from "./cron/deactivateExpired";
+import { queueRouter } from "./routers/queue";
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -60,6 +61,7 @@ export const appRouter = router({
   whatsapp: whatsappRouter,
   messageSettings: messageSettingsRouter,
   webhooks: webhooksRouter,
+  queue: queueRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

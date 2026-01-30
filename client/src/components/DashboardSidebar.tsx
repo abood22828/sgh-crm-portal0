@@ -77,6 +77,11 @@ const navItems: NavItem[] = [
     icon: SettingsIcon,
   },
   {
+    title: "طوابير الرسائل",
+    href: "/dashboard/queue",
+    icon: SettingsIcon,
+  },
+  {
     title: "التقارير",
     href: "/dashboard/reports",
     icon: FileText,

@@ -49,10 +49,10 @@ export async function sendBookingConfirmationInteractive(data: {
   });
 
   // Try to send via WhatsApp Business API if configured
-  const { sendBookingConfirmationWithButtons, isWhatsAppBusinessAPIConfigured } = await import("./whatsappBusinessAPI");
+  const { isWhatsAppBusinessAPIConfigured } = await import("./whatsappBusinessAPI");
   
   if (isWhatsAppBusinessAPIConfigured()) {
-    console.log("[Messaging] Sending via WhatsApp Business API (interactive buttons)");
+    console.log("[Messaging] Adding to WhatsApp Queue (interactive buttons)");
     
     const bookingTypeMap = {
       appointment: "APPOINTMENT",
@@ -60,29 +60,45 @@ export async function sendBookingConfirmationInteractive(data: {
       camp: "CAMP",
     };
     
-    const result = await sendBookingConfirmationWithButtons({
-      phone: data.phone,
-      templateName: "booking_confirmation_interactive", // Must match template name in Meta
-      variables: {
-        name: data.name,
-        date: data.date,
-        time: data.time,
-        doctor: data.doctor,
-        service: data.service,
-      },
-      buttons: [
+    const { queueWhatsAppMessage } = await import("./queues/whatsappQueue");
+    
+    const jobId = await queueWhatsAppMessage({
+      to: data.phone,
+      templateName: "booking_confirmation_interactive",
+      language: "ar",
+      components: [
         {
-          text: "تأكيد الحجز ✅",
-          payload: `CONFIRM_${bookingTypeMap[data.bookingType]}_${data.bookingId}`,
+          type: "body",
+          parameters: [
+            { type: "text", text: data.name },
+            { type: "text", text: data.date },
+            { type: "text", text: data.time },
+            { type: "text", text: data.doctor },
+            { type: "text", text: data.service },
+          ],
         },
         {
-          text: "إلغاء الحجز ❌",
-          payload: `CANCEL_${bookingTypeMap[data.bookingType]}_${data.bookingId}`,
+          type: "button",
+          sub_type: "quick_reply",
+          index: 0,
+          parameters: [{ type: "payload", payload: `CONFIRM_${bookingTypeMap[data.bookingType]}_${data.bookingId}` }],
+        },
+        {
+          type: "button",
+          sub_type: "quick_reply",
+          index: 1,
+          parameters: [{ type: "payload", payload: `CANCEL_${bookingTypeMap[data.bookingType]}_${data.bookingId}` }],
         },
       ],
+      category: "utility",
+      metadata: {
+        bookingId: data.bookingId,
+        bookingType: data.bookingType,
+        patientName: data.name,
+      },
     });
     
-    return { success: result.success, message, messageId: result.messageId, error: result.error };
+    return { success: true, message, jobId };
   } else {
     // Fallback to WhatsApp Integration (without interactive buttons)
     console.log("[Messaging] WhatsApp Business API not configured, using WhatsApp Integration");
@@ -218,14 +234,55 @@ export async function sendOfferBookingConfirmationInteractive(data: {
     time: data.time,
   });
 
-  console.log("[Messaging] Sending offer booking confirmation (interactive):", {
-    phone: data.phone,
-    message,
-    bookingId: data.bookingId,
-  });
-
-  // TODO: Implement WhatsApp Business API call with interactive buttons
-  return { success: true, message };
+  const { isWhatsAppBusinessAPIConfigured } = await import("./whatsappBusinessAPI");
+  
+  if (isWhatsAppBusinessAPIConfigured()) {
+    console.log("[Messaging] Adding offer booking confirmation to WhatsApp Queue");
+    
+    const { queueWhatsAppMessage } = await import("./queues/whatsappQueue");
+    
+    const jobId = await queueWhatsAppMessage({
+      to: data.phone,
+      templateName: "offer_booking_confirmation_interactive",
+      language: "ar",
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: data.name },
+            { type: "text", text: data.service },
+            { type: "text", text: data.date },
+            { type: "text", text: data.time },
+          ],
+        },
+        {
+          type: "button",
+          sub_type: "quick_reply",
+          index: 0,
+          parameters: [{ type: "payload", payload: `CONFIRM_OFFER_${data.bookingId}` }],
+        },
+        {
+          type: "button",
+          sub_type: "quick_reply",
+          index: 1,
+          parameters: [{ type: "payload", payload: `CANCEL_OFFER_${data.bookingId}` }],
+        },
+      ],
+      category: "utility",
+      metadata: {
+        bookingId: data.bookingId,
+        bookingType: "offer",
+        patientName: data.name,
+      },
+    });
+    
+    return { success: true, message, jobId };
+  } else {
+    console.log("[Messaging] WhatsApp Business API not configured, using WhatsApp Integration");
+    const { sendCustomMessage } = await import("./whatsapp");
+    const success = await sendCustomMessage(data.phone, message);
+    return { success, message };
+  }
 }
 
 /**
@@ -324,14 +381,56 @@ export async function sendCampRegistrationConfirmationInteractive(data: {
     location: data.location,
   });
 
-  console.log("[Messaging] Sending camp registration confirmation (interactive):", {
-    phone: data.phone,
-    message,
-    bookingId: data.bookingId,
-  });
-
-  // TODO: Implement WhatsApp Business API call with interactive buttons
-  return { success: true, message };
+  const { isWhatsAppBusinessAPIConfigured } = await import("./whatsappBusinessAPI");
+  
+  if (isWhatsAppBusinessAPIConfigured()) {
+    console.log("[Messaging] Adding camp registration confirmation to WhatsApp Queue");
+    
+    const { queueWhatsAppMessage } = await import("./queues/whatsappQueue");
+    
+    const jobId = await queueWhatsAppMessage({
+      to: data.phone,
+      templateName: "camp_registration_confirmation_interactive",
+      language: "ar",
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: data.name },
+            { type: "text", text: data.campName },
+            { type: "text", text: data.date },
+            { type: "text", text: data.time },
+            { type: "text", text: data.location },
+          ],
+        },
+        {
+          type: "button",
+          sub_type: "quick_reply",
+          index: 0,
+          parameters: [{ type: "payload", payload: `CONFIRM_CAMP_${data.bookingId}` }],
+        },
+        {
+          type: "button",
+          sub_type: "quick_reply",
+          index: 1,
+          parameters: [{ type: "payload", payload: `CANCEL_CAMP_${data.bookingId}` }],
+        },
+      ],
+      category: "utility",
+      metadata: {
+        bookingId: data.bookingId,
+        bookingType: "camp",
+        patientName: data.name,
+      },
+    });
+    
+    return { success: true, message, jobId };
+  } else {
+    console.log("[Messaging] WhatsApp Business API not configured, using WhatsApp Integration");
+    const { sendCustomMessage } = await import("./whatsapp");
+    const success = await sendCustomMessage(data.phone, message);
+    return { success, message };
+  }
 }
 
 /**
