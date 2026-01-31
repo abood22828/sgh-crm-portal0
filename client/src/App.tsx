@@ -8,7 +8,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import HomePage from "./pages/HomePage";
-import CampaignLanding from "./pages/CampaignLanding";
+
 import ThankYou from "./pages/ThankYou";
 import AdminDashboard from "./pages/AdminDashboard";
 import DoctorAppointments from "./pages/DoctorAppointments";
@@ -64,10 +64,9 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={HomePage} />
-      <Route path="/campaign/:slug" component={CampaignLanding} />
       <Route path={"/doctors"} component={Doctors} />
       <Route path={"/visiting-doctors"} component={VisitingDoctors} />
-      <Route path={"/book-appointment"} component={DoctorAppointments} />
+
       <Route path={"/doctors/:slug"} component={DoctorDetailPage} />
       <Route path={"/offers"} component={OffersListPage} />
       <Route path={"/offers/:slug"} component={OfferDetailPage} />
