@@ -61,15 +61,18 @@ export const offerLeadsRouter = router({
       }
 
       // Send automated offer booking confirmation message (Patient Journey)
+      // Run in background - don't block the response
       if (offer) {
         const { sendOfferBookingConfirmationInteractive, formatDateForMessage, formatTimeForMessage } = await import("../messaging");
-        await sendOfferBookingConfirmationInteractive({
+        sendOfferBookingConfirmationInteractive({
           phone: input.phone,
           name: input.fullName,
           service: offer.title,
           date: offer.startDate ? formatDateForMessage(new Date(offer.startDate)) : "غير محدد",
           time: offer.startDate ? formatTimeForMessage(new Date(offer.startDate)) : "غير محدد",
           bookingId: Number(lead.insertId),
+        }).catch(error => {
+          console.error("[WhatsApp] Failed to send offer booking confirmation:", error);
         });
       }
 

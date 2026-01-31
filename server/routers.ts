@@ -433,9 +433,10 @@ export const appRouter = router({
         });
 
         // Send automated booking confirmation message (Patient Journey)
+        // Run in background - don't block the response
         if (appointment) {
           const { sendBookingConfirmationInteractive } = await import("./messaging");
-          await sendBookingConfirmationInteractive({
+          sendBookingConfirmationInteractive({
             phone: input.phone,
             name: input.fullName,
             date: input.preferredDate || "غير محدد",
@@ -444,6 +445,8 @@ export const appRouter = router({
             service: input.procedure || "فحص عام",
             bookingId: appointment.insertId,
             bookingType: "appointment",
+          }).catch(error => {
+            console.error("[WhatsApp] Failed to send booking confirmation:", error);
           });
         }
 

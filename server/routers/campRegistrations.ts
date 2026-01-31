@@ -68,9 +68,10 @@ export const campRegistrationsRouter = router({
       }
 
       // Send automated camp registration confirmation message (Patient Journey)
+      // Run in background - don't block the response
       if (camp) {
         const { sendCampRegistrationConfirmationInteractive, formatDateForMessage, formatTimeForMessage } = await import("../messaging");
-        await sendCampRegistrationConfirmationInteractive({
+        sendCampRegistrationConfirmationInteractive({
           phone: input.phone,
           name: input.fullName,
           campName: camp.name,
@@ -78,6 +79,8 @@ export const campRegistrationsRouter = router({
           time: camp.startDate ? formatTimeForMessage(new Date(camp.startDate)) : "غير محدد",
           location: "المستشفى السعودي الألماني - صنعاء",
           bookingId: Number(registration.insertId),
+        }).catch(error => {
+          console.error("[WhatsApp] Failed to send camp registration confirmation:", error);
         });
       }
 
