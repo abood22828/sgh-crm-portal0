@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export default function QueueDashboard() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   
-  const { data: queueStats, isLoading, refetch } = trpc.queue.getStats.useQuery(undefined, {
+  const { data: queueStats, isLoading, refetch, error: statsError } = trpc.queue.getStats.useQuery(undefined, {
     refetchInterval: autoRefresh ? 5000 : false, // Auto-refresh every 5 seconds
   });
 
@@ -29,6 +29,36 @@ export default function QueueDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  // Check if Redis is not available
+  if (queueStats && !queueStats.redisAvailable) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold">مراقبة طوابير الرسائل</h1>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-yellow-500" />
+              Redis غير متصل
+            </CardTitle>
+            <CardDescription>
+              نظام الطوابير غير متاح حالياً. الرسائل يتم إرسالها مباشرة بدون استخدام الطوابير.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-yellow-800">
+                <strong>ملاحظة:</strong> الرسائل التلقائية تعمل بشكل طبيعي عبر الإرسال المباشر. 
+                لتفعيل نظام الطوابير، يرجى التأكد من تشغيل Redis server.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

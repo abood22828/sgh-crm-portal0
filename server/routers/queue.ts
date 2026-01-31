@@ -7,21 +7,9 @@ export const queueRouter = router({
    */
   getStats: protectedProcedure.query(async () => {
     try {
-      const { whatsappQueue } = await import("../queues/whatsappQueue");
-      
-      const [waiting, active, completed, failed] = await Promise.all([
-        whatsappQueue.getWaitingCount(),
-        whatsappQueue.getActiveCount(),
-        whatsappQueue.getCompletedCount(),
-        whatsappQueue.getFailedCount(),
-      ]);
-
-      return {
-        waiting,
-        active,
-        completed,
-        failed,
-      };
+      const { getQueueStats } = await import("../queues/whatsappQueue");
+      const stats = await getQueueStats();
+      return stats;
     } catch (error) {
       console.error("[Queue Router] Failed to get stats:", error);
       return {
@@ -29,6 +17,9 @@ export const queueRouter = router({
         active: 0,
         completed: 0,
         failed: 0,
+        delayed: 0,
+        total: 0,
+        redisAvailable: false,
       };
     }
   }),
@@ -44,14 +35,27 @@ export const queueRouter = router({
     )
     .query(async ({ input }) => {
       try {
+        const { getQueueStats } = await import("../queues/whatsappQueue");
+        const stats = await getQueueStats();
+        
+        // If Redis is not available, return empty array
+        if (!stats.redisAvailable) {
+          return [];
+        }
+        
         const { whatsappQueue } = await import("../queues/whatsappQueue");
+        
+        // Check if queue is initialized
+        if (!whatsappQueue) {
+          return [];
+        }
         
         // Get jobs from different states
         const [completed, failed, active, waiting] = await Promise.all([
-          whatsappQueue.getJobs(["completed"], 0, input.limit / 4),
-          whatsappQueue.getJobs(["failed"], 0, input.limit / 4),
-          whatsappQueue.getJobs(["active"], 0, input.limit / 4),
-          whatsappQueue.getJobs(["waiting"], 0, input.limit / 4),
+          whatsappQueue.getJobs(["completed"], 0, Math.floor(input.limit / 4)),
+          whatsappQueue.getJobs(["failed"], 0, Math.floor(input.limit / 4)),
+          whatsappQueue.getJobs(["active"], 0, Math.floor(input.limit / 4)),
+          whatsappQueue.getJobs(["waiting"], 0, Math.floor(input.limit / 4)),
         ]);
 
         const allJobs = [...completed, ...failed, ...active, ...waiting];

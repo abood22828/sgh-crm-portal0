@@ -2,6 +2,30 @@ import { Queue, Worker, Job } from "bullmq";
 import { getRedisConnection } from "../redis";
 import { sendWhatsAppTemplateMessage } from "../whatsappBusinessAPI";
 
+// Check if Redis is available
+let isRedisAvailable = false;
+let redisCheckPromise: Promise<boolean> | null = null;
+
+async function checkRedisConnection(): Promise<boolean> {
+  if (redisCheckPromise) return redisCheckPromise;
+  
+  redisCheckPromise = (async () => {
+    try {
+      const redis = getRedisConnection();
+      await redis.ping();
+      isRedisAvailable = true;
+      console.log("[WhatsApp Queue] Redis connection successful");
+      return true;
+    } catch (error) {
+      isRedisAvailable = false;
+      console.warn("[WhatsApp Queue] Redis not available, will send messages directly");
+      return false;
+    }
+  })();
+  
+  return redisCheckPromise;
+}
+
 /**
  * WhatsApp Message Queue
  * Handles async sending of WhatsApp messages with retry mechanism
@@ -25,9 +49,18 @@ export interface WhatsAppMessageJob {
   };
 }
 
-// Create the queue
-export const whatsappQueue = new Queue<WhatsAppMessageJob>("whatsapp-messages", {
-  connection: getRedisConnection(),
+// Create the queue (will be initialized only if Redis is available)
+let whatsappQueue: Queue<WhatsAppMessageJob> | null = null;
+let whatsappWorker: Worker<WhatsAppMessageJob, any, string> | null = null;
+
+async function initializeQueue() {
+  if (whatsappQueue) return whatsappQueue;
+  
+  const redisAvailable = await checkRedisConnection();
+  if (!redisAvailable) return null;
+  
+  whatsappQueue = new Queue<WhatsAppMessageJob>("whatsapp-messages", {
+    connection: getRedisConnection(),
   defaultJobOptions: {
     attempts: 3, // Retry up to 3 times
     backoff: {
@@ -41,11 +74,22 @@ export const whatsappQueue = new Queue<WhatsAppMessageJob>("whatsapp-messages", 
     removeOnFail: {
       age: 7 * 24 * 3600, // Keep failed jobs for 7 days
     },
-  },
-});
+    },
+  });
+  
+  return whatsappQueue;
+}
 
-// Create the worker
-export const whatsappWorker = new Worker<WhatsAppMessageJob, any, string>(
+export { whatsappQueue };
+
+// Create the worker (will be initialized only if Redis is available)
+async function initializeWorker() {
+  if (whatsappWorker) return whatsappWorker;
+  
+  const redisAvailable = await checkRedisConnection();
+  if (!redisAvailable) return null;
+  
+  whatsappWorker = new Worker<WhatsAppMessageJob, any, string>(
   "whatsapp-messages",
   async (job: Job<WhatsAppMessageJob>) => {
     const { to, templateName, language, components, category, metadata } = job.data;
@@ -75,30 +119,62 @@ export const whatsappWorker = new Worker<WhatsAppMessageJob, any, string>(
       throw error; // Will trigger retry
     }
   },
-  {
-    connection: getRedisConnection(),
-    concurrency: 5, // Process up to 5 messages concurrently
+    {
+      connection: getRedisConnection(),
+      concurrency: 5, // Process up to 5 messages concurrently
+    }
+  );
+  
+  return whatsappWorker;
+}
+
+export { whatsappWorker };
+
+// Initialize worker and set up event listeners
+initializeWorker().then((worker) => {
+  if (worker) {
+    worker.on("completed", (job) => {
+      console.log(`[WhatsApp Queue] Job ${job.id} has been completed`);
+    });
+
+    worker.on("failed", (job, err) => {
+      console.error(`[WhatsApp Queue] Job ${job?.id} has failed with error:`, err.message);
+    });
+
+    worker.on("error", (err) => {
+      console.error("[WhatsApp Queue] Worker error:", err);
+    });
   }
-);
-
-// Event listeners
-whatsappWorker.on("completed", (job) => {
-  console.log(`[WhatsApp Queue] Job ${job.id} has been completed`);
-});
-
-whatsappWorker.on("failed", (job, err) => {
-  console.error(`[WhatsApp Queue] Job ${job?.id} has failed with error:`, err.message);
-});
-
-whatsappWorker.on("error", (err) => {
-  console.error("[WhatsApp Queue] Worker error:", err);
 });
 
 /**
- * Add a WhatsApp message to the queue
+ * Add a WhatsApp message to the queue (or send directly if Redis unavailable)
  */
 export async function queueWhatsAppMessage(data: WhatsAppMessageJob): Promise<string> {
-  const job = await whatsappQueue.add("send-message", data, {
+  const queue = await initializeQueue();
+  
+  if (!queue) {
+    // Fallback: Send directly without queue
+    console.log("[WhatsApp Queue] Redis unavailable, sending message directly");
+    try {
+      const result = await sendWhatsAppTemplateMessage(
+        data.to,
+        {
+          templateName: data.templateName,
+          languageCode: data.language,
+          components: data.components,
+        },
+        data.category ? { category: data.category } : undefined
+      );
+      console.log("[WhatsApp Queue] Message sent directly:", result.messageId);
+      return result.messageId || "direct-send";
+    } catch (error) {
+      console.error("[WhatsApp Queue] Direct send failed:", error);
+      throw error;
+    }
+  }
+  
+  const job = await queue.add("send-message", data, {
     priority: data.category === "authentication" ? 1 : data.category === "utility" ? 2 : 3,
   });
   
@@ -110,12 +186,26 @@ export async function queueWhatsAppMessage(data: WhatsAppMessageJob): Promise<st
  * Get queue statistics
  */
 export async function getQueueStats() {
+  const queue = await initializeQueue();
+  
+  if (!queue) {
+    return {
+      waiting: 0,
+      active: 0,
+      completed: 0,
+      failed: 0,
+      delayed: 0,
+      total: 0,
+      redisAvailable: false,
+    };
+  }
+  
   const [waiting, active, completed, failed, delayed] = await Promise.all([
-    whatsappQueue.getWaitingCount(),
-    whatsappQueue.getActiveCount(),
-    whatsappQueue.getCompletedCount(),
-    whatsappQueue.getFailedCount(),
-    whatsappQueue.getDelayedCount(),
+    queue.getWaitingCount(),
+    queue.getActiveCount(),
+    queue.getCompletedCount(),
+    queue.getFailedCount(),
+    queue.getDelayedCount(),
   ]);
 
   return {
@@ -125,6 +215,7 @@ export async function getQueueStats() {
     failed,
     delayed,
     total: waiting + active + completed + failed + delayed,
+    redisAvailable: true,
   };
 }
 
@@ -132,7 +223,10 @@ export async function getQueueStats() {
  * Retry all failed jobs
  */
 export async function retryFailedJobs(): Promise<number> {
-  const failedJobs = await whatsappQueue.getFailed();
+  const queue = await initializeQueue();
+  if (!queue) return 0;
+  
+  const failedJobs = await queue.getFailed();
   let retried = 0;
 
   for (const job of failedJobs) {
@@ -148,7 +242,10 @@ export async function retryFailedJobs(): Promise<number> {
  * Clean old jobs
  */
 export async function cleanOldJobs(): Promise<void> {
-  await whatsappQueue.clean(24 * 3600 * 1000, 1000, "completed"); // Clean completed jobs older than 24h
-  await whatsappQueue.clean(7 * 24 * 3600 * 1000, 0, "failed"); // Clean failed jobs older than 7 days
+  const queue = await initializeQueue();
+  if (!queue) return;
+  
+  await queue.clean(24 * 3600 * 1000, 1000, "completed"); // Clean completed jobs older than 24h
+  await queue.clean(7 * 24 * 3600 * 1000, 0, "failed"); // Clean failed jobs older than 7 days
   console.log("[WhatsApp Queue] Old jobs cleaned");
 }

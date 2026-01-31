@@ -1817,3 +1817,37 @@
 - [ ] التحقق من retry mechanism
 - [ ] اختبار Dashboard
 - [ ] حفظ checkpoint نهائي
+
+
+## مهام عاجلة: إصلاح المشاكل وتحسين الأداء 🔧 جاري العمل
+
+### 1. إصلاح مشكلة "جاري التسجيل..." المستمرة ✅
+- [x] تحليل المشكلة - Redis غير متصل → Queue يفشل بصمت
+- [x] جعل Redis اختياري مع fallback إلى إرسال مباشر
+- [x] تحديث whatsappQueue.ts لدعم direct send بدون Redis
+- [x] إضافة checkRedisConnection() و initializeQueue()
+- [x] اختبار التسجيل والتأكد من اختفاء "جاري التسجيل"
+
+### 2. إصلاح صفحة الطوابير ✅
+- [x] إصلاح queue router لاستخدام getQueueStats()
+- [x] إضافة فحص redisAvailable في queue router
+- [x] تحديث QueueDashboard لعرض رسالة عند عدم توفر Redis
+- [x] اختبار صفحة الطوابير - تعمل بشكل صحيح
+
+### 3. تحسين أداء المنصة
+- [ ] تحسين database queries (إضافة indexes)
+- [ ] تحسين tRPC queries (إضافة caching)
+- [ ] تقليل حجم bundle (code splitting)
+- [ ] تحسين loading states
+
+### 4. حذف الصفحات والملفات غير المطلوبة ✅
+- [x] حذف CampaignLanding.tsx
+- [x] حذف `/campaign/:slug` route من App.tsx
+- [x] حذف `/book-appointment` route من App.tsx
+- [x] حذف مجلد `client/public/assets/doctors/`
+- [x] حذف import CampaignLanding من App.tsx
+
+### 5. الاختبار وحفظ التقدم ✅
+- [x] اختبار شامل للمنصة - السيرفر يعمل بشكل صحيح
+- [x] التأكد من حل جميع المشاكل
+- [x] حفظ checkpoint نهائي
