@@ -345,6 +345,7 @@ export const appRouter = router({
         additionalNotes: z.string().optional(),
         campaignSlug: z.string(),
         source: z.string().optional(), // Auto-detected source from UTM
+        status: z.enum(["pending", "confirmed", "cancelled", "completed"]).optional(), // Manual registration status
         utmSource: z.string().optional(),
         utmMedium: z.string().optional(),
         utmCampaign: z.string().optional(),
@@ -384,7 +385,7 @@ export const appRouter = router({
           preferredDate: input.preferredDate,
           preferredTime: input.preferredTime,
           additionalNotes: input.additionalNotes,
-          status: "pending",
+          status: input.status || "pending", // Use provided status or default to pending
           source: input.source || "direct", // Use auto-detected source or default to direct
           utmSource: input.utmSource,
           utmMedium: input.utmMedium,

@@ -16,6 +16,7 @@ export const offerLeadsRouter = router({
         email: z.string().email().optional(),
         notes: z.string().optional(),
         source: z.string().optional(),
+        status: z.enum(["new", "contacted", "booked", "not_interested", "no_answer", "pending", "confirmed", "completed", "cancelled"]).optional(), // Manual registration status
         utmSource: z.string().optional(),
         utmMedium: z.string().optional(),
         utmCampaign: z.string().optional(),
@@ -43,7 +44,7 @@ export const offerLeadsRouter = router({
         referrer: input.referrer,
         fbclid: input.fbclid,
         gclid: input.gclid,
-        status: "new",
+        status: input.status || "new", // Use provided status or default to new
       });
 
       // Get offer details for notification
