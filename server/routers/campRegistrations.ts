@@ -19,6 +19,7 @@ export const campRegistrationsRouter = router({
         medicalCondition: z.string().optional(),
         notes: z.string().optional(),
         source: z.string().optional(),
+        status: z.enum(["pending", "confirmed", "attended", "cancelled"]).optional(), // Manual registration status
         utmSource: z.string().optional(),
         utmMedium: z.string().optional(),
         utmCampaign: z.string().optional(),
@@ -49,7 +50,7 @@ export const campRegistrationsRouter = router({
         referrer: input.referrer,
         fbclid: input.fbclid,
         gclid: input.gclid,
-        status: "pending",
+        status: input.status || "pending", // Use provided status or default to pending
       });
 
       // Get camp details for notification

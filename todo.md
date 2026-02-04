@@ -1891,3 +1891,28 @@
 - جميع الإصلاحات تم اختبارها وتعمل بشكل صحيح
 - WhatsApp يحتاج مسح QR Code من المستخدم لإكمال الاتصال
 - التسجيل الآن يتم فوراً حتى لو فشلت رسالة WhatsApp (background processing)
+
+
+---
+
+## مهام جديدة: إصلاح ثلاث مشاكل - 2026-02-02 🔧
+
+### 1. إصلاح البحث - إخفاء نتائج العملاء (مازالت تظهر) ✅
+- [x] فحص QuickPatientSearch مرة أخرى
+- [x] التأكد من إزالة leads من allPatients (السطر 283)
+- [ ] اختبار البحث والتأكد من عدم ظهور "عميل"
+
+### 2. إصلاح التسجيل اليدوي - حفظ الحالة الصحيحة ✅
+- [x] فحص backend (server/routers.ts) لمعرفة سبب حفظ "قيد الانتظار"
+- [x] إضافة status إلى input schema في appointments.submit
+- [x] إضافة status إلى input schema فيofferLeads.submit
+- [x] إضافة status إلى input schema في campRegistrations.submit
+- [x] حفظ input.status بدلاً من القيمة الثابتة
+- [ ] اختبار التسجيل اليدوي والتأكد من حفظ الحالة المختارة
+
+### 3. إصلاح خطأ JSON في عرض التفاصيل ✅
+- [x] فحص CampRegistrationsManagement.tsx (السطر 769)
+- [x] إصلاح خطأ JSON.parse في procedures
+- [x] إضافة try-catch لحماية JSON.parse
+- [x] إصلاح خطأ TypeScript في ManualRegistrationForm
+- [ ] اختبار عرض التفاصيل والتأكد من عدم وجود أخطاء

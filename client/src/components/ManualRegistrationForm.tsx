@@ -162,7 +162,7 @@ export default function ManualRegistrationForm() {
       email: email || undefined,
       notes: notes || undefined,
       source: "manual" as const,
-      status: registrationStatus,
+      status: registrationStatus as any, // Type will be validated by backend schema
     };
 
     switch (registrationType) {

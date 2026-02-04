@@ -280,7 +280,6 @@ export default function QuickPatientSearch() {
   useEffect(() => {
     if (searchQuery.length >= 3) {
       const allPatients = [
-        ...(leads || []).map(l => ({ ...l, type: 'lead' })),
         ...(appointments || []).map(a => ({ ...a, type: 'appointment' })),
         ...(offerLeads || []).map(o => ({ ...o, type: 'offerLead' })),
         ...(campRegistrations || []).map(c => ({ ...c, type: 'campRegistration' })),
