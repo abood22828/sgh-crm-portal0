@@ -15,6 +15,7 @@ import TableSkeleton from "@/components/TableSkeleton";
 import AppointmentCard from "@/components/AppointmentCard";
 import SourceBadge from "@/components/SourceBadge";
 import { useAuth } from "@/_core/hooks/useAuth";
+import Pagination from "@/components/Pagination";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,9 +96,17 @@ export default function AdminDashboard() {
   const [leadsDateFilter, setLeadsDateFilter] = useState("all");
   const [activeTab, setActiveTab] = useState<"leads" | "appointments" | "offerLeads" | "campRegistrations">("leads");
 
+  // Pagination states
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const appointmentsLimit = 20;
+
   const { data: unifiedLeads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.unifiedList.useQuery();
   const { data: stats } = trpc.leads.stats.useQuery();
-  const { data: appointments, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.list.useQuery();
+  const { data: appointmentsData, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.listPaginated.useQuery({
+    page: appointmentsPage,
+    limit: appointmentsLimit,
+  });
+  const appointments = appointmentsData?.data || [];
   const { data: doctors = [] } = trpc.doctors.list.useQuery();
   
   // Count pending (not updated) bookings
@@ -971,6 +980,17 @@ export default function AdminDashboard() {
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Pagination */}
+                {(appointmentsData?.totalPages ?? 0) > 1 ? (
+                  <Pagination
+                    currentPage={appointmentsPage}
+                    totalPages={appointmentsData?.totalPages ?? 1}
+                    totalItems={appointmentsData?.total ?? 0}
+                    itemsPerPage={appointmentsLimit}
+                    onPageChange={(page) => setAppointmentsPage(page)}
+                  />
+                ) : null}
               </>
             )}
           </CardContent>

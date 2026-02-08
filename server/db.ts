@@ -399,6 +399,55 @@ export async function getAllAppointments() {
   return result;
 }
 
+export async function getAppointmentsPaginated(page: number = 1, limit: number = 20) {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
+  
+  const offset = (page - 1) * limit;
+  
+  // Get total count
+  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(appointments);
+  const total = Number(countResult?.count || 0);
+  
+  // Get paginated data
+  const result = await db
+    .select({
+      id: appointments.id,
+      campaignId: appointments.campaignId,
+      doctorId: appointments.doctorId,
+      fullName: appointments.fullName,
+      phone: appointments.phone,
+      email: appointments.email,
+      age: appointments.age,
+      procedure: appointments.procedure,
+      preferredDate: appointments.preferredDate,
+      preferredTime: appointments.preferredTime,
+      additionalNotes: appointments.additionalNotes,
+      staffNotes: appointments.staffNotes,
+      status: appointments.status,
+      utmSource: appointments.utmSource,
+      utmMedium: appointments.utmMedium,
+      utmCampaign: appointments.utmCampaign,
+      utmContent: appointments.utmContent,
+      createdAt: appointments.createdAt,
+      updatedAt: appointments.updatedAt,
+      doctorName: doctors.name,
+      doctorSpecialty: doctors.specialty,
+    })
+    .from(appointments)
+    .leftJoin(doctors, eq(appointments.doctorId, doctors.id))
+    .limit(limit)
+    .offset(offset);
+  
+  return {
+    data: result,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
 export async function updateAppointmentStatus(id: number, status: string, staffNotes?: string) {
   const db = await getDb();
   if (!db) {
@@ -730,4 +779,111 @@ export async function toggleMessageSettingEnabled(id: number) {
   
   const newValue = current[0].isEnabled === 1 ? 0 : 1;
   return db.update(messageSettings).set({ isEnabled: newValue }).where(eq(messageSettings.id, id));
+}
+
+export async function getOfferLeadsPaginated(page: number = 1, limit: number = 20) {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
+  
+  const offset = (page - 1) * limit;
+  
+  // Import offerLeads and offers
+  const { offerLeads, offers } = await import('../drizzle/schema');
+  
+  // Get total count
+  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(offerLeads);
+  const total = Number(countResult?.count || 0);
+  
+  // Get paginated data with offer details
+  const result = await db
+    .select({
+      id: offerLeads.id,
+      offerId: offerLeads.offerId,
+      offerTitle: offers.title,
+      fullName: offerLeads.fullName,
+      phone: offerLeads.phone,
+      email: offerLeads.email,
+      notes: offerLeads.notes,
+      status: offerLeads.status,
+      statusNotes: offerLeads.statusNotes,
+      source: offerLeads.source,
+      utmSource: offerLeads.utmSource,
+      utmMedium: offerLeads.utmMedium,
+      utmCampaign: offerLeads.utmCampaign,
+      utmContent: offerLeads.utmContent,
+      referrer: offerLeads.referrer,
+      fbclid: offerLeads.fbclid,
+      gclid: offerLeads.gclid,
+      createdAt: offerLeads.createdAt,
+      updatedAt: offerLeads.updatedAt,
+    })
+    .from(offerLeads)
+    .leftJoin(offers, eq(offerLeads.offerId, offers.id))
+    .orderBy(desc(offerLeads.createdAt))
+    .limit(limit)
+    .offset(offset);
+  
+  return {
+    data: result,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+export async function getCampRegistrationsPaginated(page: number = 1, limit: number = 20) {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
+  
+  const offset = (page - 1) * limit;
+  
+  // Import campRegistrations and camps
+  const { campRegistrations, camps } = await import('../drizzle/schema');
+  
+  // Get total count
+  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(campRegistrations);
+  const total = Number(countResult?.count || 0);
+  
+  // Get paginated data with camp details
+  const result = await db
+    .select({
+      id: campRegistrations.id,
+      campId: campRegistrations.campId,
+      campName: camps.name,
+      fullName: campRegistrations.fullName,
+      phone: campRegistrations.phone,
+      email: campRegistrations.email,
+      age: campRegistrations.age,
+      gender: campRegistrations.gender,
+      procedures: campRegistrations.procedures,
+      medicalCondition: campRegistrations.medicalCondition,
+      notes: campRegistrations.notes,
+      status: campRegistrations.status,
+      statusNotes: campRegistrations.statusNotes,
+      attendanceDate: campRegistrations.attendanceDate,
+      source: campRegistrations.source,
+      utmSource: campRegistrations.utmSource,
+      utmMedium: campRegistrations.utmMedium,
+      utmCampaign: campRegistrations.utmCampaign,
+      utmContent: campRegistrations.utmContent,
+      referrer: campRegistrations.referrer,
+      fbclid: campRegistrations.fbclid,
+      gclid: campRegistrations.gclid,
+      createdAt: campRegistrations.createdAt,
+      updatedAt: campRegistrations.updatedAt,
+    })
+    .from(campRegistrations)
+    .leftJoin(camps, eq(campRegistrations.campId, camps.id))
+    .orderBy(desc(campRegistrations.createdAt))
+    .limit(limit)
+    .offset(offset);
+  
+  return {
+    data: result,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
 }

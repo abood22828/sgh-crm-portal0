@@ -1954,3 +1954,28 @@
 - [x] حذف ملفات الصور من المشروع
 - [x] حذف المجلدات الفارغة
 - [x] اختبار المشروع والتأكد من عدم وجود أخطاء - يعمل بنجاح!
+
+
+---
+
+## مهمة جديدة: إضافة Pagination لجميع الجداول
+
+### Backend Pagination:
+- [ ] إضافة pagination parameters (page, limit, totalCount) في appointments router
+- [ ] إضافة pagination parameters في offerLeads router
+- [ ] إضافة pagination parameters في campRegistrations router
+- [ ] إضافة pagination parameters في leads (unifiedList) router
+- [ ] تحديث db.ts queries لدعم LIMIT و OFFSET
+
+### Frontend Pagination UI:
+- [ ] إنشاء Pagination component قابل لإعادة الاستخدام
+- [ ] إضافة pagination في AdminDashboard - تبويب العملاء
+- [ ] إضافة pagination في AdminDashboard - تبويب المواعيد
+- [ ] إضافة pagination في OfferLeadsManagement
+- [ ] إضافة pagination في CampRegistrationsManagement
+
+### Testing:
+- [ ] اختبار pagination في جميع الجداول
+- [ ] التأكد من عمل الفلترة مع pagination
+- [ ] التأكد من عمل البحث مع pagination
+- [ ] حفظ checkpoint

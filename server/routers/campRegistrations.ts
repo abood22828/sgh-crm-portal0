@@ -119,6 +119,19 @@ export const campRegistrationsRouter = router({
     return results;
   }),
 
+  // List camp registrations with pagination (protected)
+  listPaginated: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        limit: z.number().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ input }) => {
+      const { getCampRegistrationsPaginated } = await import('../db');
+      return getCampRegistrationsPaginated(input.page, input.limit);
+    }),
+
   // Get stats for camp registrations (protected)
   stats: protectedProcedure.query(async () => {
     const db = await getDb();

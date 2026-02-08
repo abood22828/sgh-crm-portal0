@@ -108,6 +108,19 @@ export const offerLeadsRouter = router({
     return results;
   }),
 
+  // List offer leads with pagination (protected)
+  listPaginated: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        limit: z.number().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ input }) => {
+      const { getOfferLeadsPaginated } = await import('../db');
+      return getOfferLeadsPaginated(input.page, input.limit);
+    }),
+
   // Get stats for offer leads (protected)
   stats: protectedProcedure.query(async () => {
     const db = await getDb();

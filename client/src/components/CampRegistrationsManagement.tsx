@@ -49,6 +49,7 @@ import CampRegistrationCard from "@/components/CampRegistrationCard";
 import CardSkeleton from "@/components/CardSkeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
+import Pagination from "@/components/Pagination";
 
 const statusLabels = {
   pending: "قيد الانتظار",
@@ -79,8 +80,14 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
   const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageLimit = 20;
 
-  const { data: registrations, isLoading, refetch } = trpc.campRegistrations.list.useQuery();
+  const { data: registrationsData, isLoading, refetch } = trpc.campRegistrations.listPaginated.useQuery({
+    page: currentPage,
+    limit: pageLimit,
+  });
+  const registrations = registrationsData?.data || [];
   const { data: stats } = trpc.campRegistrations.stats.useQuery();
   
   // Count pending registrations (status = 'pending')
@@ -571,6 +578,17 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {registrationsData && registrationsData?.totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={registrationsData?.totalPages || 1}
+              totalItems={registrationsData?.total || 0}
+              itemsPerPage={pageLimit}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          )}
         </CardContent>
       </Card>
 

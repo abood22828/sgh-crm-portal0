@@ -50,6 +50,7 @@ import { SOURCE_OPTIONS } from "@shared/sources";
 import OfferLeadCard from "@/components/OfferLeadCard";
 import CardSkeleton from "@/components/CardSkeleton";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
+import Pagination from "@/components/Pagination";
 
 const statusLabels = {
   new: "جديد",
@@ -78,8 +79,14 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
   const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageLimit = 20;
 
-  const { data: offerLeads, isLoading, refetch } = trpc.offerLeads.list.useQuery();
+  const { data: offerLeadsData, isLoading, refetch } = trpc.offerLeads.listPaginated.useQuery({
+    page: currentPage,
+    limit: pageLimit,
+  });
+  const offerLeads = offerLeadsData?.data || [];
   const { data: stats } = trpc.offerLeads.stats.useQuery();
   
   // Count pending offerLeads (status = 'new')
@@ -544,6 +551,17 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {offerLeadsData && offerLeadsData?.totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={offerLeadsData?.totalPages || 1}
+              totalItems={offerLeadsData?.total || 0}
+              itemsPerPage={pageLimit}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          )}
         </CardContent>
       </Card>
 
