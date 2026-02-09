@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import OfferLeadsManagement from "@/components/OfferLeadsManagement";
 import CampRegistrationsManagement from "@/components/CampRegistrationsManagement";
 import ManualRegistrationForm from "@/components/ManualRegistrationForm";
@@ -99,15 +99,22 @@ export default function AdminDashboard() {
   // Pagination states
   const [appointmentsPage, setAppointmentsPage] = useState(1);
   const appointmentsLimit = 20;
+  const [appointmentsSearchTerm, setAppointmentsSearchTerm] = useState("");
 
   const { data: unifiedLeads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.unifiedList.useQuery();
   const { data: stats } = trpc.leads.stats.useQuery();
   const { data: appointmentsData, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.listPaginated.useQuery({
     page: appointmentsPage,
     limit: appointmentsLimit,
+    searchTerm: appointmentsSearchTerm,
   });
   const appointments = appointmentsData?.data || [];
   const { data: doctors = [] } = trpc.doctors.list.useQuery();
+  
+  // Reset pagination when search term changes
+  useEffect(() => {
+    setAppointmentsPage(1);
+  }, [appointmentsSearchTerm]);
   
   // Count pending (not updated) bookings
   const [offerLeadsPendingCount, setOfferLeadsPendingCount] = useState(0);
@@ -124,7 +131,6 @@ export default function AdminDashboard() {
     };
   }, [unifiedLeads, appointments, offerLeadsPendingCount, campRegistrationsPendingCount]);
   
-  const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
   const [newAppointmentStatus, setNewAppointmentStatus] = useState("");
@@ -240,8 +246,8 @@ export default function AdminDashboard() {
     let filtered = appointments;
     
     // Filter by search term
-    if (appointmentSearchTerm) {
-      const term = appointmentSearchTerm.toLowerCase();
+    if (appointmentsSearchTerm) {
+      const term = appointmentsSearchTerm.toLowerCase();
       filtered = filtered.filter(
         (apt) =>
           apt.fullName.toLowerCase().includes(term) ||
@@ -289,7 +295,7 @@ export default function AdminDashboard() {
     }
     
     return filtered;
-  }, [appointments, appointmentSearchTerm, selectedDoctor, dateFilter, appointmentStatusFilter, appointmentSourceFilter]);
+  }, [appointments, appointmentsSearchTerm, selectedDoctor, dateFilter, appointmentStatusFilter, appointmentSourceFilter]);
 
   const appointmentStats = useMemo(() => {
     if (!appointments) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
@@ -708,8 +714,8 @@ export default function AdminDashboard() {
                   <Input
                     type="text"
                     placeholder="بحث بالاسم، الهاتف، أو البريد..."
-                    value={appointmentSearchTerm}
-                    onChange={(e) => setAppointmentSearchTerm(e.target.value)}
+                    value={appointmentsSearchTerm}
+                    onChange={(e) => setAppointmentsSearchTerm(e.target.value)}
                     className="pr-10 h-9 md:h-10"
                   />
                 </div>
@@ -845,7 +851,7 @@ export default function AdminDashboard() {
               <div className="text-center py-12">
                 <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <p className="text-lg font-semibold text-muted-foreground">
-                  {appointmentSearchTerm ? "لا توجد نتائج للبحث" : "لا توجد مواعيد بعد"}
+                  {appointmentsSearchTerm ? "لا توجد نتائج للبحث" : "لا توجد مواعيد بعد"}
                 </p>
               </div>
             ) : (

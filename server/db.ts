@@ -399,18 +399,37 @@ export async function getAllAppointments() {
   return result;
 }
 
-export async function getAppointmentsPaginated(page: number = 1, limit: number = 20) {
+export async function getAppointmentsPaginated(page: number = 1, limit: number = 20, searchTerm?: string) {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
   
   const offset = (page - 1) * limit;
   
-  // Get total count
-  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(appointments);
+  // Build WHERE conditions for search
+  const whereConditions = [];
+  if (searchTerm && searchTerm.trim()) {
+    const searchPattern = `%${searchTerm.trim()}%`;
+    whereConditions.push(
+      or(
+        like(appointments.fullName, searchPattern),
+        like(appointments.phone, searchPattern),
+        like(appointments.email, searchPattern)
+      )
+    );
+  }
+  
+  const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+  
+  // Get total count with search filter
+  const countQuery = db.select({ count: sql<number>`count(*)` }).from(appointments);
+  if (whereClause) {
+    countQuery.where(whereClause);
+  }
+  const [countResult] = await countQuery;
   const total = Number(countResult?.count || 0);
   
-  // Get paginated data
-  const result = await db
+  // Get paginated data with search filter
+  const dataQuery = db
     .select({
       id: appointments.id,
       campaignId: appointments.campaignId,
@@ -435,9 +454,13 @@ export async function getAppointmentsPaginated(page: number = 1, limit: number =
       doctorSpecialty: doctors.specialty,
     })
     .from(appointments)
-    .leftJoin(doctors, eq(appointments.doctorId, doctors.id))
-    .limit(limit)
-    .offset(offset);
+    .leftJoin(doctors, eq(appointments.doctorId, doctors.id));
+  
+  if (whereClause) {
+    dataQuery.where(whereClause);
+  }
+  
+  const result = await dataQuery.limit(limit).offset(offset);
   
   return {
     data: result,
@@ -781,7 +804,7 @@ export async function toggleMessageSettingEnabled(id: number) {
   return db.update(messageSettings).set({ isEnabled: newValue }).where(eq(messageSettings.id, id));
 }
 
-export async function getOfferLeadsPaginated(page: number = 1, limit: number = 20) {
+export async function getOfferLeadsPaginated(page: number = 1, limit: number = 20, searchTerm?: string) {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
   
@@ -790,12 +813,31 @@ export async function getOfferLeadsPaginated(page: number = 1, limit: number = 2
   // Import offerLeads and offers
   const { offerLeads, offers } = await import('../drizzle/schema');
   
-  // Get total count
-  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(offerLeads);
+  // Build WHERE conditions for search
+  const whereConditions = [];
+  if (searchTerm && searchTerm.trim()) {
+    const searchPattern = `%${searchTerm.trim()}%`;
+    whereConditions.push(
+      or(
+        like(offerLeads.fullName, searchPattern),
+        like(offerLeads.phone, searchPattern),
+        like(offerLeads.email, searchPattern)
+      )
+    );
+  }
+  
+  const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+  
+  // Get total count with search filter
+  const countQuery = db.select({ count: sql<number>`count(*)` }).from(offerLeads);
+  if (whereClause) {
+    countQuery.where(whereClause);
+  }
+  const [countResult] = await countQuery;
   const total = Number(countResult?.count || 0);
   
-  // Get paginated data with offer details
-  const result = await db
+  // Get paginated data with offer details and search filter
+  const dataQuery = db
     .select({
       id: offerLeads.id,
       offerId: offerLeads.offerId,
@@ -818,7 +860,13 @@ export async function getOfferLeadsPaginated(page: number = 1, limit: number = 2
       updatedAt: offerLeads.updatedAt,
     })
     .from(offerLeads)
-    .leftJoin(offers, eq(offerLeads.offerId, offers.id))
+    .leftJoin(offers, eq(offerLeads.offerId, offers.id));
+  
+  if (whereClause) {
+    dataQuery.where(whereClause);
+  }
+  
+  const result = await dataQuery
     .orderBy(desc(offerLeads.createdAt))
     .limit(limit)
     .offset(offset);
@@ -832,7 +880,7 @@ export async function getOfferLeadsPaginated(page: number = 1, limit: number = 2
   };
 }
 
-export async function getCampRegistrationsPaginated(page: number = 1, limit: number = 20) {
+export async function getCampRegistrationsPaginated(page: number = 1, limit: number = 20, searchTerm?: string) {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
   
@@ -841,12 +889,31 @@ export async function getCampRegistrationsPaginated(page: number = 1, limit: num
   // Import campRegistrations and camps
   const { campRegistrations, camps } = await import('../drizzle/schema');
   
-  // Get total count
-  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(campRegistrations);
+  // Build WHERE conditions for search
+  const whereConditions = [];
+  if (searchTerm && searchTerm.trim()) {
+    const searchPattern = `%${searchTerm.trim()}%`;
+    whereConditions.push(
+      or(
+        like(campRegistrations.fullName, searchPattern),
+        like(campRegistrations.phone, searchPattern),
+        like(campRegistrations.email, searchPattern)
+      )
+    );
+  }
+  
+  const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+  
+  // Get total count with search filter
+  const countQuery = db.select({ count: sql<number>`count(*)` }).from(campRegistrations);
+  if (whereClause) {
+    countQuery.where(whereClause);
+  }
+  const [countResult] = await countQuery;
   const total = Number(countResult?.count || 0);
   
-  // Get paginated data with camp details
-  const result = await db
+  // Get paginated data with camp details and search filter
+  const dataQuery = db
     .select({
       id: campRegistrations.id,
       campId: campRegistrations.campId,
@@ -874,7 +941,13 @@ export async function getCampRegistrationsPaginated(page: number = 1, limit: num
       updatedAt: campRegistrations.updatedAt,
     })
     .from(campRegistrations)
-    .leftJoin(camps, eq(campRegistrations.campId, camps.id))
+    .leftJoin(camps, eq(campRegistrations.campId, camps.id));
+  
+  if (whereClause) {
+    dataQuery.where(whereClause);
+  }
+  
+  const result = await dataQuery
     .orderBy(desc(campRegistrations.createdAt))
     .limit(limit)
     .offset(offset);
