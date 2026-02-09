@@ -81,13 +81,20 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageLimit = 20;
+  const [offerLeadsSearchTerm, setOfferLeadsSearchTerm] = useState("");
 
   const { data: offerLeadsData, isLoading, refetch } = trpc.offerLeads.listPaginated.useQuery({
     page: currentPage,
     limit: pageLimit,
+    searchTerm: offerLeadsSearchTerm,
   });
   const offerLeads = offerLeadsData?.data || [];
   const { data: stats } = trpc.offerLeads.stats.useQuery();
+  
+  // Reset pagination when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [offerLeadsSearchTerm]);
   
   // Count pending offerLeads (status = 'new')
   const pendingCount = useMemo(() => {
@@ -330,8 +337,8 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="البحث بالاسم، الهاتف، أو البريد الإلكتروني..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={offerLeadsSearchTerm}
+                onChange={(e) => setOfferLeadsSearchTerm(e.target.value)}
                 className="pr-10 h-9 md:h-10"
               />
             </div>

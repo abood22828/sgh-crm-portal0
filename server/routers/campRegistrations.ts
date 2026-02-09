@@ -125,11 +125,12 @@ export const campRegistrationsRouter = router({
       z.object({
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(100).default(20),
+        searchTerm: z.string().optional(),
       })
     )
     .query(async ({ input }) => {
       const { getCampRegistrationsPaginated } = await import('../db');
-      return getCampRegistrationsPaginated(input.page, input.limit);
+      return getCampRegistrationsPaginated(input.page, input.limit, input.searchTerm);
     }),
 
   // Get stats for camp registrations (protected)

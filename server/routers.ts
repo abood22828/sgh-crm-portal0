@@ -462,10 +462,11 @@ export const appRouter = router({
       .input(z.object({
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(100).default(20),
+        searchTerm: z.string().optional(),
       }))
       .query(async ({ input }) => {
         const { getAppointmentsPaginated } = await import('./db');
-        return getAppointmentsPaginated(input.page, input.limit);
+        return getAppointmentsPaginated(input.page, input.limit, input.searchTerm);
       }),
 
     updateStatus: protectedProcedure

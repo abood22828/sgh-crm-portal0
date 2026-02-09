@@ -1979,3 +1979,16 @@
 - [ ] التأكد من عمل الفلترة مع pagination
 - [ ] التأكد من عمل البحث مع pagination
 - [ ] حفظ checkpoint
+
+### نظام البحث والفلترة المتقدم مع Pagination ✅ مكتمل
+- [x] تحديث getAppointmentsPaginated في db.ts لدعم البحث (الاسم، الهاتف، البريد)
+- [x] تحديث getOfferLeadsPaginated في db.ts لدعم البحث
+- [x] تحديث getCampRegistrationsPaginated في db.ts لدعم البحث
+- [x] تحديث appointments.listPaginated procedure لقبول معاملات البحث
+- [x] تحديث offerLeads.listPaginated procedure لقبول معاملات البحث
+- [x] تحديث campRegistrations.listPaginated procedure لقبول معاملات البحث
+- [x] إضافة حقل بحث في AdminDashboard لجدول المواعيد
+- [x] إضافة حقل بحث في OfferLeadsManagement
+- [x] إضافة حقل بحث في CampRegistrationsManagement
+- [x] إعادة تعيين pagination عند تغيير البحث
+- [x] اختبار البحث مع pagination
