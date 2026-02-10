@@ -403,7 +403,9 @@ export async function getAppointmentsPaginated(page: number = 1, limit: number =
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
   
-  const offset = (page - 1) * limit;
+  // Support limit=-1 for "all" records
+  const isShowAll = limit === -1;
+  const offset = isShowAll ? 0 : (page - 1) * limit;
   
   // Build WHERE conditions for search
   const whereConditions = [];
@@ -460,14 +462,19 @@ export async function getAppointmentsPaginated(page: number = 1, limit: number =
     dataQuery.where(whereClause);
   }
   
-  const result = await dataQuery.limit(limit).offset(offset);
+  let result;
+  if (isShowAll) {
+    result = await dataQuery;
+  } else {
+    result = await dataQuery.limit(limit).offset(offset);
+  }
   
   return {
     data: result,
     total,
     page,
     limit,
-    totalPages: Math.ceil(total / limit),
+    totalPages: isShowAll ? 1 : Math.ceil(total / limit),
   };
 }
 
@@ -808,7 +815,9 @@ export async function getOfferLeadsPaginated(page: number = 1, limit: number = 2
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
   
-  const offset = (page - 1) * limit;
+  // Support limit=-1 for "all" records
+  const isShowAll = limit === -1;
+  const offset = isShowAll ? 0 : (page - 1) * limit;
   
   // Import offerLeads and offers
   const { offerLeads, offers } = await import('../drizzle/schema');
@@ -866,17 +875,22 @@ export async function getOfferLeadsPaginated(page: number = 1, limit: number = 2
     dataQuery.where(whereClause);
   }
   
-  const result = await dataQuery
-    .orderBy(desc(offerLeads.createdAt))
-    .limit(limit)
-    .offset(offset);
+  let result;
+  if (isShowAll) {
+    result = await dataQuery.orderBy(desc(offerLeads.createdAt));
+  } else {
+    result = await dataQuery
+      .orderBy(desc(offerLeads.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
   
   return {
     data: result,
     total,
     page,
     limit,
-    totalPages: Math.ceil(total / limit),
+    totalPages: isShowAll ? 1 : Math.ceil(total / limit),
   };
 }
 
@@ -884,7 +898,9 @@ export async function getCampRegistrationsPaginated(page: number = 1, limit: num
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
   
-  const offset = (page - 1) * limit;
+  // Support limit=-1 for "all" records
+  const isShowAll = limit === -1;
+  const offset = isShowAll ? 0 : (page - 1) * limit;
   
   // Import campRegistrations and camps
   const { campRegistrations, camps } = await import('../drizzle/schema');
@@ -947,16 +963,21 @@ export async function getCampRegistrationsPaginated(page: number = 1, limit: num
     dataQuery.where(whereClause);
   }
   
-  const result = await dataQuery
-    .orderBy(desc(campRegistrations.createdAt))
-    .limit(limit)
-    .offset(offset);
+  let result;
+  if (isShowAll) {
+    result = await dataQuery.orderBy(desc(campRegistrations.createdAt));
+  } else {
+    result = await dataQuery
+      .orderBy(desc(campRegistrations.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
   
   return {
     data: result,
     total,
     page,
     limit,
-    totalPages: Math.ceil(total / limit),
+    totalPages: isShowAll ? 1 : Math.ceil(total / limit),
   };
 }

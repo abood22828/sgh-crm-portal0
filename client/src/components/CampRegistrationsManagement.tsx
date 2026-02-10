@@ -81,7 +81,7 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageLimit = 20;
+  const [pageLimit, setPageLimit] = useState(20);
   const [campRegistrationsSearchTerm, setCampRegistrationsSearchTerm] = useState("");
 
   const { data: registrationsData, isLoading, refetch } = trpc.campRegistrations.listPaginated.useQuery({
@@ -92,10 +92,10 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
   const registrations = registrationsData?.data || [];
   const { data: stats } = trpc.campRegistrations.stats.useQuery();
   
-  // Reset pagination when search term changes
+  // Reset pagination when search term or limit changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [campRegistrationsSearchTerm]);
+  }, [campRegistrationsSearchTerm, pageLimit]);
   
   // Count pending registrations (status = 'pending')
   const pendingCount = useMemo(() => {
@@ -346,6 +346,18 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                 className="pr-10 h-9 md:h-10"
               />
             </div>
+            <Select value={pageLimit.toString()} onValueChange={(val) => setPageLimit(Number(val))}>
+              <SelectTrigger className="w-full sm:w-[140px] h-9 md:h-10">
+                <SelectValue placeholder="عدد الصفوف" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="50">50 صف</SelectItem>
+                <SelectItem value="100">100 صف</SelectItem>
+                <SelectItem value="500">500 صف</SelectItem>
+                <SelectItem value="1000">1000 صف</SelectItem>
+                <SelectItem value="-1">الكل</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={selectedCamp} onValueChange={setSelectedCamp}>
               <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10">
                 <SelectValue placeholder="فلترة حسب المخيم" />
@@ -587,7 +599,7 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
           </div>
 
           {/* Pagination */}
-          {registrationsData && registrationsData?.totalPages > 1 && (
+          {pageLimit !== -1 && registrationsData && registrationsData?.totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
               totalPages={registrationsData?.totalPages || 1}

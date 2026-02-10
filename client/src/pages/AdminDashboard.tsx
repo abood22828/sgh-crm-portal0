@@ -98,7 +98,7 @@ export default function AdminDashboard() {
 
   // Pagination states
   const [appointmentsPage, setAppointmentsPage] = useState(1);
-  const appointmentsLimit = 20;
+  const [appointmentsLimit, setAppointmentsLimit] = useState(20);
   const [appointmentsSearchTerm, setAppointmentsSearchTerm] = useState("");
 
   const { data: unifiedLeads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.unifiedList.useQuery();
@@ -111,10 +111,10 @@ export default function AdminDashboard() {
   const appointments = appointmentsData?.data || [];
   const { data: doctors = [] } = trpc.doctors.list.useQuery();
   
-  // Reset pagination when search term changes
+  // Reset pagination when search term or limit changes
   useEffect(() => {
     setAppointmentsPage(1);
-  }, [appointmentsSearchTerm]);
+  }, [appointmentsSearchTerm, appointmentsLimit]);
   
   // Count pending (not updated) bookings
   const [offerLeadsPendingCount, setOfferLeadsPendingCount] = useState(0);
@@ -719,6 +719,18 @@ export default function AdminDashboard() {
                     className="pr-10 h-9 md:h-10"
                   />
                 </div>
+                <Select value={appointmentsLimit.toString()} onValueChange={(val) => setAppointmentsLimit(Number(val))}>
+                  <SelectTrigger className="w-full sm:w-[140px] h-9 md:h-10">
+                    <SelectValue placeholder="عدد الصفوف" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="50">50 صف</SelectItem>
+                    <SelectItem value="100">100 صف</SelectItem>
+                    <SelectItem value="500">500 صف</SelectItem>
+                    <SelectItem value="1000">1000 صف</SelectItem>
+                    <SelectItem value="-1">الكل</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
                   <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10">
                     <SelectValue placeholder="كل الأطباء" />
@@ -988,7 +1000,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Pagination */}
-                {(appointmentsData?.totalPages ?? 0) > 1 ? (
+                {appointmentsLimit !== -1 && (appointmentsData?.totalPages ?? 0) > 1 ? (
                   <Pagination
                     currentPage={appointmentsPage}
                     totalPages={appointmentsData?.totalPages ?? 1}

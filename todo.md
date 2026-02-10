@@ -1992,3 +1992,13 @@
 - [x] إضافة حقل بحث في CampRegistrationsManagement
 - [x] إعادة تعيين pagination عند تغيير البحث
 - [x] اختبار البحث مع pagination
+
+### تخصيص عدد الصفوف المعروضة ✅ مكتمل
+- [x] تحديث getAppointmentsPaginated لدعم limit=-1 (الكل)
+- [x] تحديث getOfferLeadsPaginated لدعم limit=-1 (الكل)
+- [x] تحديث getCampRegistrationsPaginated لدعم limit=-1 (الكل)
+- [x] إضافة قائمة اختيار عدد الصفوف في AdminDashboard (50، 100، 500، 1000، الكل)
+- [x] إضافة قائمة اختيار عدد الصفوف في OfferLeadsManagement
+- [x] إضافة قائمة اختيار عدد الصفوف في CampRegistrationsManagement
+- [x] إخفاء Pagination عند اختيار "الكل"
+- [x] اختبار تغيير عدد الصفوف
