@@ -1,53 +1,52 @@
 import { Toaster } from "@/components/ui/sonner";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { initializeTracking } from "./lib/tracking";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import HomePage from "./pages/HomePage";
-
-import ThankYou from "./pages/ThankYou";
-import AdminDashboard from "./pages/AdminDashboard";
-import DoctorAppointments from "./pages/DoctorAppointments";
-import Doctors from "./pages/Doctors";
-import Unauthorized from "./pages/Unauthorized";
-import AccessRequest from "./pages/AccessRequest";
-import OffersListPage from "./pages/OffersListPage";
-import CampsListPage from "./pages/CampsListPage";
-import DoctorDetailPage from "./pages/DoctorDetailPage";
-import OfferDetailPage from "./pages/OfferDetailPage";
-import CampDetailPage from "./pages/CampDetailPage";
-
-import VisitingDoctors from "./pages/VisitingDoctors";
-import OfflinePage from "./pages/OfflinePage";
-import SettingsPage from "./pages/SettingsPage";
-import ProfilePage from "./pages/ProfilePage";
-import ManagementPage from "./pages/ManagementPage";
-import ContentManagementPage from "./pages/ContentManagementPage";
-import UsersManagementPage from "./pages/UsersManagementPage";
-import PublishingPage from "./pages/PublishingPage";
-import WhatsAppPage from "./pages/WhatsAppPage";
-import WhatsAppTemplatesPage from "./pages/WhatsAppTemplatesPage";
-import WhatsAppConnectionPage from "./pages/WhatsAppConnectionPage";
-import MessagesPage from "./pages/MessagesPage";
-import ReportsPage from "./pages/ReportsPage";
-import ReportsPageNew from "./pages/admin/ReportsPage";
-import AnalyticsPage from "./pages/AnalyticsPage";
-import CampStatsPage from "./pages/CampStatsPage";
-import BookingsManagementPage from "./pages/BookingsManagementPage";
+// Lazy load pages for better performance
+const Home = lazy(() => import("./pages/Home"));
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ThankYou = lazy(() => import("./pages/ThankYou"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const DoctorAppointments = lazy(() => import("./pages/DoctorAppointments"));
+const Doctors = lazy(() => import("./pages/Doctors"));
+const Unauthorized = lazy(() => import("./pages/Unauthorized"));
+const AccessRequest = lazy(() => import("./pages/AccessRequest"));
+const OffersListPage = lazy(() => import("./pages/OffersListPage"));
+const CampsListPage = lazy(() => import("./pages/CampsListPage"));
+const DoctorDetailPage = lazy(() => import("./pages/DoctorDetailPage"));
+const OfferDetailPage = lazy(() => import("./pages/OfferDetailPage"));
+const CampDetailPage = lazy(() => import("./pages/CampDetailPage"));
+const VisitingDoctors = lazy(() => import("./pages/VisitingDoctors"));
+const OfflinePage = lazy(() => import("./pages/OfflinePage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const ManagementPage = lazy(() => import("./pages/ManagementPage"));
+const ContentManagementPage = lazy(() => import("./pages/ContentManagementPage"));
+const UsersManagementPage = lazy(() => import("./pages/UsersManagementPage"));
+const PublishingPage = lazy(() => import("./pages/PublishingPage"));
+const WhatsAppPage = lazy(() => import("./pages/WhatsAppPage"));
+const WhatsAppTemplatesPage = lazy(() => import("./pages/WhatsAppTemplatesPage"));
+const WhatsAppConnectionPage = lazy(() => import("./pages/WhatsAppConnectionPage"));
+const MessagesPage = lazy(() => import("./pages/MessagesPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const ReportsPageNew = lazy(() => import("./pages/admin/ReportsPage"));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
+const CampStatsPage = lazy(() => import("./pages/CampStatsPage"));
+const BookingsManagementPage = lazy(() => import("./pages/BookingsManagementPage"));
 import PWAManager from "./components/PWAManager";
 import OfflineIndicator from "./components/OfflineIndicator";
-import DigitalMarketingTeamPage from "./pages/DigitalMarketingTeamPage";
-import MediaTeamPage from "./pages/MediaTeamPage";
-import FieldMarketingTeamPage from "./pages/FieldMarketingTeamPage";
-import CustomerServiceTeamPage from "./pages/CustomerServiceTeamPage";
-import ProjectsManagementPage from "./pages/ProjectsManagementPage";
-import ReviewApprovalPage from "./pages/ReviewApprovalPage";
-import CampaignsPage from "./pages/admin/CampaignsPage";
-import DigitalMarketingTasksPage from "./pages/admin/DigitalMarketingTasksPage";
+const DigitalMarketingTeamPage = lazy(() => import("./pages/DigitalMarketingTeamPage"));
+const MediaTeamPage = lazy(() => import("./pages/MediaTeamPage"));
+const FieldMarketingTeamPage = lazy(() => import("./pages/FieldMarketingTeamPage"));
+const CustomerServiceTeamPage = lazy(() => import("./pages/CustomerServiceTeamPage"));
+const ProjectsManagementPage = lazy(() => import("./pages/ProjectsManagementPage"));
+const ReviewApprovalPage = lazy(() => import("./pages/ReviewApprovalPage"));
+const CampaignsPage = lazy(() => import("./pages/admin/CampaignsPage"));
+const DigitalMarketingTasksPage = lazy(() => import("./pages/admin/DigitalMarketingTasksPage"));
 import MessageSettingsPage from "./pages/MessageSettingsPage";
 import QueueDashboard from "./pages/QueueDashboard";
 
@@ -62,7 +61,12 @@ function Router() {
   
   // make sure to consider if you need authentication for certain routes
   return (
-    <Switch>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <Switch>
       <Route path={"/"} component={HomePage} />
       <Route path={"/doctors"} component={Doctors} />
       <Route path={"/visiting-doctors"} component={VisitingDoctors} />
@@ -105,7 +109,8 @@ function Router() {
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
-    </Switch>
+      </Switch>
+    </Suspense>
   );
 }
 

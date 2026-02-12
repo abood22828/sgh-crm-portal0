@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, index } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -183,7 +183,13 @@ export const appointments = mysqlTable("appointments", {
   gclid: varchar("gclid", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  phoneIdx: index("appointments_phone_idx").on(table.phone),
+  emailIdx: index("appointments_email_idx").on(table.email),
+  statusIdx: index("appointments_status_idx").on(table.status),
+  createdAtIdx: index("appointments_createdAt_idx").on(table.createdAt),
+  doctorIdIdx: index("appointments_doctorId_idx").on(table.doctorId),
+}));
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = typeof appointments.$inferInsert;
@@ -275,7 +281,13 @@ export const offerLeads = mysqlTable("offerLeads", {
   gclid: varchar("gclid", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  phoneIdx: index("offerLeads_phone_idx").on(table.phone),
+  emailIdx: index("offerLeads_email_idx").on(table.email),
+  statusIdx: index("offerLeads_status_idx").on(table.status),
+  createdAtIdx: index("offerLeads_createdAt_idx").on(table.createdAt),
+  offerIdIdx: index("offerLeads_offerId_idx").on(table.offerId),
+}));
 
 export type OfferLead = typeof offerLeads.$inferSelect;
 export type InsertOfferLead = typeof offerLeads.$inferInsert;
@@ -308,7 +320,13 @@ export const campRegistrations = mysqlTable("campRegistrations", {
   gclid: varchar("gclid", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  phoneIdx: index("campRegistrations_phone_idx").on(table.phone),
+  emailIdx: index("campRegistrations_email_idx").on(table.email),
+  statusIdx: index("campRegistrations_status_idx").on(table.status),
+  createdAtIdx: index("campRegistrations_createdAt_idx").on(table.createdAt),
+  campIdIdx: index("campRegistrations_campId_idx").on(table.campId),
+}));
 
 export type CampRegistration = typeof campRegistrations.$inferSelect;
 export type InsertCampRegistration = typeof campRegistrations.$inferInsert;
