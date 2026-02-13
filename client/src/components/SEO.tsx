@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useLocation } from "wouter";
 
 interface SEOProps {
   title?: string;
@@ -22,8 +21,7 @@ export default function SEO({
   type = "website",
   keywords = "المستشفى السعودي الألماني, صنعاء, حجز موعد, أطباء, عروض طبية, مخيمات صحية, استشارات طبية",
 }: SEOProps) {
-  const [location] = useLocation();
-  const currentUrl = url || `https://sghsanaa.net${location}`;
+  const currentUrl = url || `https://sghsanaa.net${window.location.pathname}`;
 
   useEffect(() => {
     // Update document title
