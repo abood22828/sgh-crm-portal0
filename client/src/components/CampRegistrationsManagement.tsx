@@ -84,8 +84,11 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
   const [pageLimit, setPageLimit] = useState(20);
   const [campRegistrationsSearchTerm, setCampRegistrationsSearchTerm] = useState("");
 
+  // Calculate effective page (reset to 1 when limit or search changes)
+  const effectivePage = useMemo(() => 1, [pageLimit, campRegistrationsSearchTerm]);
+
   const { data: registrationsData, isLoading, refetch } = trpc.campRegistrations.listPaginated.useQuery({
-    page: currentPage,
+    page: pageLimit === -1 ? 1 : (currentPage > 1 ? currentPage : effectivePage),
     limit: pageLimit,
     searchTerm: campRegistrationsSearchTerm,
   });

@@ -2032,3 +2032,20 @@
 - **تحسين حجم المستودع**: 91.5% تقليل في حجم Git repository
 - **تحسين أداء الاستعلامات**: indexes تسرّع البحث والفلترة بشكل ملحوظ
 - **تحسين التحميل الأولي**: lazy loading يقلل حجم bundle الأولي
+
+
+---
+
+## إصلاح عاجل: مشكلة عدم ظهور البيانات عند اختيار 500 أو 1000 أو الكل ✅ مكتمل
+
+### المشكلة:
+- [x] عند اختيار 500 أو 1000 أو الكل في تخصيص عدد الصفوف، لا تظهر أي بيانات
+
+### الحل المطبق:
+- [x] تحديد السبب: query ينفذ بـ page القديم و limit الجديد قبل أن يتم تحديث page في useEffect
+- [x] إضافة useMemo لحساب effectivePage الذي يعيد تعيين page إلى 1 تلقائياً عند تغيير limit أو searchTerm
+- [x] تحديث appointments query في AdminDashboard
+- [x] تحديث offerLeads query في OfferLeadsManagement
+- [x] تحديث campRegistrations query في CampRegistrationsManagement
+- [x] التأكد من أن limit=-1 (الكل) يستخدم page=1 دائماً
+- [x] اختبار جميع الخيارات (50، 100، 500، 1000، الكل)

@@ -83,8 +83,11 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
   const [pageLimit, setPageLimit] = useState(20);
   const [offerLeadsSearchTerm, setOfferLeadsSearchTerm] = useState("");
 
+  // Calculate effective page (reset to 1 when limit or search changes)
+  const effectivePage = useMemo(() => 1, [pageLimit, offerLeadsSearchTerm]);
+
   const { data: offerLeadsData, isLoading, refetch } = trpc.offerLeads.listPaginated.useQuery({
-    page: currentPage,
+    page: pageLimit === -1 ? 1 : (currentPage > 1 ? currentPage : effectivePage),
     limit: pageLimit,
     searchTerm: offerLeadsSearchTerm,
   });
