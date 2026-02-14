@@ -2081,3 +2081,24 @@
 - [x] إزالة useLocation واستبداله بـ window.location.pathname
 - [x] اختبار جميع الصفحات التي تستخدم Navbar
 - [x] حفظ checkpoint
+
+
+---
+
+## إصلاح عاجل: مشكلة pagination عند اختيار 500/1000/الكل ✅ مكتمل
+
+### المشكلة:
+- [x] عند اختيار 500 صف: لا تظهر نتائج (رغم وجود 1000 تسجيل)
+- [x] عند اختيار 1000 صف: لا تظهر نتائج
+- [x] عند اختيار "الكل": لا تظهر نتائج
+- [x] عند اختيار 50 أو 100: تظهر النتائج بشكل صحيح
+
+### الحل المطبق:
+- [x] فحص AdminDashboard pagination logic
+- [x] تحديد السبب: useMemo يعيد دائماً 1 بدلاً من appointmentsPage
+- [x] إزالة effectivePage useMemo الخاطئ
+- [x] استخدام page: appointmentsPage مباشرة في query
+- [x] تطبيق نفس الإصلاح على OfferLeadsManagement
+- [x] تطبيق نفس الإصلاح على CampRegistrationsManagement
+- [x] اختبار جميع الخيارات (50، 100، 500، 1000، الكل)
+- [x] حفظ checkpoint

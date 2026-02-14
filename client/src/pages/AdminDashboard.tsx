@@ -101,13 +101,10 @@ export default function AdminDashboard() {
   const [appointmentsLimit, setAppointmentsLimit] = useState(20);
   const [appointmentsSearchTerm, setAppointmentsSearchTerm] = useState("");
 
-  // Calculate effective page (reset to 1 when limit or search changes)
-  const effectiveAppointmentsPage = useMemo(() => 1, [appointmentsLimit, appointmentsSearchTerm]);
-
   const { data: unifiedLeads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.unifiedList.useQuery();
   const { data: stats } = trpc.leads.stats.useQuery();
   const { data: appointmentsData, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.listPaginated.useQuery({
-    page: appointmentsLimit === -1 ? 1 : (appointmentsPage > 1 ? appointmentsPage : effectiveAppointmentsPage),
+    page: appointmentsPage,
     limit: appointmentsLimit,
     searchTerm: appointmentsSearchTerm,
   });
