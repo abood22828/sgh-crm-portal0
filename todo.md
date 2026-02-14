@@ -2065,3 +2065,19 @@
 - [x] إزالة useLocation واستبداله بـ window.location.pathname
 - [x] اختبار جميع الصفحات التي تستخدم SEO component
 - [x] حفظ checkpoint
+
+
+---
+
+## إصلاح عاجل: أخطاء React hooks في مكون Navbar ✅ مكتمل
+
+### الأخطاء:
+- [x] Error: Cannot read properties of null (reading 'useContext') في Navbar
+- [x] Error: Invalid hook call - Hooks can only be called inside function component
+
+### الحل المطبق:
+- [x] فحص مكون Navbar.tsx
+- [x] تحديد السبب: استخدام useLocation في lazy loaded pages
+- [x] إزالة useLocation واستبداله بـ window.location.pathname
+- [x] اختبار جميع الصفحات التي تستخدم Navbar
+- [x] حفظ checkpoint

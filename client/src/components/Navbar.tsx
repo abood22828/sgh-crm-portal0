@@ -5,10 +5,10 @@
  */
 import { Phone } from "lucide-react";
 import { APP_LOGO, APP_TITLE } from "@/const";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const location = window.location.pathname;
 
   const navItems = [
     { label: "الرئيسية", path: "/" },
