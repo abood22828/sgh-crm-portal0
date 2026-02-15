@@ -49,6 +49,32 @@ export const offersRouter = router({
   }),
 
   /**
+   * Get all offers for admin (includes inactive)
+   * الحصول على جميع العروض للإدارة (يشمل غير النشطة)
+   */
+  getAllAdmin: protectedProcedure.query(async ({ ctx }) => {
+    // Verify user is admin
+    if (ctx.user?.role !== 'admin') {
+      throw new Error('Unauthorized: Only admins can view all offers');
+    }
+
+    try {
+      const dbInstance = await getDb();
+      if (!dbInstance) throw new Error('Database not available');
+      
+      const allOffers = await dbInstance
+        .select()
+        .from(offers)
+        .orderBy(offers.createdAt);
+
+      return allOffers;
+    } catch (error) {
+      console.error('Error fetching offers:', error);
+      throw new Error('Failed to fetch offers');
+    }
+  }),
+
+  /**
    * Get a specific offer by slug
    * الحصول على عرض معين حسب الرابط
    */
