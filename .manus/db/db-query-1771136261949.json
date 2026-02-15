@@ -1,0 +1,55 @@
+{
+  "query": "SELECT id, name, startDate, endDate, isActive, NOW() as currentTime, \nCASE WHEN endDate < NOW() THEN 'expired' ELSE 'active' END as status \nFROM camps ORDER BY endDate DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute SELECT id, name, startDate, endDate, isActive, NOW() as currentTime, \nCASE WHEN endDate < NOW() THEN 'expired' ELSE 'active' END as status \nFROM camps ORDER BY endDate DESC;",
+  "rows": [
+    {
+      "id": "90003",
+      "name": "شهر الخير الطبي الأول لأمراض القلب والقسطرة القلبية وجراحة قلب الأطفال",
+      "startDate": "2026-02-18 02:00:00",
+      "endDate": "2026-03-15 20:00:00",
+      "isActive": "1",
+      "currentTime": "2026-02-15 06:17:41",
+      "status": "active"
+    },
+    {
+      "id": "90005",
+      "name": "شهر الخير الطبي الأول لمرضى الصرع",
+      "startDate": "2026-02-18 00:03:00",
+      "endDate": "2026-03-15 00:03:00",
+      "isActive": "1",
+      "currentTime": "2026-02-15 06:17:41",
+      "status": "active"
+    },
+    {
+      "id": "90004",
+      "name": "شهر الخير الطبي الأول لمرضى السكر والضغط",
+      "startDate": "2026-02-18 00:00:00",
+      "endDate": "2026-03-15 00:00:00",
+      "isActive": "1",
+      "currentTime": "2026-02-15 06:17:41",
+      "status": "active"
+    },
+    {
+      "id": "90002",
+      "name": "المخيم الخيري الاول لأمراض النساء و التوليد",
+      "startDate": "2026-01-24 00:00:00",
+      "endDate": "2026-02-15 00:00:00",
+      "isActive": "0",
+      "currentTime": "2026-02-15 06:17:41",
+      "status": "expired"
+    },
+    {
+      "id": "90001",
+      "name": "المخيم الخيري للجراحة العامة وجراحة المناظير",
+      "startDate": "2025-12-20 00:00:00",
+      "endDate": "2026-01-10 00:00:00",
+      "isActive": "0",
+      "currentTime": "2026-02-15 06:17:41",
+      "status": "expired"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstartDate\tendDate\tisActive\tcurrentTime\tstatus\n90003\tشهر الخير الطبي الأول لأمراض القلب والقسطرة القلبية وجراحة قلب الأطفال\t2026-02-18 02:00:00\t2026-03-15 20:00:00\t1\t2026-02-15 06:17:41\tactive\n90005\tشهر الخير الطبي الأول لمرضى الصرع\t2026-02-18 00:03:00\t2026-03-15 00:03:00\t1\t2026-02-15 06:17:41\tactive\n90004\tشهر الخير الطبي الأول لمرضى السكر والضغط\t2026-02-18 00:00:00\t2026-03-15 00:00:00\t1\t2026-02-15 06:17:41\tactive\n90002\tالمخيم الخيري الاول لأمراض النساء و التوليد\t2026-01-24 00:00:00\t2026-02-15 00:00:00\t0\t2026-02-15 06:17:41\texpired\n90001\tالمخيم الخيري للجراحة العامة وجراحة المناظير\t2025-12-20 00:00:00\t2026-01-10 00:00:00\t0\t2026-02-15 06:17:41\texpired\n",
+  "stderr": "",
+  "execution_time_ms": 341
+}
