@@ -1,0 +1,55 @@
+{
+  "query": "SELECT id, name, slug, startDate, endDate, isActive, createdAt FROM camps ORDER BY createdAt DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute SELECT id, name, slug, startDate, endDate, isActive, createdAt FROM camps ORDER BY createdAt DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "90003",
+      "name": "شهر الخير الطبي الأول لأمراض القلب والقسطرة القلبية وجراحة قلب الأطفال",
+      "slug": "CVD",
+      "startDate": "2026-02-18 02:00:00",
+      "endDate": "2026-03-15 20:00:00",
+      "isActive": "1",
+      "createdAt": "2026-02-14 06:00:00"
+    },
+    {
+      "id": "90004",
+      "name": "شهر الخير الطبي الأول لمرضى السكر والضغط",
+      "slug": "DM&HTN",
+      "startDate": "2026-02-18 00:00:00",
+      "endDate": "2026-03-15 00:00:00",
+      "isActive": "1",
+      "createdAt": "2026-02-14 01:00:00"
+    },
+    {
+      "id": "90005",
+      "name": "شهر الخير الطبي الأول لمرضى الصرع",
+      "slug": "Epilepsy",
+      "startDate": "2026-02-18 00:03:00",
+      "endDate": "2026-03-15 00:03:00",
+      "isActive": "1",
+      "createdAt": "2026-02-14 00:03:00"
+    },
+    {
+      "id": "90002",
+      "name": "المخيم الخيري الاول لأمراض النساء و التوليد",
+      "slug": "ob-gyn",
+      "startDate": "2026-01-24 00:00:00",
+      "endDate": "2026-02-15 00:00:00",
+      "isActive": "0",
+      "createdAt": "2025-12-31 12:17:35"
+    },
+    {
+      "id": "90001",
+      "name": "المخيم الخيري للجراحة العامة وجراحة المناظير",
+      "slug": "category-1",
+      "startDate": "2025-12-20 00:00:00",
+      "endDate": "2026-01-10 00:00:00",
+      "isActive": "0",
+      "createdAt": "2025-12-31 12:00:18"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tslug\tstartDate\tendDate\tisActive\tcreatedAt\n90003\tشهر الخير الطبي الأول لأمراض القلب والقسطرة القلبية وجراحة قلب الأطفال\tCVD\t2026-02-18 02:00:00\t2026-03-15 20:00:00\t1\t2026-02-14 06:00:00\n90004\tشهر الخير الطبي الأول لمرضى السكر والضغط\tDM&HTN\t2026-02-18 00:00:00\t2026-03-15 00:00:00\t1\t2026-02-14 01:00:00\n90005\tشهر الخير الطبي الأول لمرضى الصرع\tEpilepsy\t2026-02-18 00:03:00\t2026-03-15 00:03:00\t1\t2026-02-14 00:03:00\n90002\tالمخيم الخيري الاول لأمراض النساء و التوليد\tob-gyn\t2026-01-24 00:00:00\t2026-02-15 00:00:00\t0\t2025-12-31 12:17:35\n90001\tالمخيم الخيري للجراحة العامة وجراحة المناظير\tcategory-1\t2025-12-20 00:00:00\t2026-01-10 00:00:00\t0\t2025-12-31 12:00:18\n",
+  "stderr": "",
+  "execution_time_ms": 340
+}
