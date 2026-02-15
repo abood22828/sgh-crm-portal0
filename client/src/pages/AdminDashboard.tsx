@@ -1255,7 +1255,7 @@ function OffersManagement() {
     endDate: "",
   });
 
-  const { data: offers, isLoading, refetch } = trpc.offers.getAll.useQuery();
+  const { data: offers, isLoading, refetch } = trpc.offers.getAllAdmin.useQuery();
   
   const createMutation = trpc.offers.create.useMutation({
     onSuccess: () => {
@@ -1561,7 +1561,7 @@ function CampsManagement() {
     endDate: "",
   });
 
-  const { data: camps, isLoading, refetch } = trpc.camps.getAll.useQuery();
+  const { data: camps, isLoading, refetch } = trpc.camps.getAllAdmin.useQuery();
   
   const createMutation = trpc.camps.create.useMutation({
     onSuccess: () => {

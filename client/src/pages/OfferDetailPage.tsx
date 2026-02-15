@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Phone, Mail, Calendar, CheckCircle2, Loader2, Tag, Users, Clock, Star, TrendingUp, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, Phone, Mail, Calendar, CheckCircle2, Loader2, Tag, Users, Clock, Star, TrendingUp, Sparkles } from "lucide-react";
 import { getCompleteTrackingData } from "@/lib/tracking";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -296,6 +296,7 @@ export default function OfferDetailPage() {
       </section>
 
       {/* Registration Form Section */}
+      {offer.isActive && (
       <section id="booking-form" className="py-12 md:py-16 bg-gradient-to-br from-green-50 to-blue-50">
         <div className="container mx-auto px-4 max-w-2xl">
           {/* Urgency Banner */}
@@ -419,6 +420,35 @@ export default function OfferDetailPage() {
           </Card>
         </div>
       </section>
+      )}
+
+      {/* Expired Offer Message */}
+      {!offer.isActive && (
+        <section className="py-12 md:py-16 bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="container mx-auto px-4 max-w-2xl">
+            <Card className="shadow-2xl border-t-4 border-gray-400">
+              <CardContent className="p-6 md:p-8 text-center">
+                <div className="bg-gradient-to-r from-gray-400 to-gray-500 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10 text-white" />
+                </div>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
+                  العرض منتهي
+                </h2>
+                <p className="text-sm md:text-base text-gray-600 mb-6">
+                  هذا العرض قد انتهى ولا يمكن الحجز فيه حالياً. تابعنا للحصول على آخر التحديثات عن العروض القادمة.
+                </p>
+                <Button
+                  onClick={() => setLocation('/offers')}
+                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-sm md:text-base"
+                >
+                  تصفح العروض الأخرى
+                  <ArrowLeft className="mr-2 h-4 w-4 rotate-180" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
 
       {/* Contact Section */}
       <section className="bg-gradient-to-br from-green-600 to-blue-600 text-white py-10 md:py-12">
