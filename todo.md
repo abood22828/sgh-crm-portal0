@@ -2147,3 +2147,9 @@
 - [x] تحديث Backend - offerLeads router لحفظ `utmTerm` و `utmPlacement`
 - [x] تحديث Backend - campRegistrations router لحفظ `utmTerm` و `utmPlacement`
 - [x] اختبار شامل وتأكيد حفظ جميع UTM parameters في قاعدة البيانات
+
+### إصلاح أخطاء React hooks في Dashboard 🔄 جاري العمل
+- [ ] فحص مكون Dialog وتحديد سبب خطأ useRef
+- [ ] فحص إصدارات React و React DOM للتأكد من التوافق
+- [ ] إصلاح تعارضات إصدارات المكتبات
+- [ ] اختبار Dashboard والتحقق من عدم وجود أخطاء
