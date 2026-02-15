@@ -17,6 +17,7 @@ export interface TrackingData {
   utmCampaign?: string;
   utmContent?: string;
   utmTerm?: string;
+  utmPlacement?: string;
   referrer?: string;
   fbclid?: string; // Facebook Click ID
   gclid?: string; // Google Click ID
@@ -85,6 +86,7 @@ export function getTrackingData(): TrackingData {
   const utmCampaign = params.get('utm_campaign') || undefined;
   const utmContent = params.get('utm_content') || undefined;
   const utmTerm = params.get('utm_term') || undefined;
+  const utmPlacement = params.get('utm_placement') || undefined;
   
   // Get click IDs
   const fbclid = params.get('fbclid') || undefined;
@@ -121,6 +123,7 @@ export function getTrackingData(): TrackingData {
     utmCampaign,
     utmContent,
     utmTerm,
+    utmPlacement,
     referrer,
     fbclid,
     gclid,

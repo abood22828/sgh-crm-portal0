@@ -169,6 +169,13 @@
       "when": 1770770607648,
       "tag": "0023_damp_changeling",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1771117055821,
+      "tag": "0024_fat_silhouette",
+      "breakpoints": true
     }
   ]
 }

@@ -2102,3 +2102,48 @@
 - [x] تطبيق نفس الإصلاح على CampRegistrationsManagement
 - [x] اختبار جميع الخيارات (50، 100، 500، 1000، الكل)
 - [x] حفظ checkpoint
+
+
+---
+
+## إضافة UTM Parameters Tracking 🔄 جاري العمل
+
+### الهدف:
+إضافة تتبع UTM parameters لجميع الحجوزات والتسجيلات والمواعيد لتحليل مصادر الزيارات وفعالية الحملات التسويقية.
+
+### الأعمدة المطلوبة:
+- [ ] utmSource - مصدر الزيارة (google, facebook, instagram, etc.)
+- [ ] utmMedium - الوسيط (cpc, social, email, etc.)
+- [ ] utmCampaign - اسم الحملة
+- [ ] utmTerm - الكلمة المفتاحية (للإعلانات المدفوعة)
+- [ ] utmContent - محتوى الإعلان (لاختبار A/B)
+- [ ] utmPlacement - موضع الإعلان
+
+### الجداول المستهدفة:
+- [ ] appointments (المواعيد)
+- [ ] offerLeads (حجوزات العروض)
+- [ ] campRegistrations (تسجيلات المخيمات)
+
+### الخطوات:
+- [ ] فحص schema.ts للجداول الثلاثة
+- [ ] إضافة أعمدة UTM في appointments table
+- [ ] إضافة أعمدة UTM في offerLeads table
+- [ ] إضافة أعمدة UTM في campRegistrations table
+- [ ] تطبيق migration (pnpm db:push)
+- [ ] تحديث نموذج حجز المواعيد لجمع UTM
+- [ ] تحديث نموذج حجز العروض لجمع UTM
+- [ ] تحديث نموذج تسجيل المخيمات لجمع UTM
+- [ ] تحديث Backend procedures لحفظ UTM data
+- [ ] اختبار جمع UTM parameters
+- [ ] حفظ checkpoint
+
+### إضافة دعم UTM Parameters الكامل (6 parameters) ✅ مكتمل
+- [x] إضافة عمودين جديدين في قاعدة البيانات: `utmTerm` و `utmPlacement`
+- [x] تطبيق migration على 3 جداول: `appointments`, `offerLeads`, `campRegistrations`
+- [x] تحديث Frontend - DoctorDetailPage لإرسال 6 UTM parameters
+- [x] تحديث Frontend - OfferDetailPage لإرسال 6 UTM parameters
+- [x] تحديث Frontend - CampDetailPage لإرسال 6 UTM parameters
+- [x] تحديث Backend - appointments router لحفظ `utmTerm` و `utmPlacement`
+- [x] تحديث Backend - offerLeads router لحفظ `utmTerm` و `utmPlacement`
+- [x] تحديث Backend - campRegistrations router لحفظ `utmTerm` و `utmPlacement`
+- [x] اختبار شامل وتأكيد حفظ جميع UTM parameters في قاعدة البيانات

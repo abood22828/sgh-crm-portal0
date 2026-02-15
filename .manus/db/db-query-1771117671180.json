@@ -1,0 +1,35 @@
+{
+  "query": "SELECT id, name, specialty FROM doctors LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute SELECT id, name, specialty FROM doctors LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "أ.د أحمد الحضراني",
+      "specialty": " استشاري أول الجراحة العامة وجراحة المناظير"
+    },
+    {
+      "id": "2",
+      "name": "أ.د علي العمري",
+      "specialty": "استشاري أول جراحة الأورام وجراحة الصدر"
+    },
+    {
+      "id": "3",
+      "name": "أ.د ماجد عامر",
+      "specialty": "استشاري أول جراحة المخ والأعصاب والعمود الفقري"
+    },
+    {
+      "id": "4",
+      "name": "د. احلام مصطفى",
+      "specialty": "استشاري أول باطنية المخ والأعصاب"
+    },
+    {
+      "id": "5",
+      "name": "د. امجد مصطفى",
+      "specialty": "أخصائي أول جراحة العظام والمفاصل (البورد السوري)"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tspecialty\n1\tأ.د أحمد الحضراني\t استشاري أول الجراحة العامة وجراحة المناظير\n2\tأ.د علي العمري\tاستشاري أول جراحة الأورام وجراحة الصدر\n3\tأ.د ماجد عامر\tاستشاري أول جراحة المخ والأعصاب والعمود الفقري\n4\tد. احلام مصطفى\tاستشاري أول باطنية المخ والأعصاب\n5\tد. امجد مصطفى\tأخصائي أول جراحة العظام والمفاصل (البورد السوري)\n",
+  "stderr": "",
+  "execution_time_ms": 372
+}

@@ -1,0 +1,21 @@
+{
+  "query": "SELECT fullName, phone, utmSource, utmMedium, utmCampaign, utmTerm, utmContent, utmPlacement, createdAt FROM appointments ORDER BY createdAt DESC LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute SELECT fullName, phone, utmSource, utmMedium, utmCampaign, utmTerm, utmContent, utmPlacement, createdAt FROM appointments ORDER BY createdAt DESC LIMIT 1;",
+  "rows": [
+    {
+      "fullName": "علي سعيد الاختبار النهائي",
+      "phone": "777999888",
+      "utmSource": "facebook",
+      "utmMedium": "cpc",
+      "utmCampaign": "winter2024",
+      "utmTerm": "heart_specialist",
+      "utmContent": "video_ad",
+      "utmPlacement": "feed",
+      "createdAt": "2026-02-15 01:11:32"
+    }
+  ],
+  "messages": [],
+  "stdout": "fullName\tphone\tutmSource\tutmMedium\tutmCampaign\tutmTerm\tutmContent\tutmPlacement\tcreatedAt\nعلي سعيد الاختبار النهائي\t777999888\tfacebook\tcpc\twinter2024\theart_specialist\tvideo_ad\tfeed\t2026-02-15 01:11:32\n",
+  "stderr": "",
+  "execution_time_ms": 425
+}
