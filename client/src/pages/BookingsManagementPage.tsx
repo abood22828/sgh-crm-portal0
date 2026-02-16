@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport, formatAppointmentsForExport } from "@/lib/exportToExcel";
+import { printReceipt } from "@/components/PrintReceipt";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -365,6 +366,15 @@ export default function BookingsManagementPage() {
       <div className="container mx-auto py-6 space-y-6" dir="rtl">
         {/* Quick Actions */}
         <div className="flex justify-end gap-2">
+          <Button
+            onClick={() => setLocation('/dashboard/camp-stats')}
+            variant="outline"
+            className="gap-2"
+            size="sm"
+          >
+            <BarChart3 className="h-4 w-4" />
+            إحصائيات المخيمات
+          </Button>
           <Button
             onClick={() => setManualRegistrationOpen(true)}
             className="gap-2"
@@ -833,6 +843,17 @@ export default function BookingsManagementPage() {
                           setAppointmentDate(appointment.appointmentDate);
                           setAppointmentStatusDialogOpen(true);
                         }}
+                        onPrint={() => {
+                          const doctorName = appointment.doctorName || `طبيب #${appointment.doctorId}`;
+                          printReceipt({
+                            fullName: appointment.fullName,
+                            phone: appointment.phone,
+                            age: appointment.age ?? undefined,
+                            registrationDate: new Date(appointment.createdAt),
+                            type: "appointment",
+                            typeName: doctorName
+                          }, user?.name || "مستخدم");
+                        }}
                       />
                     ))
                   )}
@@ -909,18 +930,38 @@ export default function BookingsManagementPage() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedAppointment(appointment);
-                                  setNewAppointmentStatus(appointment.status);
-                                  setAppointmentDate(appointment.appointmentDate);
-                                  setAppointmentStatusDialogOpen(true);
-                                }}
-                              >
-                                تحديث الحالة
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedAppointment(appointment);
+                                    setNewAppointmentStatus(appointment.status);
+                                    setAppointmentDate(appointment.appointmentDate);
+                                    setAppointmentStatusDialogOpen(true);
+                                  }}
+                                >
+                                  تحديث الحالة
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  onClick={() => {
+                                    const doctorName = appointment.doctorName || `طبيب #${appointment.doctorId}`;
+                                    printReceipt({
+                                      fullName: appointment.fullName || appointment.patientName,
+                                      phone: appointment.phone,
+                                      age: appointment.age ?? undefined,
+                                      registrationDate: new Date(appointment.createdAt || appointment.appointmentDate),
+                                      type: "appointment",
+                                      typeName: doctorName
+                                    }, user?.name || "مستخدم");
+                                  }}
+                                >
+                                  طباعة
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))

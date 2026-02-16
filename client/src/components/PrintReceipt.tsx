@@ -13,6 +13,20 @@ interface PrintReceiptProps {
   userName: string; // اسم المستخدم الذي طبع السند
 }
 
+// دالة لتوليد رقم تسلسلي فريد
+function generateReceiptNumber(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  
+  return `SGH-${year}${month}${day}-${hours}${minutes}${seconds}-${random}`;
+}
+
 // دالة مساعدة للطباعة
 export function printReceipt(data: PrintReceiptProps["data"], userName: string) {
   // إنشاء نافذة طباعة جديدة
@@ -25,6 +39,7 @@ export function printReceipt(data: PrintReceiptProps["data"], userName: string) 
 
   // إنشاء HTML للطباعة
   const printDate = new Date();
+  const receiptNumber = generateReceiptNumber();
   const typeLabels = {
     appointment: "موعد طبيب",
     camp: "تسجيل مخيم",
@@ -39,6 +54,7 @@ export function printReceipt(data: PrintReceiptProps["data"], userName: string) 
         <div class="phone">8000018</div>
       </div>
       
+      <div class="receipt-number">#${receiptNumber}</div>
       <div class="title">سند ${typeLabels[data.type]}</div>
       
       <div class="content">
@@ -112,6 +128,9 @@ export function printReceipt(data: PrintReceiptProps["data"], userName: string) 
           .page-break {
             page-break-after: always;
           }
+          .receipt-number {
+            page-break-inside: avoid;
+          }
         }
         
         body {
@@ -124,8 +143,10 @@ export function printReceipt(data: PrintReceiptProps["data"], userName: string) 
         
         .receipt {
           width: 80mm;
+          max-width: 80mm;
           margin: 0 auto;
-          padding: 10mm;
+          padding: 8mm 5mm;
+          box-sizing: border-box;
         }
         
         .header {
@@ -138,7 +159,8 @@ export function printReceipt(data: PrintReceiptProps["data"], userName: string) 
         }
         
         .header img {
-          height: 40px;
+          height: 35px;
+          max-width: 120px;
           object-fit: contain;
         }
         
@@ -148,48 +170,63 @@ export function printReceipt(data: PrintReceiptProps["data"], userName: string) 
           color: #00a651;
         }
         
+        .receipt-number {
+          text-align: center;
+          font-size: 11px;
+          font-weight: bold;
+          color: #666;
+          margin-bottom: 8px;
+          font-family: 'Courier New', monospace;
+          letter-spacing: 0.5px;
+        }
+        
         .title {
           text-align: center;
-          font-size: 16px;
+          font-size: 15px;
           font-weight: bold;
-          margin-bottom: 15px;
+          margin-bottom: 12px;
           color: #333;
+          border-bottom: 1px dashed #ccc;
+          padding-bottom: 8px;
         }
         
         .content {
-          font-size: 13px;
-          line-height: 1.8;
+          font-size: 12px;
+          line-height: 1.6;
         }
         
         .row {
           display: flex;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
+          padding: 3px 0;
         }
         
         .label {
           font-weight: bold;
-          min-width: 80px;
+          min-width: 75px;
+          color: #555;
         }
         
         .footer {
-          margin-top: 20px;
-          padding-top: 15px;
-          border-top: 2px solid #00a651;
+          margin-top: 15px;
+          padding-top: 12px;
+          border-top: 1px dashed #00a651;
         }
         
         .slogan {
           text-align: center;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: bold;
           color: #0088cc;
-          margin-bottom: 10px;
+          margin-bottom: 8px;
         }
         
         .meta {
           display: flex;
           justify-content: space-between;
-          font-size: 10px;
+          font-size: 9px;
           color: #666;
+          padding-top: 5px;
         }
       </style>
     </head>
