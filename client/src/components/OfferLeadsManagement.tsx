@@ -43,9 +43,12 @@ import {
   Download,
   CheckSquare,
   Square,
+  Printer,
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatOfferLeadsForExport } from "@/lib/exportToExcel";
+import { printReceipt } from "@/components/PrintReceipt";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS } from "@shared/sources";
 import OfferLeadCard from "@/components/OfferLeadCard";
 import CardSkeleton from "@/components/CardSkeleton";
@@ -69,6 +72,7 @@ const statusColors = {
 };
 
 export default function OfferLeadsManagement({ onPendingCountChange }: { onPendingCountChange?: (count: number) => void }) {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOffer, setSelectedOffer] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<any>(null);
@@ -561,6 +565,25 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
                           >
                             <MessageCircle className="h-4 w-4 ml-2" />
                             واتساب
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={() => {
+                              const offerName = lead.offerName || `عرض #${lead.offerId}`;
+                              printReceipt({
+                                fullName: lead.fullName,
+                                phone: lead.phone,
+                                age: lead.age ?? undefined,
+                                registrationDate: new Date(lead.createdAt),
+                                type: "offer",
+                                typeName: offerName
+                              }, user?.name || "مستخدم");
+                            }}
+                          >
+                            <Printer className="h-4 w-4 ml-2" />
+                            طباعة
                           </Button>
                         </div>
                       </TableCell>
