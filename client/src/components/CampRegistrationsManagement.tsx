@@ -41,9 +41,12 @@ import {
   Calendar,
   MessageCircle,
   Download,
+  Printer,
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatCampRegistrationsForExport } from "@/lib/exportToExcel";
+import { printReceipt } from "@/components/PrintReceipt";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS } from "@shared/sources";
 import CampRegistrationCard from "@/components/CampRegistrationCard";
 import CardSkeleton from "@/components/CardSkeleton";
@@ -66,6 +69,7 @@ const statusColors = {
 };
 
 export default function CampRegistrationsManagement({ onPendingCountChange }: { onPendingCountChange?: (count: number) => void }) {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCamp, setSelectedCamp] = useState<string>("all");
   const [selectedRegistration, setSelectedRegistration] = useState<any>(null);
@@ -588,6 +592,25 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                           >
                             <MessageCircle className="h-4 w-4 ml-2" />
                             واتساب
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={() => {
+                              const campName = reg.campName || `مخيم #${reg.campId}`;
+                              printReceipt({
+                                fullName: reg.fullName,
+                                phone: reg.phone,
+                                age: reg.age ?? undefined,
+                                registrationDate: new Date(reg.createdAt),
+                                type: "camp",
+                                typeName: campName
+                              }, user?.name || "مستخدم");
+                            }}
+                          >
+                            <Printer className="h-4 w-4 ml-2" />
+                            طباعة
                           </Button>
                         </div>
                       </TableCell>

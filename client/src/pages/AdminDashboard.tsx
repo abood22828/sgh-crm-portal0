@@ -62,9 +62,11 @@ import {
   Settings,
   Download,
   BarChart3,
+  Printer,
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport, formatAppointmentsForExport } from "@/lib/exportToExcel";
+import { printReceipt } from "@/components/PrintReceipt";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
 
@@ -686,6 +688,24 @@ export default function AdminDashboard() {
                                 <MessageSquare className="w-4 h-4 mr-1" />
                                 واتساب
                               </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                onClick={() => {
+                                  printReceipt({
+                                    fullName: lead.fullName,
+                                    phone: lead.phone,
+                                    age: lead.age,
+                                    registrationDate: new Date(lead.createdAt),
+                                    type: "appointment",
+                                    typeName: "تسجيل عام"
+                                  }, user?.name || "مستخدم");
+                                }}
+                              >
+                                <Printer className="w-4 h-4 mr-1" />
+                                طباعة
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -990,6 +1010,25 @@ export default function AdminDashboard() {
                               >
                                 <MessageSquare className="w-4 h-4 mr-1" />
                                 واتساب
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                onClick={() => {
+                                  const doctorName = appointment.doctorName || `طبيب #${appointment.doctorId}`;
+                                  printReceipt({
+                                    fullName: appointment.fullName,
+                                    phone: appointment.phone,
+                                    age: appointment.age ?? undefined,
+                                    registrationDate: new Date(appointment.createdAt),
+                                    type: "appointment",
+                                    typeName: doctorName
+                                  }, user?.name || "مستخدم");
+                                }}
+                              >
+                                <Printer className="w-4 h-4 mr-1" />
+                                طباعة
                               </Button>
                             </div>
                           </TableCell>
