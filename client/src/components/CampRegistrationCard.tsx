@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Phone, MessageCircle, Edit, User, Eye } from "lucide-react";
+import { Calendar, Phone, MessageCircle, Edit, User, Eye, Printer } from "lucide-react";
 
 interface CampRegistration {
   id: number;
@@ -18,6 +18,7 @@ interface CampRegistrationCardProps {
   registration: CampRegistration;
   onEdit: () => void;
   onViewDetails: () => void;
+  onPrint?: () => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -36,7 +37,7 @@ const statusLabels: Record<string, string> = {
   cancelled: "ملغي",
 };
 
-export default function CampRegistrationCard({ registration, onEdit, onViewDetails }: CampRegistrationCardProps) {
+export default function CampRegistrationCard({ registration, onEdit, onViewDetails, onPrint }: CampRegistrationCardProps) {
   const handleCall = () => {
     window.location.href = `tel:${registration.phone}`;
   };
@@ -94,7 +95,7 @@ export default function CampRegistrationCard({ registration, onEdit, onViewDetai
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-2">
           <Button
             variant="outline"
             size="sm"
@@ -112,6 +113,18 @@ export default function CampRegistrationCard({ registration, onEdit, onViewDetai
             <MessageCircle className="w-4 h-4 ml-1" />
             واتساب
           </Button>
+          {onPrint && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onPrint}
+            >
+              <Printer className="w-4 h-4 ml-1" />
+              طباعة
+            </Button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"
             size="sm"

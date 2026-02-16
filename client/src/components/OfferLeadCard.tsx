@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Phone, MessageCircle, Edit } from "lucide-react";
+import { Calendar, Phone, MessageCircle, Edit, Printer } from "lucide-react";
 
 interface OfferLead {
   id: number;
@@ -16,6 +16,7 @@ interface OfferLead {
 interface OfferLeadCardProps {
   lead: OfferLead;
   onEdit: () => void;
+  onPrint?: () => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -32,7 +33,7 @@ const statusLabels: Record<string, string> = {
   notInterested: "غير مهتم",
 };
 
-export default function OfferLeadCard({ lead, onEdit }: OfferLeadCardProps) {
+export default function OfferLeadCard({ lead, onEdit, onPrint }: OfferLeadCardProps) {
   const handleCall = () => {
     window.location.href = `tel:${lead.phone}`;
   };
@@ -90,12 +91,11 @@ export default function OfferLeadCard({ lead, onEdit }: OfferLeadCardProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-2">
           <Button
             variant="outline"
             size="sm"
             onClick={handleCall}
-            className="flex-1"
           >
             <Phone className="w-4 h-4 ml-1" />
             اتصال
@@ -104,11 +104,23 @@ export default function OfferLeadCard({ lead, onEdit }: OfferLeadCardProps) {
             variant="outline"
             size="sm"
             onClick={handleWhatsApp}
-            className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+            className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
           >
             <MessageCircle className="w-4 h-4 ml-1" />
             واتساب
           </Button>
+          {onPrint && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onPrint}
+            >
+              <Printer className="w-4 h-4 ml-1" />
+              طباعة
+            </Button>
+          )}
+        </div>
+        <div className="flex gap-2">
           <Button
             variant="outline"
             size="sm"

@@ -442,6 +442,16 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
                     setNewStatus(lead.status);
                     setStatusDialogOpen(true);
                   }}
+                  onPrint={() => {
+                    printReceipt({
+                      fullName: lead.fullName,
+                      phone: lead.phone,
+                      age: undefined,
+                      registrationDate: lead.createdAt ? new Date(lead.createdAt) : new Date(),
+                      type: "offer",
+                      typeName: lead.offerTitle || 'غير محدد',
+                    }, user?.name || 'غير معروف');
+                  }}
                 />
               ))
             )}

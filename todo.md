@@ -2228,3 +2228,12 @@
 - [x] إضافة زر "حفظ وطباعة" في نموذج التسجيل اليدوي (ManualRegistrationForm)
 - [x] دعم الطباعة التلقائية بعد حفظ الحجز في النموذج اليدوي
 - [x] دعم جميع أنواع التسجيلات (leads, appointments, offers, camps) في الطباعة
+
+### إضافة أزرار الطباعة في البطاقات (نسخة الهاتف) ✅ مكتمل
+- [x] إضافة زر الطباعة فيCampRegistrationCard (بطاقة تسجيلات المخيمات)
+- [x] إضافة زر الطباعة فيOfferLeadCard (بطاقة حجوزات العروض)
+- [x] إضافة زر الطباعة فيAppointmentCard (بطاقة مواعيد الأطباء)
+- [x] ربط onPrint prop في CampRegistrationsManagement
+- [x] ربط onPrint prop فيOfferLeadsManagement
+- [x] ربط onPrint prop في AdminDashboard لمواعيد الأطباء
+- [x] اختبار جميع أزرار الطباعة في نسخة الهاتف

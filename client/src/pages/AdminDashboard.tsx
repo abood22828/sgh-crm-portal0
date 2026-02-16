@@ -899,6 +899,16 @@ export default function AdminDashboard() {
                         setNewAppointmentStatus(appointment.status);
                         setAppointmentStatusDialogOpen(true);
                       }}
+                      onPrint={() => {
+                        printReceipt({
+                          fullName: appointment.fullName,
+                          phone: appointment.phone,
+                          age: appointment.age ?? undefined,
+                          registrationDate: appointment.createdAt ? new Date(appointment.createdAt) : new Date(),
+                          type: "appointment",
+                          typeName: appointment.doctorName || 'غير محدد',
+                        }, user?.name || 'غير معروف');
+                      }}
                     />
                   ))}
                 </div>

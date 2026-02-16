@@ -1,14 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Phone, User, Calendar, Eye, Stethoscope, MessageCircle } from "lucide-react";
+import { Phone, User, Calendar, Eye, Stethoscope, MessageCircle, Printer } from "lucide-react";
 
 interface AppointmentCardProps {
   appointment: any;
   onViewDetails: (appointment: any) => void;
+  onPrint?: () => void;
 }
 
-export default function AppointmentCard({ appointment, onViewDetails }: AppointmentCardProps) {
+export default function AppointmentCard({ appointment, onViewDetails, onPrint }: AppointmentCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -102,11 +103,10 @@ export default function AppointmentCard({ appointment, onViewDetails }: Appointm
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-2">
           <Button
             size="sm"
             variant="outline"
-            className="flex-1"
             onClick={() => window.location.href = `tel:${appointment.phone}`}
           >
             <Phone className="w-4 h-4 ml-1" />
@@ -115,7 +115,7 @@ export default function AppointmentCard({ appointment, onViewDetails }: Appointm
           <Button
             size="sm"
             variant="outline"
-            className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+            className="text-green-600 hover:text-green-700 hover:bg-green-50"
             onClick={() => {
               const message = encodeURIComponent(
                 `مرحباً ${appointment.fullName}، نود التواصل معك بخصوص موعدك مع ${appointment.doctorName || 'الطبيب'}`
@@ -126,6 +126,18 @@ export default function AppointmentCard({ appointment, onViewDetails }: Appointm
             <MessageCircle className="w-4 h-4 ml-1" />
             واتساب
           </Button>
+          {onPrint && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onPrint}
+            >
+              <Printer className="w-4 h-4 ml-1" />
+              طباعة
+            </Button>
+          )}
+        </div>
+        <div className="flex gap-2">
           <Button
             size="sm"
             variant="outline"

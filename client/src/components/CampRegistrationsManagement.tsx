@@ -453,6 +453,16 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                     setSelectedRegistration(reg);
                     setDetailsDialogOpen(true);
                   }}
+                  onPrint={() => {
+                    printReceipt({
+                      fullName: reg.fullName,
+                      phone: reg.phone,
+                      age: reg.age,
+                      registrationDate: reg.createdAt ? new Date(reg.createdAt) : new Date(),
+                      type: "camp",
+                      typeName: reg.campName || 'غير محدد',
+                    }, user?.name || 'غير معروف');
+                  }}
                 />
               ))
             )}
