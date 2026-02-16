@@ -1,0 +1,40 @@
+{
+  "query": "-- إعادة تعيين تواريخ المخيمات: 2 نشطة، 2 منتهية\nUPDATE camps SET endDate = '2026-02-25' WHERE id IN (2, 3);\nUPDATE camps SET endDate = '2026-01-15' WHERE id IN (1, 4);\n\nSELECT id, name, DATE_FORMAT(endDate, '%Y-%m-%d') as endDate, \n       CASE WHEN endDate >= NOW() THEN 'نشط' ELSE 'منتهي' END as status\nFROM camps\nORDER BY endDate DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute -- إعادة تعيين تواريخ المخيمات: 2 نشطة، 2 منتهية\nUPDATE camps SET endDate = '2026-02-25' WHERE id IN (2, 3);\nUPDATE camps SET endDate = '2026-01-15' WHERE id IN (1, 4);\n\nSELECT id, name, DATE_FORMAT(endDate, '%Y-%m-%d') as endDate, \n       CASE WHEN endDate >= NOW() THEN 'نشط' ELSE 'منتهي' END as status\nFROM camps\nORDER BY endDate DESC;",
+  "rows": [
+    {
+      "id": "90003",
+      "name": "شهر الخير الطبي الأول لأمراض القلب والقسطرة القلبية وجراحة قلب الأطفال",
+      "endDate": "2026-03-15",
+      "status": "نشط"
+    },
+    {
+      "id": "90004",
+      "name": "شهر الخير الطبي الأول لمرضى السكر والضغط",
+      "endDate": "2026-03-15",
+      "status": "نشط"
+    },
+    {
+      "id": "90005",
+      "name": "شهر الخير الطبي الأول لمرضى الصرع",
+      "endDate": "2026-03-15",
+      "status": "نشط"
+    },
+    {
+      "id": "90002",
+      "name": "المخيم الخيري الاول لأمراض النساء و التوليد",
+      "endDate": "2026-02-15",
+      "status": "منتهي"
+    },
+    {
+      "id": "90001",
+      "name": "المخيم الخيري للجراحة العامة وجراحة المناظير",
+      "endDate": "2026-01-10",
+      "status": "منتهي"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tendDate\tstatus\n90003\tشهر الخير الطبي الأول لأمراض القلب والقسطرة القلبية وجراحة قلب الأطفال\t2026-03-15\tنشط\n90004\tشهر الخير الطبي الأول لمرضى السكر والضغط\t2026-03-15\tنشط\n90005\tشهر الخير الطبي الأول لمرضى الصرع\t2026-03-15\tنشط\n90002\tالمخيم الخيري الاول لأمراض النساء و التوليد\t2026-02-15\tمنتهي\n90001\tالمخيم الخيري للجراحة العامة وجراحة المناظير\t2026-01-10\tمنتهي\n",
+  "stderr": "",
+  "execution_time_ms": 467
+}

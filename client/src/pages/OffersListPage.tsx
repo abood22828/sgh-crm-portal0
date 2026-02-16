@@ -16,9 +16,16 @@ export default function OffersListPage() {
 
   const { data: offers, isLoading } = trpc.offers.getAll.useQuery();
 
-  // Separate active and expired offers
-  const activeOffers = offers?.filter((offer: any) => offer.isActive === true);
-  const expiredOffers = offers?.filter((offer: any) => offer.isActive === false);
+  // Separate active and expired offers based on endDate
+  const now = new Date();
+  const activeOffers = offers?.filter((offer: any) => {
+    if (!offer.endDate) return true; // If no endDate, consider it active
+    return new Date(offer.endDate) >= now;
+  });
+  const expiredOffers = offers?.filter((offer: any) => {
+    if (!offer.endDate) return false; // If no endDate, it's not expired
+    return new Date(offer.endDate) < now;
+  });
 
   const filteredActiveOffers = activeOffers?.filter((offer: any) =>
     offer.title.toLowerCase().includes(searchQuery.toLowerCase())

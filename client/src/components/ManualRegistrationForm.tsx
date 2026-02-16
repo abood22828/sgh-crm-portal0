@@ -215,8 +215,11 @@ export default function ManualRegistrationForm() {
           toast.error("معرف المخيم غير صالح");
           return;
         }
+        // Convert 'completed' to 'attended' for camp registrations
+        const campStatus = registrationStatus === 'completed' ? 'attended' : registrationStatus;
         createCampRegistrationMutation.mutate({
           ...baseData,
+          status: campStatus as any,
           campId: parsedCampId,
           age: campAge ? parseInt(campAge) : undefined,
           procedures: campProcedure || undefined,

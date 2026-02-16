@@ -17,9 +17,16 @@ export default function CampsListPage() {
 
   const { data: camps, isLoading } = trpc.camps.getAll.useQuery();
 
-  // Separate active and expired camps
-  const activeCamps = camps?.filter((camp: any) => camp.isActive === true);
-  const expiredCamps = camps?.filter((camp: any) => camp.isActive === false);
+  // Separate active and expired camps based on endDate
+  const now = new Date();
+  const activeCamps = camps?.filter((camp: any) => {
+    if (!camp.endDate) return true; // If no endDate, consider it active
+    return new Date(camp.endDate) >= now;
+  });
+  const expiredCamps = camps?.filter((camp: any) => {
+    if (!camp.endDate) return false; // If no endDate, it's not expired
+    return new Date(camp.endDate) < now;
+  });
 
   const filteredActiveCamps = activeCamps?.filter((camp: any) =>
     camp.name.toLowerCase().includes(searchQuery.toLowerCase())
