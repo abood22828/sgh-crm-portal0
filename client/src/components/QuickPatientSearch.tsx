@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Phone, MessageCircle, Edit, X, Calendar, Mail, User, MapPin } from "lucide-react";
+import { Search, Phone, MessageCircle, Edit, X, Calendar, Mail, User, MapPin, Printer } from "lucide-react";
 import { toast } from "sonner";
+import { printReceipt } from "./PrintReceipt";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface PatientCardProps {
   patient: any;
@@ -15,6 +17,7 @@ interface PatientCardProps {
 
 function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
   const [selectedStatus, setSelectedStatus] = useState(patient.status);
+  const { user } = useAuth();
 
   const handleCall = () => {
     if (patient.phone) {
@@ -31,6 +34,31 @@ function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
     } else {
       toast.error("رقم الهاتف غير متوفر");
     }
+  };
+
+  const handlePrint = () => {
+    let type: "appointment" | "camp" | "offer" = "appointment";
+    let typeName = 'غير محدد';
+    
+    if (patient.type === 'appointment') {
+      type = 'appointment';
+      typeName = patient.doctorName || 'غير محدد';
+    } else if (patient.type === 'offerLead') {
+      type = 'offer';
+      typeName = patient.offerTitle || 'غير محدد';
+    } else if (patient.type === 'campRegistration') {
+      type = 'camp';
+      typeName = patient.campName || 'غير محدد';
+    }
+    
+    printReceipt({
+      fullName: patient.fullName,
+      age: patient.age,
+      phone: patient.phone,
+      registrationDate: patient.createdAt ? new Date(patient.createdAt) : new Date(),
+      type,
+      typeName,
+    }, user?.name || 'غير معروف');
   };
 
   const handleUpdateStatus = () => {
@@ -245,7 +273,7 @@ function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <Button variant="outline" onClick={handleCall} className="w-full text-xs md:text-sm">
             <Phone className="h-4 w-4 mr-1 md:mr-2" />
             اتصال
@@ -253,6 +281,10 @@ function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
           <Button variant="outline" onClick={handleWhatsApp} className="w-full text-xs md:text-sm">
             <MessageCircle className="h-4 w-4 mr-1 md:mr-2" />
             واتساب
+          </Button>
+          <Button variant="outline" onClick={handlePrint} className="w-full text-xs md:text-sm">
+            <Printer className="h-4 w-4 mr-1 md:mr-2" />
+            طباعة
           </Button>
         </div>
       </CardContent>
