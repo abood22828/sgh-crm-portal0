@@ -222,4 +222,46 @@ export const offerLeadsRouter = router({
 
       return { success: true };
     }),
+
+  // Generate and save receipt number
+  generateReceiptNumber: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      // Check if receipt number already exists
+      const [lead] = await db.select().from(offerLeads).where(eq(offerLeads.id, input.id)).limit(1);
+      if (!lead) {
+        throw new Error("الحجز غير موجود");
+      }
+
+      // If already has receipt number, return it
+      if (lead.receiptNumber) {
+        return { receiptNumber: lead.receiptNumber };
+      }
+
+      // Generate new receipt number
+      const year = new Date().getFullYear();
+      
+      // Get the count of offer leads with receipt numbers this year
+      const { sql } = await import("drizzle-orm");
+      const [result] = await db.execute(sql`
+        SELECT COUNT(*) as count 
+        FROM offerLeads 
+        WHERE receiptNumber LIKE CONCAT('SGH-', ${year}, '-%')
+      `);
+      
+      const count = (result as any).count || 0;
+      const sequenceNumber = count + 1;
+      const paddedNumber = String(sequenceNumber).padStart(3, '0');
+      const receiptNumber = `SGH-${year}-${paddedNumber}`;
+
+      // Save receipt number
+      await db.update(offerLeads).set({ receiptNumber }).where(eq(offerLeads.id, input.id));
+
+      return { receiptNumber };
+    }),
 });

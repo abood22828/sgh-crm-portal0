@@ -18,6 +18,11 @@ interface PatientCardProps {
 function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
   const [selectedStatus, setSelectedStatus] = useState(patient.status);
   const { user } = useAuth();
+  const [isPrinting, setIsPrinting] = useState(false);
+  
+  const generateAppointmentReceipt = trpc.appointments.generateReceiptNumber.useMutation();
+  const generateOfferReceipt = trpc.offerLeads.generateReceiptNumber.useMutation();
+  const generateCampReceipt = trpc.campRegistrations.generateReceiptNumber.useMutation();
 
   const handleCall = () => {
     if (patient.phone) {
@@ -36,7 +41,7 @@ function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     let type: "appointment" | "camp" | "offer" = "appointment";
     let typeName = 'غير محدد';
     
@@ -51,14 +56,38 @@ function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
       typeName = patient.campName || 'غير محدد';
     }
     
-    printReceipt({
-      fullName: patient.fullName,
-      age: patient.age,
-      phone: patient.phone,
-      registrationDate: patient.createdAt ? new Date(patient.createdAt) : new Date(),
-      type,
-      typeName,
-    }, user?.name || 'غير معروف');
+    try {
+      setIsPrinting(true);
+      
+      // Generate or retrieve receipt number
+      let receiptNumber = 'غير متاح';
+      
+      if (type === 'appointment') {
+        const result = await generateAppointmentReceipt.mutateAsync({ id: patient.id });
+        receiptNumber = result.receiptNumber;
+      } else if (type === 'offer') {
+        const result = await generateOfferReceipt.mutateAsync({ id: patient.id });
+        receiptNumber = result.receiptNumber;
+      } else if (type === 'camp') {
+        const result = await generateCampReceipt.mutateAsync({ id: patient.id });
+        receiptNumber = result.receiptNumber;
+      }
+      
+      // Print with receipt number
+      printReceipt({
+        fullName: patient.fullName,
+        age: patient.age,
+        phone: patient.phone,
+        registrationDate: patient.createdAt ? new Date(patient.createdAt) : new Date(),
+        type,
+        typeName,
+      }, user?.name || 'غير معروف', receiptNumber);
+    } catch (error) {
+      console.error('Failed to generate receipt number:', error);
+      toast.error('فشل توليد رقم السند');
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   const handleUpdateStatus = () => {

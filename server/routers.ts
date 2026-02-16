@@ -560,6 +560,48 @@ export const appRouter = router({
 
         return result;
       }),
+
+    // Generate and save receipt number
+    generateReceiptNumber: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+
+        // Check if receipt number already exists
+        const [appointment] = await db.select().from(appointments).where(eq(appointments.id, input.id)).limit(1);
+        if (!appointment) {
+          throw new Error("الحجز غير موجود");
+        }
+
+        // If already has receipt number, return it
+        if (appointment.receiptNumber) {
+          return { receiptNumber: appointment.receiptNumber };
+        }
+
+        // Generate new receipt number
+        const year = new Date().getFullYear();
+        
+        // Get the count of appointments with receipt numbers this year
+        const { sql } = await import("drizzle-orm");
+        const [result] = await db.execute(sql`
+          SELECT COUNT(*) as count 
+          FROM appointments 
+          WHERE receiptNumber LIKE CONCAT('SGH-', ${year}, '-%')
+        `);
+        
+        const count = (result as any).count || 0;
+        const sequenceNumber = count + 1;
+        const paddedNumber = String(sequenceNumber).padStart(3, '0');
+        const receiptNumber = `SGH-${year}-${paddedNumber}`;
+
+        // Save receipt number
+        await db.update(appointments).set({ receiptNumber }).where(eq(appointments.id, input.id));
+
+        return { receiptNumber };
+      }),
   }),
 
   // Offers management

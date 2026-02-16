@@ -13,22 +13,45 @@ interface PrintReceiptProps {
   userName: string; // اسم المستخدم الذي طبع السند
 }
 
-// دالة لتوليد رقم تسلسلي فريد
-function generateReceiptNumber(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  
-  return `SGH-${year}${month}${day}-${hours}${minutes}${seconds}-${random}`;
+// دالة لتنسيق رقم تسلسلي بسيط (SGH-2026-001)
+// سيتم توليد الرقم الفعلي من السيرفر لضمان التسلسل الصحيح
+function formatReceiptNumber(sequenceNumber: number): string {
+  const year = new Date().getFullYear();
+  const paddedNumber = String(sequenceNumber).padStart(3, '0');
+  return `SGH-${year}-${paddedNumber}`;
+}
+
+// معلومات إضافية للطباعة مع رقم تسلسلي
+export interface PrintWithNumberData {
+  fullName: string;
+  phone: string;
+  email?: string;
+  age?: number;
+  type: "appointment" | "camp" | "offer";
+  details: {
+    doctorName?: string;
+    specialty?: string;
+    preferredDate?: string;
+    preferredTime?: string;
+    campName?: string;
+    procedures?: string;
+    offerName?: string;
+  };
+  bookingId: number;
+}
+
+// دالة helper للطباعة مع توليد رقم تسلسلي
+// يجب استدعاء هذه الدالة من داخل React component مع استخدام mutation
+export function usePrintWithNumber() {
+  // This is a placeholder - actual implementation should be in the component
+  // Components should call the mutation first, then call printReceipt with the result
+  return {
+    printWithNumber: printReceipt,
+  };
 }
 
 // دالة مساعدة للطباعة
-export function printReceipt(data: PrintReceiptProps["data"], userName: string) {
+export function printReceipt(data: PrintReceiptProps["data"], userName: string, receiptNumber?: string) {
   // إنشاء نافذة طباعة جديدة
   const printWindow = window.open("", "_blank", "width=800,height=600");
   
@@ -39,7 +62,8 @@ export function printReceipt(data: PrintReceiptProps["data"], userName: string) 
 
   // إنشاء HTML للطباعة
   const printDate = new Date();
-  const receiptNumber = generateReceiptNumber();
+  // إذا لم يتم تمرير رقم تسلسلي، سيتم عرض رقم مؤقت
+  const displayNumber = receiptNumber || "قيد الإنشاء...";
   const typeLabels = {
     appointment: "موعد طبيب",
     camp: "تسجيل مخيم",
@@ -54,7 +78,7 @@ export function printReceipt(data: PrintReceiptProps["data"], userName: string) 
         <div class="phone">8000018</div>
       </div>
       
-      <div class="receipt-number">#${receiptNumber}</div>
+      <div class="receipt-number">#${displayNumber}</div>
       <div class="title">سند ${typeLabels[data.type]}</div>
       
       <div class="content">

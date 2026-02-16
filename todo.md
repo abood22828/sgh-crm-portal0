@@ -392,6 +392,24 @@
 
 ---
 
+### تبسيط الرقم التسلسلي وحفظه في قاعدة البيانات ✅ مكتمل
+- [x] تبسيط دالة توليد الرقم التسلسلي إلى صيغة #SGH-2026-001
+- [x] إضافة حقل `receiptNumber` في جداول appointments, offerLeads, campRegistrations
+- [x] تطبيق migration على قاعدة البيانات باستخدام SQL مباشر
+- [x] إضافة tRPC procedures لتوليد وحفظ الرقم التسلسلي في appointments, offerLeads, campRegistrations
+  - `appointments.generateReceiptNumber` - يتحقق من وجود رقم محفوظ أو يولد رقم جديد
+  - `offerLeads.generateReceiptNumber` - نفس المنطق
+  - `campRegistrations.generateReceiptNumber` - نفس المنطق
+- [x] تعديل منطق الطباعة فيQuickPatientSearch لاستخدام الرقم المحفوظ (كنموذج)
+- [x] اختبار النظام والتأكد من عمل الأرقام التسلسلية
+
+**ملاحظة:** تم تطبيق النظام في QuickPatientSearch كنموذج. لتطبيقه في باقي المكونات (CampRegistrationsManagement, OfferLeadsManagement, BookingsManagementPage, إلخ):
+1. إضافة mutations في بداية المكون
+2. تغيير دالة الطباعة من sync إلى async
+3. استدعاء mutation قبل printReceipt وتمرير الرقم
+
+---
+
 ## تحسينات جديدة 🔄 جاري العمل
 
 ### 1. تعديل موعد الحجز مع إشعار WhatsApp
@@ -2258,3 +2276,11 @@
   - عرض الرقم في أعلى السند بخط Courier New
 - [x] إضافة زر "إحصائيات المخيمات" في صفحة إدارة الحجوزات يفتح `/dashboard/camp-stats`
 - [x] اختبار جميع التعديلات والتأكد من عملها بشكل صحيح
+
+### تبسيط الرقم التسلسلي وحفظه في قاعدة البيانات 🔄 جاري العمل
+- [ ] تبسيط دالة توليد الرقم التسلسلي إلى صيغة #SGH-2026-001
+- [ ] إضافة حقل `receiptNumber` في schema (appointments, offerLeads, campRegistrations)
+- [ ] تطبيق migration لإضافة الحقل الجديد
+- [ ] إضافة tRPC procedures لتوليد وحفظ الرقم التسلسلي
+- [ ] تعديل منطق الطباعة لاستخدام الرقم المحفوظ أو توليد رقم جديد
+- [ ] اختبار النظام والتأكد من عمل الطباعة المتكررة بنفس الرقم

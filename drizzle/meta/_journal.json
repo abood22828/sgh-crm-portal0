@@ -176,6 +176,13 @@
       "when": 1771117055821,
       "tag": "0024_fat_silhouette",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1771271044685,
+      "tag": "0025_cynical_blue_shield",
+      "breakpoints": true
     }
   ]
 }

@@ -185,6 +185,7 @@ export const appointments = mysqlTable("appointments", {
   referrer: varchar("referrer", { length: 500 }),
   fbclid: varchar("fbclid", { length: 255 }),
   gclid: varchar("gclid", { length: 255 }),
+  receiptNumber: varchar("receiptNumber", { length: 50 }), // رقم السند التسلسلي
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -285,6 +286,7 @@ export const offerLeads = mysqlTable("offerLeads", {
   referrer: varchar("referrer", { length: 500 }),
   fbclid: varchar("fbclid", { length: 255 }),
   gclid: varchar("gclid", { length: 255 }),
+  receiptNumber: varchar("receiptNumber", { length: 50 }), // رقم السند التسلسلي
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -326,6 +328,7 @@ export const campRegistrations = mysqlTable("campRegistrations", {
   referrer: varchar("referrer", { length: 500 }),
   fbclid: varchar("fbclid", { length: 255 }),
   gclid: varchar("gclid", { length: 255 }),
+  receiptNumber: varchar("receiptNumber", { length: 50 }), // رقم السند التسلسلي
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
