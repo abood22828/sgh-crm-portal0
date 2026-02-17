@@ -9,6 +9,7 @@ interface PrintReceiptProps {
     registrationDate: Date;
     type: "appointment" | "camp" | "offer";
     typeName: string; // اسم الطبيب أو المخيم أو العرض
+    receiptNumber?: string; // الرقم التسلسلي للسند
   };
   userName: string; // اسم المستخدم الذي طبع السند
 }
@@ -51,7 +52,7 @@ export function usePrintWithNumber() {
 }
 
 // دالة مساعدة للطباعة
-export function printReceipt(data: PrintReceiptProps["data"], userName: string, receiptNumber?: string) {
+export function printReceipt(data: PrintReceiptProps["data"], userName: string) {
   // إنشاء نافذة طباعة جديدة
   const printWindow = window.open("", "_blank", "width=800,height=600");
   
@@ -62,8 +63,8 @@ export function printReceipt(data: PrintReceiptProps["data"], userName: string, 
 
   // إنشاء HTML للطباعة
   const printDate = new Date();
-  // إذا لم يتم تمرير رقم تسلسلي، سيتم عرض رقم مؤقت
-  const displayNumber = receiptNumber || "قيد الإنشاء...";
+  // استخدام الرقم التسلسلي من data إن وجد
+  const displayNumber = data.receiptNumber || "قيد الإنشاء...";
   const typeLabels = {
     appointment: "موعد طبيب",
     camp: "تسجيل مخيم",

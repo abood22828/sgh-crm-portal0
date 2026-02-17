@@ -81,7 +81,8 @@ function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
         registrationDate: patient.createdAt ? new Date(patient.createdAt) : new Date(),
         type,
         typeName,
-      }, user?.name || 'غير معروف', receiptNumber);
+        receiptNumber,
+      }, user?.name || 'غير معروف');
     } catch (error) {
       console.error('Failed to generate receipt number:', error);
       toast.error('فشل توليد رقم السند');

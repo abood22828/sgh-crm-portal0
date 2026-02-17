@@ -27,6 +27,9 @@ import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function ManualRegistrationForm() {
   const { user } = useAuth();
+  const generateAppointmentReceiptMutation = trpc.appointments.generateReceiptNumber.useMutation();
+  const generateOfferLeadReceiptMutation = trpc.offerLeads.generateReceiptNumber.useMutation();
+  const generateCampRegistrationReceiptMutation = trpc.campRegistrations.generateReceiptNumber.useMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [registrationType, setRegistrationType] = useState<"lead" | "appointment" | "offer" | "camp">("lead");
   const [shouldPrint, setShouldPrint] = useState(false);
@@ -113,18 +116,25 @@ export default function ManualRegistrationForm() {
   });
 
   const createAppointmentMutation = trpc.appointments.submit.useMutation({
-    onSuccess: () => {
+    onSuccess: async (data) => {
       toast.success("تم إضافة الموعد بنجاح");
-      if (shouldPrint) {
-        const doctor = doctors?.find((d: any) => d.id.toString() === doctorId);
-        printReceipt({
-          fullName,
-          phone,
-          age: appointmentAge ? parseInt(appointmentAge) : undefined,
-          registrationDate: new Date(),
-          type: "appointment",
-          typeName: doctor?.name || "غير محدد",
-        }, user?.name || "غير معروف");
+      if (shouldPrint && data?.insertId) {
+        try {
+          const result = await generateAppointmentReceiptMutation.mutateAsync({ id: data.insertId });
+          const doctor = doctors?.find((d: any) => d.id.toString() === doctorId);
+          printReceipt({
+            fullName,
+            phone,
+            age: appointmentAge ? parseInt(appointmentAge) : undefined,
+            registrationDate: new Date(),
+            type: "appointment",
+            typeName: doctor?.name || "غير محدد",
+            receiptNumber: result.receiptNumber,
+          }, user?.name || "غير معروف");
+        } catch (error) {
+          console.error('Error generating receipt number:', error);
+          toast.error('فشل في توليد رقم السند');
+        }
       }
       resetForm();
       setDialogOpen(false);
@@ -137,18 +147,25 @@ export default function ManualRegistrationForm() {
   });
 
   const createOfferLeadMutation = trpc.offerLeads.submit.useMutation({
-    onSuccess: () => {
+    onSuccess: async (data) => {
       toast.success("تم إضافة حجز العرض بنجاح");
-      if (shouldPrint) {
-        const offer = offers?.find((o: any) => o.id.toString() === offerId);
-        printReceipt({
-          fullName,
-          phone,
-          age: undefined,
-          registrationDate: new Date(),
-          type: "offer",
-          typeName: offer?.title || "غير محدد",
-        }, user?.name || "غير معروف");
+      if (shouldPrint && data?.id) {
+        try {
+          const result = await generateOfferLeadReceiptMutation.mutateAsync({ id: data.id });
+          const offer = offers?.find((o: any) => o.id.toString() === offerId);
+          printReceipt({
+            fullName,
+            phone,
+            age: undefined,
+            registrationDate: new Date(),
+            type: "offer",
+            typeName: offer?.title || "غير محدد",
+            receiptNumber: result.receiptNumber,
+          }, user?.name || "غير معروف");
+        } catch (error) {
+          console.error('Error generating receipt number:', error);
+          toast.error('فشل في توليد رقم السند');
+        }
       }
       resetForm();
       setDialogOpen(false);
@@ -161,18 +178,25 @@ export default function ManualRegistrationForm() {
   });
 
   const createCampRegistrationMutation = trpc.campRegistrations.submit.useMutation({
-    onSuccess: () => {
+    onSuccess: async (data) => {
       toast.success("تم إضافة تسجيل المخيم بنجاح");
-      if (shouldPrint) {
-        const camp = camps?.find((c: any) => c.id.toString() === campId);
-        printReceipt({
-          fullName,
-          phone,
-          age: campAge ? parseInt(campAge) : undefined,
-          registrationDate: new Date(),
-          type: "camp",
-          typeName: camp?.name || "غير محدد",
-        }, user?.name || "غير معروف");
+      if (shouldPrint && data?.id) {
+        try {
+          const result = await generateCampRegistrationReceiptMutation.mutateAsync({ id: data.id });
+          const camp = camps?.find((c: any) => c.id.toString() === campId);
+          printReceipt({
+            fullName,
+            phone,
+            age: campAge ? parseInt(campAge) : undefined,
+            registrationDate: new Date(),
+            type: "camp",
+            typeName: camp?.name || "غير محدد",
+            receiptNumber: result.receiptNumber,
+          }, user?.name || "غير معروف");
+        } catch (error) {
+          console.error('Error generating receipt number:', error);
+          toast.error('فشل في توليد رقم السند');
+        }
       }
       resetForm();
       setDialogOpen(false);

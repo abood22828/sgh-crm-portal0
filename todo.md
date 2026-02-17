@@ -2277,10 +2277,26 @@
 - [x] إضافة زر "إحصائيات المخيمات" في صفحة إدارة الحجوزات يفتح `/dashboard/camp-stats`
 - [x] اختبار جميع التعديلات والتأكد من عملها بشكل صحيح
 
-### تبسيط الرقم التسلسلي وحفظه في قاعدة البيانات 🔄 جاري العمل
-- [ ] تبسيط دالة توليد الرقم التسلسلي إلى صيغة #SGH-2026-001
-- [ ] إضافة حقل `receiptNumber` في schema (appointments, offerLeads, campRegistrations)
-- [ ] تطبيق migration لإضافة الحقل الجديد
-- [ ] إضافة tRPC procedures لتوليد وحفظ الرقم التسلسلي
-- [ ] تعديل منطق الطباعة لاستخدام الرقم المحفوظ أو توليد رقم جديد
-- [ ] اختبار النظام والتأكد من عمل الطباعة المتكررة بنفس الرقم
+### تبسيط الرقم التسلسلي وحفظه في قاعدة البيانات ✅ مكتمل
+- [x] تبسيط دالة توليد الرقم التسلسلي إلى صيغة #SGH-2026-001
+- [x] إضافة حقل `receiptNumber` في schema (appointments, offerLeads, campRegistrations)
+- [x] تطبيق migration لإضافة الحقل الجديد باستخدام SQL مباشر
+- [x] إضافة tRPC procedures لتوليد وحفظ الرقم التسلسلي (appointments, offerLeads, campRegistrations)
+- [x] تعديل منطق الطباعة لاستخدام الرقم المحفوظ أو توليد رقم جديد (QuickPatientSearch كنموذج)
+- [x] اختبار النظام والتأكد من عمل الطباعة المتكررة بنفس الرقم
+
+### تطبيق نظام الأرقام التسلسلية في باقي الصفحات ✅ مكتمل
+- [x] تطبيق نظام الأرقام فيCampRegistrationsManagement (تسجيلات المخيمات)
+  - إضافة generateReceiptNumber mutation
+  - تحديث onPrint في CampRegistrationCard (async)
+  - تحديث زر الطباعة في Desktop View (async)
+- [x] تطبيق نظام الأرقام فيOfferLeadsManagement (حجوزات العروض)
+  - إضافة generateReceiptNumber mutation
+  - تحديث onPrint في OfferLeadCard (async)
+  - تحديث زر الطباعة في Desktop View (async)
+- [x] تطبيق نظام الأرقام فيManualRegistrationForm (التسجيل اليدوي)
+  - إضافة 3 mutations للأنواع الثلاثة (appointments, offerLeads, campRegistrations)
+  - تحديث createAppointmentMutation onSuccess (async + receiptNumber)
+  - تحديث createOfferLeadMutation onSuccess (async + receiptNumber)
+  - تحديث createCampRegistrationMutation onSuccess (async + receiptNumber)
+- [x] اختبار جميع التعديلات والتأكد من حفظ الأرقام التسلسلية - لا أخطاء TypeScript

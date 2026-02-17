@@ -73,6 +73,7 @@ const statusColors = {
 
 export default function OfferLeadsManagement({ onPendingCountChange }: { onPendingCountChange?: (count: number) => void }) {
   const { user } = useAuth();
+  const generateReceiptNumberMutation = trpc.offerLeads.generateReceiptNumber.useMutation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOffer, setSelectedOffer] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<any>(null);
@@ -442,15 +443,22 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
                     setNewStatus(lead.status);
                     setStatusDialogOpen(true);
                   }}
-                  onPrint={() => {
-                    printReceipt({
-                      fullName: lead.fullName,
-                      phone: lead.phone,
-                      age: undefined,
-                      registrationDate: lead.createdAt ? new Date(lead.createdAt) : new Date(),
-                      type: "offer",
-                      typeName: lead.offerTitle || 'غير محدد',
-                    }, user?.name || 'غير معروف');
+                  onPrint={async () => {
+                    try {
+                      const result = await generateReceiptNumberMutation.mutateAsync({ id: lead.id });
+                      printReceipt({
+                        fullName: lead.fullName,
+                        phone: lead.phone,
+                        age: undefined,
+                        registrationDate: lead.createdAt ? new Date(lead.createdAt) : new Date(),
+                        type: "offer",
+                        typeName: lead.offerTitle || 'غير محدد',
+                        receiptNumber: result.receiptNumber,
+                      }, user?.name || 'غير معروف');
+                    } catch (error) {
+                      console.error('Error generating receipt number:', error);
+                      toast.error('فشل في توليد رقم السند');
+                    }
                   }}
                 />
               ))
@@ -580,16 +588,23 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
                             variant="outline"
                             size="sm"
                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                            onClick={() => {
-                              const offerName = lead.offerName || `عرض #${lead.offerId}`;
-                              printReceipt({
-                                fullName: lead.fullName,
-                                phone: lead.phone,
-                                age: lead.age ?? undefined,
-                                registrationDate: new Date(lead.createdAt),
-                                type: "offer",
-                                typeName: offerName
-                              }, user?.name || "مستخدم");
+                            onClick={async () => {
+                              try {
+                                const result = await generateReceiptNumberMutation.mutateAsync({ id: lead.id });
+                                const offerName = lead.offerName || `عرض #${lead.offerId}`;
+                                printReceipt({
+                                  fullName: lead.fullName,
+                                  phone: lead.phone,
+                                  age: lead.age ?? undefined,
+                                  registrationDate: new Date(lead.createdAt),
+                                  type: "offer",
+                                  typeName: offerName,
+                                  receiptNumber: result.receiptNumber,
+                                }, user?.name || "مستخدم");
+                              } catch (error) {
+                                console.error('Error generating receipt number:', error);
+                                toast.error('فشل في توليد رقم السند');
+                              }
                             }}
                           >
                             <Printer className="h-4 w-4 ml-2" />

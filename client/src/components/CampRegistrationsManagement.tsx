@@ -48,6 +48,7 @@ import { exportToExcel, formatCampRegistrationsForExport } from "@/lib/exportToE
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS } from "@shared/sources";
+import { useState as useReactState } from "react";
 import CampRegistrationCard from "@/components/CampRegistrationCard";
 import CardSkeleton from "@/components/CardSkeleton";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -70,6 +71,7 @@ const statusColors = {
 
 export default function CampRegistrationsManagement({ onPendingCountChange }: { onPendingCountChange?: (count: number) => void }) {
   const { user } = useAuth();
+  const generateReceiptNumberMutation = trpc.campRegistrations.generateReceiptNumber.useMutation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCamp, setSelectedCamp] = useState<string>("all");
   const [selectedRegistration, setSelectedRegistration] = useState<any>(null);
@@ -453,15 +455,22 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                     setSelectedRegistration(reg);
                     setDetailsDialogOpen(true);
                   }}
-                  onPrint={() => {
-                    printReceipt({
-                      fullName: reg.fullName,
-                      phone: reg.phone,
-                      age: reg.age,
-                      registrationDate: reg.createdAt ? new Date(reg.createdAt) : new Date(),
-                      type: "camp",
-                      typeName: reg.campName || 'غير محدد',
-                    }, user?.name || 'غير معروف');
+                  onPrint={async () => {
+                    try {
+                      const result = await generateReceiptNumberMutation.mutateAsync({ id: reg.id });
+                      printReceipt({
+                        fullName: reg.fullName,
+                        phone: reg.phone,
+                        age: reg.age,
+                        registrationDate: reg.createdAt ? new Date(reg.createdAt) : new Date(),
+                        type: "camp",
+                        typeName: reg.campName || 'غير محدد',
+                        receiptNumber: result.receiptNumber,
+                      }, user?.name || 'غير معروف');
+                    } catch (error) {
+                      console.error('Error generating receipt number:', error);
+                      toast.error('فشل في توليد رقم السند');
+                    }
                   }}
                 />
               ))
@@ -607,16 +616,23 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                             variant="outline"
                             size="sm"
                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                            onClick={() => {
-                              const campName = reg.campName || `مخيم #${reg.campId}`;
-                              printReceipt({
-                                fullName: reg.fullName,
-                                phone: reg.phone,
-                                age: reg.age ?? undefined,
-                                registrationDate: new Date(reg.createdAt),
-                                type: "camp",
-                                typeName: campName
-                              }, user?.name || "مستخدم");
+                            onClick={async () => {
+                              try {
+                                const result = await generateReceiptNumberMutation.mutateAsync({ id: reg.id });
+                                const campName = reg.campName || `مخيم #${reg.campId}`;
+                                printReceipt({
+                                  fullName: reg.fullName,
+                                  phone: reg.phone,
+                                  age: reg.age ?? undefined,
+                                  registrationDate: new Date(reg.createdAt),
+                                  type: "camp",
+                                  typeName: campName,
+                                  receiptNumber: result.receiptNumber,
+                                }, user?.name || "مستخدم");
+                              } catch (error) {
+                                console.error('Error generating receipt number:', error);
+                                toast.error('فشل في توليد رقم السند');
+                              }
                             }}
                           >
                             <Printer className="h-4 w-4 ml-2" />
