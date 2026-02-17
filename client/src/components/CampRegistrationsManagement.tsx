@@ -94,14 +94,18 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
     page: currentPage,
     limit: pageLimit,
     searchTerm: campRegistrationsSearchTerm,
+    campId: selectedCamp !== "all" ? parseInt(selectedCamp) : undefined,
+    source: sourceFilter !== "all" ? sourceFilter : undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    dateFilter: dateFilter as "all" | "today" | "week" | "month",
   });
   const registrations = registrationsData?.data || [];
   const { data: stats } = trpc.campRegistrations.stats.useQuery();
   
-  // Reset pagination when search term or limit changes
+  // Reset pagination when search term, limit, or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [campRegistrationsSearchTerm, pageLimit]);
+  }, [campRegistrationsSearchTerm, pageLimit, selectedCamp, sourceFilter, statusFilter, dateFilter]);
   
   // Count pending registrations (status = 'pending')
   const pendingCount = useMemo(() => {
@@ -150,62 +154,8 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
     return unique;
   }, [registrations]);
 
-  const filteredRegistrations = useMemo(() => {
-    if (!registrations) return [];
-    
-    let filtered = registrations;
-    
-    // Filter by camp
-    if (selectedCamp !== "all") {
-      filtered = filtered.filter((reg: any) => reg.campId === parseInt(selectedCamp));
-    }
-    
-    // Filter by search term
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (reg: any) =>
-          reg.fullName.toLowerCase().includes(term) ||
-          reg.phone.includes(term) ||
-          (reg.email && reg.email.toLowerCase().includes(term))
-      );
-    }
-    
-    // Filter by date
-    if (dateFilter && dateFilter !== "all") {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
-      filtered = filtered.filter((reg: any) => {
-        const regDate = new Date(reg.createdAt);
-        
-        if (dateFilter === "today") {
-          return regDate >= today;
-        } else if (dateFilter === "week") {
-          const weekAgo = new Date(today);
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          return regDate >= weekAgo;
-        } else if (dateFilter === "month") {
-          const monthAgo = new Date(today);
-          monthAgo.setMonth(monthAgo.getMonth() - 1);
-          return regDate >= monthAgo;
-        }
-        return true;
-      });
-    }
-    
-    // Filter by status
-    if (statusFilter && statusFilter !== "all") {
-      filtered = filtered.filter((reg: any) => reg.status === statusFilter);
-    }
-    
-    // Filter by source
-    if (sourceFilter && sourceFilter !== "all") {
-      filtered = filtered.filter((reg: any) => reg.source === sourceFilter);
-    }
-    
-    return filtered;
-  }, [registrations, selectedCamp, searchTerm, dateFilter, statusFilter, sourceFilter]);
+  // No need for client-side filtering anymore - server handles it
+  const filteredRegistrations = registrations;
 
   const handleSelectAll = () => {
     if (selectedIds.length === filteredRegistrations.length) {

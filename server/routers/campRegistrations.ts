@@ -130,11 +130,23 @@ export const campRegistrationsRouter = router({
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(100).default(20),
         searchTerm: z.string().optional(),
+        campId: z.number().optional(),
+        source: z.string().optional(),
+        status: z.string().optional(),
+        dateFilter: z.enum(["all", "today", "week", "month"]).optional(),
       })
     )
     .query(async ({ input }) => {
       const { getCampRegistrationsPaginated } = await import('../db');
-      return getCampRegistrationsPaginated(input.page, input.limit, input.searchTerm);
+      return getCampRegistrationsPaginated(
+        input.page,
+        input.limit,
+        input.searchTerm,
+        input.campId,
+        input.source,
+        input.status,
+        input.dateFilter
+      );
     }),
 
   // Get stats for camp registrations (protected)

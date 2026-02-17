@@ -119,11 +119,23 @@ export const offerLeadsRouter = router({
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(100).default(20),
         searchTerm: z.string().optional(),
+        offerId: z.number().optional(),
+        source: z.string().optional(),
+        status: z.string().optional(),
+        dateFilter: z.enum(["all", "today", "week", "month"]).optional(),
       })
     )
     .query(async ({ input }) => {
       const { getOfferLeadsPaginated } = await import('../db');
-      return getOfferLeadsPaginated(input.page, input.limit, input.searchTerm);
+      return getOfferLeadsPaginated(
+        input.page,
+        input.limit,
+        input.searchTerm,
+        input.offerId,
+        input.source,
+        input.status,
+        input.dateFilter
+      );
     }),
 
   // Get stats for offer leads (protected)

@@ -127,18 +127,42 @@ export default function BookingsManagementPage() {
   }, [location]);
   const [manualRegistrationOpen, setManualRegistrationOpen] = useState(false);
 
+  // State variables - define first
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const [appointmentsLimit, setAppointmentsLimit] = useState(-1); // -1 means show all
+  const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
+  const [newAppointmentStatus, setNewAppointmentStatus] = useState("");
+  const [appointmentStatusNotes, setAppointmentStatusNotes] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [appointmentStatusFilter, setAppointmentStatusFilter] = useState("all");
+  const [appointmentSourceFilter, setAppointmentSourceFilter] = useState("all");
+  const [leadsStatusFilter, setLeadsStatusFilter] = useState("all");
+  const [leadsSourceFilter, setLeadsSourceFilter] = useState("all");
+  const [offerLeadsPendingCount, setOfferLeadsPendingCount] = useState(0);
+  const [campRegistrationsPendingCount, setCampRegistrationsPendingCount] = useState(0);
+
+  // Data queries
   const { data: unifiedLeads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.list.useQuery();
   const { data: stats } = trpc.leads.stats.useQuery();
-  const { data: appointments, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.list.useQuery();
+  const { data: appointmentsData, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.listPaginated.useQuery({
+    page: appointmentsPage,
+    limit: appointmentsLimit,
+    searchTerm: appointmentSearchTerm,
+    doctorId: selectedDoctor !== "all" ? parseInt(selectedDoctor) : undefined,
+    source: appointmentSourceFilter !== "all" ? appointmentSourceFilter : undefined,
+    status: appointmentStatusFilter !== "all" ? appointmentStatusFilter : undefined,
+    dateFilter: dateFilter as "all" | "today" | "week" | "month",
+  });
+  const appointments = appointmentsData?.data || [];
   const { data: doctors = [] } = trpc.doctors.list.useQuery();
   
   // Load offerLeads and campRegistrations data directly to show badges immediately
   const { data: offerLeadsData } = trpc.offerLeads.list.useQuery();
   const { data: campRegistrationsData } = trpc.campRegistrations.list.useQuery();
-  
-  // Count pending (not updated) bookings
-  const [offerLeadsPendingCount, setOfferLeadsPendingCount] = useState(0);
-  const [campRegistrationsPendingCount, setCampRegistrationsPendingCount] = useState(0);
   
   const pendingCounts = useMemo(() => {
     const leadsPending = unifiedLeads?.filter(l => l.status === 'new').length || 0;
@@ -153,19 +177,6 @@ export default function BookingsManagementPage() {
       campRegistrations: campRegistrationsPending,
     };
   }, [unifiedLeads, appointments, offerLeadsData, campRegistrationsData, offerLeadsPendingCount, campRegistrationsPendingCount]);
-  
-  const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
-  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
-  const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
-  const [newAppointmentStatus, setNewAppointmentStatus] = useState("");
-  const [appointmentStatusNotes, setAppointmentStatusNotes] = useState("");
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [selectedDoctor, setSelectedDoctor] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
-  const [appointmentStatusFilter, setAppointmentStatusFilter] = useState("all");
-  const [appointmentSourceFilter, setAppointmentSourceFilter] = useState("all");
-  const [leadsStatusFilter, setLeadsStatusFilter] = useState("all");
-  const [leadsSourceFilter, setLeadsSourceFilter] = useState("all");
 
   const updateStatusMutation = trpc.leads.updateStatus.useMutation({
     onSuccess: () => {
@@ -248,63 +259,8 @@ export default function BookingsManagementPage() {
     return filtered;
   }, [unifiedLeads, searchTerm, leadsDateFilter, leadsStatusFilter, leadsSourceFilter]);
 
-  const filteredAppointments = useMemo(() => {
-    if (!appointments) return [];
-    
-    let filtered = appointments;
-    
-    // Filter by search term
-    if (appointmentSearchTerm) {
-      const term = appointmentSearchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (appointment: any) =>
-          appointment.patientName.toLowerCase().includes(term) ||
-          appointment.phone.includes(term) ||
-          (appointment.email && appointment.email.toLowerCase().includes(term))
-      );
-    }
-    
-    // Filter by doctor
-    if (selectedDoctor !== "all") {
-      filtered = filtered.filter(appointment => appointment.doctorId === parseInt(selectedDoctor));
-    }
-    
-    // Filter by date
-    if (dateFilter && dateFilter !== "all") {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
-      filtered = filtered.filter((appointment: any) => {
-        const appointmentDate = new Date(appointment.appointmentDate);
-        
-        if (dateFilter === "today") {
-          return appointmentDate >= today && appointmentDate < new Date(today.getTime() + 24 * 60 * 60 * 1000);
-        } else if (dateFilter === "week") {
-          const weekAgo = new Date(today);
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          return appointmentDate >= weekAgo;
-        } else if (dateFilter === "month") {
-          const monthAgo = new Date(today);
-          monthAgo.setMonth(monthAgo.getMonth() - 1);
-          return appointmentDate >= monthAgo;
-        }
-        
-        return true;
-      });
-    }
-    
-    // Filter by status
-    if (appointmentStatusFilter && appointmentStatusFilter !== "all") {
-      filtered = filtered.filter(appointment => appointment.status === appointmentStatusFilter);
-    }
-    
-    // Filter by source
-    if (appointmentSourceFilter && appointmentSourceFilter !== "all") {
-      filtered = filtered.filter(appointment => (appointment as any).source === appointmentSourceFilter);
-    }
-    
-    return filtered;
-  }, [appointments, appointmentSearchTerm, selectedDoctor, dateFilter, appointmentStatusFilter, appointmentSourceFilter]);
+  // No need for client-side filtering anymore - server handles it
+  const filteredAppointments = appointments;
 
   const appointmentStats = useMemo(() => {
     if (!appointments) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };

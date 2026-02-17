@@ -399,7 +399,15 @@ export async function getAllAppointments() {
   return result;
 }
 
-export async function getAppointmentsPaginated(page: number = 1, limit: number = 20, searchTerm?: string) {
+export async function getAppointmentsPaginated(
+  page: number = 1,
+  limit: number = 20,
+  searchTerm?: string,
+  doctorId?: number,
+  source?: string,
+  status?: string,
+  dateFilter?: "all" | "today" | "week" | "month"
+) {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
   
@@ -407,7 +415,7 @@ export async function getAppointmentsPaginated(page: number = 1, limit: number =
   const isShowAll = limit === -1;
   const offset = isShowAll ? 0 : (page - 1) * limit;
   
-  // Build WHERE conditions for search
+  // Build WHERE conditions for search and filters
   const whereConditions = [];
   if (searchTerm && searchTerm.trim()) {
     const searchPattern = `%${searchTerm.trim()}%`;
@@ -418,6 +426,39 @@ export async function getAppointmentsPaginated(page: number = 1, limit: number =
         like(appointments.email, searchPattern)
       )
     );
+  }
+  
+  // Filter by doctor
+  if (doctorId) {
+    whereConditions.push(eq(appointments.doctorId, doctorId));
+  }
+  
+  // Filter by source
+  if (source && source !== "all") {
+    whereConditions.push(eq(appointments.source, source));
+  }
+  
+  // Filter by status
+  if (status && status !== "all") {
+    whereConditions.push(eq(appointments.status, status as any));
+  }
+  
+  // Filter by date
+  if (dateFilter && dateFilter !== "all") {
+    const now = new Date();
+    let startDate: Date;
+    
+    if (dateFilter === "today") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (dateFilter === "week") {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (dateFilter === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    
+    if (startDate!) {
+      whereConditions.push(sql`${appointments.createdAt} >= ${startDate.toISOString()}`);
+    }
   }
   
   const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
@@ -811,7 +852,15 @@ export async function toggleMessageSettingEnabled(id: number) {
   return db.update(messageSettings).set({ isEnabled: newValue }).where(eq(messageSettings.id, id));
 }
 
-export async function getOfferLeadsPaginated(page: number = 1, limit: number = 20, searchTerm?: string) {
+export async function getOfferLeadsPaginated(
+  page: number = 1,
+  limit: number = 20,
+  searchTerm?: string,
+  offerId?: number,
+  source?: string,
+  status?: string,
+  dateFilter?: "all" | "today" | "week" | "month"
+) {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
   
@@ -822,7 +871,7 @@ export async function getOfferLeadsPaginated(page: number = 1, limit: number = 2
   // Import offerLeads and offers
   const { offerLeads, offers } = await import('../drizzle/schema');
   
-  // Build WHERE conditions for search
+  // Build WHERE conditions for search and filters
   const whereConditions = [];
   if (searchTerm && searchTerm.trim()) {
     const searchPattern = `%${searchTerm.trim()}%`;
@@ -833,6 +882,39 @@ export async function getOfferLeadsPaginated(page: number = 1, limit: number = 2
         like(offerLeads.email, searchPattern)
       )
     );
+  }
+  
+  // Filter by offer
+  if (offerId) {
+    whereConditions.push(eq(offerLeads.offerId, offerId));
+  }
+  
+  // Filter by source
+  if (source && source !== "all") {
+    whereConditions.push(eq(offerLeads.source, source));
+  }
+  
+  // Filter by status
+  if (status && status !== "all") {
+    whereConditions.push(eq(offerLeads.status, status as any));
+  }
+  
+  // Filter by date
+  if (dateFilter && dateFilter !== "all") {
+    const now = new Date();
+    let startDate: Date;
+    
+    if (dateFilter === "today") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (dateFilter === "week") {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (dateFilter === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    
+    if (startDate!) {
+      whereConditions.push(sql`${offerLeads.createdAt} >= ${startDate.toISOString()}`);
+    }
   }
   
   const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
@@ -894,7 +976,15 @@ export async function getOfferLeadsPaginated(page: number = 1, limit: number = 2
   };
 }
 
-export async function getCampRegistrationsPaginated(page: number = 1, limit: number = 20, searchTerm?: string) {
+export async function getCampRegistrationsPaginated(
+  page: number = 1,
+  limit: number = 20,
+  searchTerm?: string,
+  campId?: number,
+  source?: string,
+  status?: string,
+  dateFilter?: "all" | "today" | "week" | "month"
+) {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
   
@@ -905,7 +995,7 @@ export async function getCampRegistrationsPaginated(page: number = 1, limit: num
   // Import campRegistrations and camps
   const { campRegistrations, camps } = await import('../drizzle/schema');
   
-  // Build WHERE conditions for search
+  // Build WHERE conditions for search and filters
   const whereConditions = [];
   if (searchTerm && searchTerm.trim()) {
     const searchPattern = `%${searchTerm.trim()}%`;
@@ -916,6 +1006,39 @@ export async function getCampRegistrationsPaginated(page: number = 1, limit: num
         like(campRegistrations.email, searchPattern)
       )
     );
+  }
+  
+  // Filter by camp
+  if (campId) {
+    whereConditions.push(eq(campRegistrations.campId, campId));
+  }
+  
+  // Filter by source
+  if (source && source !== "all") {
+    whereConditions.push(eq(campRegistrations.source, source));
+  }
+  
+  // Filter by status
+  if (status && status !== "all") {
+    whereConditions.push(eq(campRegistrations.status, status as any));
+  }
+  
+  // Filter by date
+  if (dateFilter && dateFilter !== "all") {
+    const now = new Date();
+    let startDate: Date;
+    
+    if (dateFilter === "today") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (dateFilter === "week") {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (dateFilter === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    
+    if (startDate!) {
+      whereConditions.push(sql`${campRegistrations.createdAt} >= ${startDate.toISOString()}`);
+    }
   }
   
   const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;

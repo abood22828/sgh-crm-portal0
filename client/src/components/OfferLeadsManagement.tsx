@@ -92,14 +92,18 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
     page: currentPage,
     limit: pageLimit,
     searchTerm: offerLeadsSearchTerm,
+    offerId: selectedOffer !== "all" ? parseInt(selectedOffer) : undefined,
+    source: sourceFilter !== "all" ? sourceFilter : undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    dateFilter: dateFilter as "all" | "today" | "week" | "month",
   });
   const offerLeads = offerLeadsData?.data || [];
   const { data: stats } = trpc.offerLeads.stats.useQuery();
   
-  // Reset pagination when search term or limit changes
+  // Reset pagination when search term, limit, or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [offerLeadsSearchTerm, pageLimit]);
+  }, [offerLeadsSearchTerm, pageLimit, selectedOffer, sourceFilter, statusFilter, dateFilter]);
   
   // Count pending offerLeads (status = 'new')
   const pendingCount = useMemo(() => {
@@ -148,62 +152,8 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
     return unique;
   }, [offerLeads]);
 
-  const filteredLeads = useMemo(() => {
-    if (!offerLeads) return [];
-    
-    let filtered = offerLeads;
-    
-    // Filter by offer
-    if (selectedOffer !== "all") {
-      filtered = filtered.filter((lead: any) => lead.offerId === parseInt(selectedOffer));
-    }
-    
-    // Filter by search term
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (lead: any) =>
-          lead.fullName.toLowerCase().includes(term) ||
-          lead.phone.includes(term) ||
-          (lead.email && lead.email.toLowerCase().includes(term))
-      );
-    }
-    
-    // Filter by date
-    if (dateFilter && dateFilter !== "all") {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
-      filtered = filtered.filter((lead: any) => {
-        const leadDate = new Date(lead.createdAt);
-        
-        if (dateFilter === "today") {
-          return leadDate >= today;
-        } else if (dateFilter === "week") {
-          const weekAgo = new Date(today);
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          return leadDate >= weekAgo;
-        } else if (dateFilter === "month") {
-          const monthAgo = new Date(today);
-          monthAgo.setMonth(monthAgo.getMonth() - 1);
-          return leadDate >= monthAgo;
-        }
-        return true;
-      });
-    }
-    
-    // Filter by status
-    if (statusFilter && statusFilter !== "all") {
-      filtered = filtered.filter((lead: any) => lead.status === statusFilter);
-    }
-    
-    // Filter by source
-    if (sourceFilter && sourceFilter !== "all") {
-      filtered = filtered.filter((lead: any) => lead.source === sourceFilter);
-    }
-    
-    return filtered;
-  }, [offerLeads, selectedOffer, searchTerm, dateFilter, statusFilter, sourceFilter]);
+  // No need for client-side filtering anymore - server handles it
+  const filteredLeads = offerLeads;
 
   const handleStatusUpdate = () => {
     if (!selectedLead || !newStatus) return;

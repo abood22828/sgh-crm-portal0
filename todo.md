@@ -2300,3 +2300,12 @@
   - تحديث createOfferLeadMutation onSuccess (async + receiptNumber)
   - تحديث createCampRegistrationMutation onSuccess (async + receiptNumber)
 - [x] اختبار جميع التعديلات والتأكد من حفظ الأرقام التسلسلية - لا أخطاء TypeScript
+
+### إصلاح الفلترة - نقلها من Frontend إلى Backend 🔄 جاري العمل
+- [ ] فحص الكود الحالي وتحديد أماكن الفلترة في CampRegistrationsManagement
+- [ ] تحديث campRegistrations.list procedure لدعم معاملات الفلترة (source, date, camp)
+- [ ] تحديث offerLeads.list procedure لدعم معاملات الفلترة (source, date, offer)
+- [ ] تحديث appointments.list procedure لدعم معاملات الفلترة (source, date, doctor, status)
+- [ ] تحديث Frontend لتمرير معاملات الفلترة إلى useQuery
+- [ ] إزالة الفلترة المحلية (client-side) من Frontend
+- [ ] اختبار الفلترة على جميع البيانات في قاعدة البيانات
