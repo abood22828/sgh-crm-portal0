@@ -296,7 +296,7 @@ export default function OfferDetailPage() {
       </section>
 
       {/* Registration Form Section */}
-      {offer.isActive && (
+      {offer.isActive && offer.endDate && new Date(offer.endDate) > new Date() && (
       <section id="booking-form" className="py-12 md:py-16 bg-gradient-to-br from-green-50 to-blue-50">
         <div className="container mx-auto px-4 max-w-2xl">
           {/* Urgency Banner */}

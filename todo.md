@@ -2347,3 +2347,7 @@
 - [x] تحديث getAppointmentsPaginated لدعم date range
 - [x] تحديث getOfferLeadsPaginated لدعم date range
 - [x] تحديث getCampRegistrationsPaginated لدعم date range
+
+### إخفاء نماذج التسجيل للعروض والمخيمات المنتهية ✅ مكتمل
+- [x] إخفاء نموذج التسجيل في CampDetailPage للمخيمات المنتهية
+- [x] إخفاء نموذج التسجيل في OfferDetailPage للعروض المنتهية
