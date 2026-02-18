@@ -375,7 +375,7 @@ export default function CampDetailPage() {
       })()}
 
       {/* Registration Form Section */}
-      {camp.isActive && (
+      {camp.isActive && camp.endDate && new Date(camp.endDate) > new Date() && (
         <section id="registration-form" className="py-12 md:py-16 bg-white">
           <div className="container mx-auto px-4 max-w-2xl">
             {/* Urgency Banner */}
