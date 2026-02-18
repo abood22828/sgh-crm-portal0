@@ -69,7 +69,13 @@ const statusColors = {
   cancelled: "bg-red-500",
 };
 
-export default function CampRegistrationsManagement({ onPendingCountChange }: { onPendingCountChange?: (count: number) => void }) {
+export default function CampRegistrationsManagement({ 
+  onPendingCountChange,
+  dateRange
+}: { 
+  onPendingCountChange?: (count: number) => void,
+  dateRange: { from: Date, to: Date }
+}) {
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.campRegistrations.generateReceiptNumber.useMutation();
   const [searchTerm, setSearchTerm] = useState("");
@@ -86,26 +92,23 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
   const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageLimit, setPageLimit] = useState(20);
+  // Removed pagination - using date range instead
   const [campRegistrationsSearchTerm, setCampRegistrationsSearchTerm] = useState("");
 
   const { data: registrationsData, isLoading, refetch } = trpc.campRegistrations.listPaginated.useQuery({
-    page: currentPage,
-    limit: pageLimit,
+    page: 1,
+    limit: 10000, // Get all records within date range
     searchTerm: campRegistrationsSearchTerm,
     campId: selectedCamp !== "all" ? parseInt(selectedCamp) : undefined,
     source: sourceFilter !== "all" ? sourceFilter : undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
-    dateFilter: dateFilter as "all" | "today" | "week" | "month",
+    dateFrom: dateRange.from.toISOString(),
+    dateTo: dateRange.to.toISOString(),
   });
   const registrations = registrationsData?.data || [];
   const { data: stats } = trpc.campRegistrations.stats.useQuery();
   
-  // Reset pagination when search term, limit, or filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [campRegistrationsSearchTerm, pageLimit, selectedCamp, sourceFilter, statusFilter, dateFilter]);
+  // Removed pagination reset effect
   
   // Count pending registrations (status = 'pending')
   const pendingCount = useMemo(() => {
@@ -295,18 +298,7 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                 className="pr-10 h-9 md:h-10"
               />
             </div>
-            <Select value={pageLimit.toString()} onValueChange={(val) => setPageLimit(Number(val))}>
-              <SelectTrigger className="w-full sm:w-[140px] h-9 md:h-10">
-                <SelectValue placeholder="عدد الصفوف" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="50">50 صف</SelectItem>
-                <SelectItem value="100">100 صف</SelectItem>
-                <SelectItem value="500">500 صف</SelectItem>
-                <SelectItem value="1000">1000 صف</SelectItem>
-                <SelectItem value="-1">الكل</SelectItem>
-              </SelectContent>
-            </Select>
+
             <Select value={selectedCamp} onValueChange={setSelectedCamp}>
               <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10">
                 <SelectValue placeholder="فلترة حسب المخيم" />
@@ -594,16 +586,7 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
             </Table>
           </div>
 
-          {/* Pagination */}
-          {pageLimit !== -1 && registrationsData && registrationsData?.totalPages > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={registrationsData?.totalPages || 1}
-              totalItems={registrationsData?.total || 0}
-              itemsPerPage={pageLimit}
-              onPageChange={(page) => setCurrentPage(page)}
-            />
-          )}
+
         </CardContent>
       </Card>
 

@@ -71,7 +71,13 @@ const statusColors = {
   no_answer: "bg-gray-500",
 };
 
-export default function OfferLeadsManagement({ onPendingCountChange }: { onPendingCountChange?: (count: number) => void }) {
+export default function OfferLeadsManagement({ 
+  onPendingCountChange,
+  dateRange 
+}: { 
+  onPendingCountChange?: (count: number) => void,
+  dateRange: { from: Date, to: Date }
+}) {
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.offerLeads.generateReceiptNumber.useMutation();
   const [searchTerm, setSearchTerm] = useState("");
@@ -84,26 +90,23 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
   const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageLimit, setPageLimit] = useState(20);
+  // Removed pagination - using date range instead
   const [offerLeadsSearchTerm, setOfferLeadsSearchTerm] = useState("");
 
   const { data: offerLeadsData, isLoading, refetch } = trpc.offerLeads.listPaginated.useQuery({
-    page: currentPage,
-    limit: pageLimit,
+    page: 1,
+    limit: 10000, // Get all records within date range
     searchTerm: offerLeadsSearchTerm,
     offerId: selectedOffer !== "all" ? parseInt(selectedOffer) : undefined,
     source: sourceFilter !== "all" ? sourceFilter : undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
-    dateFilter: dateFilter as "all" | "today" | "week" | "month",
+    dateFrom: dateRange.from.toISOString(),
+    dateTo: dateRange.to.toISOString(),
   });
   const offerLeads = offerLeadsData?.data || [];
   const { data: stats } = trpc.offerLeads.stats.useQuery();
   
-  // Reset pagination when search term, limit, or filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [offerLeadsSearchTerm, pageLimit, selectedOffer, sourceFilter, statusFilter, dateFilter]);
+  // Removed pagination reset effect
   
   // Count pending offerLeads (status = 'new')
   const pendingCount = useMemo(() => {
@@ -297,18 +300,7 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
                 className="pr-10 h-9 md:h-10"
               />
             </div>
-            <Select value={pageLimit.toString()} onValueChange={(val) => setPageLimit(Number(val))}>
-              <SelectTrigger className="w-full sm:w-[140px] h-9 md:h-10">
-                <SelectValue placeholder="عدد الصفوف" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="50">50 صف</SelectItem>
-                <SelectItem value="100">100 صف</SelectItem>
-                <SelectItem value="500">500 صف</SelectItem>
-                <SelectItem value="1000">1000 صف</SelectItem>
-                <SelectItem value="-1">الكل</SelectItem>
-              </SelectContent>
-            </Select>
+
             <Select value={selectedOffer} onValueChange={setSelectedOffer}>
               <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10">
                 <SelectValue placeholder="فلترة حسب العرض" />
@@ -573,16 +565,7 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
             </Table>
           </div>
 
-          {/* Pagination */}
-          {pageLimit !== -1 && offerLeadsData && offerLeadsData?.totalPages > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={offerLeadsData?.totalPages || 1}
-              totalItems={offerLeadsData?.total || 0}
-              itemsPerPage={pageLimit}
-              onPageChange={(page) => setCurrentPage(page)}
-            />
-          )}
+
         </CardContent>
       </Card>
 

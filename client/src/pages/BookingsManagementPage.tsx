@@ -6,6 +6,7 @@ import CampRegistrationsManagement from "@/components/CampRegistrationsManagemen
 import ManualRegistrationForm from "@/components/ManualRegistrationForm";
 import LeadCard from "@/components/LeadCard";
 import AppointmentCard from "@/components/AppointmentCard";
+import { DateRangePicker } from "@/components/DateRangePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,6 +97,14 @@ export default function BookingsManagementPage() {
   const [leadsDateFilter, setLeadsDateFilter] = useState("all");
   const [activeTab, setActiveTab] = useState<"leads" | "appointments" | "offerLeads" | "campRegistrations">("leads");
   
+  // Date Range State - Default to last 7 days
+  const [dateRange, setDateRange] = useState(() => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - 7);
+    return { from, to };
+  });
+  
   // Handle query parameters for direct navigation from notifications
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -128,8 +137,7 @@ export default function BookingsManagementPage() {
   const [manualRegistrationOpen, setManualRegistrationOpen] = useState(false);
 
   // State variables - define first
-  const [appointmentsPage, setAppointmentsPage] = useState(1);
-  const [appointmentsLimit, setAppointmentsLimit] = useState(20);
+  // Removed pagination - using date range instead
   const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
@@ -149,13 +157,14 @@ export default function BookingsManagementPage() {
   const { data: unifiedLeads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.list.useQuery();
   const { data: stats } = trpc.leads.stats.useQuery();
   const { data: appointmentsData, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.listPaginated.useQuery({
-    page: appointmentsPage,
-    limit: appointmentsLimit,
+    page: 1,
+    limit: 10000, // Get all records within date range
     searchTerm: appointmentSearchTerm,
     doctorId: selectedDoctor !== "all" ? parseInt(selectedDoctor) : undefined,
     source: appointmentSourceFilter !== "all" ? appointmentSourceFilter : undefined,
     status: appointmentStatusFilter !== "all" ? appointmentStatusFilter : undefined,
-    dateFilter: dateFilter as "all" | "today" | "week" | "month",
+    dateFrom: dateRange.from.toISOString(),
+    dateTo: dateRange.to.toISOString(),
   });
   const appointments = appointmentsData?.data || [];
   const { data: doctors = [] } = trpc.doctors.list.useQuery();
@@ -321,16 +330,21 @@ export default function BookingsManagementPage() {
     >
       <div className="container mx-auto py-6 space-y-6" dir="rtl">
         {/* Quick Actions */}
-        <div className="flex justify-end gap-2">
-          <Button
-            onClick={() => setLocation('/dashboard/camp-stats')}
-            variant="outline"
-            className="gap-2"
-            size="sm"
-          >
-            <BarChart3 className="h-4 w-4" />
-            إحصائيات المخيمات
-          </Button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setLocation('/dashboard/camp-stats')}
+              variant="outline"
+              className="gap-2"
+              size="sm"
+            >
+              <BarChart3 className="h-4 w-4" />
+              إحصائيات المخيمات
+            </Button>
           <Button
             onClick={() => setManualRegistrationOpen(true)}
             className="gap-2"
@@ -339,6 +353,7 @@ export default function BookingsManagementPage() {
             <Plus className="h-4 w-4" />
             تسجيل يدوي
           </Button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -935,11 +950,17 @@ export default function BookingsManagementPage() {
         )}
 
         {activeTab === "offerLeads" && (
-          <OfferLeadsManagement onPendingCountChange={setOfferLeadsPendingCount} />
+          <OfferLeadsManagement 
+            onPendingCountChange={setOfferLeadsPendingCount} 
+            dateRange={dateRange}
+          />
         )}
 
         {activeTab === "campRegistrations" && (
-          <CampRegistrationsManagement onPendingCountChange={setCampRegistrationsPendingCount} />
+          <CampRegistrationsManagement 
+            onPendingCountChange={setCampRegistrationsPendingCount}
+            dateRange={dateRange}
+          />
         )}
 
         {/* Update Lead Status Dialog */}

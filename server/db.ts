@@ -406,7 +406,9 @@ export async function getAppointmentsPaginated(
   doctorId?: number,
   source?: string,
   status?: string,
-  dateFilter?: "all" | "today" | "week" | "month"
+  dateFilter?: "all" | "today" | "week" | "month",
+  dateFrom?: string,
+  dateTo?: string
 ) {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
@@ -443,8 +445,20 @@ export async function getAppointmentsPaginated(
     whereConditions.push(eq(appointments.status, status as any));
   }
   
-  // Filter by date
-  if (dateFilter && dateFilter !== "all") {
+  // Filter by date range (custom dateFrom/dateTo takes priority)
+  if (dateFrom && dateTo) {
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+    // Set to end of day for 'to' date
+    to.setHours(23, 59, 59, 999);
+    whereConditions.push(
+      and(
+        sql`${appointments.createdAt} >= ${from.toISOString()}`,
+        sql`${appointments.createdAt} <= ${to.toISOString()}`
+      )
+    );
+  } else if (dateFilter && dateFilter !== "all") {
+    // Fallback to old dateFilter logic
     const now = new Date();
     let startDate: Date;
     
@@ -859,7 +873,9 @@ export async function getOfferLeadsPaginated(
   offerId?: number,
   source?: string,
   status?: string,
-  dateFilter?: "all" | "today" | "week" | "month"
+  dateFilter?: "all" | "today" | "week" | "month",
+  dateFrom?: string,
+  dateTo?: string
 ) {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
@@ -899,8 +915,20 @@ export async function getOfferLeadsPaginated(
     whereConditions.push(eq(offerLeads.status, status as any));
   }
   
-  // Filter by date
-  if (dateFilter && dateFilter !== "all") {
+  // Filter by date range (custom dateFrom/dateTo takes priority)
+  if (dateFrom && dateTo) {
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+    // Set to end of day for 'to' date
+    to.setHours(23, 59, 59, 999);
+    whereConditions.push(
+      and(
+        sql`${offerLeads.createdAt} >= ${from.toISOString()}`,
+        sql`${offerLeads.createdAt} <= ${to.toISOString()}`
+      )
+    );
+  } else if (dateFilter && dateFilter !== "all") {
+    // Fallback to old dateFilter logic
     const now = new Date();
     let startDate: Date;
     
@@ -983,7 +1011,9 @@ export async function getCampRegistrationsPaginated(
   campId?: number,
   source?: string,
   status?: string,
-  dateFilter?: "all" | "today" | "week" | "month"
+  dateFilter?: "all" | "today" | "week" | "month",
+  dateFrom?: string,
+  dateTo?: string
 ) {
   const db = await getDb();
   if (!db) return { data: [], total: 0, page, limit, totalPages: 0 };
@@ -1023,8 +1053,20 @@ export async function getCampRegistrationsPaginated(
     whereConditions.push(eq(campRegistrations.status, status as any));
   }
   
-  // Filter by date
-  if (dateFilter && dateFilter !== "all") {
+  // Filter by date range (custom dateFrom/dateTo takes priority)
+  if (dateFrom && dateTo) {
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+    // Set to end of day for 'to' date
+    to.setHours(23, 59, 59, 999);
+    whereConditions.push(
+      and(
+        sql`${campRegistrations.createdAt} >= ${from.toISOString()}`,
+        sql`${campRegistrations.createdAt} <= ${to.toISOString()}`
+      )
+    );
+  } else if (dateFilter && dateFilter !== "all") {
+    // Fallback to old dateFilter logic
     const now = new Date();
     let startDate: Date;
     

@@ -467,12 +467,14 @@ export const appRouter = router({
     listPaginated: protectedProcedure
       .input(z.object({
         page: z.number().min(1).default(1),
-        limit: z.number().min(1).max(100).default(20),
+        limit: z.number().min(1).max(100000).default(20),
         searchTerm: z.string().optional(),
         doctorId: z.number().optional(),
         source: z.string().optional(),
         status: z.string().optional(),
         dateFilter: z.enum(["all", "today", "week", "month"]).optional(),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
       }))
       .query(async ({ input }) => {
         const { getAppointmentsPaginated } = await import('./db');
@@ -483,7 +485,9 @@ export const appRouter = router({
           input.doctorId,
           input.source,
           input.status,
-          input.dateFilter
+          input.dateFilter,
+          input.dateFrom,
+          input.dateTo
         );
       }),
 

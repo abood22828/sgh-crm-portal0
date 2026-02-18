@@ -2317,3 +2317,33 @@
 - [ ] إضافة عمود "رقم السند" في جدول حجوزات العروض مع إمكانية البحث
 - [ ] إضافة عمود "رقم السند" في جدول مواعيد الأطباء مع إمكانية البحث
 - [ ] اختبار جميع الإصلاحات والتأكد من عملها بشكل صحيح
+
+### إصلاح مشكلة WWW وتحسين نظام عرض الجداول 🔄 جاري العمل
+- [ ] إصلاح مشكلة SSL عند إضافة www قبل النطاق (ERR_SSL_VERSION_OR_CIPHER_MISMATCH)
+  - [ ] التحقق من إعدادات النطاق في لوحة التحكم
+  - [ ] إضافة دعم www subdomain في إعدادات DNS/SSL
+- [ ] إزالة نظام Pagination من جميع الجداول
+  - [ ] إزالة pagination من CampRegistrationsManagement
+  - [ ] إزالة pagination من OfferLeadsManagement
+  - [ ] إزالة pagination من BookingsManagementPage (appointments)
+- [ ] إضافة نظام Date Range Filter
+  - [ ] إضافة Date Range Picker component
+  - [ ] عرض تلقائي لآخر 7 أيام عند فتح الصفحة
+  - [ ] إضافة الفلتر في أعلى صفحة إدارة التسجيلات بجانب زر "إحصائيات المخيمات"
+  - [ ] تطبيق Date Range على جميع الجداول (مواعيد، عروض، مخيمات)
+- [ ] تحديث Backend procedures لدعم date range filtering
+  - [ ] تحديث campRegistrations.listPaginated
+  - [ ] تحديث offerLeads.listPaginated
+  - [ ] تحديث appointments.listPaginated
+- [ ] اختبار النظام الجديد والتأكد من عمله بشكل صحيح
+
+### إصلاح مشكلة WWW وتحسين نظام العرض ✅ مكتمل
+- [x] إصلاح مشكلة WWW في النطاق (يتطلب إعدادات من لوحة التحكم - تم التوضيح للمستخدم)
+- [x] إزالة نظام Pagination من جميع الجداول (appointments, offerLeads, campRegistrations)
+- [x] إضافة DateRangePicker component
+- [x] إضافة Date Range Picker في أعلى صفحة إدارة التسجيلات
+- [x] تطبيق عرض تلقائي لآخر 7 أيام في جميع الجداول
+- [x] تحديث Backend لدعم dateFrom و dateTo في جميع الـ routers
+- [x] تحديث getAppointmentsPaginated لدعم date range
+- [x] تحديث getOfferLeadsPaginated لدعم date range
+- [x] تحديث getCampRegistrationsPaginated لدعم date range
