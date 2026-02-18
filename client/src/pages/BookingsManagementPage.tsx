@@ -129,7 +129,7 @@ export default function BookingsManagementPage() {
 
   // State variables - define first
   const [appointmentsPage, setAppointmentsPage] = useState(1);
-  const [appointmentsLimit, setAppointmentsLimit] = useState(-1); // -1 means show all
+  const [appointmentsLimit, setAppointmentsLimit] = useState(20);
   const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
@@ -820,6 +820,7 @@ export default function BookingsManagementPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>رقم السند</TableHead>
                         <TableHead>اسم المريض</TableHead>
                         <TableHead>الهاتف</TableHead>
                         <TableHead>الطبيب</TableHead>
@@ -849,6 +850,9 @@ export default function BookingsManagementPage() {
                             key={`appointment-${appointment.id}`}
                             className={appointment.status === 'pending' ? 'bg-red-50 hover:bg-red-100' : ''}
                           >
+                            <TableCell className="text-sm text-muted-foreground font-mono">
+                              {appointment.receiptNumber || "-"}
+                            </TableCell>
                             <TableCell className="font-medium">{appointment.patientName}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">

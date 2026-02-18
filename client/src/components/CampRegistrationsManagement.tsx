@@ -144,15 +144,8 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
     },
   });
 
-  // Get unique camps for filter
-  const uniqueCamps = useMemo(() => {
-    if (!registrations) return [];
-    const camps = registrations
-      .filter((reg: any) => reg.campName)
-      .map((reg: any) => ({ id: reg.campId, name: reg.campName }));
-    const unique = Array.from(new Map(camps.map((c: any) => [c.id, c])).values());
-    return unique;
-  }, [registrations]);
+  // Get all camps for filter from database
+  const { data: allCamps } = trpc.camps.getAll.useQuery();
 
   // No need for client-side filtering anymore - server handles it
   const filteredRegistrations = registrations;
@@ -320,7 +313,7 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">جميع المخيمات</SelectItem>
-                {uniqueCamps.map((camp: any) => (
+                {allCamps?.map((camp: any) => (
                   <SelectItem key={camp.id} value={camp.id.toString()}>
                     {camp.name}
                   </SelectItem>
@@ -459,6 +452,7 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                       onCheckedChange={handleSelectAll}
                     />
                   </TableHead>
+                  <TableHead className="text-right">رقم السند</TableHead>
                   <TableHead className="text-right">الاسم الكامل</TableHead>
                   <TableHead className="text-right">رقم الهاتف</TableHead>
                   <TableHead className="text-right">البريد الإلكتروني</TableHead>
@@ -485,6 +479,9 @@ export default function CampRegistrationsManagement({ onPendingCountChange }: { 
                           checked={selectedIds.includes(reg.id)}
                           onCheckedChange={() => handleSelectOne(reg.id)}
                         />
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground font-mono">
+                        {reg.receiptNumber || "-"}
                       </TableCell>
                       <TableCell className="font-medium">{reg.fullName}</TableCell>
                       <TableCell>

@@ -434,6 +434,7 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
                       className="rounded border-gray-300"
                     />
                   </TableHead>
+                  <TableHead className="text-right">رقم السند</TableHead>
                   <TableHead className="text-right">الاسم الكامل</TableHead>
                   <TableHead className="text-right">رقم الهاتف</TableHead>
                   <TableHead className="text-right">البريد الإلكتروني</TableHead>
@@ -467,6 +468,9 @@ export default function OfferLeadsManagement({ onPendingCountChange }: { onPendi
                           }}
                           className="rounded border-gray-300"
                         />
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground font-mono">
+                        {lead.receiptNumber || "-"}
                       </TableCell>
                       <TableCell className="font-medium">{lead.fullName}</TableCell>
                       <TableCell>
