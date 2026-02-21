@@ -13,6 +13,7 @@ import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
 import CommentsSection from "@/components/CommentsSection";
 import CommentCount from "@/components/CommentCount";
+import TasksSection from "@/components/TasksSection";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1308,6 +1309,14 @@ export default function BookingsManagementPage() {
                 {/* Comments Section */}
                 <div className="border-t pt-4">
                   <CommentsSection
+                    entityType="appointment"
+                    entityId={selectedAppointment.id}
+                  />
+                </div>
+                
+                {/* Tasks Section */}
+                <div className="space-y-4">
+                  <TasksSection
                     entityType="appointment"
                     entityId={selectedAppointment.id}
                   />

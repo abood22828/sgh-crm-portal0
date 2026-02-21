@@ -9,6 +9,7 @@ import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
 import CommentsSection from "@/components/CommentsSection";
 import CommentCount from "@/components/CommentCount";
+import TasksSection from "@/components/TasksSection";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -865,12 +866,22 @@ export default function CampRegistrationsManagement({
 
             {/* Comments Section */}
             {selectedRegistration && (
-              <div className="border-t pt-4">
-                <CommentsSection
-                  entityType="campRegistration"
-                  entityId={selectedRegistration.id}
-                />
-              </div>
+              <>
+                <div className="border-t pt-4">
+                  <CommentsSection
+                    entityType="campRegistration"
+                    entityId={selectedRegistration.id}
+                  />
+                </div>
+                
+                {/* Tasks Section */}
+                <div className="space-y-4">
+                  <TasksSection
+                    entityType="campRegistration"
+                    entityId={selectedRegistration.id}
+                  />
+                </div>
+              </>
             )}
 
             <div className="flex gap-2 justify-end">

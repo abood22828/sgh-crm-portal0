@@ -2394,3 +2394,10 @@
 - [x] دمج CommentsSection في OfferLeadsManagement
 - [x] دمج CommentsSection في CampRegistrationsManagement
 - [x] إضافة عداد التعليقات في الجداول الرئيسية - ✅ مكتمل (CommentCount component)
+
+### نظام المهام والمتابعة ✅ مكتمل
+- [x] إنشاء جدول followUpTasks في قاعدة البيانات
+- [x] إضافة tRPC procedures للمهام (CRUD) - followUpTasksRouter
+- [x] إنشاء مكون TasksSection لعرض وإدارة المهام
+- [x] دمج TasksSection في جميع الجداول (المواعيد، العروض، المخيمات)
+- [ ] إضافة عداد المهام في الجداول الرئيسية - مؤجل (اختياري)

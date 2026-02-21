@@ -704,3 +704,43 @@ export const comments = mysqlTable("comments", {
 
 export type Comment = typeof comments.$inferSelect;
 export type InsertComment = typeof comments.$inferInsert;
+
+/**
+ * Follow-up Tasks table - stores follow-up tasks for various entities
+ * جدول مهام المتابعة - يخزن مهام المتابعة للسجلات المختلفة
+ */
+export const followUpTasks = mysqlTable("followUpTasks", {
+  id: int("id").autoincrement().primaryKey(),
+  // Entity type and ID (polymorphic relationship)
+  entityType: mysqlEnum("entityType", ["appointment", "lead", "offerLead", "campRegistration"]).notNull(),
+  entityId: int("entityId").notNull(),
+  // Task details
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  // Status and priority
+  status: mysqlEnum("status", ["pending", "in_progress", "completed", "cancelled"]).default("pending").notNull(),
+  priority: mysqlEnum("priority", ["low", "medium", "high"]).default("medium").notNull(),
+  // Due date
+  dueDate: timestamp("dueDate"),
+  // Assignment
+  assignedToId: int("assignedToId"),
+  assignedToName: varchar("assignedToName", { length: 255 }),
+  // Creator
+  createdById: int("createdById").notNull(),
+  createdByName: varchar("createdByName", { length: 255 }).notNull(),
+  // Completion
+  completedAt: timestamp("completedAt"),
+  completedById: int("completedById"),
+  completedByName: varchar("completedByName", { length: 255 }),
+  // Metadata
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  entityIdx: index("tasks_entity_idx").on(table.entityType, table.entityId),
+  statusIdx: index("tasks_status_idx").on(table.status),
+  dueDateIdx: index("tasks_dueDate_idx").on(table.dueDate),
+  assignedToIdx: index("tasks_assignedTo_idx").on(table.assignedToId),
+}));
+
+export type FollowUpTask = typeof followUpTasks.$inferSelect;
+export type InsertFollowUpTask = typeof followUpTasks.$inferInsert;
