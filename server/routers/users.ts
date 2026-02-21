@@ -27,6 +27,20 @@ const adminOnlyProcedure = protectedProcedure.use(({ ctx, next }) => {
 });
 
 export const usersRouter = router({
+  // Get active users list (for task assignment)
+  getActiveUsers: protectedProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+    
+    const activeUsers = await db.select({
+      id: users.id,
+      name: users.name,
+      username: users.username,
+    }).from(users).where(eq(users.isActive, "yes"));
+    
+    return activeUsers;
+  }),
+
   // Get all users (admin only)
   getAll: adminOnlyProcedure.query(async () => {
     const db = await getDb();
