@@ -679,3 +679,28 @@ export const messageTemplates = mysqlTable("message_templates", {
 
 export type MessageTemplate = typeof messageTemplates.$inferSelect;
 export type InsertMessageTemplate = typeof messageTemplates.$inferInsert;
+
+/**
+ * Comments table - stores comments on various entities (appointments, leads, etc.)
+ * يخزن التعليقات على مختلف السجلات
+ */
+export const comments = mysqlTable("comments", {
+  id: int("id").autoincrement().primaryKey(),
+  // Entity type and ID (polymorphic relationship)
+  entityType: mysqlEnum("entityType", ["appointment", "lead", "offerLead", "campRegistration"]).notNull(),
+  entityId: int("entityId").notNull(),
+  // Comment content
+  content: text("content").notNull(),
+  // Author
+  userId: int("userId").notNull(),
+  userName: varchar("userName", { length: 255 }).notNull(),
+  // Metadata
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  entityIdx: index("comments_entity_idx").on(table.entityType, table.entityId),
+  createdAtIdx: index("comments_createdAt_idx").on(table.createdAt),
+}));
+
+export type Comment = typeof comments.$inferSelect;
+export type InsertComment = typeof comments.$inferInsert;

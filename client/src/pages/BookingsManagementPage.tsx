@@ -11,6 +11,7 @@ import EmptyState from "@/components/EmptyState";
 import TableSkeleton from "@/components/TableSkeleton";
 import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
+import CommentsSection from "@/components/CommentsSection";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1295,6 +1296,15 @@ export default function BookingsManagementPage() {
                     rows={3}
                   />
                 </div>
+                
+                {/* Comments Section */}
+                <div className="border-t pt-4">
+                  <CommentsSection
+                    entityType="appointment"
+                    entityId={selectedAppointment.id}
+                  />
+                </div>
+                
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"

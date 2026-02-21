@@ -45,6 +45,7 @@ import { tasksRouter } from "./routers/tasks";
 import { whatsappRouter } from "./routers/whatsapp";
 import { messageSettingsRouter } from "./routers/messageSettings";
 import { webhooksRouter } from "./routers/webhooks";
+import { commentsRouter } from "./routers/comments";
 
 import { sendNewLeadNotification, sendNewAppointmentEmail } from "./email";
 import { trackLead, trackCompleteRegistration } from "./facebookConversion";
@@ -685,5 +686,8 @@ export const appRouter = router({
       return result;
     }),
   }),
+
+  // Comments system
+  comments: commentsRouter,
 });
 export type AppRouter = typeof appRouter;

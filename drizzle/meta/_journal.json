@@ -183,6 +183,13 @@
       "when": 1771271044685,
       "tag": "0025_cynical_blue_shield",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1771647880424,
+      "tag": "0026_worthless_squadron_supreme",
+      "breakpoints": true
     }
   ]
 }
