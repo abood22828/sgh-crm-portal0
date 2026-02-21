@@ -37,8 +37,12 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [dueDate, setDueDate] = useState("");
+  const [assignedToId, setAssignedToId] = useState<number | undefined>();
 
   const utils = trpc.useUtils();
+
+  // Fetch active users for assignment
+  const { data: users = [] } = trpc.users.getActiveUsers.useQuery();
 
   // Fetch tasks
   const { data: tasks = [], isLoading } = trpc.followUpTasks.getByEntity.useQuery({
@@ -57,6 +61,7 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
       setDescription("");
       setPriority("medium");
       setDueDate("");
+      setAssignedToId(undefined);
     },
     onError: (error) => {
       toast.error("فشل إنشاء المهمة: " + error.message);
@@ -93,6 +98,8 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
       return;
     }
 
+    const assignedUser = users.find(u => u.id === assignedToId);
+
     createTaskMutation.mutate({
       entityType,
       entityId,
@@ -100,6 +107,8 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
       description,
       priority,
       dueDate: dueDate || undefined,
+      assignedToId,
+      assignedToName: assignedUser ? (assignedUser.name || assignedUser.username) : undefined,
     });
   };
 
@@ -224,6 +233,22 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">تعيين لـ</label>
+                <Select value={assignedToId?.toString()} onValueChange={(value) => setAssignedToId(value ? parseInt(value) : undefined)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر مستخدم (اختياري)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">بدون تعيين</SelectItem>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        {user.name || user.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -297,6 +322,11 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
                           addSuffix: true,
                           locale: ar,
                         })}
+                      </Badge>
+                    )}
+                    {task.assignedToName && (
+                      <Badge variant="outline" className="text-xs">
+                        معين لـ: {task.assignedToName}
                       </Badge>
                     )}
                     <span className="text-xs text-muted-foreground">
