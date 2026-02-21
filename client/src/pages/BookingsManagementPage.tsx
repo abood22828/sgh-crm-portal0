@@ -65,6 +65,7 @@ import {
   BarChart3,
   Printer,
   CalendarOff,
+  CheckSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport, formatAppointmentsForExport } from "@/lib/exportToExcel";
@@ -112,7 +113,7 @@ export default function BookingsManagementPage() {
   const [newStatus, setNewStatus] = useState("");
   const [statusNotes, setStatusNotes] = useState("");
   const [leadsDateFilter, setLeadsDateFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState<"leads" | "appointments" | "offerLeads" | "campRegistrations">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "appointments" | "offerLeads" | "campRegistrations" | "tasks">("leads");
   
   // Date Range State - Default to last 7 days
   const [dateRange, setDateRange] = useState(() => {
@@ -522,6 +523,14 @@ export default function BookingsManagementPage() {
                 {pendingCounts.campRegistrations}
               </Badge>
             )}
+          </Button>
+          <Button
+            variant={activeTab === "tasks" ? "default" : "outline"}
+            onClick={() => setActiveTab("tasks")}
+            className="flex-shrink-0 gap-2"
+          >
+            <CheckSquare className="h-4 w-4" />
+            المهام
           </Button>
         </div>
 
@@ -1157,6 +1166,28 @@ export default function BookingsManagementPage() {
             onPendingCountChange={setCampRegistrationsPendingCount}
             dateRange={dateRange}
           />
+        )}
+
+        {activeTab === "tasks" && (
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckSquare className="h-5 w-5" />
+                  جميع المهام
+                </CardTitle>
+                <CardDescription>
+                  عرض وإدارة جميع المهام من كل الأقسام
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TasksSection 
+                  entityType="all"
+                  entityId={0}
+                />
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* Update Lead Status Dialog */}

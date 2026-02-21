@@ -27,8 +27,8 @@ import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
 interface TasksSectionProps {
-  entityType: "appointment" | "lead" | "offerLead" | "campRegistration";
-  entityId: number;
+  entityType: "appointment" | "lead" | "offerLead" | "campRegistration" | "all";
+  entityId?: number;
 }
 
 export default function TasksSection({ entityType, entityId }: TasksSectionProps) {
@@ -50,16 +50,28 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
   const { data: users = [] } = trpc.users.getActiveUsers.useQuery();
 
   // Fetch tasks
-  const { data: tasks = [], isLoading } = trpc.followUpTasks.getByEntity.useQuery({
-    entityType,
-    entityId,
+  const { data: tasks = [], isLoading } = trpc.followUpTasks.getByEntity.useQuery(
+    entityType === "all" 
+      ? { entityType: "appointment", entityId: 0 } // Dummy query, will be replaced with getAll
+      : { entityType, entityId: entityId! },
+    { enabled: entityType !== "all" }
+  );
+
+  // Fetch all tasks when entityType is "all"
+  const { data: allTasks = [] } = trpc.followUpTasks.getAll.useQuery(undefined, {
+    enabled: entityType === "all"
   });
+
+  const displayTasks = entityType === "all" ? allTasks : tasks;
 
   // Create task mutation
   const createTaskMutation = trpc.followUpTasks.create.useMutation({
     onSuccess: () => {
-      utils.followUpTasks.getByEntity.invalidate({ entityType, entityId });
-      utils.followUpTasks.getCount.invalidate({ entityType, entityId });
+      if (entityType !== "all") {
+        utils.followUpTasks.getByEntity.invalidate({ entityType, entityId: entityId! });
+        utils.followUpTasks.getCount.invalidate({ entityType, entityId: entityId! });
+      }
+      utils.followUpTasks.getAll.invalidate();
       toast.success("تم إنشاء المهمة بنجاح");
       setIsDialogOpen(false);
       setTitle("");
@@ -76,8 +88,11 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
   // Update status mutation
   const updateStatusMutation = trpc.followUpTasks.updateStatus.useMutation({
     onSuccess: () => {
-      utils.followUpTasks.getByEntity.invalidate({ entityType, entityId });
-      utils.followUpTasks.getCount.invalidate({ entityType, entityId });
+      if (entityType !== "all") {
+        utils.followUpTasks.getByEntity.invalidate({ entityType, entityId: entityId! });
+        utils.followUpTasks.getCount.invalidate({ entityType, entityId: entityId! });
+      }
+      utils.followUpTasks.getAll.invalidate();
       toast.success("تم تحديث حالة المهمة");
     },
     onError: (error) => {
@@ -88,8 +103,11 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
   // Delete task mutation
   const deleteTaskMutation = trpc.followUpTasks.delete.useMutation({
     onSuccess: () => {
-      utils.followUpTasks.getByEntity.invalidate({ entityType, entityId });
-      utils.followUpTasks.getCount.invalidate({ entityType, entityId });
+      if (entityType !== "all") {
+        utils.followUpTasks.getByEntity.invalidate({ entityType, entityId: entityId! });
+        utils.followUpTasks.getCount.invalidate({ entityType, entityId: entityId! });
+      }
+      utils.followUpTasks.getAll.invalidate();
       toast.success("تم حذف المهمة");
     },
     onError: (error) => {
@@ -105,9 +123,14 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
 
     const assignedUser = users.find(u => u.id === assignedToId);
 
+    if (entityType === "all") {
+      toast.error("لا يمكن إضافة مهمة من قسم جميع المهام. يرجى فتح السجل المحدد لإضافة مهمة.");
+      return;
+    }
+
     createTaskMutation.mutate({
       entityType,
-      entityId,
+      entityId: entityId!,
       title,
       description,
       priority,
@@ -180,7 +203,7 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
   }
 
   // Filter tasks
-  const filteredTasks = tasks.filter((task) => {
+  const filteredTasks = displayTasks.filter((task) => {
     // Filter by assigned user
     if (filterAssignedTo !== "all") {
       if (filterAssignedTo === "unassigned" && task.assignedToId !== null) return false;
