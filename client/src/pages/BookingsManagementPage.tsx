@@ -164,6 +164,10 @@ export default function BookingsManagementPage() {
   const [leadsSourceFilter, setLeadsSourceFilter] = useState("all");
   const [offerLeadsPendingCount, setOfferLeadsPendingCount] = useState(0);
   const [campRegistrationsPendingCount, setCampRegistrationsPendingCount] = useState(0);
+  
+  // Sorting state
+  const [appointmentSortField, setAppointmentSortField] = useState<'date' | 'name' | 'status' | null>(null);
+  const [appointmentSortDirection, setAppointmentSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Data queries
   const { data: unifiedLeads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.list.useQuery();
@@ -280,8 +284,41 @@ export default function BookingsManagementPage() {
     return filtered;
   }, [unifiedLeads, searchTerm, leadsDateFilter, leadsStatusFilter, leadsSourceFilter]);
 
-  // No need for client-side filtering anymore - server handles it
-  const filteredAppointments = appointments;
+  // Apply sorting to appointments
+  const filteredAppointments = useMemo(() => {
+    if (!appointments) return [];
+    
+    let sorted = [...appointments];
+    
+    if (appointmentSortField) {
+      sorted.sort((a: any, b: any) => {
+        let aValue, bValue;
+        
+        switch (appointmentSortField) {
+          case 'date':
+            aValue = new Date(a.appointmentDate).getTime();
+            bValue = new Date(b.appointmentDate).getTime();
+            break;
+          case 'name':
+            aValue = a.patientName.toLowerCase();
+            bValue = b.patientName.toLowerCase();
+            break;
+          case 'status':
+            aValue = a.status;
+            bValue = b.status;
+            break;
+          default:
+            return 0;
+        }
+        
+        if (aValue < bValue) return appointmentSortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return appointmentSortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return sorted;
+  }, [appointments, appointmentSortField, appointmentSortDirection]);
 
   const appointmentStats = useMemo(() => {
     if (!appointments) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
@@ -842,13 +879,64 @@ export default function BookingsManagementPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>رقم السند</TableHead>
-                        <TableHead>اسم المريض</TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50 select-none"
+                          onClick={() => {
+                            if (appointmentSortField === 'name') {
+                              setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
+                            } else {
+                              setAppointmentSortField('name');
+                              setAppointmentSortDirection('asc');
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-1">
+                            اسم المريض
+                            {appointmentSortField === 'name' && (
+                              <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </TableHead>
                         <TableHead>الهاتف</TableHead>
                         <TableHead>الطبيب</TableHead>
                         <TableHead>التخصص</TableHead>
-                        <TableHead>موعد الحجز</TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50 select-none"
+                          onClick={() => {
+                            if (appointmentSortField === 'date') {
+                              setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
+                            } else {
+                              setAppointmentSortField('date');
+                              setAppointmentSortDirection('desc'); // Default to newest first
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-1">
+                            موعد الحجز
+                            {appointmentSortField === 'date' && (
+                              <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </TableHead>
                         <TableHead>المصدر</TableHead>
-                        <TableHead>الحالة</TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50 select-none"
+                          onClick={() => {
+                            if (appointmentSortField === 'status') {
+                              setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
+                            } else {
+                              setAppointmentSortField('status');
+                              setAppointmentSortDirection('asc');
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-1">
+                            الحالة
+                            {appointmentSortField === 'status' && (
+                              <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </TableHead>
                         <TableHead>الإجراءات</TableHead>
                       </TableRow>
                     </TableHeader>

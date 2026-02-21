@@ -106,6 +106,10 @@ export default function CampRegistrationsManagement({
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
   // Removed pagination - using date range instead
   const [campRegistrationsSearchTerm, setCampRegistrationsSearchTerm] = useState("");
+  
+  // Sorting state
+  const [sortField, setSortField] = useState<'date' | 'name' | 'status' | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const { data: registrationsData, isLoading, refetch } = trpc.campRegistrations.listPaginated.useQuery({
     page: 1,
@@ -162,8 +166,41 @@ export default function CampRegistrationsManagement({
   // Get all camps for filter from database
   const { data: allCamps } = trpc.camps.getAll.useQuery();
 
-  // No need for client-side filtering anymore - server handles it
-  const filteredRegistrations = registrations;
+  // Apply sorting to camp registrations
+  const filteredRegistrations = useMemo(() => {
+    if (!registrations) return [];
+    
+    let sorted = [...registrations];
+    
+    if (sortField) {
+      sorted.sort((a: any, b: any) => {
+        let aValue, bValue;
+        
+        switch (sortField) {
+          case 'date':
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
+            break;
+          case 'name':
+            aValue = a.fullName.toLowerCase();
+            bValue = b.fullName.toLowerCase();
+            break;
+          case 'status':
+            aValue = a.status;
+            bValue = b.status;
+            break;
+          default:
+            return 0;
+        }
+        
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return sorted;
+  }, [registrations, sortField, sortDirection]);
 
   const handleSelectAll = () => {
     if (selectedIds.length === filteredRegistrations.length) {
@@ -447,14 +484,65 @@ export default function CampRegistrationsManagement({
                     />
                   </TableHead>
                   <TableHead className="text-right">رقم السند</TableHead>
-                  <TableHead className="text-right">الاسم الكامل</TableHead>
+                  <TableHead 
+                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => {
+                      if (sortField === 'name') {
+                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                      } else {
+                        setSortField('name');
+                        setSortDirection('asc');
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-1 justify-end">
+                      الاسم الكامل
+                      {sortField === 'name' && (
+                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
+                  </TableHead>
                   <TableHead className="text-right">رقم الهاتف</TableHead>
                   <TableHead className="text-right">البريد الإلكتروني</TableHead>
                   <TableHead className="text-right">العمر</TableHead>
                   <TableHead className="text-right">المخيم</TableHead>
                   <TableHead className="text-right">المصدر</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right">تاريخ التسجيل</TableHead>
+                  <TableHead 
+                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => {
+                      if (sortField === 'status') {
+                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                      } else {
+                        setSortField('status');
+                        setSortDirection('asc');
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-1 justify-end">
+                      الحالة
+                      {sortField === 'status' && (
+                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => {
+                      if (sortField === 'date') {
+                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                      } else {
+                        setSortField('date');
+                        setSortDirection('desc'); // Default to newest first
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-1 justify-end">
+                      تاريخ التسجيل
+                      {sortField === 'date' && (
+                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
+                  </TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>

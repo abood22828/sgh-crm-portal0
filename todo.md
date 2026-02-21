@@ -2367,7 +2367,11 @@
 - [x] 6. إضافة Inline Editing للحالات - InlineStatusEditor component
 - [x] 7. تحسين واجهة الإجراءات الجماعية (Bulk Actions UI) - موجود مسبقاً (BulkActionsBar)
 - [x] 8. إضافة Quick Filters - QuickFilters component مع عدادات الحالات
-- [ ] 9. إضافة Column Sorting - مؤجل
+- [x] 9. إضافة Column Sorting - ✅ مكتمل
+  - [x] إضافة sorting للتاريخ في جميع الجداول
+  - [x] إضافة sorting للاسم في جميع الجداول
+  - [x] إضافة sorting للحالة في جميع الجداول
+  - [x] إضافة أيقونات السهم (↑↓) للإشارة لاتجاه الترتيب
 
 ### المرحلة 3: تحسينات الأداء
 - [ ] 10. إضافة Virtual Scrolling
