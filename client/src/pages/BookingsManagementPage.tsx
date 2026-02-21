@@ -83,7 +83,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport, formatAppointmentsForExport } from "@/lib/exportToExcel";
-import { exportData, type ExportMetadata } from "@/lib/advancedExport";
+import { exportData, printTable, type ExportMetadata } from "@/lib/advancedExport";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -607,6 +607,91 @@ export default function BookingsManagementPage() {
     }
   };
 
+  const handlePrintAppointments = () => {
+    if (!filteredAppointments || filteredAppointments.length === 0) {
+      toast.error("لا توجد بيانات للطباعة");
+      return;
+    }
+
+    try {
+      // تحضير الفلاتر المستخدمة
+      const activeFilters: Record<string, string> = {};
+      if (debouncedAppointmentSearch) {
+        activeFilters['البحث'] = debouncedAppointmentSearch;
+      }
+      if (appointmentStatusFilter.length > 0) {
+        activeFilters['الحالة'] = appointmentStatusFilter.map(s => statusLabels[s as keyof typeof statusLabels]).join(', ');
+      }
+      if (appointmentSourceFilter.length > 0) {
+        activeFilters['المصدر'] = appointmentSourceFilter.map(s => SOURCE_LABELS[s] || s).join(', ');
+      }
+      if (selectedDoctor.length > 0) {
+        const doctorNames = selectedDoctor.map(id => {
+          const doctor = doctors.find(d => d.id.toString() === id);
+          return doctor ? doctor.name : id;
+        }).join(', ');
+        activeFilters['الطبيب'] = doctorNames;
+      }
+
+      // تحضير نطاق التاريخ
+      const dateRangeStr = `${dateRange.from.toLocaleDateString('ar-SA')} - ${dateRange.to.toLocaleDateString('ar-SA')}`;
+
+      // تحضير تعريفات الأعمدة
+      const columnDefinitions = [
+        { key: 'date', label: 'التاريخ' },
+        { key: 'name', label: 'اسم المريض' },
+        { key: 'phone', label: 'الهاتف' },
+        { key: 'doctor', label: 'الطبيب' },
+        { key: 'specialty', label: 'التخصص' },
+        { key: 'source', label: 'المصدر' },
+        { key: 'receiptNumber', label: 'رقم السند' },
+        { key: 'status', label: 'الحالة' },
+      ];
+
+      // تحويل البيانات للطباعة
+      const dataToExport = filteredAppointments.map((appointment: any) => ({
+        date: new Date(appointment.appointmentDate).toLocaleDateString('ar-SA'),
+        name: appointment.name,
+        phone: appointment.phone,
+        doctor: appointment.doctorName || '-',
+        specialty: appointment.specialty || '-',
+        source: SOURCE_LABELS[appointment.source] || appointment.source || '-',
+        receiptNumber: appointment.receiptNumber || '-',
+        status: statusLabels[appointment.status as keyof typeof statusLabels] || appointment.status,
+      }));
+
+      // تحضير metadata
+      const metadata: ExportMetadata = {
+        tableName: 'مواعيد الأطباء',
+        dateRange: dateRangeStr,
+        filters: Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
+        totalRecords: dataToExport.length,
+        exportedRecords: dataToExport.length,
+        exportDate: new Date().toLocaleString('ar-SA'),
+        exportedBy: user?.name || 'مستخدم',
+      };
+
+      // تحضير الأعمدة المرئية
+      const visibleCols = Object.entries(appointmentVisibleColumns)
+        .filter(([_, visible]) => visible)
+        .map(([key]) => {
+          const col = columnDefinitions.find(c => c.key === key);
+          return { key, label: col?.label || key };
+        });
+
+      // استدعاء دالة الطباعة
+      printTable({
+        format: 'pdf', // لا يستخدم في الطباعة
+        metadata,
+        columns: visibleCols,
+        data: dataToExport,
+      });
+    } catch (error) {
+      console.error('Print error:', error);
+      toast.error('حدث خطأ أثناء الطباعة');
+    }
+  };
+
   return (
     <DashboardLayout
       pageTitle="إدارة الحجوزات"
@@ -1053,6 +1138,15 @@ export default function BookingsManagementPage() {
                       placeholder="كل المصادر"
                       className="h-9"
                     />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrintAppointments}
+                      className="gap-2 h-9"
+                    >
+                      <Printer className="h-4 w-4" />
+                      <span className="hidden sm:inline">طباعة</span>
+                    </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button

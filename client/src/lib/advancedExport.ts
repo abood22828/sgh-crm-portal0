@@ -183,6 +183,267 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
 }
 
 /**
+ * طباعة الجدول مع ترويسة وذييل احترافية وترقيم الصفحات
+ */
+export function printTable(options: ExportOptions): void {
+  const { metadata, columns, data } = options;
+
+  // إنشاء نافذة طباعة جديدة
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    toast.error('فشل فتح نافذة الطباعة. يرجى السماح بالنوافذ المنبثقة.');
+    return;
+  }
+
+  // بناء عنوان الفلاتر
+  let filterText = '';
+  if (metadata.dateRange) {
+    filterText += `خلال الفترة من ${metadata.dateRange}`;
+  }
+  if (metadata.filters && Object.keys(metadata.filters).length > 0) {
+    const filtersStr = Object.entries(metadata.filters)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(' - ');
+    if (filterText) {
+      filterText += ' - ' + filtersStr;
+    } else {
+      filterText = filtersStr;
+    }
+  }
+
+  // HTML للطباعة
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>طباعة ${metadata.tableName}</title>
+      <style>
+        @page {
+          size: A4;
+          margin: 20mm 15mm;
+        }
+
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Arial', 'Tahoma', sans-serif;
+          direction: rtl;
+          text-align: right;
+          font-size: 11pt;
+          line-height: 1.4;
+          color: #000;
+        }
+
+        /* ترويسة الصفحة */
+        .page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-bottom: 15px;
+          border-bottom: 2px solid #0066cc;
+          margin-bottom: 20px;
+        }
+
+        .header-right {
+          flex: 1;
+        }
+
+        .header-right img {
+          height: 60px;
+          width: auto;
+        }
+
+        .header-left {
+          flex: 1;
+          text-align: left;
+          font-size: 10pt;
+          color: #333;
+        }
+
+        .header-left p {
+          margin: 3px 0;
+        }
+
+        /* عنوان التقرير */
+        .report-title {
+          text-align: center;
+          margin: 20px 0;
+        }
+
+        .report-title h1 {
+          font-size: 18pt;
+          font-weight: bold;
+          color: #0066cc;
+          margin-bottom: 8px;
+        }
+
+        .report-title p {
+          font-size: 11pt;
+          color: #555;
+        }
+
+        /* الجدول */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 20px 0;
+          font-size: 10pt;
+        }
+
+        thead {
+          background-color: #0066cc;
+          color: white;
+        }
+
+        th, td {
+          border: 1px solid #ddd;
+          padding: 8px 10px;
+          text-align: right;
+        }
+
+        th {
+          font-weight: bold;
+        }
+
+        tbody tr:nth-child(even) {
+          background-color: #f9f9f9;
+        }
+
+        tbody tr:hover {
+          background-color: #f0f0f0;
+        }
+
+        /* ذييل الصفحة */
+        .page-footer {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 50px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 15mm;
+          border-top: 1px solid #ddd;
+          background-color: white;
+          font-size: 9pt;
+          color: #666;
+        }
+
+        .footer-left {
+          text-align: left;
+        }
+
+        .footer-center {
+          text-align: center;
+          font-weight: bold;
+          color: #0066cc;
+        }
+
+        .footer-right {
+          text-align: right;
+        }
+
+        /* ترقيم الصفحات */
+        .page-number:after {
+          counter-increment: page;
+          content: "صفحة " counter(page);
+        }
+
+        @media print {
+          .page-footer {
+            position: fixed;
+            bottom: 0;
+          }
+
+          body {
+            margin-bottom: 60px;
+          }
+
+          thead {
+            display: table-header-group;
+          }
+
+          tr {
+            page-break-inside: avoid;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <!-- ترويسة الصفحة -->
+      <div class="page-header">
+        <div class="header-right">
+          <img src="/sgh-logo-full.png" alt="المستشفى السعودي الألماني">
+        </div>
+        <div class="header-left">
+          <p><strong>الرقم المجاني:</strong> 8000018</p>
+          <p><strong>البريد الإلكتروني:</strong> info@sghsanaa.net</p>
+        </div>
+      </div>
+
+      <!-- عنوان التقرير -->
+      <div class="report-title">
+        <h1>تسجيلات ${metadata.tableName}</h1>
+        ${filterText ? `<p>${filterText}</p>` : ''}
+      </div>
+
+      <!-- الجدول -->
+      <table>
+        <thead>
+          <tr>
+            ${columns.map(col => `<th>${col.label}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map(row => `
+            <tr>
+              ${columns.map(col => `<td>${row[col.key] || ''}</td>`).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <!-- ذييل الصفحة -->
+      <div class="page-footer">
+        <div class="footer-left">
+          <p>وقت الطباعة: ${formatDateTime(new Date())}</p>
+        </div>
+        <div class="footer-center">
+          <p>نرعاكم كأهالينا</p>
+        </div>
+        <div class="footer-right">
+          <p>المستخدم: ${metadata.exportedBy}</p>
+          <p class="page-number"></p>
+        </div>
+      </div>
+
+      <script>
+        // طباعة تلقائية عند تحميل الصفحة
+        window.onload = function() {
+          window.print();
+          // إغلاق النافذة بعد الطباعة (اختياري)
+          // window.onafterprint = function() { window.close(); };
+        };
+      </script>
+    </body>
+    </html>
+  `;
+
+  // كتابة المحتوى في نافذة الطباعة
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
+
+  toast.success('تم فتح نافذة الطباعة');
+}
+
+/**
  * دالة التصدير الرئيسية
  */
 export async function exportData(options: ExportOptions): Promise<void> {

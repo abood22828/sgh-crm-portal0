@@ -73,7 +73,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { exportToExcel, formatOfferLeadsForExport } from "@/lib/exportToExcel";
-import { exportData, type ExportMetadata } from "@/lib/advancedExport";
+import { exportData, printTable, type ExportMetadata } from "@/lib/advancedExport";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
@@ -278,6 +278,88 @@ export default function OfferLeadsManagement({
     } catch (error) {
       console.error('Export error:', error);
       toast.error('حدث خطأ أثناء التصدير');
+    }
+  };
+
+  // دالة الطباعة
+  const handlePrintOfferLeads = () => {
+    if (!filteredLeads || filteredLeads.length === 0) {
+      toast.error("لا توجد بيانات للطباعة");
+      return;
+    }
+
+    try {
+      // تحضير الفلاتر المستخدمة
+      const activeFilters: Record<string, string> = {};
+      if (debouncedSearch) {
+        activeFilters['البحث'] = debouncedSearch;
+      }
+      if (statusFilter.length > 0) {
+        activeFilters['الحالة'] = statusFilter.map(s => statusLabels[s as keyof typeof statusLabels]).join(', ');
+      }
+      if (sourceFilter.length > 0) {
+        activeFilters['المصدر'] = sourceFilter.map(s => SOURCE_LABELS[s] || s).join(', ');
+      }
+      if (selectedOffer.length > 0) {
+        activeFilters['العرض'] = selectedOffer.join(', ');
+      }
+
+      // تحضير نطاق التاريخ
+      const dateRangeStr = `${dateRange.from.toLocaleDateString('ar-SA')} - ${dateRange.to.toLocaleDateString('ar-SA')}`;
+
+      // تحضير تعريفات الأعمدة
+      const columnDefinitions = [
+        { key: 'receiptNumber', label: 'رقم السند' },
+        { key: 'name', label: 'الاسم الكامل' },
+        { key: 'phone', label: 'رقم الهاتف' },
+        { key: 'email', label: 'البريد الإلكتروني' },
+        { key: 'offer', label: 'العرض' },
+        { key: 'source', label: 'المصدر' },
+        { key: 'status', label: 'الحالة' },
+        { key: 'date', label: 'تاريخ التسجيل' },
+      ];
+
+      // تحويل البيانات للطباعة
+      const dataToExport = filteredLeads.map((lead: any) => ({
+        receiptNumber: lead.receiptNumber || '-',
+        name: lead.fullName,
+        phone: lead.phone,
+        email: lead.email || '-',
+        offer: lead.offerTitle || '-',
+        source: SOURCE_LABELS[lead.source] || lead.source || '-',
+        status: statusLabels[lead.status as keyof typeof statusLabels] || lead.status,
+        date: new Date(lead.createdAt).toLocaleDateString('ar-SA'),
+      }));
+
+      // تحضير metadata
+      const metadata: ExportMetadata = {
+        tableName: 'حجوزات العروض',
+        dateRange: dateRangeStr,
+        filters: Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
+        totalRecords: dataToExport.length,
+        exportedRecords: dataToExport.length,
+        exportDate: new Date().toLocaleString('ar-SA'),
+        exportedBy: user?.name || 'مستخدم',
+      };
+
+      // تحضير الأعمدة المرئية
+      const visibleCols = Object.entries(offerLeadVisibleColumns)
+        .filter(([_, visible]) => visible)
+        .map(([key]) => {
+          const col = columnDefinitions.find(c => c.key === key);
+          return { key, label: col?.label || key };
+        });
+
+      // استدعاء دالة الطباعة
+      printTable({
+        format: 'pdf',
+        metadata,
+        columns: visibleCols,
+        data: dataToExport,
+      });
+    } catch (error) {
+      console.error('Print error:', error);
+      toast.error('حدث خطأ أثناء الطباعة');
     }
   };
   
@@ -531,6 +613,13 @@ export default function OfferLeadsManagement({
                 onVisibilityChange={handleOfferLeadColumnVisibilityChange}
                 onReset={handleOfferLeadColumnsReset}
               />
+              <Button
+                variant="outline"
+                onClick={handlePrintOfferLeads}
+              >
+                <Printer className="h-4 w-4 ml-2" />
+                طباعة
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
