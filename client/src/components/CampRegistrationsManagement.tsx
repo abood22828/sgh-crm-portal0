@@ -71,7 +71,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { exportToExcel, formatCampRegistrationsForExport } from "@/lib/exportToExcel";
-import { advancedExport, prepareExportData } from "@/lib/advancedExport";
+import { exportData, type ExportMetadata } from "@/lib/advancedExport";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
@@ -237,7 +237,7 @@ export default function CampRegistrationsManagement({
       ];
 
       // تحويل البيانات للتصدير
-      const exportData = filteredRegistrations.map((reg: any) => ({
+      const dataToExport = filteredRegistrations.map((reg: any) => ({
         receiptNumber: reg.receiptNumber || '-',
         name: reg.fullName,
         phone: reg.phone,
@@ -249,22 +249,31 @@ export default function CampRegistrationsManagement({
         date: new Date(reg.createdAt).toLocaleDateString('ar-SA'),
       }));
 
-      // تحضير بيانات التصدير
-      const exportOptions = prepareExportData(
-        exportData,
-        exportData,
-        campRegVisibleColumns,
-        columnDefinitions,
-        'تسجيلات المخيمات',
-        dateRangeStr,
-        Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
-        user?.name || 'مستخدم'
-      );
+      // تحضير metadata
+      const metadata: ExportMetadata = {
+        tableName: 'تسجيلات المخيمات',
+        dateRange: dateRangeStr,
+        filters: Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
+        totalRecords: dataToExport.length,
+        exportedRecords: dataToExport.length,
+        exportDate: new Date().toLocaleString('ar-SA'),
+        exportedBy: user?.name || 'مستخدم',
+      };
+
+      // تحضير الأعمدة المرئية
+      const visibleCols = Object.entries(campRegVisibleColumns)
+        .filter(([_, visible]) => visible)
+        .map(([key]) => {
+          const col = columnDefinitions.find(c => c.key === key);
+          return { key, label: col?.label || key };
+        });
 
       // تصدير بالتنسيق المحدد
-      await advancedExport({
-        ...exportOptions,
+      await exportData({
         format,
+        metadata,
+        columns: visibleCols,
+        data: dataToExport,
         filename: `تسجيلات_المخيمات_${Date.now()}.${format === 'excel' ? 'xlsx' : format}`,
       });
 
