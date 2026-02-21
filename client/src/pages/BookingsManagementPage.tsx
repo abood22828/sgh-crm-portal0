@@ -79,7 +79,7 @@ import { printReceipt } from "@/components/PrintReceipt";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
-import { SOURCE_OPTIONS, SOURCE_LABELS } from "@shared/sources";
+import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 
 const statusLabels = {
   new: "جديد",
@@ -757,7 +757,21 @@ export default function BookingsManagementPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              {lead.source ? SOURCE_LABELS[lead.source] || lead.source : '-'}
+                              {lead.source ? (
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs font-medium"
+                                  style={{
+                                    backgroundColor: SOURCE_COLORS[lead.source] ? `${SOURCE_COLORS[lead.source]}15` : undefined,
+                                    borderColor: SOURCE_COLORS[lead.source] || undefined,
+                                    color: SOURCE_COLORS[lead.source] || undefined,
+                                  }}
+                                >
+                                  {SOURCE_LABELS[lead.source] || lead.source}
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
                             </TableCell>
                             <TableCell>
                               <Badge className={statusColors[lead.status as keyof typeof statusColors]}>
@@ -1079,7 +1093,21 @@ export default function BookingsManagementPage() {
                             <TableCell>{appointment.doctorSpecialty || '-'}</TableCell>
                             {/* المصدر */}
                             <TableCell>
-                              {appointment.source ? SOURCE_LABELS[appointment.source] || appointment.source : '-'}
+                              {appointment.source ? (
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs font-medium"
+                                  style={{
+                                    backgroundColor: SOURCE_COLORS[appointment.source] ? `${SOURCE_COLORS[appointment.source]}15` : undefined,
+                                    borderColor: SOURCE_COLORS[appointment.source] || undefined,
+                                    color: SOURCE_COLORS[appointment.source] || undefined,
+                                  }}
+                                >
+                                  {SOURCE_LABELS[appointment.source] || appointment.source}
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
                             </TableCell>
                             {/* رقم السند */}
                             <TableCell className="text-sm text-muted-foreground font-mono">

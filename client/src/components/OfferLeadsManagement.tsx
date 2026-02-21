@@ -67,7 +67,7 @@ import { toast } from "sonner";
 import { exportToExcel, formatOfferLeadsForExport } from "@/lib/exportToExcel";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { SOURCE_OPTIONS } from "@shared/sources";
+import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 import OfferLeadCard from "@/components/OfferLeadCard";
 import CardSkeleton from "@/components/CardSkeleton";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
@@ -656,9 +656,21 @@ export default function OfferLeadsManagement({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {lead.source === 'web' ? 'موقع' : lead.source === 'phone' ? 'هاتف' : lead.source === 'manual' ? 'يدوي' : lead.source || 'غير محدد'}
-                        </Badge>
+                        {lead.source ? (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs font-medium"
+                            style={{
+                              backgroundColor: SOURCE_COLORS[lead.source] ? `${SOURCE_COLORS[lead.source]}15` : undefined,
+                              borderColor: SOURCE_COLORS[lead.source] || undefined,
+                              color: SOURCE_COLORS[lead.source] || undefined,
+                            }}
+                          >
+                            {SOURCE_LABELS[lead.source] || lead.source}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">غير محدد</Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <InlineStatusEditor

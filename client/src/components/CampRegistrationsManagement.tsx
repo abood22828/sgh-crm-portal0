@@ -65,7 +65,7 @@ import { toast } from "sonner";
 import { exportToExcel, formatCampRegistrationsForExport } from "@/lib/exportToExcel";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { SOURCE_OPTIONS } from "@shared/sources";
+import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 import { useState as useReactState } from "react";
 import CampRegistrationCard from "@/components/CampRegistrationCard";
 import CardSkeleton from "@/components/CardSkeleton";
@@ -674,9 +674,21 @@ export default function CampRegistrationsManagement({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {reg.source === 'web' ? 'موقع' : reg.source === 'phone' ? 'هاتف' : reg.source === 'manual' ? 'يدوي' : reg.source || 'غير محدد'}
-                        </Badge>
+                        {reg.source ? (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs font-medium"
+                            style={{
+                              backgroundColor: SOURCE_COLORS[reg.source] ? `${SOURCE_COLORS[reg.source]}15` : undefined,
+                              borderColor: SOURCE_COLORS[reg.source] || undefined,
+                              color: SOURCE_COLORS[reg.source] || undefined,
+                            }}
+                          >
+                            {SOURCE_LABELS[reg.source] || reg.source}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">غير محدد</Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <InlineStatusEditor
@@ -978,7 +990,17 @@ export default function CampRegistrationsManagement({
                 {selectedRegistration.source && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">المصدر</p>
-                    <p className="text-base">{selectedRegistration.source === 'website' ? 'الموقع' : selectedRegistration.source === 'phone' ? 'هاتف' : 'يدوي'}</p>
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs font-medium mt-1"
+                      style={{
+                        backgroundColor: SOURCE_COLORS[selectedRegistration.source] ? `${SOURCE_COLORS[selectedRegistration.source]}15` : undefined,
+                        borderColor: SOURCE_COLORS[selectedRegistration.source] || undefined,
+                        color: SOURCE_COLORS[selectedRegistration.source] || undefined,
+                      }}
+                    >
+                      {SOURCE_LABELS[selectedRegistration.source] || selectedRegistration.source}
+                    </Badge>
                   </div>
                 )}
                 <div>
