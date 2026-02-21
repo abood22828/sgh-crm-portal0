@@ -2412,7 +2412,7 @@
 ### المرحلة 5 - التفاصيل 🔄 جاري العمل
 
 #### تحسينات تجربة الموبايل (Mobile UX)
-- [x] تحسين navigation للموبايل (hamburger menu) - MobileNav component
+- [ ] تحسين navigation للموبايل (hamburger menu) - ملغى
 - [x] تحسين card views في الجداول للشاشات الصغيرة - موجود مسبقاً
 - [ ] إضافة bottom navigation للموبايل - مؤجل (اختياري)
 - [x] تحسين dialogs للشاشات الصغيرة (full screen على الموبايل) - ResponsiveDialog
