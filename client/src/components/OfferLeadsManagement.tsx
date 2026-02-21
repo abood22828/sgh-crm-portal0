@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
 import MultiSelect from "@/components/MultiSelect";
+import { ColumnVisibility, type ColumnConfig } from "@/components/ColumnVisibility";
 import TableSkeleton from "@/components/TableSkeleton";
 import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
@@ -115,6 +116,49 @@ export default function OfferLeadsManagement({
   // Sorting state
   const [sortField, setSortField] = useState<'date' | 'name' | 'phone' | 'email' | 'offer' | 'source' | 'receiptNumber' | 'status' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // Column visibility state for OfferLeads
+  const offerLeadColumns: ColumnConfig[] = [
+    { key: 'checkbox', label: 'تحديد', defaultVisible: true },
+    { key: 'receiptNumber', label: 'رقم السند', defaultVisible: true },
+    { key: 'name', label: 'الاسم الكامل', defaultVisible: true },
+    { key: 'phone', label: 'رقم الهاتف', defaultVisible: true },
+    { key: 'email', label: 'البريد الإلكتروني', defaultVisible: true },
+    { key: 'offer', label: 'العرض', defaultVisible: true },
+    { key: 'source', label: 'المصدر', defaultVisible: true },
+    { key: 'status', label: 'الحالة', defaultVisible: true },
+    { key: 'date', label: 'تاريخ التسجيل', defaultVisible: true },
+    { key: 'comments', label: 'التعليقات', defaultVisible: true },
+    { key: 'tasks', label: 'المهام', defaultVisible: true },
+    { key: 'actions', label: 'الإجراءات', defaultVisible: true },
+  ];
+
+  const [offerLeadVisibleColumns, setOfferLeadVisibleColumns] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('offerLeadVisibleColumns');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    const defaultVisible: Record<string, boolean> = {};
+    offerLeadColumns.forEach(col => {
+      defaultVisible[col.key] = col.defaultVisible;
+    });
+    return defaultVisible;
+  });
+
+  const handleOfferLeadColumnVisibilityChange = (columnKey: string, visible: boolean) => {
+    const updated = { ...offerLeadVisibleColumns, [columnKey]: visible };
+    setOfferLeadVisibleColumns(updated);
+    localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(updated));
+  };
+
+  const handleOfferLeadColumnsReset = () => {
+    const defaultVisible: Record<string, boolean> = {};
+    offerLeadColumns.forEach(col => {
+      defaultVisible[col.key] = col.defaultVisible;
+    });
+    setOfferLeadVisibleColumns(defaultVisible);
+    localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(defaultVisible));
+  };
   
   // Debounced search for better performance
   const debouncedSearch = useDebounce(offerLeadsSearchTerm, 500);
@@ -389,6 +433,12 @@ export default function OfferLeadsManagement({
                   تحديث الحالة ({selectedIds.length})
                 </Button>
               )}
+              <ColumnVisibility
+                columns={offerLeadColumns}
+                visibleColumns={offerLeadVisibleColumns}
+                onVisibilityChange={handleOfferLeadColumnVisibilityChange}
+                onReset={handleOfferLeadColumnsReset}
+              />
               <Button
                 variant="outline"
                 onClick={() => {
@@ -514,23 +564,26 @@ export default function OfferLeadsManagement({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.length === filteredLeads.length && filteredLeads.length > 0}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedIds(filteredLeads.map(lead => lead.id));
-                        } else {
-                          setSelectedIds([]);
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
+                  {offerLeadVisibleColumns['checkbox'] && (
+                    <TableHead className="w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.length === filteredLeads.length && filteredLeads.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedIds(filteredLeads.map(lead => lead.id));
+                          } else {
+                            setSelectedIds([]);
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                    </TableHead>
+                  )}
+                  {offerLeadVisibleColumns['receiptNumber'] && (
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => {
                       if (sortField === 'receiptNumber') {
                         setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
                       } else {
@@ -539,142 +592,163 @@ export default function OfferLeadsManagement({
                       }
                     }}
                   >
-                    <div className="flex items-center gap-1 justify-end">
-                      رقم السند
-                      {sortField === 'receiptNumber' && (
-                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'name') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('name');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-1 justify-end">
-                      الاسم الكامل
-                      {sortField === 'name' && (
-                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'phone') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('phone');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-1 justify-end">
-                      رقم الهاتف
-                      {sortField === 'phone' && (
-                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'email') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('email');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-1 justify-end">
-                      البريد الإلكتروني
-                      {sortField === 'email' && (
-                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'offer') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('offer');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-1 justify-end">
-                      العرض
-                      {sortField === 'offer' && (
-                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'source') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('source');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-1 justify-end">
-                      المصدر
-                      {sortField === 'source' && (
-                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'status') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('status');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-1 justify-end">
-                      الحالة
-                      {sortField === 'status' && (
-                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'date') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('date');
-                        setSortDirection('desc'); // Default to newest first
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-1 justify-end">
-                      تاريخ التسجيل
-                      {sortField === 'date' && (
-                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-right">التعليقات</TableHead>
-                  <TableHead className="text-right">المهام</TableHead>
-                  <TableHead className="text-right">الإجراءات</TableHead>
+                      <div className="flex items-center gap-1 justify-end">
+                        رقم السند
+                        {sortField === 'receiptNumber' && (
+                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
+                  {offerLeadVisibleColumns['name'] && (
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => {
+                        if (sortField === 'name') {
+                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                        } else {
+                          setSortField('name');
+                          setSortDirection('asc');
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-1 justify-end">
+                        الاسم الكامل
+                        {sortField === 'name' && (
+                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
+                  {offerLeadVisibleColumns['phone'] && (
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => {
+                        if (sortField === 'phone') {
+                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                        } else {
+                          setSortField('phone');
+                          setSortDirection('asc');
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-1 justify-end">
+                        رقم الهاتف
+                        {sortField === 'phone' && (
+                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
+                  {offerLeadVisibleColumns['email'] && (
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => {
+                        if (sortField === 'email') {
+                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                        } else {
+                          setSortField('email');
+                          setSortDirection('asc');
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-1 justify-end">
+                        البريد الإلكتروني
+                        {sortField === 'email' && (
+                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
+                  {offerLeadVisibleColumns['offer'] && (
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => {
+                        if (sortField === 'offer') {
+                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                        } else {
+                          setSortField('offer');
+                          setSortDirection('asc');
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-1 justify-end">
+                        العرض
+                        {sortField === 'offer' && (
+                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
+                  {offerLeadVisibleColumns['source'] && (
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => {
+                        if (sortField === 'source') {
+                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                        } else {
+                          setSortField('source');
+                          setSortDirection('asc');
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-1 justify-end">
+                        المصدر
+                        {sortField === 'source' && (
+                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
+                  {offerLeadVisibleColumns['status'] && (
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => {
+                        if (sortField === 'status') {
+                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                        } else {
+                          setSortField('status');
+                          setSortDirection('asc');
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-1 justify-end">
+                        الحالة
+                        {sortField === 'status' && (
+                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
+                  {offerLeadVisibleColumns['date'] && (
+                    <TableHead
+                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => {
+                        if (sortField === 'date') {
+                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                        } else {
+                          setSortField('date');
+                          setSortDirection('desc'); // Default to newest first
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-1 justify-end">
+                        تاريخ التسجيل
+                        {sortField === 'date' && (
+                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
+                  {offerLeadVisibleColumns['comments'] && (
+                    <TableHead className="text-right">التعليقات</TableHead>
+                  )}
+                  {offerLeadVisibleColumns['tasks'] && (
+                    <TableHead className="text-right">المهام</TableHead>
+                  )}
+                  {offerLeadVisibleColumns['actions'] && (
+                    <TableHead className="text-right">الإجراءات</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -697,106 +771,129 @@ export default function OfferLeadsManagement({
                 ) : (
                   filteredLeads.map((lead: any) => (
                     <TableRow key={lead.id} className={lead.status === 'new' ? 'bg-red-50 hover:bg-red-100' : ''}>
-                      <TableCell>
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.includes(lead.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedIds([...selectedIds, lead.id]);
-                            } else {
-                              setSelectedIds(selectedIds.filter(id => id !== lead.id));
-                            }
-                          }}
-                          className="rounded border-gray-300"
-                        />
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground font-mono">
-                        {lead.receiptNumber || "-"}
-                      </TableCell>
-                      <TableCell className="font-medium">{lead.fullName}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono">{lead.phone}</span>
-                          <ActionButtons
-                            phoneNumber={lead.phone}
-                            showWhatsApp={true}
-                            whatsAppMessage={`مرحباً ${lead.fullName}، شكراً لاهتمامك بعرضنا الطبي. نود التواصل معك لتأكيد حجزك.`}
-                            size="sm"
-                            variant="ghost"
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {lead.email ? (
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <a href={`mailto:${lead.email}`} className="hover:text-primary text-sm">
-                              {lead.email}
-                            </a>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Tag className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{lead.offerTitle || "غير محدد"}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {lead.source ? (
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs font-medium"
-                            style={{
-                              backgroundColor: SOURCE_COLORS[lead.source] ? `${SOURCE_COLORS[lead.source]}15` : undefined,
-                              borderColor: SOURCE_COLORS[lead.source] || undefined,
-                              color: SOURCE_COLORS[lead.source] || undefined,
+                      {offerLeadVisibleColumns['checkbox'] && (
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(lead.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedIds([...selectedIds, lead.id]);
+                              } else {
+                                setSelectedIds(selectedIds.filter(id => id !== lead.id));
+                              }
                             }}
-                          >
-                            {SOURCE_LABELS[lead.source] || lead.source}
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-xs">غير محدد</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <InlineStatusEditor
-                          currentStatus={lead.status}
-                          statusOptions={[
-                            { value: 'new', label: 'جديد', color: 'bg-blue-500' },
-                            { value: 'contacted', label: 'تم التواصل', color: 'bg-yellow-500' },
-                            { value: 'booked', label: 'تم الحجز', color: 'bg-green-500' },
-                            { value: 'not_interested', label: 'غير مهتم', color: 'bg-red-500' },
-                            { value: 'no_answer', label: 'لم يرد', color: 'bg-gray-500' },
-                          ]}
-                          onSave={async (newStatus) => {
-                            await updateStatusMutation.mutateAsync({
-                              id: lead.id,
-                              status: newStatus as any,
-                              notes: '',
-                            });
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(lead.createdAt).toLocaleDateString("ar-SA")}
-                      </TableCell>
-                      <TableCell>
-                        <CommentCount
-                          entityType="offerLead"
-                          entityId={lead.id}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <TaskCount
-                          entityType="offerLead"
-                          entityId={lead.id}
-                        />
-                      </TableCell>
-                      <TableCell>
+                            className="rounded border-gray-300"
+                          />
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['receiptNumber'] && (
+                        <TableCell className="text-sm text-muted-foreground font-mono">
+                          {lead.receiptNumber || "-"}
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['name'] && (
+                        <TableCell className="font-medium">{lead.fullName}</TableCell>
+                      )}
+                      {offerLeadVisibleColumns['phone'] && (
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono">{lead.phone}</span>
+                            <ActionButtons
+                              phoneNumber={lead.phone}
+                              showWhatsApp={true}
+                              whatsAppMessage={`مرحباً ${lead.fullName}، شكراً لاهتمامك بعرضنا الطبي. نود التواصل معك لتأكيد حجزك.`}
+                              size="sm"
+                              variant="ghost"
+                            />
+                          </div>
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['email'] && (
+                        <TableCell>
+                          {lead.email ? (
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-muted-foreground" />
+                              <a href={`mailto:${lead.email}`} className="hover:text-primary text-sm">
+                                {lead.email}
+                              </a>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['offer'] && (
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Tag className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{lead.offerTitle || "غير محدد"}</span>
+                          </div>
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['source'] && (
+                        <TableCell>
+                          {lead.source ? (
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs font-medium"
+                              style={{
+                                backgroundColor: SOURCE_COLORS[lead.source] ? `${SOURCE_COLORS[lead.source]}15` : undefined,
+                                borderColor: SOURCE_COLORS[lead.source] || undefined,
+                                color: SOURCE_COLORS[lead.source] || undefined,
+                              }}
+                            >
+                              {SOURCE_LABELS[lead.source] || lead.source}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">غير محدد</Badge>
+                          )}
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['status'] && (
+                        <TableCell>
+                          <InlineStatusEditor
+                            currentStatus={lead.status}
+                            statusOptions={[
+                              { value: 'new', label: 'جديد', color: 'bg-blue-500' },
+                              { value: 'contacted', label: 'تم التواصل', color: 'bg-yellow-500' },
+                              { value: 'booked', label: 'تم الحجز', color: 'bg-green-500' },
+                              { value: 'not_interested', label: 'غير مهتم', color: 'bg-red-500' },
+                              { value: 'no_answer', label: 'لم يرد', color: 'bg-gray-500' },
+                            ]}
+                            onSave={async (newStatus) => {
+                              await updateStatusMutation.mutateAsync({
+                                id: lead.id,
+                                status: newStatus as any,
+                                notes: '',
+                              });
+                            }}
+                          />
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['date'] && (
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(lead.createdAt).toLocaleDateString("ar-SA")}
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['comments'] && (
+                        <TableCell>
+                          <CommentCount
+                            entityType="offerLead"
+                            entityId={lead.id}
+                          />
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['tasks'] && (
+                        <TableCell>
+                          <TaskCount
+                            entityType="offerLead"
+                            entityId={lead.id}
+                          />
+                        </TableCell>
+                      )}
+                      {offerLeadVisibleColumns['actions'] && (
+                        <TableCell>
                         <div className="flex gap-1">
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -849,7 +946,8 @@ export default function OfferLeadsManagement({
                             </TooltipContent>
                           </Tooltip>
                         </div>
-                      </TableCell>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}

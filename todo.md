@@ -2575,3 +2575,11 @@
 - [ ] تطبيق في جدول تسجيلات المخيمات
 - [ ] إضافة زر "إعادة تعيين" لاستعادة الأعمدة الافتراضية
 - [ ] إخفاء/إظهار الأعمدة ديناميكياً في headers و rows
+
+### ميزة اختيار الأعمدة المعروضة (Column Visibility) ✅ مكتمل
+- [x] إنشاء ColumnVisibility component قابل لإعادة الاستخدام
+- [x] تطبيق Column Visibility على جدول مواعيد الأطباء (BookingsManagementPage) - 11 عمود
+- [x] تطبيق Column Visibility على جدول حجوزات العروض (OfferLeadsManagement) - 8 أعمدة
+- [x] تطبيق Column Visibility على جدول تسجيلات المخيمات (CampRegistrationsManagement) - 13 عمود
+- [x] حفظ تفضيلات المستخدم في localStorage
+- [x] إضافة زر إعادة تعيين للأعمدة الافتراضية
