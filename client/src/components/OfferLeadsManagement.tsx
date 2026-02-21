@@ -9,6 +9,7 @@ import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
 import CommentsSection from "@/components/CommentsSection";
 import CommentCount from "@/components/CommentCount";
+import TaskCount from "@/components/TaskCount";
 import TasksSection from "@/components/TasksSection";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -581,6 +582,7 @@ export default function OfferLeadsManagement({
                     </div>
                   </TableHead>
                   <TableHead className="text-right">التعليقات</TableHead>
+                  <TableHead className="text-right">المهام</TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -681,6 +683,12 @@ export default function OfferLeadsManagement({
                       </TableCell>
                       <TableCell>
                         <CommentCount
+                          entityType="offerLead"
+                          entityId={lead.id}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <TaskCount
                           entityType="offerLead"
                           entityId={lead.id}
                         />

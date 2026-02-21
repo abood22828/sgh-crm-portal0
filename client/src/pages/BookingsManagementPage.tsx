@@ -13,6 +13,7 @@ import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
 import CommentsSection from "@/components/CommentsSection";
 import CommentCount from "@/components/CommentCount";
+import TaskCount from "@/components/TaskCount";
 import TasksSection from "@/components/TasksSection";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { Button } from "@/components/ui/button";
@@ -1001,6 +1002,7 @@ export default function BookingsManagementPage() {
                           </div>
                         </TableHead>
                         <TableHead>التعليقات</TableHead>
+                        <TableHead>المهام</TableHead>
                         <TableHead>الإجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1074,6 +1076,12 @@ export default function BookingsManagementPage() {
                             </TableCell>
                             <TableCell>
                               <CommentCount
+                                entityType="appointment"
+                                entityId={appointment.id}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <TaskCount
                                 entityType="appointment"
                                 entityId={appointment.id}
                               />
