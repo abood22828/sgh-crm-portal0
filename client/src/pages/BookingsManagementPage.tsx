@@ -170,7 +170,7 @@ export default function BookingsManagementPage() {
   const [newAppointmentStatus, setNewAppointmentStatus] = useState("");
   const [appointmentStatusNotes, setAppointmentStatusNotes] = useState("");
   const [appointmentDate, setAppointmentDate] = useState("");
-  const [selectedDoctor, setSelectedDoctor] = useState("all");
+  const [selectedDoctor, setSelectedDoctor] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState("all");
   const [appointmentStatusFilter, setAppointmentStatusFilter] = useState("all");
   const [appointmentSourceFilter, setAppointmentSourceFilter] = useState<string[]>([]);
@@ -194,7 +194,6 @@ export default function BookingsManagementPage() {
     page: 1,
     limit: 10000, // Get all records within date range
     searchTerm: debouncedAppointmentSearch,
-    doctorId: selectedDoctor !== "all" ? parseInt(selectedDoctor) : undefined,
     status: appointmentStatusFilter !== "all" ? appointmentStatusFilter : undefined,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
@@ -250,7 +249,6 @@ export default function BookingsManagementPage() {
           page: 1,
           limit: 10000,
           searchTerm: debouncedAppointmentSearch,
-          doctorId: selectedDoctor !== "all" ? parseInt(selectedDoctor) : undefined,
           status: appointmentStatusFilter !== "all" ? appointmentStatusFilter : undefined,
           dateFrom: dateRange.from.toISOString(),
           dateTo: dateRange.to.toISOString(),
@@ -285,7 +283,6 @@ export default function BookingsManagementPage() {
             page: 1,
             limit: 10000,
             searchTerm: debouncedAppointmentSearch,
-            doctorId: selectedDoctor !== "all" ? parseInt(selectedDoctor) : undefined,
             status: appointmentStatusFilter !== "all" ? appointmentStatusFilter : undefined,
             dateFrom: dateRange.from.toISOString(),
             dateTo: dateRange.to.toISOString(),
@@ -360,6 +357,11 @@ export default function BookingsManagementPage() {
     
     let filtered = [...appointments];
     
+    // Filter by doctor (multiple selection)
+    if (selectedDoctor && selectedDoctor.length > 0) {
+      filtered = filtered.filter((appointment: any) => selectedDoctor.includes(appointment.doctorId?.toString()));
+    }
+    
     // Filter by source (multiple selection)
     if (appointmentSourceFilter && appointmentSourceFilter.length > 0) {
       filtered = filtered.filter((appointment: any) => appointmentSourceFilter.includes(appointment.source));
@@ -422,7 +424,7 @@ export default function BookingsManagementPage() {
     }
     
     return sorted;
-  }, [appointments, appointmentSourceFilter, appointmentSortField, appointmentSortDirection]);
+  }, [appointments, selectedDoctor, appointmentSourceFilter, appointmentSortField, appointmentSortDirection]);
 
   const appointmentStats = useMemo(() => {
     if (!appointments) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
@@ -897,19 +899,13 @@ export default function BookingsManagementPage() {
                         className="pr-10 h-9"
                       />
                     </div>
-                    <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="كل الأطباء" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">كل الأطباء</SelectItem>
-                        {doctors.map((doctor: any) => (
-                          <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                            {doctor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <MultiSelect
+                      options={doctors.map((doctor: any) => ({ value: doctor.id.toString(), label: doctor.name }))}
+                      selected={selectedDoctor}
+                      onChange={setSelectedDoctor}
+                      placeholder="كل الأطباء"
+                      className="h-9"
+                    />
                     <Select value={dateFilter} onValueChange={setDateFilter}>
                       <SelectTrigger className="h-9">
                         <SelectValue placeholder="كل الفترات" />

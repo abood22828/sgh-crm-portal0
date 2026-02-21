@@ -2549,3 +2549,11 @@
 - [x] تحديث filtering logic لدعم مصادر متعددة
 - [x] إزالة source من server-side queries (استخدام client-side filtering)
 - [x] عرض عدد المصادر المختارة في الزر
+
+### تحسين فلاتر المخيمات والعروض والأطباء - Multi-Select ✅ مكتمل
+- [x] تطبيق Multi-Select لفلتر المخيمات في CampRegistrationsManagement
+- [x] تطبيق Multi-Select لفلتر العروض في OfferLeadsManagement
+- [x] تطبيق Multi-Select لفلتر الأطباء في BookingsManagementPage
+- [x] تحديث filtering logic لدعم خيارات متعددة
+- [x] إزالة campId/offerId/doctorId من server-side queries
+- [x] استخدام client-side filtering لجميع الفلاتر

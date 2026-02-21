@@ -98,7 +98,7 @@ export default function CampRegistrationsManagement({
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.campRegistrations.generateReceiptNumber.useMutation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCamp, setSelectedCamp] = useState<string>("all");
+  const [selectedCamp, setSelectedCamp] = useState<string[]>([]);
   const [selectedRegistration, setSelectedRegistration] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -125,7 +125,6 @@ export default function CampRegistrationsManagement({
     page: 1,
     limit: 10000, // Get all records within date range
     searchTerm: debouncedSearch,
-    campId: selectedCamp !== "all" ? parseInt(selectedCamp) : undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
@@ -171,7 +170,6 @@ export default function CampRegistrationsManagement({
           page: 1,
           limit: 10000,
           searchTerm: debouncedSearch,
-          campId: selectedCamp !== "all" ? parseInt(selectedCamp) : undefined,
           status: statusFilter !== "all" ? statusFilter : undefined,
           dateFrom: dateRange.from.toISOString(),
           dateTo: dateRange.to.toISOString(),
@@ -204,7 +202,6 @@ export default function CampRegistrationsManagement({
             page: 1,
             limit: 10000,
             searchTerm: debouncedSearch,
-            campId: selectedCamp !== "all" ? parseInt(selectedCamp) : undefined,
             status: statusFilter !== "all" ? statusFilter : undefined,
             dateFrom: dateRange.from.toISOString(),
             dateTo: dateRange.to.toISOString(),
@@ -227,6 +224,11 @@ export default function CampRegistrationsManagement({
     if (!registrations) return [];
     
     let filtered = [...registrations];
+    
+    // Filter by camp (multiple selection)
+    if (selectedCamp && selectedCamp.length > 0) {
+      filtered = filtered.filter((registration: any) => selectedCamp.includes(registration.campId?.toString()));
+    }
     
     // Filter by source (multiple selection)
     if (sourceFilter && sourceFilter.length > 0) {
@@ -287,7 +289,7 @@ export default function CampRegistrationsManagement({
     }
     
     return sorted;
-  }, [registrations, sourceFilter, sortField, sortDirection]);
+  }, [registrations, selectedCamp, sourceFilter, sortField, sortDirection]);
 
   const handleSelectAll = () => {
     if (selectedIds.length === filteredRegistrations.length) {
@@ -429,19 +431,13 @@ export default function CampRegistrationsManagement({
               />
             </div>
 
-            <Select value={selectedCamp} onValueChange={setSelectedCamp}>
-              <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10">
-                <SelectValue placeholder="فلترة حسب المخيم" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع المخيمات</SelectItem>
-                {allCamps?.map((camp: any) => (
-                  <SelectItem key={camp.id} value={camp.id.toString()}>
-                    {camp.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MultiSelect
+              options={(allCamps || []).map((camp: any) => ({ value: camp.id.toString(), label: camp.name }))}
+              selected={selectedCamp}
+              onChange={setSelectedCamp}
+              placeholder="جميع المخيمات"
+              className="w-full sm:w-[180px] h-9 md:h-10"
+            />
             <Select value={dateFilter} onValueChange={setDateFilter}>
               <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
                 <SelectValue placeholder="كل الفترات" />

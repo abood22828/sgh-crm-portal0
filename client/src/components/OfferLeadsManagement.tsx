@@ -100,7 +100,7 @@ export default function OfferLeadsManagement({
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.offerLeads.generateReceiptNumber.useMutation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedOffer, setSelectedOffer] = useState<string>("all");
+  const [selectedOffer, setSelectedOffer] = useState<string[]>([]);
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
@@ -123,7 +123,6 @@ export default function OfferLeadsManagement({
     page: 1,
     limit: 10000, // Get all records within date range
     searchTerm: debouncedSearch,
-    offerId: selectedOffer !== "all" ? parseInt(selectedOffer) : undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
@@ -157,7 +156,6 @@ export default function OfferLeadsManagement({
           page: 1,
           limit: 10000,
           searchTerm: debouncedSearch,
-          offerId: selectedOffer !== "all" ? parseInt(selectedOffer) : undefined,
           status: statusFilter !== "all" ? statusFilter : undefined,
           dateFrom: dateRange.from.toISOString(),
           dateTo: dateRange.to.toISOString(),
@@ -190,7 +188,6 @@ export default function OfferLeadsManagement({
             page: 1,
             limit: 10000,
             searchTerm: debouncedSearch,
-            offerId: selectedOffer !== "all" ? parseInt(selectedOffer) : undefined,
             status: statusFilter !== "all" ? statusFilter : undefined,
             dateFrom: dateRange.from.toISOString(),
             dateTo: dateRange.to.toISOString(),
@@ -232,6 +229,11 @@ export default function OfferLeadsManagement({
     if (!offerLeads) return [];
     
     let filtered = [...offerLeads];
+    
+    // Filter by offer (multiple selection)
+    if (selectedOffer && selectedOffer.length > 0) {
+      filtered = filtered.filter((lead: any) => selectedOffer.includes(lead.offerId?.toString()));
+    }
     
     // Filter by source (multiple selection)
     if (sourceFilter && sourceFilter.length > 0) {
@@ -288,7 +290,7 @@ export default function OfferLeadsManagement({
     }
     
     return sorted;
-  }, [offerLeads, sourceFilter, sortField, sortDirection]);
+  }, [offerLeads, selectedOffer, sourceFilter, sortField, sortDirection]);
 
   const handleStatusUpdate = () => {
     if (!selectedLead || !newStatus) return;
@@ -427,19 +429,13 @@ export default function OfferLeadsManagement({
               />
             </div>
 
-            <Select value={selectedOffer} onValueChange={setSelectedOffer}>
-              <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10">
-                <SelectValue placeholder="فلترة حسب العرض" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع العروض</SelectItem>
-                {uniqueOffers.map((offer: any) => (
-                  <SelectItem key={offer.id} value={offer.id.toString()}>
-                    {offer.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MultiSelect
+              options={uniqueOffers.map((offer: any) => ({ value: offer.id.toString(), label: offer.title }))}
+              selected={selectedOffer}
+              onChange={setSelectedOffer}
+              placeholder="جميع العروض"
+              className="w-full sm:w-[180px] h-9 md:h-10"
+            />
             <Select value={dateFilter} onValueChange={setDateFilter}>
               <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
                 <SelectValue placeholder="كل الفترات" />
