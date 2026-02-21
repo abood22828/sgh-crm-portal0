@@ -71,7 +71,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { exportToExcel, formatCampRegistrationsForExport } from "@/lib/exportToExcel";
-import { exportData, type ExportMetadata } from "@/lib/advancedExport";
+import { exportData, printTable, type ExportMetadata } from "@/lib/advancedExport";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
@@ -281,6 +281,90 @@ export default function CampRegistrationsManagement({
     } catch (error) {
       console.error('Export error:', error);
       toast.error('حدث خطأ أثناء التصدير');
+    }
+  };
+
+  // دالة الطباعة
+  const handlePrintCampRegistrations = () => {
+    if (!filteredRegistrations || filteredRegistrations.length === 0) {
+      toast.error("لا توجد بيانات للطباعة");
+      return;
+    }
+
+    try {
+      // تحضير الفلاتر المستخدمة
+      const activeFilters: Record<string, string> = {};
+      if (debouncedSearch) {
+        activeFilters['البحث'] = debouncedSearch;
+      }
+      if (statusFilter.length > 0) {
+        activeFilters['الحالة'] = statusFilter.map(s => statusLabels[s as keyof typeof statusLabels]).join(', ');
+      }
+      if (sourceFilter.length > 0) {
+        activeFilters['المصدر'] = sourceFilter.map(s => SOURCE_LABELS[s] || s).join(', ');
+      }
+      if (selectedCamp.length > 0) {
+        activeFilters['المخيم'] = selectedCamp.join(', ');
+      }
+
+      // تحضير نطاق التاريخ
+      const dateRangeStr = `${dateRange.from.toLocaleDateString('ar-SA')} - ${dateRange.to.toLocaleDateString('ar-SA')}`;
+
+      // تحضير تعريفات الأعمدة
+      const columnDefinitions = [
+        { key: 'receiptNumber', label: 'رقم السند' },
+        { key: 'name', label: 'الاسم الكامل' },
+        { key: 'phone', label: 'رقم الهاتف' },
+        { key: 'email', label: 'البريد الإلكتروني' },
+        { key: 'age', label: 'العمر' },
+        { key: 'camp', label: 'المخيم' },
+        { key: 'source', label: 'المصدر' },
+        { key: 'status', label: 'الحالة' },
+        { key: 'date', label: 'تاريخ التسجيل' },
+      ];
+
+      // تحويل البيانات للطباعة
+      const dataToExport = filteredRegistrations.map((reg: any) => ({
+        receiptNumber: reg.receiptNumber || '-',
+        name: reg.fullName,
+        phone: reg.phone,
+        email: reg.email || '-',
+        age: reg.age || '-',
+        camp: reg.campTitle || '-',
+        source: SOURCE_LABELS[reg.source] || reg.source || '-',
+        status: statusLabels[reg.status as keyof typeof statusLabels] || reg.status,
+        date: new Date(reg.createdAt).toLocaleDateString('ar-SA'),
+      }));
+
+      // تحضير metadata
+      const metadata: ExportMetadata = {
+        tableName: 'تسجيلات المخيمات',
+        dateRange: dateRangeStr,
+        filters: Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
+        totalRecords: dataToExport.length,
+        exportedRecords: dataToExport.length,
+        exportDate: new Date().toLocaleString('ar-SA'),
+        exportedBy: user?.name || 'مستخدم',
+      };
+
+      // تحضير الأعمدة المرئية
+      const visibleCols = Object.entries(campRegVisibleColumns)
+        .filter(([_, visible]) => visible)
+        .map(([key]) => {
+          const col = columnDefinitions.find(c => c.key === key);
+          return { key, label: col?.label || key };
+        });
+
+      // استدعاء دالة الطباعة
+      printTable({
+        format: 'pdf',
+        metadata,
+        columns: visibleCols,
+        data: dataToExport,
+      });
+    } catch (error) {
+      console.error('Print error:', error);
+      toast.error('حدث خطأ أثناء الطباعة');
     }
   };
 
@@ -538,6 +622,13 @@ export default function CampRegistrationsManagement({
                 onVisibilityChange={handleCampRegColumnVisibilityChange}
                 onReset={handleCampRegColumnsReset}
               />
+              <Button
+                variant="outline"
+                onClick={handlePrintCampRegistrations}
+              >
+                <Printer className="h-4 w-4 ml-2" />
+                طباعة
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
