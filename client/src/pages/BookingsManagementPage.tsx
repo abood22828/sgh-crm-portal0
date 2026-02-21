@@ -79,6 +79,7 @@ import { printReceipt } from "@/components/PrintReceipt";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
+import { SOURCE_OPTIONS, SOURCE_LABELS } from "@shared/sources";
 
 const statusLabels = {
   new: "جديد",
@@ -657,9 +658,11 @@ export default function BookingsManagementPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">كل المصادر</SelectItem>
-                        <SelectItem value="website">موقع</SelectItem>
-                        <SelectItem value="phone">هاتف</SelectItem>
-                        <SelectItem value="manual">يدوي</SelectItem>
+                        {SOURCE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <Button
@@ -754,9 +757,7 @@ export default function BookingsManagementPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              {lead.source === 'website' && 'موقع'}
-                              {lead.source === 'phone' && 'هاتف'}
-                              {lead.source === 'manual' && 'يدوي'}
+                              {lead.source ? SOURCE_LABELS[lead.source] || lead.source : '-'}
                             </TableCell>
                             <TableCell>
                               <Badge className={statusColors[lead.status as keyof typeof statusColors]}>
@@ -905,9 +906,11 @@ export default function BookingsManagementPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">كل المصادر</SelectItem>
-                        <SelectItem value="website">موقع</SelectItem>
-                        <SelectItem value="phone">هاتف</SelectItem>
-                        <SelectItem value="manual">يدوي</SelectItem>
+                        {SOURCE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <Button
@@ -1076,10 +1079,7 @@ export default function BookingsManagementPage() {
                             <TableCell>{appointment.doctorSpecialty || '-'}</TableCell>
                             {/* المصدر */}
                             <TableCell>
-                              {appointment.source === 'website' && 'موقع'}
-                              {appointment.source === 'phone' && 'هاتف'}
-                              {appointment.source === 'manual' && 'يدوي'}
-                              {!appointment.source && '-'}
+                              {appointment.source ? SOURCE_LABELS[appointment.source] || appointment.source : '-'}
                             </TableCell>
                             {/* رقم السند */}
                             <TableCell className="text-sm text-muted-foreground font-mono">
@@ -1233,9 +1233,7 @@ export default function BookingsManagementPage() {
                   </p>
                   <p className="text-sm">
                     <span className="font-medium">المصدر:</span>{' '}
-                    {selectedLead.source === 'website' && 'موقع'}
-                    {selectedLead.source === 'phone' && 'هاتف'}
-                    {selectedLead.source === 'manual' && 'يدوي'}
+                    {selectedLead.source ? SOURCE_LABELS[selectedLead.source] || selectedLead.source : '-'}
                   </p>
                   {selectedLead.notes && (
                     <p className="text-sm"><span className="font-medium">الملاحظات:</span> {selectedLead.notes}</p>
@@ -1336,10 +1334,7 @@ export default function BookingsManagementPage() {
                     <div className="space-y-2">
                       <p className="text-sm">
                         <span className="font-medium">المصدر:</span>{' '}
-                        {(selectedAppointment as any).source === 'website' && 'موقع'}
-                        {(selectedAppointment as any).source === 'phone' && 'هاتف'}
-                        {(selectedAppointment as any).source === 'manual' && 'يدوي'}
-                        {!(selectedAppointment as any).source && '-'}
+                        {(selectedAppointment as any).source ? SOURCE_LABELS[(selectedAppointment as any).source] || (selectedAppointment as any).source : '-'}
                       </p>
                       {selectedAppointment.patientNotes && (
                         <p className="text-sm"><span className="font-medium">ملاحظات المريض:</span> {selectedAppointment.patientNotes}</p>
