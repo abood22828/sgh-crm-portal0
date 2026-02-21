@@ -51,22 +51,24 @@ function exportToExcel(options: ExportOptions): void {
   // إنشاء ورقة البيانات
   const wsData: any[][] = [];
 
-  // إضافة metadata في الأعلى
-  wsData.push([metadata.tableName]);
-  wsData.push([]);
+  // بناء العنوان: "تسجيلات [اسم الجدول] - [كل/محدد] خلال الفترة من [نطاق التاريخ] - [فلاتر]"
+  let titleParts: string[] = [`تسجيلات ${metadata.tableName}`];
+  
+  // إضافة نطاق التاريخ إن وجد
   if (metadata.dateRange) {
-    wsData.push(['نطاق التاريخ:', metadata.dateRange]);
+    titleParts.push(`خلال الفترة من ${metadata.dateRange}`);
   }
+  
+  // إضافة الفلاتر إن وجدت
   if (metadata.filters && Object.keys(metadata.filters).length > 0) {
     const filtersText = Object.entries(metadata.filters)
       .map(([key, value]) => `${key}: ${value}`)
-      .join(' | ');
-    wsData.push(['الفلاتر:', filtersText]);
+      .join(' - ');
+    titleParts.push(filtersText);
   }
-  wsData.push(['إجمالي السجلات:', metadata.totalRecords]);
-  wsData.push(['السجلات المصدرة:', metadata.exportedRecords]);
-  wsData.push(['تاريخ التصدير:', metadata.exportDate]);
-  wsData.push(['المستخدم:', metadata.exportedBy]);
+  
+  // دمج العنوان في صف واحد
+  wsData.push([titleParts.join(' - ')]);
   wsData.push([]);
 
   // إضافة رؤوس الأعمدة
@@ -96,24 +98,8 @@ function exportToExcel(options: ExportOptions): void {
 function exportToCSV(options: ExportOptions): void {
   const { metadata, columns, data, filename } = options;
 
-  // إنشاء محتوى CSV
+  // إنشاء محتوى CSV (الجدول فقط بدون بيانات علوية)
   let csvContent = '';
-
-  // إضافة metadata
-  csvContent += `${metadata.tableName}\n\n`;
-  if (metadata.dateRange) {
-    csvContent += `نطاق التاريخ:,${metadata.dateRange}\n`;
-  }
-  if (metadata.filters && Object.keys(metadata.filters).length > 0) {
-    const filtersText = Object.entries(metadata.filters)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(' | ');
-    csvContent += `الفلاتر:,${filtersText}\n`;
-  }
-  csvContent += `إجمالي السجلات:,${metadata.totalRecords}\n`;
-  csvContent += `السجلات المصدرة:,${metadata.exportedRecords}\n`;
-  csvContent += `تاريخ التصدير:,${metadata.exportDate}\n`;
-  csvContent += `المستخدم:,${metadata.exportedBy}\n\n`;
 
   // إضافة رؤوس الأعمدة
   csvContent += columns.map((col) => col.label).join(',') + '\n';
