@@ -1,6 +1,5 @@
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import html2pdf from 'html2pdf.js';
 import { APP_LOGO } from '@/const';
 
 /**
@@ -145,197 +144,255 @@ function exportToCSV(options: ExportOptions): void {
 }
 
 /**
- * تحميل الشعار كـ base64
- */
-async function loadLogoAsBase64(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(img, 0, 0);
-        const dataURL = canvas.toDataURL('image/png');
-        resolve(dataURL);
-      } else {
-        reject(new Error('Failed to get canvas context'));
-      }
-    };
-    img.onerror = () => reject(new Error('Failed to load logo'));
-    img.src = '/sgh-logo-full.png';
-  });
-}
-
-/**
- * تصدير إلى PDF مع ترويسة وذييل احترافية
+ * تصدير إلى PDF مع ترويسة وذييل احترافية ودعم كامل للعربية
  */
 async function exportToPDF(options: ExportOptions): Promise<void> {
   const { metadata, columns, data, filename } = options;
 
-  // تحميل الشعار
-  let logoBase64: string | null = null;
+  // إنشاء HTML للـ PDF
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Arial', 'Helvetica', sans-serif;
+          direction: rtl;
+          padding: 20px;
+          font-size: 12px;
+        }
+        
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 20px;
+          padding-bottom: 15px;
+          border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .header-right {
+          flex: 1;
+        }
+        
+        .header-right img {
+          max-width: 200px;
+          height: auto;
+        }
+        
+        .header-left {
+          text-align: left;
+          font-size: 11px;
+          color: #333;
+        }
+        
+        .header-left div {
+          margin-bottom: 3px;
+        }
+        
+        .metadata {
+          background-color: #f8f9fa;
+          padding: 15px;
+          border-radius: 5px;
+          margin-bottom: 20px;
+        }
+        
+        .metadata-title {
+          font-size: 16px;
+          font-weight: bold;
+          text-align: center;
+          margin-bottom: 12px;
+          color: #008060;
+        }
+        
+        .metadata-row {
+          margin-bottom: 6px;
+          font-size: 11px;
+        }
+        
+        .metadata-label {
+          font-weight: bold;
+          color: #555;
+        }
+        
+        .filters {
+          margin-right: 20px;
+          margin-top: 5px;
+        }
+        
+        .filter-item {
+          margin-bottom: 3px;
+          color: #666;
+        }
+        
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 15px;
+          font-size: 10px;
+        }
+        
+        thead {
+          background-color: #008060;
+          color: white;
+        }
+        
+        th {
+          padding: 10px 8px;
+          text-align: center;
+          font-weight: bold;
+          border: 1px solid #ddd;
+        }
+        
+        td {
+          padding: 8px;
+          text-align: right;
+          border: 1px solid #ddd;
+        }
+        
+        tbody tr:nth-child(even) {
+          background-color: #f5f5f5;
+        }
+        
+        tbody tr:hover {
+          background-color: #e8f5f1;
+        }
+        
+        .footer {
+          margin-top: 30px;
+          padding-top: 15px;
+          border-top: 2px solid #e0e0e0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 10px;
+          color: #666;
+        }
+        
+        .footer-center {
+          font-weight: bold;
+          color: #008060;
+          font-size: 11px;
+        }
+        
+        @media print {
+          body {
+            padding: 15px;
+          }
+          
+          .header, .footer {
+            page-break-inside: avoid;
+          }
+          
+          table {
+            page-break-inside: auto;
+          }
+          
+          tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <!-- الترويسة -->
+      <div class="header">
+        <div class="header-right">
+          <img src="/sgh-logo-full.png" alt="شعار المستشفى" />
+        </div>
+        <div class="header-left">
+          <div><strong>الرقم المجاني:</strong> 8000018</div>
+          <div><strong>البريد الإلكتروني:</strong> info@sghsanaa.net</div>
+        </div>
+      </div>
+      
+      <!-- معلومات التقرير -->
+      <div class="metadata">
+        <div class="metadata-title">${metadata.tableName}</div>
+        ${metadata.dateRange ? `<div class="metadata-row"><span class="metadata-label">نطاق التاريخ:</span> ${metadata.dateRange}</div>` : ''}
+        ${metadata.filters && Object.keys(metadata.filters).length > 0 ? `
+          <div class="metadata-row">
+            <span class="metadata-label">الفلاتر المستخدمة:</span>
+            <div class="filters">
+              ${Object.entries(metadata.filters).map(([key, value]) => `
+                <div class="filter-item">• ${key}: ${value}</div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+        <div class="metadata-row"><span class="metadata-label">إجمالي السجلات:</span> ${metadata.totalRecords}</div>
+        <div class="metadata-row"><span class="metadata-label">السجلات المصدرة:</span> ${metadata.exportedRecords}</div>
+      </div>
+      
+      <!-- الجدول -->
+      <table>
+        <thead>
+          <tr>
+            ${columns.map(col => `<th>${col.label}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map(row => `
+            <tr>
+              ${columns.map(col => `<td>${row[col.key] ?? '-'}</td>`).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      
+      <!-- الذييل -->
+      <div class="footer">
+        <div class="footer-left">${metadata.exportDate}</div>
+        <div class="footer-center">نرعاكم كأهالينا</div>
+        <div class="footer-right">${metadata.exportedBy}</div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  // إنشاء عنصر مؤقت
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
+  tempDiv.style.position = 'absolute';
+  tempDiv.style.left = '-9999px';
+  tempDiv.style.top = '0';
+  document.body.appendChild(tempDiv);
+
+  // خيارات html2pdf
+  const opt = {
+    margin: [10, 10, 10, 10] as [number, number, number, number],
+    filename: filename || `${metadata.tableName}-${Date.now()}.pdf`,
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: { 
+      scale: 2,
+      useCORS: true,
+      letterRendering: true,
+      logging: false
+    },
+    jsPDF: { 
+      unit: 'mm', 
+      format: 'a4' as const,
+      orientation: (columns.length > 6 ? 'landscape' : 'portrait') as 'landscape' | 'portrait',
+      compress: true
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
   try {
-    logoBase64 = await loadLogoAsBase64();
-  } catch (error) {
-    console.warn('Failed to load logo, proceeding without it:', error);
+    // تحويل HTML إلى PDF
+    await html2pdf().set(opt).from(tempDiv).save();
+  } finally {
+    // إزالة العنصر المؤقت
+    document.body.removeChild(tempDiv);
   }
-
-  // إنشاء مستند PDF
-  const doc = new jsPDF({
-    orientation: columns.length > 6 ? 'landscape' : 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
-
-  // إضافة دعم الخط العربي
-  doc.setLanguage('ar');
-  doc.setFont('helvetica');
-
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 15;
-
-  // دالة لرسم الترويسة
-  const drawHeader = () => {
-    // شعار المستشفى على اليمين
-    const logoWidth = 50;
-    const logoHeight = 15;
-    const logoX = pageWidth - margin - logoWidth;
-    const logoY = margin;
-
-    if (logoBase64) {
-      try {
-        doc.addImage(logoBase64, 'PNG', logoX, logoY, logoWidth, logoHeight);
-      } catch (error) {
-        console.warn('Failed to add logo to PDF:', error);
-        // رسم مربع placeholder في حالة الفشل
-        doc.setDrawColor(0, 128, 96);
-        doc.setLineWidth(0.5);
-        doc.rect(logoX, logoY, logoWidth, logoHeight);
-      }
-    } else {
-      // رسم مربع placeholder إذا لم يتم تحميل الشعار
-      doc.setDrawColor(0, 128, 96);
-      doc.setLineWidth(0.5);
-      doc.rect(logoX, logoY, logoWidth, logoHeight);
-    }
-
-    // الرقم المجاني والإيميل على اليسار
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    const contactX = margin;
-    const contactY = margin + 5;
-    doc.text('8000018 :الرقم المجاني', contactX, contactY, { align: 'left' });
-    doc.text('info@sghsanaa.net', contactX, contactY + 5, { align: 'left' });
-
-    // خط فاصل
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.3);
-    doc.line(margin, margin + 20, pageWidth - margin, margin + 20);
-  };
-
-  // دالة لرسم الذييل
-  const drawFooter = (pageNumber: number) => {
-    const footerY = pageHeight - margin + 5;
-
-    // خط فاصل
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.3);
-    doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
-
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-
-    // وقت التصدير على اليسار
-    doc.text(metadata.exportDate, margin, footerY, { align: 'left' });
-
-    // "نرعاكم كأهالينا" في المنتصف
-    doc.text('نرعاكم كأهالينا', pageWidth / 2, footerY, { align: 'center' });
-
-    // اسم المستخدم على اليمين
-    doc.text(metadata.exportedBy, pageWidth - margin, footerY, { align: 'right' });
-
-    // رقم الصفحة
-    doc.text(
-      `صفحة ${pageNumber}`,
-      pageWidth / 2,
-      footerY + 5,
-      { align: 'center' }
-    );
-  };
-
-  // رسم الترويسة في الصفحة الأولى
-  drawHeader();
-
-  // إضافة metadata
-  let currentY = margin + 25;
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text(metadata.tableName, pageWidth / 2, currentY, { align: 'center' });
-  currentY += 8;
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  
-  if (metadata.dateRange) {
-    doc.text(`نطاق التاريخ: ${metadata.dateRange}`, margin, currentY, { align: 'left' });
-    currentY += 5;
-  }
-
-  if (metadata.filters && Object.keys(metadata.filters).length > 0) {
-    doc.text('الفلاتر المستخدمة:', margin, currentY, { align: 'left' });
-    currentY += 5;
-    Object.entries(metadata.filters).forEach(([key, value]) => {
-      doc.text(`  • ${key}: ${value}`, margin + 5, currentY, { align: 'left' });
-      currentY += 4;
-    });
-  }
-
-  doc.text(`إجمالي السجلات: ${metadata.totalRecords}`, margin, currentY, { align: 'left' });
-  currentY += 5;
-  doc.text(`السجلات المصدرة: ${metadata.exportedRecords}`, margin, currentY, { align: 'left' });
-  currentY += 10;
-
-  // إنشاء الجدول
-  const tableColumns = columns.map(col => col.label);
-  const tableRows = data.map(row => columns.map(col => String(row[col.key] ?? '-')));
-
-  autoTable(doc, {
-    head: [tableColumns],
-    body: tableRows,
-    startY: currentY,
-    margin: { top: margin + 25, left: margin, right: margin, bottom: margin + 15 },
-    styles: {
-      font: 'helvetica',
-      fontSize: 8,
-      cellPadding: 3,
-      halign: 'right',
-      valign: 'middle',
-    },
-    headStyles: {
-      fillColor: [0, 128, 96], // لون أخضر
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      halign: 'center',
-    },
-    alternateRowStyles: {
-      fillColor: [245, 245, 245],
-    },
-    didDrawPage: (data) => {
-      // رسم الترويسة والذييل في كل صفحة
-      if (data.pageNumber > 1) {
-        drawHeader();
-      }
-      drawFooter(data.pageNumber);
-    },
-  });
-
-  // حفظ الملف
-  const finalFilename = filename || `${metadata.tableName}-${Date.now()}.pdf`;
-  doc.save(finalFilename);
 }
 
 /**
