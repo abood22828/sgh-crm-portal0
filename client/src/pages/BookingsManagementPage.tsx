@@ -364,8 +364,8 @@ export default function BookingsManagementPage() {
     // Default sorting: newest first (by date desc)
     if (!appointmentSortField) {
       sorted.sort((a: any, b: any) => {
-        const aDate = new Date(a.appointmentDate).getTime();
-        const bDate = new Date(b.appointmentDate).getTime();
+        const aDate = new Date(a.createdAt).getTime();
+        const bDate = new Date(b.createdAt).getTime();
         return bDate - aDate; // Newest first
       });
     } else {
@@ -374,8 +374,8 @@ export default function BookingsManagementPage() {
         
         switch (appointmentSortField) {
           case 'date':
-            aValue = new Date(a.appointmentDate).getTime();
-            bValue = new Date(b.appointmentDate).getTime();
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
             break;
           case 'name':
             aValue = (a.fullName || a.patientName || '').toLowerCase();
@@ -1002,6 +1002,9 @@ export default function BookingsManagementPage() {
                         </TableHead>
                         <TableHead>الهاتف</TableHead>
                         <TableHead>الطبيب</TableHead>
+                        <TableHead>التخصص</TableHead>
+                        <TableHead>المصدر</TableHead>
+                        <TableHead>رقم السند</TableHead>
                         <TableHead 
                           className="cursor-pointer hover:bg-muted/50 select-none"
                           onClick={() => {
@@ -1028,13 +1031,13 @@ export default function BookingsManagementPage() {
                     <TableBody>
                       {appointmentsLoading ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="p-0">
-                            <TableSkeleton rows={5} columns={8} />
+                          <TableCell colSpan={11} className="p-0">
+                            <TableSkeleton rows={5} columns={11} />
                           </TableCell>
                         </TableRow>
                       ) : filteredAppointments.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="py-12">
+                          <TableCell colSpan={11} className="py-12">
                             <EmptyState
                               icon={CalendarOff}
                               title="لا توجد مواعيد"
@@ -1048,9 +1051,9 @@ export default function BookingsManagementPage() {
                             key={`appointment-${appointment.id}`}
                             className={appointment.status === 'pending' ? 'bg-red-50 hover:bg-red-100' : ''}
                           >
-                            {/* التاريخ */}
+                            {/* التاريخ - تاريخ التسجيل */}
                             <TableCell className="font-medium">
-                              {new Date(appointment.appointmentDate).toLocaleDateString("ar-EG")}
+                              {new Date(appointment.createdAt).toLocaleDateString("ar-EG")}
                             </TableCell>
                             {/* اسم المريض */}
                             <TableCell className="font-medium">{appointment.fullName || appointment.patientName || '-'}</TableCell>
@@ -1068,7 +1071,20 @@ export default function BookingsManagementPage() {
                               </div>
                             </TableCell>
                             {/* الطبيب */}
-                            <TableCell>{appointment.doctorName}</TableCell>
+                            <TableCell>{appointment.doctorName || '-'}</TableCell>
+                            {/* التخصص */}
+                            <TableCell>{appointment.doctorSpecialty || '-'}</TableCell>
+                            {/* المصدر */}
+                            <TableCell>
+                              {appointment.source === 'website' && 'موقع'}
+                              {appointment.source === 'phone' && 'هاتف'}
+                              {appointment.source === 'manual' && 'يدوي'}
+                              {!appointment.source && '-'}
+                            </TableCell>
+                            {/* رقم السند */}
+                            <TableCell className="text-sm text-muted-foreground font-mono">
+                              {appointment.receiptNumber || "-"}
+                            </TableCell>
                             {/* الحالة */}
                             <TableCell>
                               <InlineStatusEditor
