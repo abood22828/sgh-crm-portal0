@@ -2615,3 +2615,9 @@
 - [x] تطبيق RTL على الجداول بعكس الأعمدة
 - [x] إضافة الترويسة والذييل بالعربية مع تنسيق احترافي
 - [x] إضافة loading state وerror handling
+
+### إصلاح خطأ TypeError في pdfmake vfs ✅ مكتمل
+- [x] تحليل سبب الخطأ: تهيئة vfs في module scope تسبب خطأ عند تحميل الصفحة
+- [x] استبدال static import بـ lazy import (dynamic import) لـ pdfmake
+- [x] نقل تهيئة vfs إلى داخل دالة exportToPDF
+- [x] اختبار الصفحة والتأكد من عدم ظهور الخطأ

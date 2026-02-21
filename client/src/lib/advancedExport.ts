@@ -1,10 +1,5 @@
 import * as XLSX from 'xlsx';
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { toast } from 'sonner';
-
-// تسجيل الخطوط
-(pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs;
 
 /**
  * معلومات التصدير (Metadata)
@@ -159,6 +154,12 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
   }
 
   try {
+    // Lazy import pdfmake to avoid initialization errors
+    const pdfMake = (await import('pdfmake/build/pdfmake')).default;
+    const pdfFonts = await import('pdfmake/build/vfs_fonts');
+    
+    // تسجيل الخطوط
+    (pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs;
     // تحضير صفوف الجدول
     const tableBody: any[][] = [];
     
