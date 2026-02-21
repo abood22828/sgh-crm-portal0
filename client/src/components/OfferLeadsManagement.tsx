@@ -73,7 +73,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { exportToExcel, formatOfferLeadsForExport } from "@/lib/exportToExcel";
-import { advancedExport, prepareExportData } from "@/lib/advancedExport";
+import { exportData, type ExportMetadata } from "@/lib/advancedExport";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
@@ -235,7 +235,7 @@ export default function OfferLeadsManagement({
       ];
 
       // تحويل البيانات للتصدير
-      const exportData = filteredLeads.map((lead: any) => ({
+      const dataToExport = filteredLeads.map((lead: any) => ({
         receiptNumber: lead.receiptNumber || '-',
         name: lead.fullName,
         phone: lead.phone,
@@ -246,22 +246,31 @@ export default function OfferLeadsManagement({
         date: new Date(lead.createdAt).toLocaleDateString('ar-SA'),
       }));
 
-      // تحضير بيانات التصدير
-      const exportOptions = prepareExportData(
-        exportData,
-        exportData,
-        offerLeadVisibleColumns,
-        columnDefinitions,
-        'حجوزات العروض',
-        dateRangeStr,
-        Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
-        user?.name || 'مستخدم'
-      );
+      // تحضير metadata
+      const metadata: ExportMetadata = {
+        tableName: 'حجوزات العروض',
+        dateRange: dateRangeStr,
+        filters: Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
+        totalRecords: dataToExport.length,
+        exportedRecords: dataToExport.length,
+        exportDate: new Date().toLocaleString('ar-SA'),
+        exportedBy: user?.name || 'مستخدم',
+      };
+
+      // تحضير الأعمدة المرئية
+      const visibleCols = Object.entries(offerLeadVisibleColumns)
+        .filter(([_, visible]) => visible)
+        .map(([key]) => {
+          const col = columnDefinitions.find(c => c.key === key);
+          return { key, label: col?.label || key };
+        });
 
       // تصدير بالتنسيق المحدد
-      await advancedExport({
-        ...exportOptions,
+      await exportData({
         format,
+        metadata,
+        columns: visibleCols,
+        data: dataToExport,
         filename: `حجوزات_العروض_${Date.now()}.${format === 'excel' ? 'xlsx' : format}`,
       });
 

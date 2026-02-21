@@ -83,7 +83,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport, formatAppointmentsForExport } from "@/lib/exportToExcel";
-import { advancedExport, prepareExportData } from "@/lib/advancedExport";
+import { exportData, type ExportMetadata } from "@/lib/advancedExport";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -561,7 +561,7 @@ export default function BookingsManagementPage() {
       ];
 
       // تحويل البيانات للتصدير
-      const exportData = filteredAppointments.map((appointment: any) => ({
+      const dataToExport = filteredAppointments.map((appointment: any) => ({
         date: new Date(appointment.appointmentDate).toLocaleDateString('ar-SA'),
         name: appointment.name,
         phone: appointment.phone,
@@ -572,22 +572,31 @@ export default function BookingsManagementPage() {
         status: statusLabels[appointment.status as keyof typeof statusLabels] || appointment.status,
       }));
 
-      // تحضير بيانات التصدير
-      const exportOptions = prepareExportData(
-        exportData, // جميع البيانات (نفس البيانات لأنها مفلترة مسبقاً)
-        exportData, // البيانات المفلترة
-        appointmentVisibleColumns,
-        columnDefinitions,
-        'مواعيد الأطباء',
-        dateRangeStr,
-        Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
-        user?.name || 'مستخدم'
-      );
+      // تحضير metadata
+      const metadata: ExportMetadata = {
+        tableName: 'مواعيد الأطباء',
+        dateRange: dateRangeStr,
+        filters: Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
+        totalRecords: dataToExport.length,
+        exportedRecords: dataToExport.length,
+        exportDate: new Date().toLocaleString('ar-SA'),
+        exportedBy: user?.name || 'مستخدم',
+      };
+
+      // تحضير الأعمدة المرئية
+      const visibleCols = Object.entries(appointmentVisibleColumns)
+        .filter(([_, visible]) => visible)
+        .map(([key]) => {
+          const col = columnDefinitions.find(c => c.key === key);
+          return { key, label: col?.label || key };
+        });
 
       // تصدير بالتنسيق المحدد
-      await advancedExport({
-        ...exportOptions,
+      await exportData({
         format,
+        metadata,
+        columns: visibleCols,
+        data: dataToExport,
         filename: `مواعيد_الأطباء_${Date.now()}.${format === 'excel' ? 'xlsx' : format}`,
       });
 

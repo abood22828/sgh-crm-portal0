@@ -55,6 +55,7 @@ import { sendNewLeadTelegram, sendNewAppointmentTelegram } from "./telegram";
 import { getCombinedSocialMediaStats } from "./metaGraphAPI";
 import { runDeactivationJobs } from "./cron/deactivateExpired";
 import { queueRouter } from "./routers/queue";
+import { generatePDF, type ExportMetadata } from "./pdfService";
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -691,5 +692,42 @@ export const appRouter = router({
   // Comments system
   comments: commentsRouter,
   followUpTasks: followUpTasksRouter,
+
+  // Export to PDF
+  export: router({
+    generatePDF: protectedProcedure
+      .input(z.object({
+        metadata: z.object({
+          tableName: z.string(),
+          dateRange: z.string().optional(),
+          filters: z.record(z.string(), z.unknown()).optional(),
+          totalRecords: z.number(),
+          exportedRecords: z.number(),
+          exportDate: z.string(),
+          exportedBy: z.string(),
+        }),
+        columns: z.array(z.object({
+          key: z.string(),
+          label: z.string(),
+        })),
+        data: z.array(z.record(z.string(), z.any())),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const pdfBuffer = await generatePDF({
+            metadata: input.metadata,
+            columns: input.columns,
+            data: input.data,
+          });
+
+          // تحويل Buffer إلى base64 للإرسال عبر tRPC
+          const base64 = pdfBuffer.toString('base64');
+          return { success: true, pdf: base64 };
+        } catch (error) {
+          console.error('PDF generation error:', error);
+          throw new Error('فشل إنشاء ملف PDF');
+        }
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;
