@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import html2pdf from 'html2pdf.js';
 import { APP_LOGO } from '@/const';
+import { toast } from 'sonner';
 
 /**
  * معلومات التصدير (Metadata)
@@ -149,6 +150,11 @@ function exportToCSV(options: ExportOptions): void {
 async function exportToPDF(options: ExportOptions): Promise<void> {
   const { metadata, columns, data, filename } = options;
 
+  // التحقق من حجم البيانات
+  if (data.length > 1000) {
+    toast.warning('تنبيه: عدد السجلات كبير جداً. قد يستغرق التصدير بعض الوقت...');
+  }
+
   // إنشاء HTML للـ PDF
   const htmlContent = `
     <!DOCTYPE html>
@@ -165,17 +171,18 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
         body {
           font-family: 'Arial', 'Helvetica', sans-serif;
           direction: rtl;
-          padding: 20px;
-          font-size: 12px;
+          padding: 15px;
+          font-size: 10px;
+          background: white;
         }
         
         .header {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          margin-bottom: 20px;
-          padding-bottom: 15px;
-          border-bottom: 2px solid #e0e0e0;
+          margin-bottom: 15px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid #e0e0e0;
         }
         
         .header-right {
@@ -183,38 +190,38 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
         }
         
         .header-right img {
-          max-width: 200px;
+          max-width: 150px;
           height: auto;
         }
         
         .header-left {
           text-align: left;
-          font-size: 11px;
+          font-size: 9px;
           color: #333;
         }
         
         .header-left div {
-          margin-bottom: 3px;
+          margin-bottom: 2px;
         }
         
         .metadata {
           background-color: #f8f9fa;
-          padding: 15px;
-          border-radius: 5px;
-          margin-bottom: 20px;
+          padding: 10px;
+          border-radius: 3px;
+          margin-bottom: 15px;
         }
         
         .metadata-title {
-          font-size: 16px;
+          font-size: 13px;
           font-weight: bold;
           text-align: center;
-          margin-bottom: 12px;
+          margin-bottom: 8px;
           color: #008060;
         }
         
         .metadata-row {
-          margin-bottom: 6px;
-          font-size: 11px;
+          margin-bottom: 4px;
+          font-size: 9px;
         }
         
         .metadata-label {
@@ -223,20 +230,20 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
         }
         
         .filters {
-          margin-right: 20px;
-          margin-top: 5px;
+          margin-right: 15px;
+          margin-top: 3px;
         }
         
         .filter-item {
-          margin-bottom: 3px;
+          margin-bottom: 2px;
           color: #666;
         }
         
         table {
           width: 100%;
           border-collapse: collapse;
-          margin-top: 15px;
-          font-size: 10px;
+          margin-top: 10px;
+          font-size: 8px;
         }
         
         thead {
@@ -245,60 +252,39 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
         }
         
         th {
-          padding: 10px 8px;
+          padding: 6px 4px;
           text-align: center;
           font-weight: bold;
           border: 1px solid #ddd;
+          font-size: 8px;
         }
         
         td {
-          padding: 8px;
+          padding: 5px 3px;
           text-align: right;
           border: 1px solid #ddd;
+          font-size: 7px;
         }
         
         tbody tr:nth-child(even) {
-          background-color: #f5f5f5;
-        }
-        
-        tbody tr:hover {
-          background-color: #e8f5f1;
+          background-color: #f9f9f9;
         }
         
         .footer {
-          margin-top: 30px;
-          padding-top: 15px;
-          border-top: 2px solid #e0e0e0;
+          margin-top: 20px;
+          padding-top: 10px;
+          border-top: 1px solid #e0e0e0;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 10px;
+          font-size: 8px;
           color: #666;
         }
         
         .footer-center {
           font-weight: bold;
           color: #008060;
-          font-size: 11px;
-        }
-        
-        @media print {
-          body {
-            padding: 15px;
-          }
-          
-          .header, .footer {
-            page-break-inside: avoid;
-          }
-          
-          table {
-            page-break-inside: auto;
-          }
-          
-          tr {
-            page-break-inside: avoid;
-            page-break-after: auto;
-          }
+          font-size: 9px;
         }
       </style>
     </head>
@@ -342,7 +328,7 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
         <tbody>
           ${data.map(row => `
             <tr>
-              ${columns.map(col => `<td>${row[col.key] ?? '-'}</td>`).join('')}
+              ${columns.map(col => `<td>${String(row[col.key] ?? '-').substring(0, 100)}</td>`).join('')}
             </tr>
           `).join('')}
         </tbody>
@@ -361,21 +347,25 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
   // إنشاء عنصر مؤقت
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = htmlContent;
-  tempDiv.style.position = 'absolute';
-  tempDiv.style.left = '-9999px';
+  tempDiv.style.position = 'fixed';
+  tempDiv.style.left = '-99999px';
   tempDiv.style.top = '0';
+  tempDiv.style.width = '210mm'; // A4 width
+  tempDiv.style.background = 'white';
   document.body.appendChild(tempDiv);
 
-  // خيارات html2pdf
+  // خيارات html2pdf محسّنة
   const opt = {
     margin: [10, 10, 10, 10] as [number, number, number, number],
     filename: filename || `${metadata.tableName}-${Date.now()}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.98 },
+    image: { type: 'jpeg' as const, quality: 0.95 },
     html2canvas: { 
-      scale: 2,
+      scale: 1.5, // تقليل scale لتحسين الأداء
       useCORS: true,
       letterRendering: true,
-      logging: false
+      logging: false,
+      windowWidth: 794, // A4 width in pixels at 96 DPI
+      windowHeight: 1123 // A4 height in pixels at 96 DPI
     },
     jsPDF: { 
       unit: 'mm', 
@@ -387,11 +377,25 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
   };
 
   try {
-    // تحويل HTML إلى PDF
-    await html2pdf().set(opt).from(tempDiv).save();
+    // تحويل HTML إلى PDF مع timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('انتهت مهلة التصدير')), 60000); // 60 seconds timeout
+    });
+
+    const exportPromise = html2pdf().set(opt).from(tempDiv).save();
+
+    await Promise.race([exportPromise, timeoutPromise]);
+    
+    toast.success('تم تصدير PDF بنجاح');
+  } catch (error) {
+    console.error('PDF export error:', error);
+    toast.error('حدث خطأ أثناء التصدير. يرجى المحاولة مرة أخرى أو تقليل عدد السجلات.');
+    throw error;
   } finally {
     // إزالة العنصر المؤقت
-    document.body.removeChild(tempDiv);
+    if (document.body.contains(tempDiv)) {
+      document.body.removeChild(tempDiv);
+    }
   }
 }
 
@@ -400,21 +404,33 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
  */
 export async function advancedExport(options: ExportOptions): Promise<void> {
   try {
+    // عرض رسالة loading
+    const loadingToast = toast.loading(
+      options.format === 'pdf' 
+        ? 'جاري تصدير PDF... قد يستغرق بعض الوقت'
+        : `جاري التصدير إلى ${options.format.toUpperCase()}...`
+    );
+
     switch (options.format) {
       case 'excel':
         exportToExcel(options);
+        toast.success('تم تصدير Excel بنجاح', { id: loadingToast });
         break;
       case 'csv':
         exportToCSV(options);
+        toast.success('تم تصدير CSV بنجاح', { id: loadingToast });
         break;
       case 'pdf':
         await exportToPDF(options);
+        toast.dismiss(loadingToast);
         break;
       default:
+        toast.error(`تنسيق غير مدعوم: ${options.format}`, { id: loadingToast });
         throw new Error(`Unsupported format: ${options.format}`);
     }
   } catch (error) {
     console.error('Export error:', error);
+    toast.error('حدث خطأ أثناء التصدير');
     throw error;
   }
 }
