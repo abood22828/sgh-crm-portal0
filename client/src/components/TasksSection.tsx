@@ -39,6 +39,11 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
   const [dueDate, setDueDate] = useState("");
   const [assignedToId, setAssignedToId] = useState<number | undefined>();
 
+  // Filter states
+  const [filterAssignedTo, setFilterAssignedTo] = useState<number | "all" | "unassigned">("all");
+  const [filterPriority, setFilterPriority] = useState<"all" | "low" | "medium" | "high">("all");
+  const [filterDueDate, setFilterDueDate] = useState<"all" | "overdue" | "today" | "this_week" | "future">("all");
+
   const utils = trpc.useUtils();
 
   // Fetch active users for assignment
@@ -174,6 +179,44 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
     );
   }
 
+  // Filter tasks
+  const filteredTasks = tasks.filter((task) => {
+    // Filter by assigned user
+    if (filterAssignedTo !== "all") {
+      if (filterAssignedTo === "unassigned" && task.assignedToId !== null) return false;
+      if (typeof filterAssignedTo === "number" && task.assignedToId !== filterAssignedTo) return false;
+    }
+
+    // Filter by priority
+    if (filterPriority !== "all" && task.priority !== filterPriority) return false;
+
+    // Filter by due date
+    if (filterDueDate !== "all" && task.dueDate) {
+      const now = new Date();
+      const due = new Date(task.dueDate);
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const weekFromNow = new Date(today);
+      weekFromNow.setDate(weekFromNow.getDate() + 7);
+
+      if (filterDueDate === "overdue" && due >= today) return false;
+      if (filterDueDate === "today" && (due < today || due >= tomorrow)) return false;
+      if (filterDueDate === "this_week" && (due < today || due > weekFromNow)) return false;
+      if (filterDueDate === "future" && due <= weekFromNow) return false;
+    }
+
+    return true;
+  });
+
+  const hasActiveFilters = filterAssignedTo !== "all" || filterPriority !== "all" || filterDueDate !== "all";
+
+  const clearFilters = () => {
+    setFilterAssignedTo("all");
+    setFilterPriority("all");
+    setFilterDueDate("all");
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -262,7 +305,74 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
         </Dialog>
       </div>
 
-      {tasks.length === 0 ? (
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-4 bg-muted/30 rounded-lg">
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">المستخدم المعين</label>
+          <Select value={filterAssignedTo.toString()} onValueChange={(value) => setFilterAssignedTo(value === "all" ? "all" : value === "unassigned" ? "unassigned" : parseInt(value))}>
+            <SelectTrigger className="h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              <SelectItem value="unassigned">غير معين</SelectItem>
+              {users.map((user) => (
+                <SelectItem key={user.id} value={user.id.toString()}>
+                  {user.name || user.username}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">الأولوية</label>
+          <Select value={filterPriority} onValueChange={(value: any) => setFilterPriority(value)}>
+            <SelectTrigger className="h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              <SelectItem value="low">منخفضة</SelectItem>
+              <SelectItem value="medium">متوسطة</SelectItem>
+              <SelectItem value="high">عالية</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">تاريخ الاستحقاق</label>
+          <Select value={filterDueDate} onValueChange={(value: any) => setFilterDueDate(value)}>
+            <SelectTrigger className="h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              <SelectItem value="overdue">متأخرة</SelectItem>
+              <SelectItem value="today">اليوم</SelectItem>
+              <SelectItem value="this_week">هذا الأسبوع</SelectItem>
+              <SelectItem value="future">مستقبلية</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-end">
+          {hasActiveFilters && (
+            <Button variant="outline" size="sm" onClick={clearFilters} className="w-full h-9">
+              مسح الفلاتر
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Results count */}
+      {hasActiveFilters && (
+        <div className="text-sm text-muted-foreground px-1">
+          عرض {filteredTasks.length} من {tasks.length} مهمة
+        </div>
+      )}
+
+      {filteredTasks.length === 0 ? (
         <Card className="p-8 text-center">
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
             <Circle className="h-12 w-12" />
@@ -272,7 +382,7 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
         </Card>
       ) : (
         <div className="space-y-2">
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <Card key={task.id} className="p-4">
               <div className="flex items-start gap-3">
                 <div className="mt-1">{getStatusIcon(task.status)}</div>
