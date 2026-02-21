@@ -37,6 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, 
   UserCheck, 
@@ -780,144 +781,152 @@ export default function CampRegistrationsManagement({
 
       {/* Status Update Dialog */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-        <DialogContent className="sm:max-w-md" dir="rtl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" dir="rtl">
           <DialogHeader>
             <DialogTitle>تحديث حالة التسجيل</DialogTitle>
             <DialogDescription>
               قم بتحديث حالة تسجيل المخيم لـ {selectedRegistration?.fullName}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>معلومات المسجل</Label>
-              <div className="bg-muted p-3 rounded-lg space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{selectedRegistration?.phone}</span>
+          {selectedRegistration && (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <Tabs defaultValue="info" className="flex-1 overflow-hidden flex flex-col">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="info">معلومات التسجيل</TabsTrigger>
+                  <TabsTrigger value="comments">التعليقات</TabsTrigger>
+                  <TabsTrigger value="tasks">المهام</TabsTrigger>
+                </TabsList>
+                
+                <div className="flex-1 overflow-y-auto mt-4">
+                  <TabsContent value="info" className="space-y-4 mt-0">
+                    <div className="space-y-2">
+                      <Label>معلومات المسجل</Label>
+                      <div className="bg-muted p-3 rounded-lg space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span>{selectedRegistration.phone}</span>
+                        </div>
+                        {selectedRegistration.email && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span>{selectedRegistration.email}</span>
+                          </div>
+                        )}
+                        {selectedRegistration.age && (
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span>العمر: {selectedRegistration.age} سنة</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Tent className="h-4 w-4 text-muted-foreground" />
+                          <span>{selectedRegistration.campTitle || "غير محدد"}</span>
+                        </div>
+                        {selectedRegistration.medicalCondition && (
+                          <div className="pt-2 border-t">
+                            <p className="text-xs text-muted-foreground mb-1">الحالة الطبية:</p>
+                            <p>{selectedRegistration.medicalCondition}</p>
+                          </div>
+                        )}
+                        {selectedRegistration.notes && (
+                          <div className="pt-2 border-t">
+                            <p className="text-xs text-muted-foreground mb-1">ملاحظات:</p>
+                            <p>{selectedRegistration.notes}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>الحالة الجديدة</Label>
+                      <Select value={newStatus} onValueChange={setNewStatus}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر الحالة" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">قيد الانتظار</SelectItem>
+                          <SelectItem value="confirmed">مؤكد</SelectItem>
+                          <SelectItem value="attended">حضر</SelectItem>
+                          <SelectItem value="cancelled">ملغي</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {(newStatus === 'confirmed' || newStatus === 'attended') && (
+                      <>
+                        <div className="space-y-2">
+                          <Label>الاسم الكامل</Label>
+                          <Input
+                            value={editedName}
+                            onChange={(e) => setEditedName(e.target.value)}
+                            placeholder="الاسم الكامل"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>رقم الهاتف</Label>
+                          <Input
+                            value={editedPhone}
+                            onChange={(e) => setEditedPhone(e.target.value)}
+                            placeholder="رقم الهاتف"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>موعد الحضور</Label>
+                          <Input
+                            type="datetime-local"
+                            value={attendanceDate}
+                            onChange={(e) => setAttendanceDate(e.target.value)}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="comments" className="mt-0">
+                    <CommentsSection
+                      entityType="campRegistration"
+                      entityId={selectedRegistration.id}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="tasks" className="mt-0">
+                    <TasksSection
+                      entityType="campRegistration"
+                      entityId={selectedRegistration.id}
+                    />
+                  </TabsContent>
                 </div>
-                {selectedRegistration?.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span>{selectedRegistration.email}</span>
-                  </div>
-                )}
-                {selectedRegistration?.age && (
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>العمر: {selectedRegistration.age} سنة</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <Tent className="h-4 w-4 text-muted-foreground" />
-                  <span>{selectedRegistration?.campTitle || "غير محدد"}</span>
-                </div>
-                {selectedRegistration?.medicalCondition && (
-                  <div className="pt-2 border-t">
-                    <p className="text-xs text-muted-foreground mb-1">الحالة الطبية:</p>
-                    <p>{selectedRegistration.medicalCondition}</p>
-                  </div>
-                )}
-                {selectedRegistration?.notes && (
-                  <div className="pt-2 border-t">
-                    <p className="text-xs text-muted-foreground mb-1">ملاحظات:</p>
-                    <p>{selectedRegistration.notes}</p>
-                  </div>
-                )}
+              </Tabs>
+
+              <div className="flex gap-2 justify-end mt-4 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setStatusDialogOpen(false);
+                    setSelectedRegistration(null);
+                    setNewStatus("");
+                  }}
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  onClick={handleStatusUpdate}
+                  disabled={!newStatus || updateStatusMutation.isPending}
+                >
+                  {updateStatusMutation.isPending ? (
+                    <>
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                      جاري التحديث...
+                    </>
+                  ) : (
+                    "تحديث الحالة"
+                  )}
+                </Button>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label>الحالة الجديدة</Label>
-              <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="اختر الحالة" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">قيد الانتظار</SelectItem>
-                  <SelectItem value="confirmed">مؤكد</SelectItem>
-                  <SelectItem value="attended">حضر</SelectItem>
-                  <SelectItem value="cancelled">ملغي</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {(newStatus === 'confirmed' || newStatus === 'attended') && (
-              <>
-                <div className="space-y-2">
-                  <Label>الاسم الكامل</Label>
-                  <Input
-                    value={editedName}
-                    onChange={(e) => setEditedName(e.target.value)}
-                    placeholder="الاسم الكامل"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>رقم الهاتف</Label>
-                  <Input
-                    value={editedPhone}
-                    onChange={(e) => setEditedPhone(e.target.value)}
-                    placeholder="رقم الهاتف"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>موعد الحضور</Label>
-                  <Input
-                    type="datetime-local"
-                    value={attendanceDate}
-                    onChange={(e) => setAttendanceDate(e.target.value)}
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Comments Section */}
-            {selectedRegistration && (
-              <>
-                <div className="border-t pt-4">
-                  <CommentsSection
-                    entityType="campRegistration"
-                    entityId={selectedRegistration.id}
-                  />
-                </div>
-                
-                {/* Tasks Section */}
-                <div className="space-y-4">
-                  <TasksSection
-                    entityType="campRegistration"
-                    entityId={selectedRegistration.id}
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setStatusDialogOpen(false);
-                  setSelectedRegistration(null);
-                  setNewStatus("");
-                }}
-              >
-                إلغاء
-              </Button>
-              <Button
-                onClick={handleStatusUpdate}
-                disabled={!newStatus || updateStatusMutation.isPending}
-              >
-                {updateStatusMutation.isPending ? (
-                  <>
-                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                    جاري التحديث...
-                  </>
-                ) : (
-                  "تحديث الحالة"
-                )}
-              </Button>
-            </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 

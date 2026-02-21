@@ -42,6 +42,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -1278,7 +1284,7 @@ export default function BookingsManagementPage() {
 
         {/* Update Appointment Status Dialog */}
         <Dialog open={appointmentStatusDialogOpen} onOpenChange={setAppointmentStatusDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle>تحديث حالة الموعد</DialogTitle>
               <DialogDescription>
@@ -1286,98 +1292,114 @@ export default function BookingsManagementPage() {
               </DialogDescription>
             </DialogHeader>
             {selectedAppointment && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm"><span className="font-medium">المريض:</span> {selectedAppointment.patientName}</p>
-                  <p className="text-sm"><span className="font-medium">الهاتف:</span> {selectedAppointment.phone}</p>
-                  {selectedAppointment.email && (
-                    <p className="text-sm"><span className="font-medium">البريد:</span> {selectedAppointment.email}</p>
-                  )}
-                  <p className="text-sm"><span className="font-medium">الطبيب:</span> {selectedAppointment.doctorName}</p>
-                  <p className="text-sm"><span className="font-medium">التخصص:</span> {selectedAppointment.doctorSpecialty}</p>
-                  {selectedAppointment.procedure && (
-                    <p className="text-sm"><span className="font-medium">الإجراء:</span> {selectedAppointment.procedure}</p>
-                  )}
-                  <p className="text-sm">
-                    <span className="font-medium">المصدر:</span>{' '}
-                    {(selectedAppointment as any).source === 'website' && 'موقع'}
-                    {(selectedAppointment as any).source === 'phone' && 'هاتف'}
-                    {(selectedAppointment as any).source === 'manual' && 'يدوي'}
-                    {!(selectedAppointment as any).source && '-'}
-                  </p>
-                  {selectedAppointment.patientNotes && (
-                    <p className="text-sm"><span className="font-medium">ملاحظات المريض:</span> {selectedAppointment.patientNotes}</p>
-                  )}
-                  <p className="text-sm">
-                    <span className="font-medium">تاريخ التسجيل:</span>{' '}
-                    {new Date(selectedAppointment.createdAt).toLocaleString("ar-EG")}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label>الحالة الجديدة</Label>
-                  <Select value={newAppointmentStatus} onValueChange={setNewAppointmentStatus}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">قيد الانتظار</SelectItem>
-                      <SelectItem value="confirmed">مؤكد</SelectItem>
-                      <SelectItem value="cancelled">ملغي</SelectItem>
-                      <SelectItem value="completed">مكتمل</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>تاريخ الموعد</Label>
-                  <Input
-                    type="date"
-                    value={appointmentDate ? new Date(appointmentDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => setAppointmentDate(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>ملاحظات (اختياري)</Label>
-                  <Textarea
-                    placeholder="أضف ملاحظات..."
-                    value={appointmentStatusNotes}
-                    onChange={(e) => setAppointmentStatusNotes(e.target.value)}
-                    rows={3}
-                  />
-                </div>
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <Tabs defaultValue="info" className="flex-1 overflow-hidden flex flex-col">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="info">معلومات الموعد</TabsTrigger>
+                    <TabsTrigger value="comments">التعليقات</TabsTrigger>
+                    <TabsTrigger value="tasks">المهام</TabsTrigger>
+                  </TabsList>
                 
-                {/* Comments Section */}
-                <div className="border-t pt-4">
-                  <CommentsSection
-                    entityType="appointment"
-                    entityId={selectedAppointment.id}
-                  />
-                </div>
-                
-                {/* Tasks Section */}
-                <div className="space-y-4">
-                  <TasksSection
-                    entityType="appointment"
-                    entityId={selectedAppointment.id}
-                  />
-                </div>
-                
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setAppointmentStatusDialogOpen(false);
-                      setSelectedAppointment(null);
-                      setNewAppointmentStatus("");
-                      setAppointmentStatusNotes("");
-                      setAppointmentDate("");
-                    }}
-                  >
-                    إلغاء
-                  </Button>
-                  <Button onClick={handleAppointmentStatusUpdate} disabled={!newAppointmentStatus}>
-                    تحديث
-                  </Button>
-                </div>
+                <div className="flex-1 overflow-y-auto mt-4">
+                  <TabsContent value="info" className="space-y-4 mt-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <p className="text-sm"><span className="font-medium">المريض:</span> {selectedAppointment.patientName}</p>
+                        <p className="text-sm"><span className="font-medium">الهاتف:</span> {selectedAppointment.phone}</p>
+                        {selectedAppointment.email && (
+                          <p className="text-sm"><span className="font-medium">البريد:</span> {selectedAppointment.email}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm"><span className="font-medium">الطبيب:</span> {selectedAppointment.doctorName}</p>
+                        <p className="text-sm"><span className="font-medium">التخصص:</span> {selectedAppointment.doctorSpecialty}</p>
+                        {selectedAppointment.procedure && (
+                          <p className="text-sm"><span className="font-medium">الإجراء:</span> {selectedAppointment.procedure}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm">
+                        <span className="font-medium">المصدر:</span>{' '}
+                        {(selectedAppointment as any).source === 'website' && 'موقع'}
+                        {(selectedAppointment as any).source === 'phone' && 'هاتف'}
+                        {(selectedAppointment as any).source === 'manual' && 'يدوي'}
+                        {!(selectedAppointment as any).source && '-'}
+                      </p>
+                      {selectedAppointment.patientNotes && (
+                        <p className="text-sm"><span className="font-medium">ملاحظات المريض:</span> {selectedAppointment.patientNotes}</p>
+                      )}
+                      <p className="text-sm">
+                        <span className="font-medium">تاريخ التسجيل:</span>{' '}
+                        {new Date(selectedAppointment.createdAt).toLocaleString("ar-EG")}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>الحالة الجديدة</Label>
+                      <Select value={newAppointmentStatus} onValueChange={setNewAppointmentStatus}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">قيد الانتظار</SelectItem>
+                          <SelectItem value="confirmed">مؤكد</SelectItem>
+                          <SelectItem value="cancelled">ملغي</SelectItem>
+                          <SelectItem value="completed">مكتمل</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>تاريخ الموعد</Label>
+                      <Input
+                        type="date"
+                        value={appointmentDate ? new Date(appointmentDate).toISOString().split('T')[0] : ''}
+                        onChange={(e) => setAppointmentDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>ملاحظات (اختياري)</Label>
+                      <Textarea
+                        placeholder="أضف ملاحظات..."
+                        value={appointmentStatusNotes}
+                        onChange={(e) => setAppointmentStatusNotes(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="comments" className="mt-0">
+                    <CommentsSection
+                      entityType="appointment"
+                      entityId={selectedAppointment.id}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="tasks" className="mt-0">
+                    <TasksSection
+                      entityType="appointment"
+                      entityId={selectedAppointment.id}
+                    />
+                  </TabsContent>
+                  </div>
+                  </Tabs>
+                  
+                  <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setAppointmentStatusDialogOpen(false);
+                        setSelectedAppointment(null);
+                        setNewAppointmentStatus("");
+                        setAppointmentStatusNotes("");
+                        setAppointmentDate("");
+                      }}
+                    >
+                      إلغاء
+                    </Button>
+                    <Button onClick={handleAppointmentStatusUpdate} disabled={!newAppointmentStatus}>
+                      تحديث
+                    </Button>
+                  </div>
               </div>
             )}
           </DialogContent>

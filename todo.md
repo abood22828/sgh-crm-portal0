@@ -2454,3 +2454,23 @@
 - [ ] إضافة زر "المهام" في صفحة إدارة تسجيلات المخيمات (CampRegistrationsManagement)
 - [ ] استخدام أيقونة CheckSquare للدلالة على المهام
 - [ ] الزر ينقل للـ tab "المهام" في نفس الصفحة
+
+
+### تحسين تنسيق نافذة التحديث (Dialog) 🔄 جاري العمل
+- [ ] تحليل المشاكل الحالية في تنسيق النافذة
+- [ ] تقليل عرض النافذة على الويب (max-width: 4xl → 2xl)
+- [ ] تحسين تنظيم الأقسام (معلومات المسجل، الحالة، التعليقات، المهام)
+- [ ] إضافة Tabs أو Accordion للأقسام المختلفة
+- [ ] تحسين responsive للهاتف (full screen)
+- [ ] تطبيق التحسينات على جميع الجداول (Appointments, OfferLeads, CampRegistrations)
+
+### المرحلة 5: تحسينات النماذج والموبايل ✅ مكتمل
+- [x] ResponsiveDialog (full screen على الموبايل)
+- [x] Touch target utilities
+- [x] تحسين تنسيق نافذة التحديث (Dialog) للويب والهاتف
+  - [x] تقليل عرض النافذة إلى max-w-3xl
+  - [x] تقسيم المحتوى إلى Tabs (معلومات، تعليقات، مهام)
+  - [x] تحسين responsive للهاتف (full screen)
+  - [x] تطبيق على BookingsManagementPage
+  - [x] تطبيق على OfferLeadsManagement
+  - [x] تطبيق على CampRegistrationsManagement
