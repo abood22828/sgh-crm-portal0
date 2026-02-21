@@ -65,8 +65,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { exportToExcel, formatOfferLeadsForExport } from "@/lib/exportToExcel";
+import { advancedExport, prepareExportData } from "@/lib/advancedExport";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
@@ -188,6 +195,82 @@ export default function OfferLeadsManagement({
   }, [pendingCount, onPendingCountChange]);
 
   const utils = trpc.useUtils();
+
+  // دالة التصدير المتقدمة
+  const handleExportOfferLeads = async (format: 'excel' | 'csv' | 'pdf') => {
+    if (!filteredLeads || filteredLeads.length === 0) {
+      toast.error("لا توجد بيانات للتصدير");
+      return;
+    }
+
+    try {
+      // تحضير الفلاتر المستخدمة
+      const activeFilters: Record<string, string> = {};
+      if (debouncedSearch) {
+        activeFilters['البحث'] = debouncedSearch;
+      }
+      if (statusFilter.length > 0) {
+        activeFilters['الحالة'] = statusFilter.map(s => statusLabels[s as keyof typeof statusLabels]).join(', ');
+      }
+      if (sourceFilter.length > 0) {
+        activeFilters['المصدر'] = sourceFilter.map(s => SOURCE_LABELS[s] || s).join(', ');
+      }
+      if (selectedOffer.length > 0) {
+        activeFilters['العرض'] = selectedOffer.join(', ');
+      }
+
+      // تحضير نطاق التاريخ
+      const dateRangeStr = `${dateRange.from.toLocaleDateString('ar-SA')} - ${dateRange.to.toLocaleDateString('ar-SA')}`;
+
+      // تحضير تعريفات الأعمدة
+      const columnDefinitions = [
+        { key: 'receiptNumber', label: 'رقم السند' },
+        { key: 'name', label: 'الاسم الكامل' },
+        { key: 'phone', label: 'رقم الهاتف' },
+        { key: 'email', label: 'البريد الإلكتروني' },
+        { key: 'offer', label: 'العرض' },
+        { key: 'source', label: 'المصدر' },
+        { key: 'status', label: 'الحالة' },
+        { key: 'date', label: 'تاريخ التسجيل' },
+      ];
+
+      // تحويل البيانات للتصدير
+      const exportData = filteredLeads.map((lead: any) => ({
+        receiptNumber: lead.receiptNumber || '-',
+        name: lead.fullName,
+        phone: lead.phone,
+        email: lead.email || '-',
+        offer: lead.offerTitle || '-',
+        source: SOURCE_LABELS[lead.source] || lead.source || '-',
+        status: statusLabels[lead.status as keyof typeof statusLabels] || lead.status,
+        date: new Date(lead.createdAt).toLocaleDateString('ar-SA'),
+      }));
+
+      // تحضير بيانات التصدير
+      const exportOptions = prepareExportData(
+        exportData,
+        exportData,
+        offerLeadVisibleColumns,
+        columnDefinitions,
+        'حجوزات العروض',
+        dateRangeStr,
+        Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
+        user?.name || 'مستخدم'
+      );
+
+      // تصدير بالتنسيق المحدد
+      await advancedExport({
+        ...exportOptions,
+        format,
+        filename: `حجوزات_العروض_${Date.now()}.${format === 'excel' ? 'xlsx' : format}`,
+      });
+
+      toast.success(`تم تصدير البيانات بنجاح بتنسيق ${format.toUpperCase()}`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('حدث خطأ أثناء التصدير');
+    }
+  };
   
   const updateStatusMutation = trpc.offerLeads.updateStatus.useMutation({
     onMutate: async (variables) => {
@@ -439,21 +522,25 @@ export default function OfferLeadsManagement({
                 onVisibilityChange={handleOfferLeadColumnVisibilityChange}
                 onReset={handleOfferLeadColumnsReset}
               />
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (!offerLeads || offerLeads.length === 0) {
-                    toast.error("لا توجد بيانات لتصديرها");
-                    return;
-                  }
-                  const formattedData = formatOfferLeadsForExport(offerLeads);
-                  exportToExcel(formattedData, `offer-leads-${new Date().toISOString().split('T')[0]}`, 'حجوزات العروض');
-                  toast.success("تم تصدير البيانات بنجاح");
-                }}
-              >
-                <Download className="h-4 w-4 ml-2" />
-                تصدير Excel
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Download className="h-4 w-4 ml-2" />
+                    تصدير
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExportOfferLeads('excel')}>
+                    تصدير Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportOfferLeads('csv')}>
+                    تصدير CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportOfferLeads('pdf')}>
+                    تصدير PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </CardHeader>

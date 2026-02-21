@@ -63,8 +63,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { exportToExcel, formatCampRegistrationsForExport } from "@/lib/exportToExcel";
+import { advancedExport, prepareExportData } from "@/lib/advancedExport";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
@@ -189,6 +196,84 @@ export default function CampRegistrationsManagement({
       onPendingCountChange(pendingCount);
     }
   }, [pendingCount, onPendingCountChange]);
+
+  // دالة التصدير المتقدمة
+  const handleExportCampRegistrations = async (format: 'excel' | 'csv' | 'pdf') => {
+    if (!filteredRegistrations || filteredRegistrations.length === 0) {
+      toast.error("لا توجد بيانات للتصدير");
+      return;
+    }
+
+    try {
+      // تحضير الفلاتر المستخدمة
+      const activeFilters: Record<string, string> = {};
+      if (debouncedSearch) {
+        activeFilters['البحث'] = debouncedSearch;
+      }
+      if (statusFilter.length > 0) {
+        activeFilters['الحالة'] = statusFilter.map(s => statusLabels[s as keyof typeof statusLabels]).join(', ');
+      }
+      if (sourceFilter.length > 0) {
+        activeFilters['المصدر'] = sourceFilter.map(s => SOURCE_LABELS[s] || s).join(', ');
+      }
+      if (selectedCamp.length > 0) {
+        activeFilters['المخيم'] = selectedCamp.join(', ');
+      }
+
+      // تحضير نطاق التاريخ
+      const dateRangeStr = `${dateRange.from.toLocaleDateString('ar-SA')} - ${dateRange.to.toLocaleDateString('ar-SA')}`;
+
+      // تحضير تعريفات الأعمدة
+      const columnDefinitions = [
+        { key: 'receiptNumber', label: 'رقم السند' },
+        { key: 'name', label: 'الاسم الكامل' },
+        { key: 'phone', label: 'رقم الهاتف' },
+        { key: 'email', label: 'البريد الإلكتروني' },
+        { key: 'age', label: 'العمر' },
+        { key: 'camp', label: 'المخيم' },
+        { key: 'source', label: 'المصدر' },
+        { key: 'status', label: 'الحالة' },
+        { key: 'date', label: 'تاريخ التسجيل' },
+      ];
+
+      // تحويل البيانات للتصدير
+      const exportData = filteredRegistrations.map((reg: any) => ({
+        receiptNumber: reg.receiptNumber || '-',
+        name: reg.fullName,
+        phone: reg.phone,
+        email: reg.email || '-',
+        age: reg.age || '-',
+        camp: reg.campTitle || '-',
+        source: SOURCE_LABELS[reg.source] || reg.source || '-',
+        status: statusLabels[reg.status as keyof typeof statusLabels] || reg.status,
+        date: new Date(reg.createdAt).toLocaleDateString('ar-SA'),
+      }));
+
+      // تحضير بيانات التصدير
+      const exportOptions = prepareExportData(
+        exportData,
+        exportData,
+        campRegVisibleColumns,
+        columnDefinitions,
+        'تسجيلات المخيمات',
+        dateRangeStr,
+        Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
+        user?.name || 'مستخدم'
+      );
+
+      // تصدير بالتنسيق المحدد
+      await advancedExport({
+        ...exportOptions,
+        format,
+        filename: `تسجيلات_المخيمات_${Date.now()}.${format === 'excel' ? 'xlsx' : format}`,
+      });
+
+      toast.success(`تم تصدير البيانات بنجاح بتنسيق ${format.toUpperCase()}`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('حدث خطأ أثناء التصدير');
+    }
+  };
 
   const bulkUpdateMutation = trpc.campRegistrations.bulkUpdateStatus.useMutation({
     onSuccess: () => {
@@ -444,21 +529,25 @@ export default function CampRegistrationsManagement({
                 onVisibilityChange={handleCampRegColumnVisibilityChange}
                 onReset={handleCampRegColumnsReset}
               />
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (!registrations || registrations.length === 0) {
-                    toast.error("لا توجد بيانات لتصديرها");
-                    return;
-                  }
-                  const formattedData = formatCampRegistrationsForExport(registrations);
-                  exportToExcel(formattedData, `camp-registrations-${new Date().toISOString().split('T')[0]}`, 'تسجيلات المخيمات');
-                  toast.success("تم تصدير البيانات بنجاح");
-                }}
-              >
-                <Download className="h-4 w-4 ml-2" />
-                تصدير Excel
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Download className="h-4 w-4 ml-2" />
+                    تصدير
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExportCampRegistrations('excel')}>
+                    تصدير Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportCampRegistrations('csv')}>
+                    تصدير CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportCampRegistrations('pdf')}>
+                    تصدير PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </CardHeader>

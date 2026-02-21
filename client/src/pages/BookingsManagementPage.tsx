@@ -57,6 +57,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Users, 
   UserCheck, 
@@ -77,6 +83,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport, formatAppointmentsForExport } from "@/lib/exportToExcel";
+import { advancedExport, prepareExportData } from "@/lib/advancedExport";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -512,15 +519,83 @@ export default function BookingsManagementPage() {
     toast.success("تم تصدير البيانات بنجاح");
   };
 
-  const handleExportAppointments = () => {
+  const handleExportAppointments = async (format: 'excel' | 'csv' | 'pdf') => {
     if (!filteredAppointments || filteredAppointments.length === 0) {
       toast.error("لا توجد بيانات للتصدير");
       return;
     }
-    
-    const formattedData = formatAppointmentsForExport(filteredAppointments);
-    exportToExcel(formattedData, "مواعيد_الأطباء");
-    toast.success("تم تصدير البيانات بنجاح");
+
+    try {
+      // تحضير الفلاتر المستخدمة
+      const activeFilters: Record<string, string> = {};
+      if (debouncedAppointmentSearch) {
+        activeFilters['البحث'] = debouncedAppointmentSearch;
+      }
+      if (appointmentStatusFilter.length > 0) {
+        activeFilters['الحالة'] = appointmentStatusFilter.map(s => statusLabels[s as keyof typeof statusLabels]).join(', ');
+      }
+      if (appointmentSourceFilter.length > 0) {
+        activeFilters['المصدر'] = appointmentSourceFilter.map(s => SOURCE_LABELS[s] || s).join(', ');
+      }
+      if (selectedDoctor.length > 0) {
+        const doctorNames = selectedDoctor.map(id => {
+          const doctor = doctors.find(d => d.id.toString() === id);
+          return doctor ? doctor.name : id;
+        }).join(', ');
+        activeFilters['الطبيب'] = doctorNames;
+      }
+
+      // تحضير نطاق التاريخ
+      const dateRangeStr = `${dateRange.from.toLocaleDateString('ar-SA')} - ${dateRange.to.toLocaleDateString('ar-SA')}`;
+
+      // تحضير تعريفات الأعمدة
+      const columnDefinitions = [
+        { key: 'date', label: 'التاريخ' },
+        { key: 'name', label: 'اسم المريض' },
+        { key: 'phone', label: 'الهاتف' },
+        { key: 'doctor', label: 'الطبيب' },
+        { key: 'specialty', label: 'التخصص' },
+        { key: 'source', label: 'المصدر' },
+        { key: 'receiptNumber', label: 'رقم السند' },
+        { key: 'status', label: 'الحالة' },
+      ];
+
+      // تحويل البيانات للتصدير
+      const exportData = filteredAppointments.map((appointment: any) => ({
+        date: new Date(appointment.appointmentDate).toLocaleDateString('ar-SA'),
+        name: appointment.name,
+        phone: appointment.phone,
+        doctor: appointment.doctorName || '-',
+        specialty: appointment.specialty || '-',
+        source: SOURCE_LABELS[appointment.source] || appointment.source || '-',
+        receiptNumber: appointment.receiptNumber || '-',
+        status: statusLabels[appointment.status as keyof typeof statusLabels] || appointment.status,
+      }));
+
+      // تحضير بيانات التصدير
+      const exportOptions = prepareExportData(
+        exportData, // جميع البيانات (نفس البيانات لأنها مفلترة مسبقاً)
+        exportData, // البيانات المفلترة
+        appointmentVisibleColumns,
+        columnDefinitions,
+        'مواعيد الأطباء',
+        dateRangeStr,
+        Object.keys(activeFilters).length > 0 ? activeFilters : undefined,
+        user?.name || 'مستخدم'
+      );
+
+      // تصدير بالتنسيق المحدد
+      await advancedExport({
+        ...exportOptions,
+        format,
+        filename: `مواعيد_الأطباء_${Date.now()}.${format === 'excel' ? 'xlsx' : format}`,
+      });
+
+      toast.success(`تم تصدير البيانات بنجاح بتنسيق ${format.toUpperCase()}`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('حدث خطأ أثناء التصدير');
+    }
   };
 
   return (
@@ -969,15 +1044,29 @@ export default function BookingsManagementPage() {
                       placeholder="كل المصادر"
                       className="h-9"
                     />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExportAppointments}
-                      className="gap-2 h-9"
-                    >
-                      <Download className="h-4 w-4" />
-                      <span className="hidden sm:inline">تصدير</span>
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 h-9"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span className="hidden sm:inline">تصدير</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleExportAppointments('excel')}>
+                          تصدير Excel
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExportAppointments('csv')}>
+                          تصدير CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExportAppointments('pdf')}>
+                          تصدير PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <ColumnVisibility
                       columns={appointmentColumns}
                       visibleColumns={appointmentVisibleColumns}
