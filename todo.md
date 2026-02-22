@@ -2667,3 +2667,11 @@
 - [x] Portrait (عمودي) للجداول ذات 1-5 أعمدة
 - [x] Landscape (أفقي) للجداول ذات 6+ أعمدة
 - [x] تحسين عرض الأعمدة في كلا الاتجاهين (حجم خط ديناميكي)
+
+### تحديث خيارات الأعمدة لتشمل جميع حقول قاعدة البيانات ✅ مكتمل
+- [x] فحص schema قاعدة البيانات للجداول الثلاثة (appointments, offerLeads, campRegistrations)
+- [x] تحديث appointmentColumns في BookingsManagementPage (27 عمود)
+- [x] تحديث offerLeadColumns فيOfferLeadsManagement (22 عمود)
+- [x] تحديث campRegColumns فيCampRegistrationsManagement (28 عمود)
+- [x] إضافة جميع الحقول الناقصة مع تسميات عربية صحيحة
+- [x] التأكد من تطابق الأعمدة مع schema قاعدة البيانات
