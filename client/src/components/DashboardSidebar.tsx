@@ -246,7 +246,7 @@ const allToolsGroups: NavGroup[] = [
     icon: SettingsIcon,
     items: [
       { id: "users", title: "المستخدمين", href: "/dashboard/users", icon: Users },
-      { id: "projects", title: "الحملات والمشاريع", href: "/dashboard/projects", icon: Target },
+      { id: "campaigns", title: "الحملات والمشاريع", href: "/dashboard/campaigns", icon: Target },
       { id: "review-approval", title: "المراجعة والاعتماد", href: "/dashboard/review-approval", icon: CheckSquare },
     ],
   },

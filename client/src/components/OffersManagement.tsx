@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -24,14 +25,19 @@ import { ColumnVisibility } from "@/components/ColumnVisibility";
 import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
 import { useTableFeatures } from "@/hooks/useTableFeatures";
 import EmptyState from "@/components/EmptyState";
+import { useSlugGenerator } from "@/hooks/useSlugGenerator";
+import ImageUpload from "@/components/ImageUpload";
 
 // === تعريف أعمدة جدول العروض ===
 const offerColumns: ColumnConfig[] = [
   { key: "title", label: "العنوان", defaultVisible: true, defaultWidth: 220, minWidth: 150, maxWidth: 400, sortType: 'string' },
   { key: "slug", label: "الرابط", defaultVisible: true, defaultWidth: 160, minWidth: 100, maxWidth: 300, sortType: 'string' },
+  { key: "description", label: "الوصف", defaultVisible: false, defaultWidth: 200, minWidth: 120, maxWidth: 400, sortable: false },
+  { key: "imageUrl", label: "الصورة", defaultVisible: false, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortable: false },
   { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortType: 'string' },
   { key: "startDate", label: "تاريخ البداية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
   { key: "endDate", label: "تاريخ النهاية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
+  { key: "createdAt", label: "تاريخ الإنشاء", defaultVisible: false, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
   { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300, sortable: false },
 ];
 
@@ -50,6 +56,12 @@ export default function OffersManagement() {
     startDate: "",
     endDate: "",
   });
+
+  // Slug auto-generation hook
+  const { autoGenerateSlug, resetManualEdit } = useSlugGenerator(
+    (slug) => setFormData(prev => ({ ...prev, slug })),
+    { isEditing: !!editingOffer }
+  );
 
   // === useTableFeatures hook ===
   const offerTable = useTableFeatures({
@@ -108,6 +120,22 @@ export default function OffersManagement() {
       endDate: "",
     });
     setEditingOffer(null);
+    resetManualEdit();
+  };
+
+  // Duplicate offer
+  const handleDuplicate = (offer: any) => {
+    setEditingOffer(null);
+    setFormData({
+      title: offer.title + " (نسخة)",
+      slug: offer.slug + "-copy",
+      description: offer.description || "",
+      imageUrl: offer.imageUrl || "",
+      isActive: false,
+      startDate: offer.startDate ? new Date(offer.startDate).toISOString().split('T')[0] : "",
+      endDate: offer.endDate ? new Date(offer.endDate).toISOString().split('T')[0] : "",
+    });
+    setShowAddDialog(true);
   };
 
   const handleSubmit = () => {
@@ -348,6 +376,26 @@ export default function OffersManagement() {
                             {offer.endDate ? new Date(offer.endDate).toLocaleDateString('ar-YE') : "-"}
                           </FrozenTableCell>
                         );
+                      case 'description':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
+                            <span className="truncate block max-w-[200px]">{offer.description || '-'}</span>
+                          </FrozenTableCell>
+                        );
+                      case 'imageUrl':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey}>
+                            {offer.imageUrl ? (
+                              <img src={offer.imageUrl} alt="" className="h-8 w-8 rounded object-cover" />
+                            ) : '-'}
+                          </FrozenTableCell>
+                        );
+                      case 'createdAt':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
+                            {offer.createdAt ? new Date(offer.createdAt).toLocaleDateString('ar-YE') : "-"}
+                          </FrozenTableCell>
+                        );
                       case 'actions':
                         return (
                           <FrozenTableCell key={colKey} columnKey={colKey}>
@@ -357,8 +405,18 @@ export default function OffersManagement() {
                                 size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleEdit(offer)}
+                                title="تعديل"
                               >
                                 <Edit className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleDuplicate(offer)}
+                                title="نسخ"
+                              >
+                                <Copy className="h-3.5 w-3.5 text-blue-400" />
                               </Button>
                               <Button 
                                 variant="ghost"
@@ -368,6 +426,7 @@ export default function OffersManagement() {
                                   setDeletingOffer(offer);
                                   setDeleteDialogOpen(true);
                                 }}
+                                title="حذف"
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-red-400" />
                               </Button>
@@ -412,7 +471,10 @@ export default function OffersManagement() {
                 <Input
                   id="title"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, title: e.target.value });
+                    autoGenerateSlug(e.target.value);
+                  }}
                   placeholder="مثال: عرض الولادة الخاص"
                 />
               </div>
@@ -440,13 +502,12 @@ export default function OffersManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="imageUrl">رابط الصورة</Label>
-              <Input
-                id="imageUrl"
+              <Label className="text-right block text-xs font-medium text-muted-foreground">صورة العرض</Label>
+              <ImageUpload
                 value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-                dir="ltr"
+                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                folder="offers"
+                placeholder="اسحب صورة العرض هنا أو اضغط للاختيار"
               />
             </div>
 

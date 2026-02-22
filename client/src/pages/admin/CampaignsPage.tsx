@@ -57,6 +57,8 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Link } from "wouter";
 import { Progress } from "@/components/ui/progress";
+import CampaignLinksManager from "@/components/CampaignLinksManager";
+import { useSlugGenerator } from "@/hooks/useSlugGenerator";
 
 // Helper functions
 const getCampaignTypeLabel = (type: string) => {
@@ -295,14 +297,11 @@ export default function CampaignsPage() {
     setIsViewDialogOpen(true);
   };
 
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
-  };
+  // Slug auto-generation hook
+  const { autoGenerateSlug: campaignAutoSlug } = useSlugGenerator(
+    (slug) => setFormData(prev => ({ ...prev, slug })),
+    { isEditing: isEditDialogOpen }
+  );
 
   const handlePlatformToggle = (platform: string) => {
     setFormData(prev => ({
@@ -633,11 +632,8 @@ export default function CampaignsPage() {
                       id="name"
                       value={formData.name}
                       onChange={(e) => {
-                        setFormData({
-                          ...formData,
-                          name: e.target.value,
-                          slug: !isEditDialogOpen ? generateSlug(e.target.value) : formData.slug
-                        });
+                        setFormData({ ...formData, name: e.target.value });
+                        campaignAutoSlug(e.target.value);
                       }}
                       required
                     />
@@ -827,6 +823,17 @@ export default function CampaignsPage() {
                     rows={2}
                   />
                 </div>
+
+                {/* Campaign Links - Only show when editing */}
+                {isEditDialogOpen && selectedCampaign && (
+                  <div className="border-t pt-4 mt-2">
+                    <CampaignLinksManager
+                      campaignId={selectedCampaign.id}
+                      campaignName={selectedCampaign.name}
+                      inline
+                    />
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => {
@@ -969,6 +976,16 @@ export default function CampaignsPage() {
                     <p className="text-foreground">{selectedCampaign.notes}</p>
                   </div>
                 )}
+
+                {/* Campaign Links */}
+                <div className="border-t pt-4">
+                  <CampaignLinksManager
+                    campaignId={selectedCampaign.id}
+                    campaignName={selectedCampaign.name}
+                    readOnly
+                    inline
+                  />
+                </div>
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-4 border-t">

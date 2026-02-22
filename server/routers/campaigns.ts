@@ -9,6 +9,10 @@ import {
   deleteCampaign,
   getCampaignStats,
   getCampaignsOverview,
+  getCampaignAllLinks,
+  linkOffersToCampaign,
+  linkCampsToCampaign,
+  linkDoctorsToCampaign,
 } from "../db/campaigns";
 
 // Validation schemas
@@ -110,5 +114,42 @@ export const campaignsRouter = router({
   getOverview: protectedProcedure
     .query(async () => {
       return await getCampaignsOverview();
+    }),
+
+  // Get all campaign links (offers, camps, doctors)
+  getLinks: protectedProcedure
+    .input(z.object({ campaignId: z.number() }))
+    .query(async ({ input }) => {
+      return await getCampaignAllLinks(input.campaignId);
+    }),
+
+  // Link offers to campaign
+  linkOffers: protectedProcedure
+    .input(z.object({
+      campaignId: z.number(),
+      offerIds: z.array(z.number()),
+    }))
+    .mutation(async ({ input }) => {
+      return await linkOffersToCampaign(input.campaignId, input.offerIds);
+    }),
+
+  // Link camps to campaign
+  linkCamps: protectedProcedure
+    .input(z.object({
+      campaignId: z.number(),
+      campIds: z.array(z.number()),
+    }))
+    .mutation(async ({ input }) => {
+      return await linkCampsToCampaign(input.campaignId, input.campIds);
+    }),
+
+  // Link doctors to campaign
+  linkDoctors: protectedProcedure
+    .input(z.object({
+      campaignId: z.number(),
+      doctorIds: z.array(z.number()),
+    }))
+    .mutation(async ({ input }) => {
+      return await linkDoctorsToCampaign(input.campaignId, input.doctorIds);
     }),
 });

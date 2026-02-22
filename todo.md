@@ -3187,3 +3187,43 @@
 ### إضافة زر بوابة المريض في الشريط العلوي (Desktop) ✅ مكتمل
 - [x] إضافة زر "بوابة المريض" بجانب الرقم المجاني في Navbar Desktop
 - [x] حفظ التغييرات
+
+### فحص شامل وتحسينات - 23 فبراير 2026
+- [x] إنشاء هوك useSlugGenerator (توليد slug تلقائي)
+- [x] إنشاء API endpoint لرفع الملفات (/api/upload)
+- [x] إنشاء هوك useImageUpload (رفع صور مع Drag & Drop)
+- [x] إنشاء مكون ImageUpload قابل لإعادة الاستخدام
+- [x] ميزة ربط التسجيلات بالحملات: تحديث Schema (إضافة campaignId للعروض والمخيمات)
+- [x] ميزة ربط التسجيلات بالحملات: تحديث Server (campaigns router + db helpers)
+- [x] ميزة ربط التسجيلات بالحملات: تحديث UI (قوائم اختيار في نموذج الحملة)
+- [x] تطبيق Slug Auto-generation في OffersManagement
+- [x] تطبيق Slug Auto-generation في CampsManagement
+- [x] تطبيق Slug Auto-generation في CampaignsPage
+- [x] تطبيق ImageUpload في OffersManagement
+- [x] تطبيق ImageUpload في CampsManagement
+- [x] تطبيق ImageUpload في DoctorsManagement
+- [x] إضافة Form Validation أساسي في صفحات الإدارة (هوك useFormValidation)
+- [x] إضافة Duplicate/Clone في OffersManagement
+- [x] إضافة Duplicate/Clone في CampsManagement
+- [x] إصلاح تضارب مسارات /dashboard/projects و /dashboard/campaigns
+- [x] تحسين Caching Strategy (staleTime/cacheTime)
+- [x] تحديث مستند HOOKS_DOCUMENTATION.md
+- [x] إنشاء مستند AUDIT_AND_IMPROVEMENT_PLAN.md
+- [x] إنشاء هوك useFormValidation (تحقق من صحة النماذج)
+- [x] إنشاء هوك useConfirmDialog (حوار تأكيد)
+- [x] إنشاء هوك useStatusLabels (تسميات الحالات)
+- [x] إنشاء مكون CampaignLinksManager (ربط العروض/المخيمات/الأطباء بالحملات)
+- [x] إضافة جداول ربط: campaignOffers, campaignCamps, campaignDoctors
+- [x] إضافة حقل campaignId في offerLeads و campRegistrations
+- [x] إضافة عمود "الحملة" في جدول OfferLeadsManagement
+- [x] إضافة عمود "الحملة" في جدول CampRegistrationsManagement
+- [x] إضافة الأعمدة المفقودة في OffersManagement (description, imageUrl, createdAt)
+- [x] إضافة الأعمدة المفقودة في CampsManagement (description, imageUrl, startDate, endDate, createdAt)
+- [x] إضافة الأعمدة المفقودة في DoctorsManagement (slug, imageUrl, bio, createdAt)
+- [x] إضافة Duplicate/Clone في DoctorsManagement
+- [x] إصلاح الحقول المفقودة في getOfferLeadsPaginated (utmTerm, utmPlacement, receiptNumber, campaignId)
+- [x] إصلاح الحقول المفقودة في getCampRegistrationsPaginated (utmTerm, utmPlacement, receiptNumber, campaignId)
+- [x] إنشاء اختبارات useSlugGenerator (13 اختبار)
+- [x] إنشاء اختبارات useImageUpload (11 اختبار)
+- [x] إنشاء اختبارات CampaignLinksFeature (11 اختبار)
+- [x] جميع الاختبارات الـ 35 نجحت
