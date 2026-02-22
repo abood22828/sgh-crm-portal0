@@ -151,7 +151,16 @@ export default function OfferLeadsManagement({
     { key: 'actions', label: 'الإجراءات', defaultVisible: true },
   ];
 
+  // Load preferences from database
+  const { data: savedOfferPreferences } = trpc.preferences.get.useQuery(
+    { key: 'offerLeadVisibleColumns' },
+    { retry: false }
+  );
+  
+  const saveOfferPreferencesMutation = trpc.preferences.set.useMutation();
+  
   const [offerLeadVisibleColumns, setOfferLeadVisibleColumns] = useState<Record<string, boolean>>(() => {
+    // Try localStorage first for immediate load
     const saved = localStorage.getItem('offerLeadVisibleColumns');
     if (saved) {
       return JSON.parse(saved);
@@ -163,10 +172,22 @@ export default function OfferLeadsManagement({
     return defaultVisible;
   });
 
+  // Sync database preferences to state when loaded
+  useEffect(() => {
+    if (savedOfferPreferences) {
+      setOfferLeadVisibleColumns(savedOfferPreferences);
+      localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(savedOfferPreferences));
+    }
+  }, [savedOfferPreferences]);
+  
   const handleOfferLeadColumnVisibilityChange = (columnKey: string, visible: boolean) => {
     const updated = { ...offerLeadVisibleColumns, [columnKey]: visible };
     setOfferLeadVisibleColumns(updated);
     localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(updated));
+    saveOfferPreferencesMutation.mutate({
+      key: 'offerLeadVisibleColumns',
+      value: updated,
+    });
   };
 
   const handleOfferLeadColumnsReset = () => {
@@ -176,6 +197,10 @@ export default function OfferLeadsManagement({
     });
     setOfferLeadVisibleColumns(defaultVisible);
     localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(defaultVisible));
+    saveOfferPreferencesMutation.mutate({
+      key: 'offerLeadVisibleColumns',
+      value: defaultVisible,
+    });
   };
   
   // Debounced search for better performance

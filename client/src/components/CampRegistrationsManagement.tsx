@@ -158,7 +158,16 @@ export default function CampRegistrationsManagement({
     { key: 'actions', label: 'الإجراءات', defaultVisible: true },
   ];
 
+  // Load preferences from database
+  const { data: savedCampPreferences } = trpc.preferences.get.useQuery(
+    { key: 'campRegVisibleColumns' },
+    { retry: false }
+  );
+  
+  const saveCampPreferencesMutation = trpc.preferences.set.useMutation();
+  
   const [campRegVisibleColumns, setCampRegVisibleColumns] = useState<Record<string, boolean>>(() => {
+    // Try localStorage first for immediate load
     const saved = localStorage.getItem('campRegVisibleColumns');
     if (saved) {
       return JSON.parse(saved);
@@ -170,10 +179,22 @@ export default function CampRegistrationsManagement({
     return defaultVisible;
   });
 
+  // Sync database preferences to state when loaded
+  useEffect(() => {
+    if (savedCampPreferences) {
+      setCampRegVisibleColumns(savedCampPreferences);
+      localStorage.setItem('campRegVisibleColumns', JSON.stringify(savedCampPreferences));
+    }
+  }, [savedCampPreferences]);
+  
   const handleCampRegColumnVisibilityChange = (columnKey: string, visible: boolean) => {
     const updated = { ...campRegVisibleColumns, [columnKey]: visible };
     setCampRegVisibleColumns(updated);
     localStorage.setItem('campRegVisibleColumns', JSON.stringify(updated));
+    saveCampPreferencesMutation.mutate({
+      key: 'campRegVisibleColumns',
+      value: updated,
+    });
   };
 
   const handleCampRegColumnsReset = () => {
@@ -183,6 +204,10 @@ export default function CampRegistrationsManagement({
     });
     setCampRegVisibleColumns(defaultVisible);
     localStorage.setItem('campRegVisibleColumns', JSON.stringify(defaultVisible));
+    saveCampPreferencesMutation.mutate({
+      key: 'campRegVisibleColumns',
+      value: defaultVisible,
+    });
   };
   
   // Debounced search for better performance
