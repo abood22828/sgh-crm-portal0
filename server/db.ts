@@ -1,6 +1,6 @@
 import { eq, desc, and, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, campaigns, leads, leadStatusHistory, settings, doctors, appointments, accessRequests, InsertCampaign, InsertLead, InsertLeadStatusHistory, InsertSetting, InsertAppointment, InsertAccessRequest } from "../drizzle/schema";
+import { InsertUser, users, campaigns, leads, leadStatusHistory, settings, doctors, appointments, accessRequests, InsertCampaign, InsertLead, InsertLeadStatusHistory, InsertSetting, InsertAppointment, InsertAccessRequest, sharedColumnTemplates, InsertSharedColumnTemplate } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -1211,4 +1211,83 @@ export async function getAllUserPreferences(userId: number) {
     .select()
     .from(userPreferences)
     .where(eq(userPreferences.userId, userId));
+}
+
+// === Shared Column Templates ===
+
+export async function getSharedTemplates(tableKey: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get shared templates: database not available");
+    return [];
+  }
+
+  return await db
+    .select()
+    .from(sharedColumnTemplates)
+    .where(eq(sharedColumnTemplates.tableKey, tableKey))
+    .orderBy(desc(sharedColumnTemplates.createdAt));
+}
+
+export async function getAllSharedTemplates() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get all shared templates: database not available");
+    return [];
+  }
+
+  return await db
+    .select()
+    .from(sharedColumnTemplates)
+    .orderBy(desc(sharedColumnTemplates.createdAt));
+}
+
+export async function createSharedTemplate(data: {
+  name: string;
+  tableKey: string;
+  columns: string;
+  createdBy: number;
+  createdByName: string | null;
+}) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create shared template: database not available");
+    return null;
+  }
+
+  const result = await db.insert(sharedColumnTemplates).values({
+    name: data.name,
+    tableKey: data.tableKey,
+    columns: data.columns,
+    createdBy: data.createdBy,
+    createdByName: data.createdByName,
+  });
+
+  return result;
+}
+
+export async function deleteSharedTemplate(id: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot delete shared template: database not available");
+    return;
+  }
+
+  await db.delete(sharedColumnTemplates).where(eq(sharedColumnTemplates.id, id));
+}
+
+export async function updateSharedTemplate(id: number, data: { name?: string; columns?: string }) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update shared template: database not available");
+    return;
+  }
+
+  const updateSet: Record<string, unknown> = {};
+  if (data.name !== undefined) updateSet.name = data.name;
+  if (data.columns !== undefined) updateSet.columns = data.columns;
+
+  if (Object.keys(updateSet).length > 0) {
+    await db.update(sharedColumnTemplates).set(updateSet).where(eq(sharedColumnTemplates.id, id));
+  }
 }

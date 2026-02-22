@@ -101,6 +101,83 @@ export const appRouter = router({
         }, {} as Record<string, any>);
       }),
   }),
+
+  // Shared Column Templates (admin-managed, visible to all)
+  sharedTemplates: router({
+    list: protectedProcedure
+      .input(z.object({ tableKey: z.string() }))
+      .query(async ({ input }) => {
+        const { getSharedTemplates } = await import("./db");
+        const templates = await getSharedTemplates(input.tableKey);
+        return templates.map(t => ({
+          ...t,
+          columns: JSON.parse(t.columns),
+        }));
+      }),
+
+    listAll: protectedProcedure
+      .query(async () => {
+        const { getAllSharedTemplates } = await import("./db");
+        const templates = await getAllSharedTemplates();
+        return templates.map(t => ({
+          ...t,
+          columns: JSON.parse(t.columns),
+        }));
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        tableKey: z.string(),
+        columns: z.record(z.string(), z.boolean()),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admin can create shared templates
+        if (ctx.user.role !== 'admin') {
+          throw new Error('غير مصرح لك بإنشاء قوالب مشتركة');
+        }
+        const { createSharedTemplate } = await import("./db");
+        await createSharedTemplate({
+          name: input.name,
+          tableKey: input.tableKey,
+          columns: JSON.stringify(input.columns),
+          createdBy: ctx.user.id,
+          createdByName: ctx.user.name || null,
+        });
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admin can delete shared templates
+        if (ctx.user.role !== 'admin') {
+          throw new Error('غير مصرح لك بحذف قوالب مشتركة');
+        }
+        const { deleteSharedTemplate } = await import("./db");
+        await deleteSharedTemplate(input.id);
+        return { success: true };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        columns: z.record(z.string(), z.boolean()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admin can update shared templates
+        if (ctx.user.role !== 'admin') {
+          throw new Error('غير مصرح لك بتعديل قوالب مشتركة');
+        }
+        const { updateSharedTemplate } = await import("./db");
+        await updateSharedTemplate(input.id, {
+          name: input.name,
+          columns: input.columns ? JSON.stringify(input.columns) : undefined,
+        });
+        return { success: true };
+      }),
+  }),
   
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

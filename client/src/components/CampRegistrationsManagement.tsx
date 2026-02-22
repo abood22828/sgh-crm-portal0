@@ -250,6 +250,44 @@ export default function CampRegistrationsManagement({
     }
   }, [savedCampActiveTemplateId]);
 
+  // Shared templates from admin
+  const { data: sharedCampTemplatesData } = trpc.sharedTemplates.list.useQuery(
+    { tableKey: 'campRegistrations' },
+    { retry: false }
+  );
+  const createSharedCampTemplateMutation = trpc.sharedTemplates.create.useMutation({
+    onSuccess: () => {
+      utils.sharedTemplates.list.invalidate({ tableKey: 'campRegistrations' });
+    },
+  });
+  const deleteSharedCampTemplateMutation = trpc.sharedTemplates.delete.useMutation({
+    onSuccess: () => {
+      utils.sharedTemplates.list.invalidate({ tableKey: 'campRegistrations' });
+    },
+  });
+
+  const sharedCampTemplates: ColumnTemplate[] = (sharedCampTemplatesData || []).map((t: any) => ({
+    id: `shared_campRegistrations_${t.id}`,
+    name: t.name,
+    columns: t.columns,
+    isDefault: false,
+    isShared: true,
+    createdByName: t.createdByName,
+    dbId: t.id,
+  }));
+
+  const handleSaveSharedCampTemplate = (name: string, columns: Record<string, boolean>) => {
+    createSharedCampTemplateMutation.mutate({
+      name,
+      tableKey: 'campRegistrations',
+      columns,
+    });
+  };
+
+  const handleDeleteSharedCampTemplate = (dbId: number) => {
+    deleteSharedCampTemplateMutation.mutate({ id: dbId });
+  };
+
   const allCampTemplates = [...defaultCampTemplates, ...customCampTemplates];
 
   const handleApplyCampTemplate = (template: ColumnTemplate) => {
@@ -754,6 +792,10 @@ export default function CampRegistrationsManagement({
                 onSaveTemplate={handleSaveCampTemplate}
                 onDeleteTemplate={handleDeleteCampTemplate}
                 tableKey="campRegistrations"
+                isAdmin={user?.role === 'admin'}
+                sharedTemplates={sharedCampTemplates}
+                onSaveSharedTemplate={handleSaveSharedCampTemplate}
+                onDeleteSharedTemplate={handleDeleteSharedCampTemplate}
               />
               <Button
                 variant="outline"
