@@ -197,6 +197,31 @@ export default function CampRegistrationsManagement({
     });
   };
 
+  // Column order state
+  const defaultCampColumnOrder = campRegColumns.map(c => c.key);
+  const [campColumnOrder, setCampColumnOrder] = useState<string[]>(() => {
+    const saved = localStorage.getItem('campRegColumnOrder');
+    return saved ? JSON.parse(saved) : defaultCampColumnOrder;
+  });
+
+  const { data: savedCampColumnOrder } = trpc.preferences.get.useQuery(
+    { key: 'campRegColumnOrder' },
+    { retry: false }
+  );
+
+  useEffect(() => {
+    if (savedCampColumnOrder && Array.isArray(savedCampColumnOrder)) {
+      setCampColumnOrder(savedCampColumnOrder);
+      localStorage.setItem('campRegColumnOrder', JSON.stringify(savedCampColumnOrder));
+    }
+  }, [savedCampColumnOrder]);
+
+  const handleCampColumnOrderChange = (newOrder: string[]) => {
+    setCampColumnOrder(newOrder);
+    localStorage.setItem('campRegColumnOrder', JSON.stringify(newOrder));
+    saveCampPreferencesMutation.mutate({ key: 'campRegColumnOrder', value: newOrder });
+  };
+
   const handleCampRegColumnsReset = () => {
     const defaultVisible: Record<string, boolean> = {};
     campRegColumns.forEach(col => {
@@ -204,10 +229,13 @@ export default function CampRegistrationsManagement({
     });
     setCampRegVisibleColumns(defaultVisible);
     setActiveCampTemplateId(null);
+    setCampColumnOrder(defaultCampColumnOrder);
     localStorage.setItem('campRegVisibleColumns', JSON.stringify(defaultVisible));
     localStorage.removeItem('activeCampTemplateId');
+    localStorage.setItem('campRegColumnOrder', JSON.stringify(defaultCampColumnOrder));
     saveCampPreferencesMutation.mutate({ key: 'campRegVisibleColumns', value: defaultVisible });
     saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: null });
+    saveCampPreferencesMutation.mutate({ key: 'campRegColumnOrder', value: defaultCampColumnOrder });
   };
 
   // === Column Templates ===
@@ -276,12 +304,13 @@ export default function CampRegistrationsManagement({
     dbId: t.id,
   }));
 
-  const handleSaveSharedCampTemplate = (name: string, columns: Record<string, boolean>) => {
+  const handleSaveSharedCampTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[]) => {
     createSharedCampTemplateMutation.mutate({
       name,
       tableKey: 'campRegistrations',
       columns,
-    });
+      columnOrder: columnOrder || campColumnOrder,
+    } as any);
   };
 
   const handleDeleteSharedCampTemplate = (dbId: number) => {
@@ -293,17 +322,23 @@ export default function CampRegistrationsManagement({
   const handleApplyCampTemplate = (template: ColumnTemplate) => {
     setCampRegVisibleColumns(template.columns);
     setActiveCampTemplateId(template.id);
+    if (template.columnOrder) {
+      setCampColumnOrder(template.columnOrder);
+      localStorage.setItem('campRegColumnOrder', JSON.stringify(template.columnOrder));
+      saveCampPreferencesMutation.mutate({ key: 'campRegColumnOrder', value: template.columnOrder });
+    }
     localStorage.setItem('campRegVisibleColumns', JSON.stringify(template.columns));
     localStorage.setItem('activeCampTemplateId', template.id);
     saveCampPreferencesMutation.mutate({ key: 'campRegVisibleColumns', value: template.columns });
     saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: template.id });
   };
 
-  const handleSaveCampTemplate = (name: string, columns: Record<string, boolean>) => {
+  const handleSaveCampTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[]) => {
     const newTemplate: ColumnTemplate = {
       id: `campRegistrations_custom_${Date.now()}`,
       name,
       columns,
+      columnOrder: columnOrder || campColumnOrder,
       isDefault: false,
     };
     const updated = [...customCampTemplates, newTemplate];
@@ -784,7 +819,9 @@ export default function CampRegistrationsManagement({
               <ColumnVisibility
                 columns={campRegColumns}
                 visibleColumns={campRegVisibleColumns}
+                columnOrder={campColumnOrder}
                 onVisibilityChange={handleCampRegColumnVisibilityChange}
+                onColumnOrderChange={handleCampColumnOrderChange}
                 onReset={handleCampRegColumnsReset}
                 templates={allCampTemplates}
                 activeTemplateId={activeCampTemplateId}

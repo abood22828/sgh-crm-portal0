@@ -266,6 +266,31 @@ export default function BookingsManagementPage() {
     });
   };
 
+  // Column order state
+  const defaultColumnOrder = appointmentColumns.map(c => c.key);
+  const [appointmentColumnOrder, setAppointmentColumnOrder] = useState<string[]>(() => {
+    const saved = localStorage.getItem('appointmentColumnOrder');
+    return saved ? JSON.parse(saved) : defaultColumnOrder;
+  });
+
+  const { data: savedColumnOrder } = trpc.preferences.get.useQuery(
+    { key: 'appointmentColumnOrder' },
+    { retry: false }
+  );
+
+  useEffect(() => {
+    if (savedColumnOrder && Array.isArray(savedColumnOrder)) {
+      setAppointmentColumnOrder(savedColumnOrder);
+      localStorage.setItem('appointmentColumnOrder', JSON.stringify(savedColumnOrder));
+    }
+  }, [savedColumnOrder]);
+
+  const handleAppointmentColumnOrderChange = (newOrder: string[]) => {
+    setAppointmentColumnOrder(newOrder);
+    localStorage.setItem('appointmentColumnOrder', JSON.stringify(newOrder));
+    savePreferencesMutation.mutate({ key: 'appointmentColumnOrder', value: newOrder });
+  };
+
   const handleAppointmentColumnsReset = () => {
     const defaultVisible: Record<string, boolean> = {};
     appointmentColumns.forEach(col => {
@@ -273,9 +298,11 @@ export default function BookingsManagementPage() {
     });
     setAppointmentVisibleColumns(defaultVisible);
     setActiveAppointmentTemplateId(null);
+    setAppointmentColumnOrder(defaultColumnOrder);
     // Save to both localStorage and database
     localStorage.setItem('appointmentVisibleColumns', JSON.stringify(defaultVisible));
     localStorage.removeItem('activeAppointmentTemplateId');
+    localStorage.setItem('appointmentColumnOrder', JSON.stringify(defaultColumnOrder));
     savePreferencesMutation.mutate({
       key: 'appointmentVisibleColumns',
       value: defaultVisible,
@@ -283,6 +310,10 @@ export default function BookingsManagementPage() {
     savePreferencesMutation.mutate({
       key: 'activeAppointmentTemplateId',
       value: null,
+    });
+    savePreferencesMutation.mutate({
+      key: 'appointmentColumnOrder',
+      value: defaultColumnOrder,
     });
   };
 
@@ -352,12 +383,13 @@ export default function BookingsManagementPage() {
     dbId: t.id,
   }));
 
-  const handleSaveSharedAppointmentTemplate = (name: string, columns: Record<string, boolean>) => {
+  const handleSaveSharedAppointmentTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[]) => {
     createSharedTemplateMutation.mutate({
       name,
       tableKey: 'appointments',
       columns,
-    });
+      columnOrder: columnOrder || appointmentColumnOrder,
+    } as any);
   };
 
   const handleDeleteSharedAppointmentTemplate = (dbId: number) => {
@@ -369,17 +401,23 @@ export default function BookingsManagementPage() {
   const handleApplyAppointmentTemplate = (template: ColumnTemplate) => {
     setAppointmentVisibleColumns(template.columns);
     setActiveAppointmentTemplateId(template.id);
+    if (template.columnOrder) {
+      setAppointmentColumnOrder(template.columnOrder);
+      localStorage.setItem('appointmentColumnOrder', JSON.stringify(template.columnOrder));
+      savePreferencesMutation.mutate({ key: 'appointmentColumnOrder', value: template.columnOrder });
+    }
     localStorage.setItem('appointmentVisibleColumns', JSON.stringify(template.columns));
     localStorage.setItem('activeAppointmentTemplateId', template.id);
     savePreferencesMutation.mutate({ key: 'appointmentVisibleColumns', value: template.columns });
     savePreferencesMutation.mutate({ key: 'activeAppointmentTemplateId', value: template.id });
   };
 
-  const handleSaveAppointmentTemplate = (name: string, columns: Record<string, boolean>) => {
+  const handleSaveAppointmentTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[]) => {
     const newTemplate: ColumnTemplate = {
       id: `appointments_custom_${Date.now()}`,
       name,
       columns,
+      columnOrder: columnOrder || appointmentColumnOrder,
       isDefault: false,
     };
     const updated = [...customTemplates, newTemplate];
@@ -1347,7 +1385,9 @@ export default function BookingsManagementPage() {
                     <ColumnVisibility
                       columns={appointmentColumns}
                       visibleColumns={appointmentVisibleColumns}
+                      columnOrder={appointmentColumnOrder}
                       onVisibilityChange={handleAppointmentColumnVisibilityChange}
+                      onColumnOrderChange={handleAppointmentColumnOrderChange}
                       onReset={handleAppointmentColumnsReset}
                       templates={allAppointmentTemplates}
                       activeTemplateId={activeAppointmentTemplateId}

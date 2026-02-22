@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Settings, Save, Trash2, BookTemplate, ChevronDown, Check, Plus, Globe, User } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Settings, Save, Trash2, BookTemplate, ChevronDown, Check, Plus, Globe, User, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -26,6 +26,23 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export interface ColumnConfig {
   key: string;
@@ -37,6 +54,7 @@ export interface ColumnTemplate {
   id: string;
   name: string;
   columns: Record<string, boolean>;
+  columnOrder?: string[]; // ordered column keys
   isDefault?: boolean;
   isShared?: boolean;
   createdByName?: string | null;
@@ -46,24 +64,28 @@ export interface ColumnTemplate {
 interface ColumnVisibilityProps {
   columns: ColumnConfig[];
   visibleColumns: Record<string, boolean>;
+  columnOrder: string[]; // current column order
   onVisibilityChange: (columnKey: string, visible: boolean) => void;
+  onColumnOrderChange: (newOrder: string[]) => void;
   onReset: () => void;
   // Template support
   templates?: ColumnTemplate[];
   activeTemplateId?: string | null;
   onApplyTemplate?: (template: ColumnTemplate) => void;
-  onSaveTemplate?: (name: string, columns: Record<string, boolean>) => void;
+  onSaveTemplate?: (name: string, columns: Record<string, boolean>, columnOrder: string[]) => void;
   onDeleteTemplate?: (templateId: string) => void;
   tableKey?: string;
   // Shared template support (admin only)
   isAdmin?: boolean;
   sharedTemplates?: ColumnTemplate[];
-  onSaveSharedTemplate?: (name: string, columns: Record<string, boolean>) => void;
+  onSaveSharedTemplate?: (name: string, columns: Record<string, boolean>, columnOrder: string[]) => void;
   onDeleteSharedTemplate?: (dbId: number) => void;
 }
 
 // Built-in default templates generator
 export function getDefaultTemplates(columns: ColumnConfig[], tableKey: string): ColumnTemplate[] {
+  const defaultOrder = columns.map(c => c.key);
+
   // Basic template - only essential columns
   const basicColumns: Record<string, boolean> = {};
   const essentialKeys = ['ticketNumber', 'fullName', 'phone', 'status', 'createdAt', 'actions'];
@@ -87,16 +109,75 @@ export function getDefaultTemplates(columns: ColumnConfig[], tableKey: string): 
   });
 
   return [
-    { id: `${tableKey}_default_basic`, name: 'عرض أساسي', columns: basicColumns, isDefault: true },
-    { id: `${tableKey}_default_marketing`, name: 'عرض تسويقي', columns: marketingColumns, isDefault: true },
-    { id: `${tableKey}_default_full`, name: 'عرض كامل', columns: fullColumns, isDefault: true },
+    { id: `${tableKey}_default_basic`, name: 'عرض أساسي', columns: basicColumns, columnOrder: defaultOrder, isDefault: true },
+    { id: `${tableKey}_default_marketing`, name: 'عرض تسويقي', columns: marketingColumns, columnOrder: defaultOrder, isDefault: true },
+    { id: `${tableKey}_default_full`, name: 'عرض كامل', columns: fullColumns, columnOrder: defaultOrder, isDefault: true },
   ];
+}
+
+// Sortable column item component
+function SortableColumnItem({
+  column,
+  isVisible,
+  onVisibilityChange,
+}: {
+  column: ColumnConfig;
+  isVisible: boolean;
+  onVisibilityChange: (key: string, visible: boolean) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: column.key });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-1.5 py-1 px-1 rounded-md ${isDragging ? 'bg-accent shadow-md' : 'hover:bg-accent/50'}`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-0.5 text-muted-foreground hover:text-foreground touch-none"
+        tabIndex={-1}
+      >
+        <GripVertical className="h-3.5 w-3.5" />
+      </button>
+      <Checkbox
+        id={`column-${column.key}`}
+        checked={isVisible}
+        onCheckedChange={(checked) =>
+          onVisibilityChange(column.key, checked as boolean)
+        }
+      />
+      <Label
+        htmlFor={`column-${column.key}`}
+        className="text-sm font-normal cursor-pointer flex-1 select-none"
+      >
+        {column.label}
+      </Label>
+    </div>
+  );
 }
 
 export function ColumnVisibility({
   columns,
   visibleColumns,
+  columnOrder,
   onVisibilityChange,
+  onColumnOrderChange,
   onReset,
   templates = [],
   activeTemplateId,
@@ -120,13 +201,47 @@ export function ColumnVisibility({
   const hasTemplateSupport = onApplyTemplate && onSaveTemplate && onDeleteTemplate;
   const hasSharedTemplateSupport = isAdmin && onSaveSharedTemplate && onDeleteSharedTemplate;
 
+  // Sort columns by current order
+  const orderedColumns = useMemo(() => {
+    const orderMap = new Map(columnOrder.map((key, idx) => [key, idx]));
+    return [...columns].sort((a, b) => {
+      const aIdx = orderMap.get(a.key) ?? 999;
+      const bIdx = orderMap.get(b.key) ?? 999;
+      return aIdx - bIdx;
+    });
+  }, [columns, columnOrder]);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = columnOrder.indexOf(active.id as string);
+      const newIndex = columnOrder.indexOf(over.id as string);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(columnOrder, oldIndex, newIndex);
+        onColumnOrderChange(newOrder);
+      }
+    }
+  };
+
   const handleSaveTemplate = () => {
     if (!newTemplateName.trim()) {
       toast.error('يرجى إدخال اسم القالب');
       return;
     }
     if (onSaveTemplate) {
-      onSaveTemplate(newTemplateName.trim(), { ...visibleColumns });
+      onSaveTemplate(newTemplateName.trim(), { ...visibleColumns }, [...columnOrder]);
       setNewTemplateName('');
       setSaveDialogOpen(false);
       toast.success(`تم حفظ القالب "${newTemplateName.trim()}" بنجاح`);
@@ -139,7 +254,7 @@ export function ColumnVisibility({
       return;
     }
     if (onSaveSharedTemplate) {
-      onSaveSharedTemplate(newSharedTemplateName.trim(), { ...visibleColumns });
+      onSaveSharedTemplate(newSharedTemplateName.trim(), { ...visibleColumns }, [...columnOrder]);
       setNewSharedTemplateName('');
       setSaveSharedDialogOpen(false);
       toast.success(`تم حفظ القالب المشترك "${newSharedTemplateName.trim()}" بنجاح - سيظهر لجميع المستخدمين`);
@@ -317,7 +432,7 @@ export function ColumnVisibility({
           </DropdownMenu>
         )}
 
-        {/* Column Visibility Popover */}
+        {/* Column Visibility & Order Popover */}
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2">
@@ -328,10 +443,10 @@ export function ColumnVisibility({
               </span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-64" align="end">
-            <div className="space-y-4">
+          <PopoverContent className="w-72" align="end">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm">اختيار الأعمدة</h4>
+                <h4 className="font-medium text-sm">اختيار وترتيب الأعمدة</h4>
                 <div className="flex items-center gap-1">
                   {hasTemplateSupport && (
                     <Button
@@ -355,24 +470,29 @@ export function ColumnVisibility({
                   </Button>
                 </div>
               </div>
-              <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                {columns.map((column) => (
-                  <div key={column.key} className="flex items-center space-x-2 space-x-reverse">
-                    <Checkbox
-                      id={`column-${column.key}`}
-                      checked={visibleColumns[column.key] ?? column.defaultVisible}
-                      onCheckedChange={(checked) =>
-                        onVisibilityChange(column.key, checked as boolean)
-                      }
-                    />
-                    <Label
-                      htmlFor={`column-${column.key}`}
-                      className="text-sm font-normal cursor-pointer flex-1"
-                    >
-                      {column.label}
-                    </Label>
-                  </div>
-                ))}
+              <p className="text-[11px] text-muted-foreground -mt-1">
+                اسحب <GripVertical className="h-3 w-3 inline" /> لإعادة ترتيب الأعمدة
+              </p>
+              <div className="max-h-[350px] overflow-y-auto -mx-1 px-1">
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={orderedColumns.map(c => c.key)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {orderedColumns.map((column) => (
+                      <SortableColumnItem
+                        key={column.key}
+                        column={column}
+                        isVisible={visibleColumns[column.key] ?? column.defaultVisible}
+                        onVisibilityChange={onVisibilityChange}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               </div>
             </div>
           </PopoverContent>
@@ -388,7 +508,7 @@ export function ColumnVisibility({
               حفظ قالب شخصي
             </DialogTitle>
             <DialogDescription>
-              سيتم حفظ إعدادات الأعمدة الحالية كقالب شخصي خاص بك فقط
+              سيتم حفظ إعدادات الأعمدة وترتيبها الحالي كقالب شخصي خاص بك فقط
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -431,7 +551,7 @@ export function ColumnVisibility({
               حفظ قالب مشترك
             </DialogTitle>
             <DialogDescription>
-              سيتم حفظ إعدادات الأعمدة الحالية كقالب مشترك يظهر لجميع المستخدمين
+              سيتم حفظ إعدادات الأعمدة وترتيبها الحالي كقالب مشترك يظهر لجميع المستخدمين
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
