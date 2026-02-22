@@ -906,7 +906,7 @@ export default function OfferLeadsManagement({
                               </FrozenTableCell>
                             );
                           case 'statusNotes':
-                            return <FrozenTableCell key={colKey} columnKey={colKey} className="max-w-[200px] truncate" title={lead.statusNotes}>{lead.statusNotes || '-'}</FrozenTableCell>;
+                            return <FrozenTableCell key={colKey} columnKey={colKey} wrap title={lead.statusNotes}>{lead.statusNotes || '-'}</FrozenTableCell>;
                           case 'date':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString("ar-SA")}</FrozenTableCell>;
                           case 'utmSource':
