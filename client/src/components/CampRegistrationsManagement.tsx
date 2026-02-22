@@ -15,6 +15,8 @@ import CommentsSection from "@/components/CommentsSection";
 import CommentCount from "@/components/CommentCount";
 import TaskCount from "@/components/TaskCount";
 import TasksSection from "@/components/TasksSection";
+import AuditLogSection from "@/components/AuditLogSection";
+import SavedFilters from "@/components/SavedFilters";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -535,6 +537,28 @@ export default function CampRegistrationsManagement({
                   onSaveSharedTemplate={campTable.handleSaveSharedTemplate}
                   onDeleteSharedTemplate={campTable.handleDeleteSharedTemplate}
                 />
+              <SavedFilters
+                pageKey="campRegistrations"
+                currentFilters={{
+                  statusFilter: campFilter.filters.statusFilter,
+                  sourceFilter: campFilter.filters.sourceFilter,
+                  categoryFilter: campFilter.filters.categoryFilter,
+                  dateFilter: campFilter.filters.dateFilter,
+                  searchTerm: campFilter.filters.searchTerm,
+                }}
+                onApplyFilter={(filters) => {
+                  if (filters.statusFilter) campFilter.filters.setStatusFilter(filters.statusFilter);
+                  else campFilter.filters.setStatusFilter([]);
+                  if (filters.sourceFilter) campFilter.filters.setSourceFilter(filters.sourceFilter);
+                  else campFilter.filters.setSourceFilter([]);
+                  if (filters.categoryFilter) campFilter.filters.setCategoryFilter(filters.categoryFilter);
+                  else campFilter.filters.setCategoryFilter([]);
+                  if (filters.dateFilter) campFilter.filters.setDateFilter(filters.dateFilter);
+                  else campFilter.filters.setDateFilter('all');
+                  if (filters.searchTerm) campFilter.filters.setSearchTerm(filters.searchTerm);
+                  else campFilter.filters.setSearchTerm('');
+                }}
+              />
               <Button
                 variant="outline"
                 onClick={handlePrintCampRegistrations}
@@ -967,10 +991,11 @@ export default function CampRegistrationsManagement({
           {selectedRegistration && (
             <div className="flex-1 overflow-hidden flex flex-col">
               <Tabs defaultValue="info" className="flex-1 overflow-hidden flex flex-col">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="info">معلومات التسجيل</TabsTrigger>
                   <TabsTrigger value="comments">التعليقات</TabsTrigger>
                   <TabsTrigger value="tasks">المهام</TabsTrigger>
+                  <TabsTrigger value="history">سجل التغييرات</TabsTrigger>
                 </TabsList>
                 
                 <div className="flex-1 overflow-y-auto mt-4">
@@ -1069,6 +1094,13 @@ export default function CampRegistrationsManagement({
                   
                   <TabsContent value="tasks" className="mt-0">
                     <TasksSection
+                      entityType="campRegistration"
+                      entityId={selectedRegistration.id}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="history" className="mt-0">
+                    <AuditLogSection
                       entityType="campRegistration"
                       entityId={selectedRegistration.id}
                     />

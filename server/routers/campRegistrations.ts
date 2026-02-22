@@ -5,6 +5,7 @@ import { getDb } from "../db";
 import { campRegistrations } from "../../drizzle/schema";
 import { sendNewCampRegistrationTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
+import { createAuditLog } from "./auditLogs";
 
 export const campRegistrationsRouter = router({
   // Submit a new camp registration (public)
@@ -206,9 +207,13 @@ export const campRegistrationsRouter = router({
         attendanceDate: z.date().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
+
+      // Get old status for audit log
+      const [old] = await db.select({ status: campRegistrations.status }).from(campRegistrations).where(eq(campRegistrations.id, input.id)).limit(1);
+      const oldStatus = old?.status || '';
 
       const updateData: any = {
         status: input.status,
@@ -225,6 +230,18 @@ export const campRegistrationsRouter = router({
         .update(campRegistrations)
         .set(updateData)
         .where(eq(campRegistrations.id, input.id));
+
+      // Create audit log
+      await createAuditLog({
+        entityType: 'campRegistration',
+        entityId: input.id,
+        action: 'status_change',
+        oldValue: oldStatus,
+        newValue: input.status,
+        userId: ctx.user?.id,
+        userName: ctx.user?.name,
+        notes: input.notes,
+      });
 
       // Send welcome message when status changes to "attended" (Patient Journey)
       if (input.status === "attended") {
@@ -258,7 +275,7 @@ export const campRegistrationsRouter = router({
         notes: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
@@ -274,6 +291,19 @@ export const campRegistrationsRouter = router({
           .update(campRegistrations)
           .set(updateData)
           .where(eq(campRegistrations.id, id));
+      }
+
+      // Create audit logs for bulk update
+      for (const id of input.ids) {
+        await createAuditLog({
+          entityType: 'campRegistration',
+          entityId: id,
+          action: 'bulk_status_change',
+          newValue: input.status,
+          userId: ctx.user?.id,
+          userName: ctx.user?.name,
+          notes: input.notes,
+        });
       }
 
       // Invalidate camp registration caches after bulk update

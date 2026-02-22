@@ -37,6 +37,12 @@ const ReportsPageNew = lazy(() => import("./pages/admin/ReportsPage"));
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const CampStatsPage = lazy(() => import("./pages/CampStatsPage"));
 const BookingsManagementPage = lazy(() => import("./pages/BookingsManagementPage"));
+const LeadsManagementPage = lazy(() => import("./pages/LeadsManagementPage"));
+const AppointmentsManagementPage = lazy(() => import("./pages/AppointmentsManagementPage"));
+const OfferLeadsPage = lazy(() => import("./pages/OfferLeadsPage"));
+const CampRegistrationsPage = lazy(() => import("./pages/CampRegistrationsPage"));
+const CustomersPage = lazy(() => import("./pages/CustomersPage"));
+const TasksPage = lazy(() => import("./pages/TasksPage"));
 import PWAManager from "./components/PWAManager";
 import OfflineIndicator from "./components/OfflineIndicator";
 const DigitalMarketingTeamPage = lazy(() => import("./pages/DigitalMarketingTeamPage"));
@@ -96,6 +102,12 @@ function Router() {
       <Route path={"/dashboard/analytics"} component={AnalyticsPage} />
        <Route path={"/dashboard/camp-stats"} component={CampStatsPage} />
       <Route path={"/dashboard/bookings"} component={BookingsManagementPage} />
+      <Route path={"/dashboard/bookings/leads"} component={LeadsManagementPage} />
+      <Route path={"/dashboard/bookings/appointments"} component={AppointmentsManagementPage} />
+      <Route path={"/dashboard/bookings/offer-leads"} component={OfferLeadsPage} />
+      <Route path={"/dashboard/bookings/camp-registrations"} component={CampRegistrationsPage} />
+      <Route path={"/dashboard/bookings/customers"} component={CustomersPage} />
+      <Route path={"/dashboard/bookings/tasks"} component={TasksPage} />
       <Route path={"/dashboard/teams/digital-marketing"} component={DigitalMarketingTasksPage} />
       <Route path={"/dashboard/teams/media"} component={MediaTeamPage} />
       <Route path={"/dashboard/teams/field-marketing"} component={FieldMarketingTeamPage} />

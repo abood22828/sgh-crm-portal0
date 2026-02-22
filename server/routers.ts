@@ -34,6 +34,9 @@ import { leadsRouter } from "./routers/leads";
 import { getCombinedSocialMediaStats } from "./metaGraphAPI";
 import { runDeactivationJobs } from "./cron/deactivateExpired";
 import { queueRouter } from "./routers/queue";
+import { customersRouter } from "./routers/customers";
+import { auditLogsRouter } from "./routers/auditLogs";
+import { savedFiltersRouter } from "./routers/savedFilters";
 import { generatePDF, type ExportMetadata } from "./pdfService";
 
 export const appRouter = router({
@@ -212,6 +215,15 @@ export const appRouter = router({
 
   // Camp registrations management
   campRegistrations: campRegistrationsRouter,
+
+  // Customer profiles (unified)
+  customers: customersRouter,
+
+  // Audit logs
+  auditLogs: auditLogsRouter,
+
+  // Saved filters
+  savedFilters: savedFiltersRouter,
 
   // Social Media Insights
   socialMedia: router({

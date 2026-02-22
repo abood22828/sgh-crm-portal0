@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `savedFilters` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`name` varchar(100) NOT NULL,\n\t`pageType` varchar(50) NOT NULL,\n\t`filterConfig` text NOT NULL,\n\t`userId` int NOT NULL,\n\t`isDefault` boolean NOT NULL DEFAULT false,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `savedFilters_id` PRIMARY KEY(`id`)\n);\nCREATE INDEX `savedFilters_userPage_idx` ON `savedFilters` (`userId`,`pageType`);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute CREATE TABLE IF NOT EXISTS `savedFilters` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`name` varchar(100) NOT NULL,\n\t`pageType` varchar(50) NOT NULL,\n\t`filterConfig` text NOT NULL,\n\t`userId` int NOT NULL,\n\t`isDefault` boolean NOT NULL DEFAULT false,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `savedFilters_id` PRIMARY KEY(`id`)\n);\nCREATE INDEX `savedFilters_userPage_idx` ON `savedFilters` (`userId`,`pageType`);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 966
+}

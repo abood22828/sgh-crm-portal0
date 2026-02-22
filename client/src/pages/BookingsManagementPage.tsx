@@ -3,9 +3,14 @@ import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import OfferLeadsManagement from "@/components/OfferLeadsManagement";
 import CampRegistrationsManagement from "@/components/CampRegistrationsManagement";
+import CustomerProfilesTab from "@/components/CustomerProfilesTab";
+import AuditLogSection from "@/components/AuditLogSection";
+import SavedFilters from "@/components/SavedFilters";
 import ManualRegistrationForm from "@/components/ManualRegistrationForm";
 import LeadCard from "@/components/LeadCard";
 import AppointmentCard from "@/components/AppointmentCard";
+import AppointmentStatsCards from "@/components/AppointmentStatsCards";
+import LeadStatsCards from "@/components/LeadStatsCards";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
 import MultiSelect from "@/components/MultiSelect";
@@ -133,7 +138,7 @@ export default function BookingsManagementPage() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [statusNotes, setStatusNotes] = useState("");
-  const [activeTab, setActiveTab] = useState<"leads" | "appointments" | "offerLeads" | "campRegistrations" | "tasks">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "appointments" | "offerLeads" | "campRegistrations" | "tasks" | "customers">("leads");
   
   // === Unified filter state for Leads tab ===
   const leadsFilter = useFilterUtils<any>({
@@ -695,6 +700,14 @@ export default function BookingsManagementPage() {
             )}
           </Button>
           <Button
+            variant={activeTab === "customers" ? "default" : "outline"}
+            onClick={() => setActiveTab("customers")}
+            className="flex-shrink-0 gap-2"
+          >
+            <Users className="h-4 w-4" />
+            ملفات العملاء
+          </Button>
+          <Button
             variant={activeTab === "tasks" ? "default" : "outline"}
             onClick={() => setActiveTab("tasks")}
             className="flex-shrink-0 gap-2"
@@ -708,44 +721,7 @@ export default function BookingsManagementPage() {
         {activeTab === "leads" && (
           <div className="space-y-4">
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium">إجمالي العملاء</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl md:text-2xl font-bold">{stats?.total || 0}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium">جديد</CardTitle>
-                  <UserCheck className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl md:text-2xl font-bold">{stats?.new || 0}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium">تم التواصل</CardTitle>
-                  <Phone className="h-4 w-4 text-yellow-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl md:text-2xl font-bold">{stats?.contacted || 0}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium">تم الحجز</CardTitle>
-                  <Calendar className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl md:text-2xl font-bold">{stats?.booked || 0}</div>
-                </CardContent>
-              </Card>
-            </div>
+            <LeadStatsCards stats={stats} />
 
             {/* Filters */}
             <Card>
@@ -958,44 +934,7 @@ export default function BookingsManagementPage() {
         {activeTab === "appointments" && (
           <div className="space-y-4">
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium">إجمالي المواعيد</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl md:text-2xl font-bold">{appointmentStats.total}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium">قيد الانتظار</CardTitle>
-                  <Calendar className="h-4 w-4 text-yellow-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl md:text-2xl font-bold">{appointmentStats.pending}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium">مؤكد</CardTitle>
-                  <Calendar className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl md:text-2xl font-bold">{appointmentStats.confirmed}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs md:text-sm font-medium">ملغي</CardTitle>
-                  <Calendar className="h-4 w-4 text-red-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl md:text-2xl font-bold">{appointmentStats.cancelled}</div>
-                </CardContent>
-              </Card>
-            </div>
+            <AppointmentStatsCards stats={appointmentStats} />
 
             {/* Filters */}
             <Card>
@@ -1121,6 +1060,28 @@ export default function BookingsManagementPage() {
                         onSaveSharedTemplate={appointmentTable.handleSaveSharedTemplate}
                         onDeleteSharedTemplate={appointmentTable.handleDeleteSharedTemplate}
                       />
+                    <SavedFilters
+                      pageKey="appointments"
+                      currentFilters={{
+                        statusFilter: appointmentFilter.filters.statusFilter,
+                        sourceFilter: appointmentFilter.filters.sourceFilter,
+                        categoryFilter: appointmentFilter.filters.categoryFilter,
+                        dateFilter: appointmentFilter.filters.dateFilter,
+                        searchTerm: appointmentFilter.filters.searchTerm,
+                      }}
+                      onApplyFilter={(filters) => {
+                        if (filters.statusFilter) appointmentFilter.filters.setStatusFilter(filters.statusFilter);
+                        else appointmentFilter.filters.setStatusFilter([]);
+                        if (filters.sourceFilter) appointmentFilter.filters.setSourceFilter(filters.sourceFilter);
+                        else appointmentFilter.filters.setSourceFilter([]);
+                        if (filters.categoryFilter) appointmentFilter.filters.setCategoryFilter(filters.categoryFilter);
+                        else appointmentFilter.filters.setCategoryFilter([]);
+                        if (filters.dateFilter) appointmentFilter.filters.setDateFilter(filters.dateFilter);
+                        else appointmentFilter.filters.setDateFilter('all');
+                        if (filters.searchTerm) appointmentFilter.filters.setSearchTerm(filters.searchTerm);
+                        else appointmentFilter.filters.setSearchTerm('');
+                      }}
+                    />
                   </div>
                   {/* Reset Filters Button */}
                   {appointmentFilter.filters.activeFilterCount > 0 && (
@@ -1472,6 +1433,10 @@ export default function BookingsManagementPage() {
           />
         )}
 
+        {activeTab === "customers" && (
+          <CustomerProfilesTab />
+        )}
+
         {activeTab === "tasks" && (
           <div className="space-y-4">
             <Card>
@@ -1590,10 +1555,11 @@ export default function BookingsManagementPage() {
             {selectedAppointment && (
               <div className="flex-1 overflow-hidden flex flex-col">
                 <Tabs defaultValue="info" className="flex-1 overflow-hidden flex flex-col">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="info">معلومات الموعد</TabsTrigger>
                     <TabsTrigger value="comments">التعليقات</TabsTrigger>
                     <TabsTrigger value="tasks">المهام</TabsTrigger>
+                    <TabsTrigger value="history">سجل التغييرات</TabsTrigger>
                   </TabsList>
                 
                 <div className="flex-1 overflow-y-auto mt-4">
@@ -1669,6 +1635,13 @@ export default function BookingsManagementPage() {
                   
                   <TabsContent value="tasks" className="mt-0">
                     <TasksSection
+                      entityType="appointment"
+                      entityId={selectedAppointment.id}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="history" className="mt-0">
+                    <AuditLogSection
                       entityType="appointment"
                       entityId={selectedAppointment.id}
                     />

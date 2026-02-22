@@ -211,6 +211,13 @@
       "when": 1771721585853,
       "tag": "0029_common_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1771743987421,
+      "tag": "0030_sleepy_franklin_richards",
+      "breakpoints": true
     }
   ]
 }

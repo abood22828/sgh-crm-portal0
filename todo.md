@@ -2877,3 +2877,37 @@
 - [x] تطبيق caching على doctors list, offers list, camps list - TTL: 60s
 - [x] إضافة cache invalidation عند submit, updateStatus, bulkUpdateStatus, delete, create, update
 - [x] التحقق من عمل النظام - 142 اختبار ناجح، لا أخطاء TypeScript
+
+### المرحلة الرابعة من تقرير فحص صفحات إدارة الحجوزات 🔄 جاري العمل
+- [x] إضافة خيار عدد الصفوف المعروضة (Page Size Selector) - 50, 100, 500, 1000, الكل ✅ كان مُطبقاً بالفعل
+  - [x] pageSize state موجود في BookingsManagementPage
+  - [x] pageSize state موجود في OfferLeadsManagement
+  - [x] pageSize state موجود في CampRegistrationsManagement
+  - [x] مكون Pagination يحتوي على PageSizeSelector مدمج
+  - [x] pageSize يُمرر إلى الخادم في listPaginated queries
+- [x] ربط السجلات المتكررة عبر رقم الهاتف (ملف عميل موحد) ✅
+  - [x] إنشاء customers router مع listPaginated و getByPhone endpoints
+  - [x] إنشاء مكون CustomerProfilesTab لعرض ملفات العملاء الموحدة
+  - [x] إضافة تبويب ملفات العملاء في BookingsManagementPage
+- [x] إضافة سجل التغييرات (Audit Log) ✅
+  - [x] إنشاء جدول auditLogs في schema.ts وقاعدة البيانات
+  - [x] إنشاء auditLogs router مع createAuditLog و list endpoints
+  - [x] تسجيل التغييرات في appointments, offerLeads, campRegistrations, leads routers
+  - [x] إنشاء مكون AuditLogSection لعرض السجل
+  - [x] دمج AuditLogSection في حوارات التفاصيل الثلاث
+- [x] إضافة تصفية متقدمة محفوظة (Saved Filters) ✅
+  - [x] إنشاء جدول savedFilters في schema.ts وقاعدة البيانات
+  - [x] إنشاء savedFilters router مع CRUD endpoints
+  - [x] إنشاء مكون SavedFilters لحفظ واستعادة الفلاتر
+  - [x] دمج SavedFilters في الصفحات الثلاث (BookingsManagement, OfferLeads, CampRegistrations)
+- [x] تحويل التبويبات إلى صفحات مستقلة ✅
+  - [x] إنشاء صفحة LeadsManagementPage مستقلة `/dashboard/bookings/leads`
+  - [x] إنشاء صفحة AppointmentsManagementPage مستقلة `/dashboard/bookings/appointments`
+  - [x] إنشاء صفحة OfferLeadsPage مستقلة `/dashboard/bookings/offer-leads`
+  - [x] إنشاء صفحة CampRegistrationsPage مستقلة `/dashboard/bookings/camp-registrations`
+  - [x] إنشاء صفحة CustomersPage مستقلة `/dashboard/bookings/customers`
+  - [x] إنشاء صفحة TasksPage مستقلة `/dashboard/bookings/tasks`
+  - [x] تحديث Sidebar بقائمة فرعية قابلة للتوسيع تحت "إدارة الحجوزات"
+  - [x] تحديث App.tsx بالـ routes الجديدة مع lazy loading
+  - [x] الإبقاء على BookingsManagementPage كصفحة افتراضية للتوافق العكسي
+- [x] التحقق من عمل جميع الميزات - 142 اختبار ناجح، لا أخطاء TypeScript

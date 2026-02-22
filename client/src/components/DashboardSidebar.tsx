@@ -10,6 +10,7 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   FileEdit,
   Users,
   Calendar,
@@ -19,15 +20,21 @@ import {
   Megaphone,
   Video,
   MapPin,
-  Headphones
+  Headphones,
+  UserCheck,
+  Gift,
+  Tent,
+  ClipboardList,
+  Contact
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  children?: NavItem[];
 }
 
 const navItems: NavItem[] = [
@@ -40,6 +47,38 @@ const navItems: NavItem[] = [
     title: "إدارة الحجوزات",
     href: "/dashboard/bookings",
     icon: Calendar,
+    children: [
+      {
+        title: "العملاء المحتملين",
+        href: "/dashboard/bookings/leads",
+        icon: UserCheck,
+      },
+      {
+        title: "مواعيد الأطباء",
+        href: "/dashboard/bookings/appointments",
+        icon: Calendar,
+      },
+      {
+        title: "عروض العملاء",
+        href: "/dashboard/bookings/offer-leads",
+        icon: Gift,
+      },
+      {
+        title: "تسجيلات المخيمات",
+        href: "/dashboard/bookings/camp-registrations",
+        icon: Tent,
+      },
+      {
+        title: "ملفات العملاء",
+        href: "/dashboard/bookings/customers",
+        icon: Contact,
+      },
+      {
+        title: "المهام",
+        href: "/dashboard/bookings/tasks",
+        icon: CheckSquare,
+      },
+    ],
   },
   {
     title: "الإدارة",
@@ -130,6 +169,114 @@ interface DashboardSidebarProps {
 export default function DashboardSidebar({ currentPath }: DashboardSidebarProps) {
   const [, setLocation] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+
+  // Auto-expand groups that contain the active page
+  useEffect(() => {
+    navItems.forEach(item => {
+      if (item.children) {
+        const isChildActive = item.children.some(child => 
+          currentPath === child.href || currentPath.startsWith(child.href)
+        );
+        const isParentActive = currentPath === item.href;
+        if (isChildActive || isParentActive) {
+          setExpandedGroups(prev => ({ ...prev, [item.href]: true }));
+        }
+      }
+    });
+  }, [currentPath]);
+
+  const toggleGroup = (href: string) => {
+    setExpandedGroups(prev => ({ ...prev, [href]: !prev[href] }));
+  };
+
+  const isItemActive = (item: NavItem) => {
+    if (item.children) {
+      return currentPath === item.href || item.children.some(child => 
+        currentPath === child.href || currentPath.startsWith(child.href)
+      );
+    }
+    return currentPath === item.href || 
+      (item.href !== "/dashboard" && currentPath.startsWith(item.href));
+  };
+
+  const renderNavItem = (item: NavItem, isChild = false) => {
+    const Icon = item.icon;
+    const hasChildren = item.children && item.children.length > 0;
+    const isActive = isItemActive(item);
+    const isExpanded = expandedGroups[item.href];
+
+    if (hasChildren) {
+      return (
+        <div key={item.href}>
+          <Button
+            variant={isActive && !isChild ? "default" : "ghost"}
+            className={cn(
+              "w-full justify-start gap-3",
+              collapsed && "justify-center px-2"
+            )}
+            onClick={() => {
+              if (collapsed) {
+                setCollapsed(false);
+                setExpandedGroups(prev => ({ ...prev, [item.href]: true }));
+              } else {
+                toggleGroup(item.href);
+              }
+            }}
+          >
+            <Icon className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && (
+              <>
+                <span className="flex-1 text-right">{item.title}</span>
+                <ChevronDown className={cn(
+                  "h-4 w-4 transition-transform",
+                  isExpanded && "rotate-180"
+                )} />
+              </>
+            )}
+          </Button>
+          {!collapsed && isExpanded && (
+            <div className="mr-4 mt-1 space-y-1 border-r-2 border-muted pr-2">
+              {item.children!.map(child => {
+                const ChildIcon = child.icon;
+                const childActive = currentPath === child.href || currentPath.startsWith(child.href);
+                return (
+                  <Button
+                    key={child.href}
+                    variant={childActive ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start gap-2 h-9 text-sm",
+                      childActive && "bg-accent font-medium"
+                    )}
+                    onClick={() => setLocation(child.href)}
+                  >
+                    <ChildIcon className="h-4 w-4 flex-shrink-0" />
+                    <span>{child.title}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Button
+        key={item.href}
+        variant={isActive ? "default" : "ghost"}
+        className={cn(
+          "w-full justify-start gap-3",
+          collapsed && "justify-center px-2",
+          isChild && "h-9 text-sm"
+        )}
+        onClick={() => setLocation(item.href)}
+      >
+        <Icon className="h-5 w-5 flex-shrink-0" />
+        {!collapsed && <span>{item.title}</span>}
+      </Button>
+    );
+  };
 
   return (
     <>
@@ -157,38 +304,35 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentPath === item.href || 
-              (item.href !== "/dashboard" && currentPath.startsWith(item.href));
-            
-            return (
-              <Button
-                key={item.href}
-                variant={isActive ? "default" : "ghost"}
-                className={cn(
-                  "w-full justify-start gap-3",
-                  collapsed && "justify-center px-2"
-                )}
-                onClick={() => setLocation(item.href)}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span>{item.title}</span>}
-              </Button>
-            );
-          })}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {navItems.map((item) => renderNavItem(item))}
         </nav>
       </aside>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation - show all items flat */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50 overflow-x-auto">
         <div className="flex gap-1 p-2 min-w-max">
-          {navItems.map((item) => {
+          {navItems.flatMap((item) => {
+            if (item.children) {
+              return item.children.map(child => {
+                const ChildIcon = child.icon;
+                const childActive = currentPath === child.href || currentPath.startsWith(child.href);
+                return (
+                  <Button
+                    key={child.href}
+                    variant={childActive ? "default" : "ghost"}
+                    className="flex-col h-auto py-2 px-3 min-w-[80px]"
+                    onClick={() => setLocation(child.href)}
+                  >
+                    <ChildIcon className="h-5 w-5 mb-1 flex-shrink-0" />
+                    <span className="text-xs whitespace-nowrap">{child.title}</span>
+                  </Button>
+                );
+              });
+            }
             const Icon = item.icon;
             const isActive = currentPath === item.href || 
               (item.href !== "/dashboard" && currentPath.startsWith(item.href));
-            
             return (
               <Button
                 key={item.href}

@@ -15,6 +15,8 @@ import CommentsSection from "@/components/CommentsSection";
 import CommentCount from "@/components/CommentCount";
 import TaskCount from "@/components/TaskCount";
 import TasksSection from "@/components/TasksSection";
+import AuditLogSection from "@/components/AuditLogSection";
+import SavedFilters from "@/components/SavedFilters";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -522,6 +524,28 @@ export default function OfferLeadsManagement({
                   onSaveSharedTemplate={offerTable.handleSaveSharedTemplate}
                   onDeleteSharedTemplate={offerTable.handleDeleteSharedTemplate}
                 />
+              <SavedFilters
+                pageKey="offerLeads"
+                currentFilters={{
+                  statusFilter: offerFilter.filters.statusFilter,
+                  sourceFilter: offerFilter.filters.sourceFilter,
+                  categoryFilter: offerFilter.filters.categoryFilter,
+                  dateFilter: offerFilter.filters.dateFilter,
+                  searchTerm: offerFilter.filters.searchTerm,
+                }}
+                onApplyFilter={(filters) => {
+                  if (filters.statusFilter) offerFilter.filters.setStatusFilter(filters.statusFilter);
+                  else offerFilter.filters.setStatusFilter([]);
+                  if (filters.sourceFilter) offerFilter.filters.setSourceFilter(filters.sourceFilter);
+                  else offerFilter.filters.setSourceFilter([]);
+                  if (filters.categoryFilter) offerFilter.filters.setCategoryFilter(filters.categoryFilter);
+                  else offerFilter.filters.setCategoryFilter([]);
+                  if (filters.dateFilter) offerFilter.filters.setDateFilter(filters.dateFilter);
+                  else offerFilter.filters.setDateFilter('all');
+                  if (filters.searchTerm) offerFilter.filters.setSearchTerm(filters.searchTerm);
+                  else offerFilter.filters.setSearchTerm('');
+                }}
+              />
               <Button
                 variant="outline"
                 onClick={handlePrintOfferLeads}
@@ -943,10 +967,11 @@ export default function OfferLeadsManagement({
           {selectedLead && (
             <div className="flex-1 overflow-hidden flex flex-col">
               <Tabs defaultValue="info" className="flex-1 overflow-hidden flex flex-col">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="info">معلومات الحجز</TabsTrigger>
                   <TabsTrigger value="comments">التعليقات</TabsTrigger>
                   <TabsTrigger value="tasks">المهام</TabsTrigger>
+                  <TabsTrigger value="history">سجل التغييرات</TabsTrigger>
                 </TabsList>
                 
                 <div className="flex-1 overflow-y-auto mt-4">
@@ -997,6 +1022,13 @@ export default function OfferLeadsManagement({
                   
                   <TabsContent value="tasks" className="mt-0">
                     <TasksSection
+                      entityType="offerLead"
+                      entityId={selectedLead.id}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="history" className="mt-0">
+                    <AuditLogSection
                       entityType="offerLead"
                       entityId={selectedLead.id}
                     />

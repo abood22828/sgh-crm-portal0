@@ -788,3 +788,59 @@ export const sharedColumnTemplates = mysqlTable("sharedColumnTemplates", {
 
 export type SharedColumnTemplate = typeof sharedColumnTemplates.$inferSelect;
 export type InsertSharedColumnTemplate = typeof sharedColumnTemplates.$inferInsert;
+
+
+/**
+ * جدول سجل التغييرات - يتتبع جميع التغييرات على السجلات
+ * Audit log table - tracks all changes to records
+ */
+export const auditLogs = mysqlTable("auditLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  /** نوع الكيان: appointment, offerLead, campRegistration, lead */
+  entityType: varchar("entityType", { length: 50 }).notNull(),
+  /** معرف الكيان */
+  entityId: int("entityId").notNull(),
+  /** نوع الإجراء: status_change, bulk_update, delete, create, update */
+  action: varchar("action", { length: 50 }).notNull(),
+  /** القيمة القديمة (JSON) */
+  oldValue: text("oldValue"),
+  /** القيمة الجديدة (JSON) */
+  newValue: text("newValue"),
+  /** معرف المستخدم الذي أجرى التغيير */
+  userId: int("userId"),
+  /** اسم المستخدم الذي أجرى التغيير */
+  userName: varchar("userName", { length: 255 }),
+  /** ملاحظات إضافية */
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  entityIdx: index("auditLogs_entity_idx").on(table.entityType, table.entityId),
+  actionIdx: index("auditLogs_action_idx").on(table.action),
+  userIdx: index("auditLogs_user_idx").on(table.userId),
+}));
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+/**
+ * جدول الفلاتر المحفوظة - يخزن إعدادات الفلاتر المفضلة للمستخدمين
+ * Saved filters table - stores user's favorite filter configurations
+ */
+export const savedFilters = mysqlTable("savedFilters", {
+  id: int("id").autoincrement().primaryKey(),
+  /** اسم الفلتر */
+  name: varchar("name", { length: 100 }).notNull(),
+  /** نوع الصفحة: appointments, offerLeads, campRegistrations */
+  pageType: varchar("pageType", { length: 50 }).notNull(),
+  /** إعدادات الفلاتر (JSON) */
+  filterConfig: text("filterConfig").notNull(),
+  /** معرف المستخدم */
+  userId: int("userId").notNull(),
+  /** هل هو فلتر افتراضي */
+  isDefault: boolean("isDefault").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userPageIdx: index("savedFilters_userPage_idx").on(table.userId, table.pageType),
+}));
+export type SavedFilter = typeof savedFilters.$inferSelect;
+export type InsertSavedFilter = typeof savedFilters.$inferInsert;

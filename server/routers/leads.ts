@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
+import { createAuditLog } from "./auditLogs";
 import {
   createLead,
   getCampaignBySlug,
@@ -167,6 +168,18 @@ export const leadsRouter = router({
         userId: ctx.user.id,
         oldStatus: lead.status,
         newStatus: input.status,
+        notes: input.notes,
+      });
+
+      // Create audit log
+      await createAuditLog({
+        entityType: 'lead',
+        entityId: input.id,
+        action: 'status_change',
+        oldValue: lead.status,
+        newValue: input.status,
+        userId: ctx.user?.id,
+        userName: ctx.user?.name,
         notes: input.notes,
       });
 

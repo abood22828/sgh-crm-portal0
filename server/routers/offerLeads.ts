@@ -5,6 +5,7 @@ import { getDb } from "../db";
 import { offerLeads } from "../../drizzle/schema";
 import { sendNewOfferLeadTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
+import { createAuditLog } from "./auditLogs";
 
 export const offerLeadsRouter = router({
   // Submit a new offer lead (public)
@@ -193,9 +194,13 @@ export const offerLeadsRouter = router({
         notes: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
+
+      // Get old status for audit log
+      const [old] = await db.select({ status: offerLeads.status }).from(offerLeads).where(eq(offerLeads.id, input.id)).limit(1);
+      const oldStatus = old?.status || '';
 
       await db
         .update(offerLeads)
@@ -205,6 +210,18 @@ export const offerLeadsRouter = router({
           updatedAt: new Date(),
         })
         .where(eq(offerLeads.id, input.id));
+
+      // Create audit log
+      await createAuditLog({
+        entityType: 'offerLead',
+        entityId: input.id,
+        action: 'status_change',
+        oldValue: oldStatus,
+        newValue: input.status,
+        userId: ctx.user?.id,
+        userName: ctx.user?.name,
+        notes: input.notes,
+      });
 
       // Send welcome message when status changes to "booked" (Patient Journey)
       if (input.status === "booked") {
@@ -238,7 +255,7 @@ export const offerLeadsRouter = router({
         notes: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
@@ -252,6 +269,19 @@ export const offerLeadsRouter = router({
             updatedAt: new Date(),
           })
           .where(eq(offerLeads.id, id));
+      }
+
+      // Create audit logs for bulk update
+      for (const id of input.ids) {
+        await createAuditLog({
+          entityType: 'offerLead',
+          entityId: id,
+          action: 'bulk_status_change',
+          newValue: input.status,
+          userId: ctx.user?.id,
+          userName: ctx.user?.name,
+          notes: input.notes,
+        });
       }
 
       // Invalidate offer leads caches after bulk update

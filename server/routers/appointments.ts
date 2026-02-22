@@ -17,6 +17,7 @@ import { sendNewAppointmentEmail } from "../email";
 import { sendWelcomeMessage } from "../whatsapp";
 import { sendNewAppointmentTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
+import { createAuditLog } from "./auditLogs";
 
 export const appointmentsRouter = router({
   submit: publicProcedure
@@ -197,8 +198,28 @@ export const appointmentsRouter = router({
       status: z.string(),
       staffNotes: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      // Get old status for audit log
+      const dbForAudit = await getDb();
+      let oldStatus = '';
+      if (dbForAudit) {
+        const [old] = await dbForAudit.select({ status: appointments.status }).from(appointments).where(eq(appointments.id, input.id)).limit(1);
+        oldStatus = old?.status || '';
+      }
+
       await updateAppointmentStatus(input.id, input.status, input.staffNotes);
+
+      // Create audit log
+      await createAuditLog({
+        entityType: 'appointment',
+        entityId: input.id,
+        action: 'status_change',
+        oldValue: oldStatus,
+        newValue: input.status,
+        userId: ctx.user?.id,
+        userName: ctx.user?.name,
+        notes: input.staffNotes,
+      });
       
       // Invalidate appointment caches after status update
       serverCache.invalidateByPrefix("paginated:appointments:");
@@ -294,8 +315,21 @@ export const appointmentsRouter = router({
       status: z.enum(["pending", "confirmed", "cancelled", "completed"]),
       staffNotes: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const result = await bulkUpdateAppointmentStatus(input.ids, input.status, input.staffNotes);
+
+      // Create audit logs for bulk update
+      for (const id of input.ids) {
+        await createAuditLog({
+          entityType: 'appointment',
+          entityId: id,
+          action: 'bulk_status_change',
+          newValue: input.status,
+          userId: ctx.user?.id,
+          userName: ctx.user?.name,
+          notes: input.staffNotes,
+        });
+      }
 
       // Invalidate appointment caches after bulk update
       serverCache.invalidateByPrefix("paginated:appointments:");
