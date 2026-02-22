@@ -428,204 +428,147 @@ export default function OfferLeadsManagement({
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي الحجوزات</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total || 0}</div>
-            <p className="text-xs text-muted-foreground">حجوزات العروض</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">جديد</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.new || 0}</div>
-            <p className="text-xs text-muted-foreground">بانتظار المتابعة</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">تم التواصل</CardTitle>
-            <Phone className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.contacted || 0}</div>
-            <p className="text-xs text-muted-foreground">قيد المتابعة</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">تم الحجز</CardTitle>
-            <UserCheck className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.booked || 0}</div>
-            <p className="text-xs text-muted-foreground">حجوزات مؤكدة</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">غير مهتم</CardTitle>
-            <UserX className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.not_interested || 0}</div>
-            <p className="text-xs text-muted-foreground">لم يكملوا الحجز</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        {[
+          { label: 'إجمالي الحجوزات', value: stats?.total || 0, icon: Users, color: 'text-slate-600', bg: 'bg-slate-50' },
+          { label: 'جديد', value: stats?.new || 0, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'تم التواصل', value: stats?.contacted || 0, icon: Phone, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'تم الحجز', value: stats?.booked || 0, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'غير مهتم', value: stats?.not_interested || 0, icon: UserX, color: 'text-red-600', bg: 'bg-red-50' },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-lg border bg-card p-4 flex items-start gap-3">
+            <div className={`rounded-lg p-2 ${stat.bg}`}>
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold leading-none">{stat.value}</p>
+              <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Search and Filter */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>حجوزات العروض</CardTitle>
-              <CardDescription>إدارة ومتابعة جميع حجوزات العروض الطبية</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              {selectedIds.length > 0 && (
-                <Button
-                  variant="default"
-                  onClick={() => setBulkUpdateDialogOpen(true)}
-                >
-                  <CheckSquare className="h-4 w-4 ml-2" />
-                  تحديث الحالة ({selectedIds.length})
-                </Button>
-              )}
-              <ColumnVisibility
-                 columns={offerLeadColumns}
-                 visibleColumns={offerTable.visibleColumns}
-                 columnOrder={offerTable.columnOrder}
-                 onVisibilityChange={offerTable.handleColumnVisibilityChange}
-                 onColumnOrderChange={offerTable.handleColumnOrderChange}
-                 onReset={offerTable.handleResetAll}
-                 templates={offerTable.allTemplates}
-                 activeTemplateId={offerTable.activeTemplateId}
-                 onApplyTemplate={offerTable.handleApplyTemplate}
-                 onSaveTemplate={offerTable.handleSaveTemplate}
-                 onDeleteTemplate={offerTable.handleDeleteTemplate}
-                 tableKey="offerLeads"
-                  columnWidths={offerTable.columnWidths.columnWidths}
-                  frozenColumns={offerTable.frozenColumns.frozenColumns}
-                  onToggleFrozen={offerTable.frozenColumns.toggleFrozen}
-                  isAdmin={user?.role === 'admin'}
-                  sharedTemplates={offerTable.sharedTemplates}
-                  onSaveSharedTemplate={offerTable.handleSaveSharedTemplate}
-                  onDeleteSharedTemplate={offerTable.handleDeleteSharedTemplate}
-                />
-              <SavedFilters
-                pageKey="offerLeads"
-                currentFilters={{
-                  statusFilter: offerFilter.filters.statusFilter,
-                  sourceFilter: offerFilter.filters.sourceFilter,
-                  categoryFilter: offerFilter.filters.categoryFilter,
-                  dateFilter: offerFilter.filters.dateFilter,
-                  searchTerm: offerFilter.filters.searchTerm,
-                }}
-                onApplyFilter={(filters) => {
-                  if (filters.statusFilter) offerFilter.filters.setStatusFilter(filters.statusFilter);
-                  else offerFilter.filters.setStatusFilter([]);
-                  if (filters.sourceFilter) offerFilter.filters.setSourceFilter(filters.sourceFilter);
-                  else offerFilter.filters.setSourceFilter([]);
-                  if (filters.categoryFilter) offerFilter.filters.setCategoryFilter(filters.categoryFilter);
-                  else offerFilter.filters.setCategoryFilter([]);
-                  if (filters.dateFilter) offerFilter.filters.setDateFilter(filters.dateFilter);
-                  else offerFilter.filters.setDateFilter('all');
-                  if (filters.searchTerm) offerFilter.filters.setSearchTerm(filters.searchTerm);
-                  else offerFilter.filters.setSearchTerm('');
-                }}
-              />
-              <Button
-                variant="outline"
-                onClick={handlePrintOfferLeads}
-              >
-                <Printer className="h-4 w-4 ml-2" />
-                طباعة
+      {/* Quick Actions + Filters */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {selectedIds.length > 0 && (
+            <Button variant="default" size="sm" onClick={() => setBulkUpdateDialogOpen(true)} className="gap-2 h-9">
+              <CheckSquare className="h-4 w-4" />
+              تحديث الحالة ({selectedIds.length})
+            </Button>
+          )}
+          <div className="flex-1" />
+          <Button variant="outline" size="sm" onClick={handlePrintOfferLeads} className="gap-2 h-9">
+            <Printer className="h-4 w-4" />
+            <span className="hidden sm:inline">طباعة</span>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2 h-9">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">تصدير</span>
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Download className="h-4 w-4 ml-2" />
-                    تصدير
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleExportOfferLeads('excel')}>
-                    تصدير Excel
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportOfferLeads('csv')}>
-                    تصدير CSV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportOfferLeads('pdf')}>
-                    تصدير PDF
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="البحث بالاسم، الهاتف، أو البريد الإلكتروني..."
-                value={offerLeadsSearchTerm}
-                onChange={(e) => setOfferLeadsSearchTerm(e.target.value)}
-                className="pr-10 h-9 md:h-10"
-              />
-            </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExportOfferLeads('excel')}>تصدير Excel</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportOfferLeads('csv')}>تصدير CSV</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportOfferLeads('pdf')}>تصدير PDF</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <ColumnVisibility
+            columns={offerLeadColumns}
+            visibleColumns={offerTable.visibleColumns}
+            columnOrder={offerTable.columnOrder}
+            onVisibilityChange={offerTable.handleColumnVisibilityChange}
+            onColumnOrderChange={offerTable.handleColumnOrderChange}
+            onReset={offerTable.handleResetAll}
+            templates={offerTable.allTemplates}
+            activeTemplateId={offerTable.activeTemplateId}
+            onApplyTemplate={offerTable.handleApplyTemplate}
+            onSaveTemplate={offerTable.handleSaveTemplate}
+            onDeleteTemplate={offerTable.handleDeleteTemplate}
+            tableKey="offerLeads"
+            columnWidths={offerTable.columnWidths.columnWidths}
+            frozenColumns={offerTable.frozenColumns.frozenColumns}
+            onToggleFrozen={offerTable.frozenColumns.toggleFrozen}
+            isAdmin={user?.role === 'admin'}
+            sharedTemplates={offerTable.sharedTemplates}
+            onSaveSharedTemplate={offerTable.handleSaveSharedTemplate}
+            onDeleteSharedTemplate={offerTable.handleDeleteSharedTemplate}
+          />
+          <SavedFilters
+            pageKey="offerLeads"
+            currentFilters={{
+              statusFilter: offerFilter.filters.statusFilter,
+              sourceFilter: offerFilter.filters.sourceFilter,
+              categoryFilter: offerFilter.filters.categoryFilter,
+              dateFilter: offerFilter.filters.dateFilter,
+              searchTerm: offerFilter.filters.searchTerm,
+            }}
+            onApplyFilter={(filters) => {
+              if (filters.statusFilter) offerFilter.filters.setStatusFilter(filters.statusFilter);
+              else offerFilter.filters.setStatusFilter([]);
+              if (filters.sourceFilter) offerFilter.filters.setSourceFilter(filters.sourceFilter);
+              else offerFilter.filters.setSourceFilter([]);
+              if (filters.categoryFilter) offerFilter.filters.setCategoryFilter(filters.categoryFilter);
+              else offerFilter.filters.setCategoryFilter([]);
+              if (filters.dateFilter) offerFilter.filters.setDateFilter(filters.dateFilter);
+              else offerFilter.filters.setDateFilter('all');
+              if (filters.searchTerm) offerFilter.filters.setSearchTerm(filters.searchTerm);
+              else offerFilter.filters.setSearchTerm('');
+            }}
+          />
+        </div>
 
-            <MultiSelect
-              options={uniqueOffers.map((offer: any) => ({ value: offer.id.toString(), label: offer.title }))}
-              selected={selectedOffer}
-              onChange={setSelectedOffer}
-              placeholder="جميع العروض"
-              className="w-full sm:w-[180px] h-9 md:h-10"
-            />
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
-                <SelectValue placeholder="كل الفترات" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل الفترات</SelectItem>
-                <SelectItem value="today">اليوم</SelectItem>
-                <SelectItem value="week">هذا الأسبوع</SelectItem>
-                <SelectItem value="month">هذا الشهر</SelectItem>
-              </SelectContent>
-            </Select>
-            <MultiSelect
-              options={[
-                { value: 'new', label: 'جديد' },
-                { value: 'contacted', label: 'تم التواصل' },
-                { value: 'booked', label: 'تم الحجز' },
-                { value: 'not_interested', label: 'غير مهتم' },
-                { value: 'no_answer', label: 'لم يرد' },
-              ]}
-              selected={statusFilter}
-              onChange={setStatusFilter}
-              placeholder="كل الحالات"
-              className="w-full sm:w-[160px] h-9 md:h-10"
-            />
-            <MultiSelect
-              options={SOURCE_OPTIONS}
-              selected={sourceFilter}
-              onChange={setSourceFilter}
-              placeholder="كل المصادر"
-              className="w-full sm:w-[180px] h-9 md:h-10"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+          <div className="relative sm:col-span-2 lg:col-span-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="البحث بالاسم أو الهاتف..."
+              value={offerLeadsSearchTerm}
+              onChange={(e) => setOfferLeadsSearchTerm(e.target.value)}
+              className="pr-10 h-9"
             />
           </div>
+          <MultiSelect
+            options={uniqueOffers.map((offer: any) => ({ value: offer.id.toString(), label: offer.title }))}
+            selected={selectedOffer}
+            onChange={setSelectedOffer}
+            placeholder="جميع العروض"
+            className="h-9"
+          />
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="كل الفترات" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الفترات</SelectItem>
+              <SelectItem value="today">اليوم</SelectItem>
+              <SelectItem value="week">هذا الأسبوع</SelectItem>
+              <SelectItem value="month">هذا الشهر</SelectItem>
+            </SelectContent>
+          </Select>
+          <MultiSelect
+            options={[
+              { value: 'new', label: 'جديد' },
+              { value: 'contacted', label: 'تم التواصل' },
+              { value: 'booked', label: 'تم الحجز' },
+              { value: 'not_interested', label: 'غير مهتم' },
+              { value: 'no_answer', label: 'لم يرد' },
+            ]}
+            selected={statusFilter}
+            onChange={setStatusFilter}
+            placeholder="كل الحالات"
+            className="h-9"
+          />
+          <MultiSelect
+            options={SOURCE_OPTIONS}
+            selected={sourceFilter}
+            onChange={setSourceFilter}
+            placeholder="كل المصادر"
+            className="h-9"
+          />
+        </div>
           
           {/* Reset Filters Button */}
           {offerFilter.filters.activeFilterCount > 0 && (
@@ -646,8 +589,10 @@ export default function OfferLeadsManagement({
             </div>
           )}
 
-          {/* Mobile Cards View */}
-          <div className="md:hidden">
+      </div>
+
+      {/* Mobile Cards View */}
+      <div className="md:hidden space-y-3">
             {isLoading ? (
               <TableSkeleton rows={3} columns={4} />
             ) : filteredLeads.length === 0 ? (
@@ -694,10 +639,10 @@ export default function OfferLeadsManagement({
                 />
               ))
             )}
-          </div>
+      </div>
 
-          {/* Desktop Table View */}
-          <div className="hidden md:block border rounded-lg">
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-lg border bg-card">
              <ResizableTable
                frozenColumns={offerTable.frozenColumns.frozenColumns}
                columnWidths={offerTable.columnWidths.columnWidths}
@@ -762,7 +707,7 @@ export default function OfferLeadsManagement({
                   </TableRow>
                 ) : (
                   filteredLeads.map((lead: any) => (
-                    <TableRow key={lead.id} className={lead.status === 'new' ? 'bg-red-50 hover:bg-red-100' : ''}>
+                    <TableRow key={lead.id} className={`group ${lead.status === 'new' ? 'bg-blue-50/40 hover:bg-blue-50/60' : 'hover:bg-muted/30'}`}>
                       {offerTable.columnOrder.filter(key => offerTable.visibleColumns[key]).map(colKey => {
                         switch(colKey) {
                           case 'checkbox':
@@ -932,28 +877,32 @@ export default function OfferLeadsManagement({
                 )}
               </TableBody>
             </ResizableTable>
-          </div>
 
-          {/* Pagination */}
+        <Pagination
+          currentPage={offerPage}
+          totalPages={offerLeadsData?.totalPages || 1}
+          onPageChange={(page) => { setOfferPage(page); setSelectedIds([]); }}
+          totalItems={offerLeadsData?.total || 0}
+          itemsPerPage={offerLimit}
+          pageSize={offerPageSize}
+          onPageSizeChange={(size) => { setOfferPageSize(size); setOfferPage(1); setSelectedIds([]); }}
+        />
+      </div>
+
+      {/* Mobile Pagination */}
+      {filteredLeads.length > 0 && (
+        <div className="md:hidden">
           <Pagination
             currentPage={offerPage}
             totalPages={offerLeadsData?.totalPages || 1}
-            onPageChange={(page) => {
-              setOfferPage(page);
-              setSelectedIds([]);
-            }}
+            onPageChange={(page) => { setOfferPage(page); setSelectedIds([]); }}
             totalItems={offerLeadsData?.total || 0}
             itemsPerPage={offerLimit}
             pageSize={offerPageSize}
-            onPageSizeChange={(size) => {
-              setOfferPageSize(size);
-              setOfferPage(1);
-              setSelectedIds([]);
-            }}
+            onPageSizeChange={(size) => { setOfferPageSize(size); setOfferPage(1); setSelectedIds([]); }}
           />
-
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
       {/* Status Update Dialog */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>

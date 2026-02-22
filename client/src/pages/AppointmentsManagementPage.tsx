@@ -338,159 +338,156 @@ export default function AppointmentsManagementPage() {
       pageTitle="مواعيد الأطباء"
       pageDescription="إدارة ومتابعة مواعيد الأطباء"
     >
-      <div className="container mx-auto py-6 space-y-6" dir="rtl">
+      <div className="space-y-5" dir="rtl">
         <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
 
         <AppointmentStatsCards stats={appointmentStats} />
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>مواعيد الأطباء</CardTitle>
-                <CardDescription>إدارة ومتابعة مواعيد الأطباء</CardDescription>
-              </div>
-              <div className="flex gap-2">
-                {selectedAppointmentIds.length > 0 && (
-                  <Button variant="default" onClick={() => setBulkUpdateDialogOpen(true)}>
-                    <CheckSquare className="h-4 w-4 ml-2" />
-                    تحديث الحالة ({selectedAppointmentIds.length})
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
-                <div className="relative sm:col-span-2 lg:col-span-1">
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="ابحث..."
-                    value={appointmentSearchTerm}
-                    onChange={(e) => setAppointmentSearchTerm(e.target.value)}
-                    className="pr-10 h-9"
-                  />
-                </div>
-                <MultiSelect
-                  options={doctors.map((doctor: any) => ({ value: doctor.id.toString(), label: doctor.name }))}
-                  selected={selectedDoctor}
-                  onChange={setSelectedDoctor}
-                  placeholder="كل الأطباء"
-                  className="h-9"
-                />
-                <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="كل الفترات" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">كل الفترات</SelectItem>
-                    <SelectItem value="today">اليوم</SelectItem>
-                    <SelectItem value="week">هذا الأسبوع</SelectItem>
-                    <SelectItem value="month">هذا الشهر</SelectItem>
-                  </SelectContent>
-                </Select>
-                <MultiSelect
-                  options={[
-                    { value: 'pending', label: 'قيد الانتظار' },
-                    { value: 'confirmed', label: 'مؤكد' },
-                    { value: 'cancelled', label: 'ملغي' },
-                    { value: 'completed', label: 'مكتمل' },
-                  ]}
-                  selected={appointmentStatusFilter}
-                  onChange={setAppointmentStatusFilter}
-                  placeholder="كل الحالات"
-                  className="h-9"
-                />
-                <MultiSelect
-                  options={SOURCE_OPTIONS}
-                  selected={appointmentSourceFilter}
-                  onChange={setAppointmentSourceFilter}
-                  placeholder="كل المصادر"
-                  className="h-9"
-                />
-                <Button variant="outline" size="sm" onClick={handlePrintAppointments} className="gap-2 h-9">
-                  <Printer className="h-4 w-4" />
-                  <span className="hidden sm:inline">طباعة</span>
+        {/* Filters Section */}
+        <div className="space-y-3">
+          {/* Quick actions row */}
+          <div className="flex flex-wrap items-center gap-2">
+            {selectedAppointmentIds.length > 0 && (
+              <Button variant="default" size="sm" onClick={() => setBulkUpdateDialogOpen(true)} className="gap-2 h-9">
+                <CheckSquare className="h-4 w-4" />
+                تحديث الحالة ({selectedAppointmentIds.length})
+              </Button>
+            )}
+            <div className="flex-1" />
+            <Button variant="outline" size="sm" onClick={handlePrintAppointments} className="gap-2 h-9">
+              <Printer className="h-4 w-4" />
+              <span className="hidden sm:inline">طباعة</span>
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 h-9">
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">تصدير</span>
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2 h-9">
-                      <Download className="h-4 w-4" />
-                      <span className="hidden sm:inline">تصدير</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleExportAppointments('excel')}>تصدير Excel</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExportAppointments('csv')}>تصدير CSV</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExportAppointments('pdf')}>تصدير PDF</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <ColumnVisibility
-                  columns={appointmentColumns}
-                  visibleColumns={appointmentTable.visibleColumns}
-                  columnOrder={appointmentTable.columnOrder}
-                  onVisibilityChange={appointmentTable.handleColumnVisibilityChange}
-                  onColumnOrderChange={appointmentTable.handleColumnOrderChange}
-                  onReset={appointmentTable.handleResetAll}
-                  templates={appointmentTable.allTemplates}
-                  activeTemplateId={appointmentTable.activeTemplateId}
-                  onApplyTemplate={appointmentTable.handleApplyTemplate}
-                  onSaveTemplate={appointmentTable.handleSaveTemplate}
-                  onDeleteTemplate={appointmentTable.handleDeleteTemplate}
-                  tableKey="appointments"
-                  columnWidths={appointmentTable.columnWidths.columnWidths}
-                  frozenColumns={appointmentTable.frozenColumns.frozenColumns}
-                  onToggleFrozen={appointmentTable.frozenColumns.toggleFrozen}
-                  isAdmin={user?.role === 'admin'}
-                  sharedTemplates={appointmentTable.sharedTemplates}
-                  onSaveSharedTemplate={appointmentTable.handleSaveSharedTemplate}
-                  onDeleteSharedTemplate={appointmentTable.handleDeleteSharedTemplate}
-                />
-                <SavedFilters
-                  pageKey="appointments"
-                  currentFilters={{
-                    statusFilter: appointmentFilter.filters.statusFilter,
-                    sourceFilter: appointmentFilter.filters.sourceFilter,
-                    categoryFilter: appointmentFilter.filters.categoryFilter,
-                    dateFilter: appointmentFilter.filters.dateFilter,
-                    searchTerm: appointmentFilter.filters.searchTerm,
-                  }}
-                  onApplyFilter={(filters) => {
-                    if (filters.statusFilter) appointmentFilter.filters.setStatusFilter(filters.statusFilter);
-                    else appointmentFilter.filters.setStatusFilter([]);
-                    if (filters.sourceFilter) appointmentFilter.filters.setSourceFilter(filters.sourceFilter);
-                    else appointmentFilter.filters.setSourceFilter([]);
-                    if (filters.categoryFilter) appointmentFilter.filters.setCategoryFilter(filters.categoryFilter);
-                    else appointmentFilter.filters.setCategoryFilter([]);
-                    if (filters.dateFilter) appointmentFilter.filters.setDateFilter(filters.dateFilter);
-                    else appointmentFilter.filters.setDateFilter('all');
-                    if (filters.searchTerm) appointmentFilter.filters.setSearchTerm(filters.searchTerm);
-                    else appointmentFilter.filters.setSearchTerm('');
-                  }}
-                />
-              </div>
-              {appointmentFilter.filters.activeFilterCount > 0 && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      appointmentFilter.filters.resetAll();
-                      setAppointmentPage(1);
-                      setSelectedAppointmentIds([]);
-                    }}
-                    className="gap-1 text-muted-foreground hover:text-foreground h-8"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    إعادة تعيين الفلاتر ({appointmentFilter.filters.activeFilterCount})
-                  </Button>
-                </div>
-              )}
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExportAppointments('excel')}>تصدير Excel</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportAppointments('csv')}>تصدير CSV</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportAppointments('pdf')}>تصدير PDF</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <ColumnVisibility
+              columns={appointmentColumns}
+              visibleColumns={appointmentTable.visibleColumns}
+              columnOrder={appointmentTable.columnOrder}
+              onVisibilityChange={appointmentTable.handleColumnVisibilityChange}
+              onColumnOrderChange={appointmentTable.handleColumnOrderChange}
+              onReset={appointmentTable.handleResetAll}
+              templates={appointmentTable.allTemplates}
+              activeTemplateId={appointmentTable.activeTemplateId}
+              onApplyTemplate={appointmentTable.handleApplyTemplate}
+              onSaveTemplate={appointmentTable.handleSaveTemplate}
+              onDeleteTemplate={appointmentTable.handleDeleteTemplate}
+              tableKey="appointments"
+              columnWidths={appointmentTable.columnWidths.columnWidths}
+              frozenColumns={appointmentTable.frozenColumns.frozenColumns}
+              onToggleFrozen={appointmentTable.frozenColumns.toggleFrozen}
+              isAdmin={user?.role === 'admin'}
+              sharedTemplates={appointmentTable.sharedTemplates}
+              onSaveSharedTemplate={appointmentTable.handleSaveSharedTemplate}
+              onDeleteSharedTemplate={appointmentTable.handleDeleteSharedTemplate}
+            />
+            <SavedFilters
+              pageKey="appointments"
+              currentFilters={{
+                statusFilter: appointmentFilter.filters.statusFilter,
+                sourceFilter: appointmentFilter.filters.sourceFilter,
+                categoryFilter: appointmentFilter.filters.categoryFilter,
+                dateFilter: appointmentFilter.filters.dateFilter,
+                searchTerm: appointmentFilter.filters.searchTerm,
+              }}
+              onApplyFilter={(filters) => {
+                if (filters.statusFilter) appointmentFilter.filters.setStatusFilter(filters.statusFilter);
+                else appointmentFilter.filters.setStatusFilter([]);
+                if (filters.sourceFilter) appointmentFilter.filters.setSourceFilter(filters.sourceFilter);
+                else appointmentFilter.filters.setSourceFilter([]);
+                if (filters.categoryFilter) appointmentFilter.filters.setCategoryFilter(filters.categoryFilter);
+                else appointmentFilter.filters.setCategoryFilter([]);
+                if (filters.dateFilter) appointmentFilter.filters.setDateFilter(filters.dateFilter);
+                else appointmentFilter.filters.setDateFilter('all');
+                if (filters.searchTerm) appointmentFilter.filters.setSearchTerm(filters.searchTerm);
+                else appointmentFilter.filters.setSearchTerm('');
+              }}
+            />
+          </div>
 
-            {/* Mobile Cards View */}
-            <div className="md:hidden space-y-4">
+          {/* Search + Filters row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            <div className="relative sm:col-span-2 lg:col-span-1">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="ابحث بالاسم أو الهاتف..."
+                value={appointmentSearchTerm}
+                onChange={(e) => setAppointmentSearchTerm(e.target.value)}
+                className="pr-10 h-9"
+              />
+            </div>
+            <MultiSelect
+              options={doctors.map((doctor: any) => ({ value: doctor.id.toString(), label: doctor.name }))}
+              selected={selectedDoctor}
+              onChange={setSelectedDoctor}
+              placeholder="كل الأطباء"
+              className="h-9"
+            />
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="كل الفترات" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الفترات</SelectItem>
+                <SelectItem value="today">اليوم</SelectItem>
+                <SelectItem value="week">هذا الأسبوع</SelectItem>
+                <SelectItem value="month">هذا الشهر</SelectItem>
+              </SelectContent>
+            </Select>
+            <MultiSelect
+              options={[
+                { value: 'pending', label: 'قيد الانتظار' },
+                { value: 'confirmed', label: 'مؤكد' },
+                { value: 'cancelled', label: 'ملغي' },
+                { value: 'completed', label: 'مكتمل' },
+              ]}
+              selected={appointmentStatusFilter}
+              onChange={setAppointmentStatusFilter}
+              placeholder="كل الحالات"
+              className="h-9"
+            />
+            <MultiSelect
+              options={SOURCE_OPTIONS}
+              selected={appointmentSourceFilter}
+              onChange={setAppointmentSourceFilter}
+              placeholder="كل المصادر"
+              className="h-9"
+            />
+          </div>
+
+          {/* Active filter count */}
+          {appointmentFilter.filters.activeFilterCount > 0 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  appointmentFilter.filters.resetAll();
+                  setAppointmentPage(1);
+                  setSelectedAppointmentIds([]);
+                }}
+                className="gap-1 text-muted-foreground hover:text-foreground h-8"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                إعادة تعيين الفلاتر ({appointmentFilter.filters.activeFilterCount})
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="md:hidden space-y-3">
               {appointmentsLoading ? (
                 <TableSkeleton rows={3} columns={4} />
               ) : filteredAppointments.length === 0 ? (
@@ -526,8 +523,9 @@ export default function AppointmentsManagementPage() {
               )}
             </div>
 
-            {/* Desktop Table View */}
-            <div className="table-responsive">
+        {/* Desktop Table View */}
+        <div className="hidden md:block rounded-lg border bg-card">
+          <div className="table-responsive">
               <ResizableTable
                 frozenColumns={appointmentTable.frozenColumns.frozenColumns}
                 columnWidths={appointmentTable.columnWidths.columnWidths}
@@ -588,7 +586,7 @@ export default function AppointmentsManagementPage() {
                     filteredAppointments.map((appointment: any) => (
                       <TableRow
                         key={`appointment-${appointment.id}`}
-                        className={`${appointment.status === 'pending' ? 'bg-yellow-50 hover:bg-yellow-100' : ''} ${selectedAppointmentIds.includes(appointment.id) ? 'bg-blue-50' : ''}`}
+                        className={`group ${appointment.status === 'pending' ? 'bg-amber-50/40 hover:bg-amber-50/60' : 'hover:bg-muted/30'} ${selectedAppointmentIds.includes(appointment.id) ? 'bg-blue-50/60' : ''}`}
                       >
                         {appointmentTable.columnOrder.filter(key => appointmentTable.visibleColumns[key]).map(colKey => {
                           switch (colKey) {
@@ -734,8 +732,22 @@ export default function AppointmentsManagementPage() {
                   )}
                 </TableBody>
               </ResizableTable>
-            </div>
+          </div>
 
+          <Pagination
+            currentPage={appointmentPage}
+            totalPages={appointmentsData?.totalPages || 1}
+            onPageChange={(page) => { setAppointmentPage(page); setSelectedAppointmentIds([]); }}
+            totalItems={appointmentsData?.total || 0}
+            itemsPerPage={appointmentLimit}
+            pageSize={appointmentPageSize}
+            onPageSizeChange={(size) => { setAppointmentPageSize(size); setAppointmentPage(1); setSelectedAppointmentIds([]); }}
+          />
+        </div>
+
+        {/* Mobile Pagination */}
+        {filteredAppointments.length > 0 && (
+          <div className="md:hidden">
             <Pagination
               currentPage={appointmentPage}
               totalPages={appointmentsData?.totalPages || 1}
@@ -745,8 +757,8 @@ export default function AppointmentsManagementPage() {
               pageSize={appointmentPageSize}
               onPageSizeChange={(size) => { setAppointmentPageSize(size); setAppointmentPage(1); setSelectedAppointmentIds([]); }}
             />
-          </CardContent>
-        </Card>
+          </div>
+        )}
 
         {/* Update Appointment Status Dialog */}
         <Dialog open={appointmentStatusDialogOpen} onOpenChange={setAppointmentStatusDialogOpen}>

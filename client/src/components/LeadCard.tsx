@@ -1,9 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Calendar, Eye, MessageSquare } from "lucide-react";
+import { Phone, Mail, Calendar, Eye, MessageSquare, User } from "lucide-react";
+import { SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   new: "جديد",
   contacted: "تم التواصل",
   booked: "تم الحجز",
@@ -11,12 +12,12 @@ const statusLabels = {
   no_answer: "لم يرد",
 };
 
-const statusColors = {
-  new: "bg-blue-500",
-  contacted: "bg-yellow-500",
-  booked: "bg-green-500",
-  not_interested: "bg-red-500",
-  no_answer: "bg-gray-500",
+const statusConfig: Record<string, { bg: string; text: string; dot: string; border: string }> = {
+  new: { bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500", border: "border-blue-200" },
+  contacted: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", border: "border-amber-200" },
+  booked: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", border: "border-emerald-200" },
+  not_interested: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500", border: "border-red-200" },
+  no_answer: { bg: "bg-gray-50", text: "text-gray-700", dot: "bg-gray-500", border: "border-gray-200" },
 };
 
 interface LeadCardProps {
@@ -26,37 +27,62 @@ interface LeadCardProps {
 }
 
 export default function LeadCard({ lead, onUpdateStatus, onWhatsApp }: LeadCardProps) {
+  const status = statusConfig[lead.status] || statusConfig.new;
+  const isUrgent = lead.status === 'new' || lead.status === 'pending';
+
   return (
-    <Card className={`mb-3 hover:shadow-md transition-shadow ${
-      lead.status === 'pending' || lead.status === 'new' ? 'bg-red-50 border-red-200' : ''
+    <Card className={`group relative overflow-hidden hover:shadow-md transition-all duration-200 ${
+      isUrgent ? 'border-amber-200 bg-amber-50/30' : ''
     }`}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-base mb-1">{lead.fullName}</h3>
-            <Badge className={`${statusColors[lead.status as keyof typeof statusColors]} text-white text-xs`}>
-              {statusLabels[lead.status as keyof typeof statusLabels]}
-            </Badge>
+      {/* Status indicator bar */}
+      <div className={`absolute top-0 right-0 w-1 h-full ${status.dot} rounded-r-lg`} />
+      
+      <CardContent className="p-4 pr-5">
+        {/* Header: Name + Status */}
+        <div className="flex items-start justify-between mb-3 gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className={`${status.bg} p-1.5 rounded-lg flex-shrink-0`}>
+              <User className={`w-4 h-4 ${status.text}`} />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm leading-tight truncate">{lead.fullName}</h3>
+              {lead.source && (
+                <span
+                  className="text-[10px] font-medium px-1.5 py-0.5 rounded-full inline-block mt-0.5"
+                  style={{
+                    backgroundColor: SOURCE_COLORS[lead.source] ? `${SOURCE_COLORS[lead.source]}15` : '#f3f4f6',
+                    color: SOURCE_COLORS[lead.source] || '#6b7280',
+                  }}
+                >
+                  {SOURCE_LABELS[lead.source] || lead.source}
+                </span>
+              )}
+            </div>
           </div>
+          <Badge className={`${status.bg} ${status.text} border ${status.border} text-[10px] px-2 py-0.5 flex-shrink-0`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${status.dot} ml-1.5 inline-block`} />
+            {statusLabels[lead.status] || lead.status}
+          </Badge>
         </div>
 
-        <div className="space-y-2 mb-3">
+        {/* Contact Info */}
+        <div className="space-y-1.5 mb-3">
           <div className="flex items-center gap-2 text-sm">
-            <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            <span dir="ltr" className="font-medium">{lead.phone}</span>
+            <Phone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+            <span dir="ltr" className="font-mono text-xs">{lead.phone}</span>
           </div>
 
           {lead.email && (
             <div className="flex items-center gap-2 text-sm">
-              <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <span className="truncate">{lead.email}</span>
+              <Mail className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <span className="truncate text-xs text-muted-foreground">{lead.email}</span>
             </div>
           )}
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar className="w-4 h-4 flex-shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
             <span>
-              {new Date(lead.createdAt).toLocaleDateString("ar-YE", {
+              {new Date(lead.createdAt).toLocaleDateString("ar-SA", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
@@ -65,32 +91,33 @@ export default function LeadCard({ lead, onUpdateStatus, onWhatsApp }: LeadCardP
           </div>
         </div>
 
-        <div className="flex gap-2">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-3 gap-2">
           <Button
             size="sm"
             variant="outline"
-            className="flex-1"
+            className="h-8 text-xs gap-1"
             onClick={() => window.location.href = `tel:${lead.phone}`}
           >
-            <Phone className="w-4 h-4 ml-1" />
+            <Phone className="w-3.5 h-3.5" />
             اتصال
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+            className="h-8 text-xs gap-1 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
             onClick={() => onWhatsApp(lead)}
           >
-            <MessageSquare className="w-4 h-4 ml-1" />
+            <MessageSquare className="w-3.5 h-3.5" />
             واتساب
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="flex-1"
+            className="h-8 text-xs gap-1"
             onClick={() => onUpdateStatus(lead)}
           >
-            <Eye className="w-4 h-4 ml-1" />
+            <Eye className="w-3.5 h-3.5" />
             تحديث
           </Button>
         </div>

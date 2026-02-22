@@ -461,186 +461,143 @@ export default function CampRegistrationsManagement({
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي التسجيلات</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total || 0}</div>
-            <p className="text-xs text-muted-foreground">تسجيلات المخيمات</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">قيد الانتظار</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.pending || 0}</div>
-            <p className="text-xs text-muted-foreground">بانتظار التأكيد</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">مؤكد</CardTitle>
-            <UserCheck className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.confirmed || 0}</div>
-            <p className="text-xs text-muted-foreground">تسجيلات مؤكدة</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">حضر</CardTitle>
-            <Calendar className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.attended || 0}</div>
-            <p className="text-xs text-muted-foreground">حضروا المخيم</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+        {[
+          { label: 'إجمالي التسجيلات', value: stats?.total || 0, icon: Users, color: 'text-slate-600', bg: 'bg-slate-50' },
+          { label: 'قيد الانتظار', value: stats?.pending || 0, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'مؤكد', value: stats?.confirmed || 0, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'حضر', value: stats?.attended || 0, icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-lg border bg-card p-4 flex items-start gap-3">
+            <div className={`rounded-lg p-2 ${stat.bg}`}>
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold leading-none">{stat.value}</p>
+              <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Search and Filter */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>تسجيلات المخيمات</CardTitle>
-              <CardDescription>إدارة ومتابعة جميع تسجيلات المخيمات الطبية</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <ColumnVisibility
-                 columns={campRegColumns}
-                 visibleColumns={campTable.visibleColumns}
-                 columnOrder={campTable.columnOrder}
-                 onVisibilityChange={campTable.handleColumnVisibilityChange}
-                 onColumnOrderChange={campTable.handleColumnOrderChange}
-                 onReset={campTable.handleResetAll}
-                 templates={campTable.allTemplates}
-                 activeTemplateId={campTable.activeTemplateId}
-                 onApplyTemplate={campTable.handleApplyTemplate}
-                 onSaveTemplate={campTable.handleSaveTemplate}
-                 onDeleteTemplate={campTable.handleDeleteTemplate}
-                 tableKey="campRegistrations"
-                  columnWidths={campTable.columnWidths.columnWidths}
-                  frozenColumns={campTable.frozenColumns.frozenColumns}
-                  onToggleFrozen={campTable.frozenColumns.toggleFrozen}
-                  isAdmin={user?.role === 'admin'}
-                  sharedTemplates={campTable.sharedTemplates}
-                  onSaveSharedTemplate={campTable.handleSaveSharedTemplate}
-                  onDeleteSharedTemplate={campTable.handleDeleteSharedTemplate}
-                />
-              <SavedFilters
-                pageKey="campRegistrations"
-                currentFilters={{
-                  statusFilter: campFilter.filters.statusFilter,
-                  sourceFilter: campFilter.filters.sourceFilter,
-                  categoryFilter: campFilter.filters.categoryFilter,
-                  dateFilter: campFilter.filters.dateFilter,
-                  searchTerm: campFilter.filters.searchTerm,
-                }}
-                onApplyFilter={(filters) => {
-                  if (filters.statusFilter) campFilter.filters.setStatusFilter(filters.statusFilter);
-                  else campFilter.filters.setStatusFilter([]);
-                  if (filters.sourceFilter) campFilter.filters.setSourceFilter(filters.sourceFilter);
-                  else campFilter.filters.setSourceFilter([]);
-                  if (filters.categoryFilter) campFilter.filters.setCategoryFilter(filters.categoryFilter);
-                  else campFilter.filters.setCategoryFilter([]);
-                  if (filters.dateFilter) campFilter.filters.setDateFilter(filters.dateFilter);
-                  else campFilter.filters.setDateFilter('all');
-                  if (filters.searchTerm) campFilter.filters.setSearchTerm(filters.searchTerm);
-                  else campFilter.filters.setSearchTerm('');
-                }}
-              />
-              <Button
-                variant="outline"
-                onClick={handlePrintCampRegistrations}
-              >
-                <Printer className="h-4 w-4 ml-2" />
-                طباعة
+      {/* Quick Actions + Filters */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex-1" />
+          <Button variant="outline" size="sm" onClick={handlePrintCampRegistrations} className="gap-2 h-9">
+            <Printer className="h-4 w-4" />
+            <span className="hidden sm:inline">طباعة</span>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2 h-9">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">تصدير</span>
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Download className="h-4 w-4 ml-2" />
-                    تصدير
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleExportCampRegistrations('excel')}>
-                    تصدير Excel
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportCampRegistrations('csv')}>
-                    تصدير CSV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportCampRegistrations('pdf')}>
-                    تصدير PDF
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="البحث بالاسم، الهاتف، أو البريد الإلكتروني..."
-                value={campRegistrationsSearchTerm}
-                onChange={(e) => setCampRegistrationsSearchTerm(e.target.value)}
-                className="pr-10 h-9 md:h-10"
-              />
-            </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExportCampRegistrations('excel')}>تصدير Excel</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportCampRegistrations('csv')}>تصدير CSV</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportCampRegistrations('pdf')}>تصدير PDF</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <ColumnVisibility
+            columns={campRegColumns}
+            visibleColumns={campTable.visibleColumns}
+            columnOrder={campTable.columnOrder}
+            onVisibilityChange={campTable.handleColumnVisibilityChange}
+            onColumnOrderChange={campTable.handleColumnOrderChange}
+            onReset={campTable.handleResetAll}
+            templates={campTable.allTemplates}
+            activeTemplateId={campTable.activeTemplateId}
+            onApplyTemplate={campTable.handleApplyTemplate}
+            onSaveTemplate={campTable.handleSaveTemplate}
+            onDeleteTemplate={campTable.handleDeleteTemplate}
+            tableKey="campRegistrations"
+            columnWidths={campTable.columnWidths.columnWidths}
+            frozenColumns={campTable.frozenColumns.frozenColumns}
+            onToggleFrozen={campTable.frozenColumns.toggleFrozen}
+            isAdmin={user?.role === 'admin'}
+            sharedTemplates={campTable.sharedTemplates}
+            onSaveSharedTemplate={campTable.handleSaveSharedTemplate}
+            onDeleteSharedTemplate={campTable.handleDeleteSharedTemplate}
+          />
+          <SavedFilters
+            pageKey="campRegistrations"
+            currentFilters={{
+              statusFilter: campFilter.filters.statusFilter,
+              sourceFilter: campFilter.filters.sourceFilter,
+              categoryFilter: campFilter.filters.categoryFilter,
+              dateFilter: campFilter.filters.dateFilter,
+              searchTerm: campFilter.filters.searchTerm,
+            }}
+            onApplyFilter={(filters) => {
+              if (filters.statusFilter) campFilter.filters.setStatusFilter(filters.statusFilter);
+              else campFilter.filters.setStatusFilter([]);
+              if (filters.sourceFilter) campFilter.filters.setSourceFilter(filters.sourceFilter);
+              else campFilter.filters.setSourceFilter([]);
+              if (filters.categoryFilter) campFilter.filters.setCategoryFilter(filters.categoryFilter);
+              else campFilter.filters.setCategoryFilter([]);
+              if (filters.dateFilter) campFilter.filters.setDateFilter(filters.dateFilter);
+              else campFilter.filters.setDateFilter('all');
+              if (filters.searchTerm) campFilter.filters.setSearchTerm(filters.searchTerm);
+              else campFilter.filters.setSearchTerm('');
+            }}
+          />
+        </div>
 
-            <MultiSelect
-              options={(allCamps || []).map((camp: any) => ({ value: camp.id.toString(), label: camp.name }))}
-              selected={selectedCamp}
-              onChange={setSelectedCamp}
-              placeholder="جميع المخيمات"
-              className="w-full sm:w-[180px] h-9 md:h-10"
-            />
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full sm:w-[160px] h-9 md:h-10">
-                <SelectValue placeholder="كل الفترات" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل الفترات</SelectItem>
-                <SelectItem value="today">اليوم</SelectItem>
-                <SelectItem value="week">هذا الأسبوع</SelectItem>
-                <SelectItem value="month">هذا الشهر</SelectItem>
-              </SelectContent>
-            </Select>
-            <MultiSelect
-              options={[
-                { value: 'pending', label: 'قيد الانتظار' },
-                { value: 'confirmed', label: 'مؤكد' },
-                { value: 'attended', label: 'حضر' },
-                { value: 'cancelled', label: 'ملغي' },
-              ]}
-              selected={statusFilter}
-              onChange={setStatusFilter}
-              placeholder="كل الحالات"
-              className="w-full sm:w-[160px] h-9 md:h-10"
-            />
-            <MultiSelect
-              options={SOURCE_OPTIONS}
-              selected={sourceFilter}
-              onChange={setSourceFilter}
-              placeholder="كل المصادر"
-              className="w-full sm:w-[180px] h-9 md:h-10"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+          <div className="relative sm:col-span-2 lg:col-span-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="البحث بالاسم أو الهاتف..."
+              value={campRegistrationsSearchTerm}
+              onChange={(e) => setCampRegistrationsSearchTerm(e.target.value)}
+              className="pr-10 h-9"
             />
           </div>
-          
-          {/* Reset Filters Button */}
-          {campFilter.filters.activeFilterCount > 0 && (
+          <MultiSelect
+            options={(allCamps || []).map((camp: any) => ({ value: camp.id.toString(), label: camp.name }))}
+            selected={selectedCamp}
+            onChange={setSelectedCamp}
+            placeholder="جميع المخيمات"
+            className="h-9"
+          />
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="كل الفترات" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الفترات</SelectItem>
+              <SelectItem value="today">اليوم</SelectItem>
+              <SelectItem value="week">هذا الأسبوع</SelectItem>
+              <SelectItem value="month">هذا الشهر</SelectItem>
+            </SelectContent>
+          </Select>
+          <MultiSelect
+            options={[
+              { value: 'pending', label: 'قيد الانتظار' },
+              { value: 'confirmed', label: 'مؤكد' },
+              { value: 'attended', label: 'حضر' },
+              { value: 'cancelled', label: 'ملغي' },
+            ]}
+            selected={statusFilter}
+            onChange={setStatusFilter}
+            placeholder="كل الحالات"
+            className="h-9"
+          />
+          <MultiSelect
+            options={SOURCE_OPTIONS}
+            selected={sourceFilter}
+            onChange={setSourceFilter}
+            placeholder="كل المصادر"
+            className="h-9"
+          />
+        </div>
+      </div>
+
+      {/* Reset Filters Button */}
+      {campFilter.filters.activeFilterCount > 0 && (
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
@@ -658,8 +615,8 @@ export default function CampRegistrationsManagement({
             </div>
           )}
 
-          {/* Mobile Cards View */}
-          <div className="md:hidden">
+      {/* Mobile Cards View */}
+      <div className="md:hidden space-y-3">
             {isLoading ? (
               <TableSkeleton rows={3} columns={4} />
             ) : filteredRegistrations.length === 0 ? (
@@ -714,10 +671,10 @@ export default function CampRegistrationsManagement({
                 />
               ))
             )}
-          </div>
+      </div>
 
-          {/* Bulk Update Button */}
-          {selectedIds.length > 0 && (
+      {/* Bulk Update Button */}
+      {selectedIds.length > 0 && (
             <div className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -737,8 +694,8 @@ export default function CampRegistrationsManagement({
             </div>
           )}
 
-          {/* Desktop Table View */}
-          <div className="hidden md:block border rounded-lg">
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-lg border bg-card">
              <ResizableTable
                frozenColumns={campTable.frozenColumns.frozenColumns}
                columnWidths={campTable.columnWidths.columnWidths}
@@ -956,28 +913,17 @@ export default function CampRegistrationsManagement({
                 )}
               </TableBody>
             </ResizableTable>
-          </div>
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={campPage}
-            totalPages={registrationsData?.totalPages || 1}
-            onPageChange={(page) => {
-              setCampPage(page);
-              setSelectedIds([]);
-            }}
-            totalItems={registrationsData?.total || 0}
-            itemsPerPage={campLimit}
-            pageSize={campPageSize}
-            onPageSizeChange={(size) => {
-              setCampPageSize(size);
-              setCampPage(1);
-              setSelectedIds([]);
-            }}
-          />
-
-        </CardContent>
-      </Card>
+        <Pagination
+          currentPage={campPage}
+          totalPages={registrationsData?.totalPages || 1}
+          onPageChange={(page) => { setCampPage(page); setSelectedIds([]); }}
+          totalItems={registrationsData?.total || 0}
+          itemsPerPage={campLimit}
+          pageSize={campPageSize}
+          onPageSizeChange={(size) => { setCampPageSize(size); setCampPage(1); setSelectedIds([]); }}
+        />
+      </div>
 
       {/* Status Update Dialog */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
