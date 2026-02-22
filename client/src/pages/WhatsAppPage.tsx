@@ -158,8 +158,8 @@ export default function WhatsAppPage() {
               <MessageCircle className="h-8 w-8 text-white" />
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900">إدارة محادثات واتساب</h1>
-              <p className="text-gray-600">تواصل مع العملاء عبر واتساب بيزنس</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">إدارة محادثات واتساب</h1>
+              <p className="text-gray-600 dark:text-gray-400">تواصل مع العملاء عبر واتساب بيزنس</p>
             </div>
             <div className="flex gap-2 items-center">
               {/* Connection Status Badge */}
@@ -258,19 +258,19 @@ export default function WhatsAppPage() {
                 </Dialog>
               </div>
               <div className="relative mt-4">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <Input
                   placeholder="ابحث عن محادثة..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10 bg-white/90"
+                  className="pr-10 bg-white/90 dark:bg-gray-800/90"
                 />
               </div>
             </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="h-[calc(100vh-300px)]">
                 {conversationsLoading ? (
-                  <div className="p-4 text-center text-gray-500">جاري التحميل...</div>
+                  <div className="p-4 text-center text-gray-500 dark:text-gray-400">جاري التحميل...</div>
                 ) : filteredConversations && filteredConversations.length > 0 ? (
                   <div className="divide-y">
                     {filteredConversations.map((conv: any, index: number) => (
@@ -281,8 +281,8 @@ export default function WhatsAppPage() {
                           opacity: 0,
                           animation: `row-enter 0.35s ease-out ${Math.min(index * 60, 600)}ms forwards`,
                         }}
-                        className={`p-4 cursor-pointer transition-colors hover:bg-green-50 ${
-                          selectedConversation === conv.id ? "bg-green-100 border-r-4 border-green-600" : ""
+                        className={`p-4 cursor-pointer transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 ${
+                          selectedConversation === conv.id ? "bg-green-100 dark:bg-green-900/30 border-r-4 border-green-600" : ""
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -291,7 +291,7 @@ export default function WhatsAppPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
-                              <h3 className="font-semibold text-gray-900 truncate">
+                              <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
                                 {conv.customerName || "عميل جديد"}
                               </h3>
                               {conv.unreadCount > 0 && (
@@ -300,11 +300,11 @@ export default function WhatsAppPage() {
                                 </Badge>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
                               <Phone className="h-3 w-3" />
                               <span dir="ltr">{conv.phoneNumber}</span>
                             </div>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                               {conv.lastMessageAt
                                 ? formatDistanceToNow(new Date(conv.lastMessageAt), {
                                     addSuffix: true,
@@ -318,8 +318,8 @@ export default function WhatsAppPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-8 text-center text-gray-500">
-                    <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                    <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                     <p>لا توجد محادثات</p>
                   </div>
                 )}
@@ -350,7 +350,7 @@ export default function WhatsAppPage() {
                   {/* Messages */}
                   <ScrollArea className="flex-1 p-4">
                     {messagesLoading ? (
-                      <div className="text-center text-gray-500">جاري تحميل الرسائل...</div>
+                      <div className="text-center text-gray-500 dark:text-gray-400">جاري تحميل الرسائل...</div>
                     ) : messages && messages.length > 0 ? (
                       <div className="space-y-4">
                         {messages.map((msg: any, index: number) => (
@@ -366,13 +366,13 @@ export default function WhatsAppPage() {
                               className={`max-w-[70%] rounded-lg p-3 ${
                                 msg.direction === "outbound"
                                   ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white"
-                                  : "bg-gray-100 text-gray-900"
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                               }`}
                             >
                               <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                               <div
                                 className={`flex items-center gap-1 mt-1 text-xs ${
-                                  msg.direction === "outbound" ? "text-white/80" : "text-gray-500"
+                                  msg.direction === "outbound" ? "text-white/80" : "text-gray-500 dark:text-gray-400"
                                 }`}
                               >
                                 <span>
@@ -388,8 +388,8 @@ export default function WhatsAppPage() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center text-gray-500 py-8">
-                        <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                      <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                        <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                         <p>لا توجد رسائل في هذه المحادثة</p>
                       </div>
                     )}
@@ -397,11 +397,11 @@ export default function WhatsAppPage() {
 
                   {/* Templates Quick Access */}
                   {templates && templates.length > 0 && (
-                    <div className="border-t p-3 bg-gradient-to-r from-purple-50 to-pink-50">
+                    <div className="border-t dark:border-gray-700 p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-purple-600" />
-                          <span className="text-sm font-semibold text-purple-900">ردود سريعة (قوالب):</span>
+                          <span className="text-sm font-semibold text-purple-900 dark:text-purple-300">ردود سريعة (قوالب):</span>
                         </div>
                         <Link href="/dashboard/whatsapp/templates">
                           <Button size="sm" variant="ghost" className="text-xs text-purple-600 hover:text-purple-700">
@@ -417,7 +417,7 @@ export default function WhatsAppPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleUseTemplate(template.content)}
-                              className="text-xs bg-white hover:bg-purple-50 border-purple-200 hover:border-purple-300"
+                              className="text-xs bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-700 hover:border-purple-300"
                             >
                               <FileText className="h-3 w-3 ml-1" />
                               {template.name}
@@ -425,14 +425,14 @@ export default function WhatsAppPage() {
                           ))}
                         </div>
                       </ScrollArea>
-                      <div className="mt-2 text-xs text-purple-700 bg-purple-100/50 p-2 rounded">
+                      <div className="mt-2 text-xs text-purple-700 dark:text-purple-300 bg-purple-100/50 dark:bg-purple-900/30 p-2 rounded">
                         💡 سيتم ملء المتغيرات ({'{'}name{'}'}, {'{'}date{'}'}, {'{'}time{'}'}) تلقائياً
                       </div>
                     </div>
                   )}
 
                   {/* Message Input */}
-                  <div className="border-t p-4 bg-white">
+                  <div className="border-t dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
                     <div className="flex gap-2">
                       <Textarea
                         placeholder="اكتب رسالتك هنا..."
@@ -460,8 +460,8 @@ export default function WhatsAppPage() {
               </>
             ) : (
               <CardContent className="flex items-center justify-center h-[calc(100vh-200px)]">
-                <div className="text-center text-gray-500">
-                  <MessageCircle className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  <MessageCircle className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                   <p className="text-lg">اختر محادثة لبدء المراسلة</p>
                 </div>
               </CardContent>

@@ -1298,10 +1298,10 @@ function OffersManagement() {
               <div className="text-xl md:text-2xl font-bold text-green-900">{activeOffers}</div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-gray-200 dark:border-gray-700">
             <CardContent className="p-3 md:p-4">
-              <div className="text-xs md:text-sm text-gray-700 mb-1">عروض غير نشطة</div>
-              <div className="text-xl md:text-2xl font-bold text-gray-900">{inactiveOffers}</div>
+              <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300 mb-1">عروض غير نشطة</div>
+              <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">{inactiveOffers}</div>
             </CardContent>
           </Card>
         </div>
@@ -1604,10 +1604,10 @@ function CampsManagement() {
               <div className="text-xl md:text-2xl font-bold text-green-900">{activeCamps}</div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-gray-200 dark:border-gray-700">
             <CardContent className="p-3 md:p-4">
-              <div className="text-xs md:text-sm text-gray-700 mb-1">مخيمات غير نشطة</div>
-              <div className="text-xl md:text-2xl font-bold text-gray-900">{inactiveCamps}</div>
+              <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300 mb-1">مخيمات غير نشطة</div>
+              <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">{inactiveCamps}</div>
             </CardContent>
           </Card>
         </div>
