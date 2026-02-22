@@ -224,7 +224,16 @@ export default function BookingsManagementPage() {
     { key: 'actions', label: 'الإجراءات', defaultVisible: true },
   ];
 
+  // Load preferences from database
+  const { data: savedPreferences } = trpc.preferences.get.useQuery(
+    { key: 'appointmentVisibleColumns' },
+    { retry: false }
+  );
+  
+  const savePreferencesMutation = trpc.preferences.set.useMutation();
+  
   const [appointmentVisibleColumns, setAppointmentVisibleColumns] = useState<Record<string, boolean>>(() => {
+    // Try localStorage first for immediate load
     const saved = localStorage.getItem('appointmentVisibleColumns');
     if (saved) {
       return JSON.parse(saved);
@@ -236,10 +245,24 @@ export default function BookingsManagementPage() {
     return defaultVisible;
   });
 
+  // Sync database preferences to state when loaded
+  useEffect(() => {
+    if (savedPreferences) {
+      setAppointmentVisibleColumns(savedPreferences);
+      // Also update localStorage for faster future loads
+      localStorage.setItem('appointmentVisibleColumns', JSON.stringify(savedPreferences));
+    }
+  }, [savedPreferences]);
+  
   const handleAppointmentColumnVisibilityChange = (columnKey: string, visible: boolean) => {
     const updated = { ...appointmentVisibleColumns, [columnKey]: visible };
     setAppointmentVisibleColumns(updated);
+    // Save to both localStorage (immediate) and database (synced)
     localStorage.setItem('appointmentVisibleColumns', JSON.stringify(updated));
+    savePreferencesMutation.mutate({
+      key: 'appointmentVisibleColumns',
+      value: updated,
+    });
   };
 
   const handleAppointmentColumnsReset = () => {
@@ -248,7 +271,12 @@ export default function BookingsManagementPage() {
       defaultVisible[col.key] = col.defaultVisible;
     });
     setAppointmentVisibleColumns(defaultVisible);
+    // Save to both localStorage and database
     localStorage.setItem('appointmentVisibleColumns', JSON.stringify(defaultVisible));
+    savePreferencesMutation.mutate({
+      key: 'appointmentVisibleColumns',
+      value: defaultVisible,
+    });
   };
   
   // Debounced search terms for better performance

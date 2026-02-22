@@ -2675,3 +2675,13 @@
 - [x] تحديث campRegColumns فيCampRegistrationsManagement (28 عمود)
 - [x] إضافة جميع الحقول الناقصة مع تسميات عربية صحيحة
 - [x] التأكد من تطابق الأعمدة مع schema قاعدة البيانات
+
+### حفظ تفضيلات الأعمدة في قاعدة البيانات
+- [x] إضافة جدول userPreferences في schema.ts
+- [x] إضافة دوال قاعدة البيانات في db.ts
+- [x] إضافة tRPC procedures لحفظ واسترجاع التفضيلات
+- [x] تحديث BookingsManagementPage لاستخدام قاعدة البيانات
+- [x] تحديث OfferLeadsManagement لاستخدام قاعدة البيانات
+- [x] تحديث CampRegistrationsManagement لاستخدام قاعدة البيانات
+- [x] الاحتفاظ بـ localStorage كنسخة احتياطية
+- [x] اختبار المزامنة عبر الأجهزة

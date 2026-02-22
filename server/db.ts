@@ -1146,3 +1146,69 @@ export async function getCampRegistrationsPaginated(
     totalPages: isShowAll ? 1 : Math.ceil(total / limit),
   };
 }
+
+// User Preferences Management
+export async function getUserPreference(userId: number, preferenceKey: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user preference: database not available");
+    return undefined;
+  }
+
+  const { userPreferences } = await import("../drizzle/schema");
+  const result = await db
+    .select()
+    .from(userPreferences)
+    .where(and(
+      eq(userPreferences.userId, userId),
+      eq(userPreferences.preferenceKey, preferenceKey)
+    ))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function setUserPreference(userId: number, preferenceKey: string, preferenceValue: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot set user preference: database not available");
+    return;
+  }
+
+  const { userPreferences } = await import("../drizzle/schema");
+  
+  // Check if preference exists
+  const existing = await getUserPreference(userId, preferenceKey);
+  
+  if (existing) {
+    // Update existing preference
+    await db
+      .update(userPreferences)
+      .set({ preferenceValue, updatedAt: new Date() })
+      .where(and(
+        eq(userPreferences.userId, userId),
+        eq(userPreferences.preferenceKey, preferenceKey)
+      ));
+  } else {
+    // Insert new preference
+    await db.insert(userPreferences).values({
+      userId,
+      preferenceKey,
+      preferenceValue,
+    });
+  }
+}
+
+export async function getAllUserPreferences(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user preferences: database not available");
+    return [];
+  }
+
+  const { userPreferences } = await import("../drizzle/schema");
+  return await db
+    .select()
+    .from(userPreferences)
+    .where(eq(userPreferences.userId, userId));
+}

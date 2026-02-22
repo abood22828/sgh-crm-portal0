@@ -65,6 +65,43 @@ export const appRouter = router({
   messageSettings: messageSettingsRouter,
   webhooks: webhooksRouter,
   queue: queueRouter,
+  
+  // User Preferences
+  preferences: router({
+    get: protectedProcedure
+      .input(z.object({ key: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const { getUserPreference } = await import("./db");
+        const pref = await getUserPreference(ctx.user.id, input.key);
+        return pref ? JSON.parse(pref.preferenceValue) : null;
+      }),
+    
+    set: protectedProcedure
+      .input(z.object({
+        key: z.string(),
+        value: z.any(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { setUserPreference } = await import("./db");
+        await setUserPreference(
+          ctx.user.id,
+          input.key,
+          JSON.stringify(input.value)
+        );
+        return { success: true };
+      }),
+    
+    getAll: protectedProcedure
+      .query(async ({ ctx }) => {
+        const { getAllUserPreferences } = await import("./db");
+        const prefs = await getAllUserPreferences(ctx.user.id);
+        return prefs.reduce((acc, pref) => {
+          acc[pref.preferenceKey] = JSON.parse(pref.preferenceValue);
+          return acc;
+        }, {} as Record<string, any>);
+      }),
+  }),
+  
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

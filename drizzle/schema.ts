@@ -744,3 +744,23 @@ export const followUpTasks = mysqlTable("followUpTasks", {
 
 export type FollowUpTask = typeof followUpTasks.$inferSelect;
 export type InsertFollowUpTask = typeof followUpTasks.$inferInsert;
+
+/**
+ * User Preferences table - stores user-specific preferences and settings
+ * جدول تفضيلات المستخدم - يخزن إعدادات وتفضيلات كل مستخدم
+ */
+export const userPreferences = mysqlTable("userPreferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  // Preference key (e.g., 'appointmentVisibleColumns', 'offerLeadVisibleColumns')
+  preferenceKey: varchar("preferenceKey", { length: 100 }).notNull(),
+  // Preference value (JSON string)
+  preferenceValue: text("preferenceValue").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userKeyIdx: index("userPreferences_userKey_idx").on(table.userId, table.preferenceKey),
+}));
+
+export type UserPreference = typeof userPreferences.$inferSelect;
+export type InsertUserPreference = typeof userPreferences.$inferInsert;
