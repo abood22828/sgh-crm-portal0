@@ -265,7 +265,7 @@ export default function BookingsManagementPage() {
   // Reset page when filters change
   useEffect(() => {
     setAppointmentPage(1);
-  }, [debouncedAppointmentSearch, dateRange.from, dateRange.to]);
+  }, [debouncedAppointmentSearch, dateRange.from, dateRange.to, appointmentStatusFilter, appointmentSourceFilter, selectedDoctor]);
   
   const appointmentLimit = appointmentPageSize === "all" ? 100000 : parseInt(appointmentPageSize);
   const { data: appointmentsData, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.listPaginated.useQuery({
@@ -274,6 +274,9 @@ export default function BookingsManagementPage() {
     searchTerm: debouncedAppointmentSearch,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
+    doctorIds: selectedDoctor && selectedDoctor.length > 0 ? selectedDoctor.map(Number) : undefined,
+    sources: appointmentSourceFilter && appointmentSourceFilter.length > 0 ? appointmentSourceFilter : undefined,
+    statuses: appointmentStatusFilter && appointmentStatusFilter.length > 0 ? appointmentStatusFilter : undefined,
   });
   const appointments = appointmentsData?.data || [];
   const { data: doctors = [] } = trpc.doctors.list.useQuery();
@@ -436,26 +439,11 @@ export default function BookingsManagementPage() {
     return filtered;
   }, [unifiedLeads, searchTerm, leadsDateFilter, leadsStatusFilter, leadsSourceFilter]);
 
-  // Apply filtering and sorting to appointments
+  // Apply sorting to appointments (filtering is now done server-side)
   const filteredAppointments = useMemo(() => {
     if (!appointments) return [];
     
     let filtered = [...appointments];
-    
-    // Filter by doctor (multiple selection)
-    if (selectedDoctor && selectedDoctor.length > 0) {
-      filtered = filtered.filter((appointment: any) => selectedDoctor.includes(appointment.doctorId?.toString()));
-    }
-    
-    // Filter by source (multiple selection)
-    if (appointmentSourceFilter && appointmentSourceFilter.length > 0) {
-      filtered = filtered.filter((appointment: any) => appointmentSourceFilter.includes(appointment.source));
-    }
-    
-    // Filter by status (multiple selection)
-    if (appointmentStatusFilter && appointmentStatusFilter.length > 0) {
-      filtered = filtered.filter((appointment: any) => appointmentStatusFilter.includes(appointment.status));
-    }
     
     // Apply sorting using useTableFeatures
     const sorted = appointmentTable.sortData(filtered, (item: any, key: string) => {
@@ -497,7 +485,7 @@ export default function BookingsManagementPage() {
     }
     
     return sorted;
-  }, [appointments, selectedDoctor, appointmentSourceFilter, appointmentStatusFilter, appointmentTable.sortState, appointmentTable.sortData]);
+  }, [appointments, appointmentTable.sortState, appointmentTable.sortData]);
 
   const appointmentStats = useMemo(() => {
     if (!appointments) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };

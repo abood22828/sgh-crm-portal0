@@ -185,7 +185,7 @@ export default function CampRegistrationsManagement({
   // Reset page when filters change
   useEffect(() => {
     setCampPage(1);
-  }, [debouncedSearch, dateRange.from, dateRange.to]);
+  }, [debouncedSearch, dateRange.from, dateRange.to, statusFilter, sourceFilter, selectedCamp]);
   
   const campLimit = campPageSize === "all" ? 100000 : parseInt(campPageSize);
   const { data: registrationsData, isLoading, refetch } = trpc.campRegistrations.listPaginated.useQuery({
@@ -194,6 +194,9 @@ export default function CampRegistrationsManagement({
     searchTerm: debouncedSearch,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
+    campIds: selectedCamp && selectedCamp.length > 0 ? selectedCamp.map(Number) : undefined,
+    sources: sourceFilter && sourceFilter.length > 0 ? sourceFilter : undefined,
+    statuses: statusFilter && statusFilter.length > 0 ? statusFilter : undefined,
   });
   const registrations = registrationsData?.data || [];
   const { data: stats } = trpc.campRegistrations.stats.useQuery();
@@ -284,26 +287,11 @@ export default function CampRegistrationsManagement({
   // Get all camps for filter from database
   const { data: allCamps } = trpc.camps.getAll.useQuery();
 
-  // Apply filtering and sorting to camp registrations
+  // Apply sorting to camp registrations (filtering is now done server-side)
   const filteredRegistrations = useMemo(() => {
     if (!registrations) return [];
     
     let filtered = [...registrations];
-    
-    // Filter by camp (multiple selection)
-    if (selectedCamp && selectedCamp.length > 0) {
-      filtered = filtered.filter((registration: any) => selectedCamp.includes(registration.campId?.toString()));
-    }
-    
-    // Filter by source (multiple selection)
-    if (sourceFilter && sourceFilter.length > 0) {
-      filtered = filtered.filter((registration: any) => sourceFilter.includes(registration.source));
-    }
-    
-    // Filter by status (multiple selection)
-    if (statusFilter && statusFilter.length > 0) {
-      filtered = filtered.filter((registration: any) => statusFilter.includes(registration.status));
-    }
     
     // Apply sorting using useTableFeatures
     const sorted = campTable.sortData(filtered, (item: any, key: string) => {
@@ -342,7 +330,7 @@ export default function CampRegistrationsManagement({
     }
     
     return sorted;
-  }, [registrations, selectedCamp, sourceFilter, statusFilter, campTable.sortState, campTable.sortData]);
+  }, [registrations, campTable.sortState, campTable.sortData]);
 
   // useExportUtils hook لتسجيلات المخيمات
   const campExport = useExportUtils({

@@ -2850,3 +2850,17 @@
 - [x] إضافة زر إعادة تعيين الفلاتر في OfferLeadsManagement
 - [x] إضافة زر إعادة تعيين الفلاتر في CampRegistrationsManagement
 - [x] تشغيل 77 اختبار vitest - جميعها ناجحة
+
+### نقل الفلاتر إلى Server-Side Filtering ✅ مكتمل
+- [x] تحديث getAppointmentsPaginated لدعم فلاتر multi-select (doctorIds[], sources[], statuses[])
+- [x] تحديث appointments router لإرسال الفلاتر الجديدة كمصفوفات
+- [x] تحديث getOfferLeadsPaginated لدعم فلاتر multi-select (offerIds[], sources[], statuses[])
+- [x] تحديث offerLeads router لإرسال الفلاتر الجديدة كمصفوفات
+- [x] تحديث getCampRegistrationsPaginated لدعم فلاتر multi-select (campIds[], sources[], statuses[])
+- [x] تحديث campRegistrations router لإرسال الفلاتر الجديدة كمصفوفات
+- [x] تحديث BookingsManagementPage لإرسال الفلاتر للخادم وإزالة الفلترة المحلية
+- [x] تحديث OfferLeadsManagement لإرسال الفلاتر للخادم وإزالة الفلترة المحلية
+- [x] تحديث CampRegistrationsManagement لإرسال الفلاتر للخادم وإزالة الفلترة المحلية
+- [x] إضافة inArray من drizzle-orm لدعم فلاتر IN في SQL
+- [x] إعادة تعيين الصفحة إلى 1 عند تغيير أي فلتر (الحالة، المصدر، الطبيب/العرض/المخيم)
+- [x] التحقق من عمل جميع الفلاتر - 141 اختبار vitest ناجح، لا أخطاء TypeScript
