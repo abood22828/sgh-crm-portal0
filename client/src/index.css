@@ -75,12 +75,12 @@
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  --sidebar: oklch(0.99 0.002 220);
+  --sidebar-foreground: oklch(0.25 0.015 220);
+  --sidebar-accent: oklch(0.96 0.01 220);
+  --sidebar-accent-foreground: oklch(0.15 0.01 220);
+  --sidebar-border: oklch(0.93 0.005 220);
+  --sidebar-ring: oklch(0.623 0.15 220);
 }
 
 .dark {
@@ -491,4 +491,46 @@ body {
 ::selection {
   background-color: oklch(0.623 0.15 220 / 0.3);
   color: inherit;
+}
+
+/* ============================================
+   Dashboard Sidebar Enhancements
+   ============================================ */
+
+/* Sidebar nav group transition */
+.sidebar-group-items {
+  transition: max-height 0.25s ease-out, opacity 0.2s ease-out;
+}
+
+/* Active nav item indicator */
+.nav-item-active {
+  position: relative;
+}
+
+.nav-item-active::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  border-radius: 3px 0 0 3px;
+  background-color: oklch(0.623 0.15 220);
+}
+
+/* Dashboard header subtle gradient */
+.dashboard-header {
+  background: linear-gradient(to left, oklch(1 0 0 / 0.95), oklch(0.99 0.005 220 / 0.95));
+  backdrop-filter: blur(12px);
+}
+
+/* Stat card hover effect */
+.stat-card-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.06);
 }
