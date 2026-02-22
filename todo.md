@@ -2704,3 +2704,13 @@
 - [x] دمج القوالب المشتركة في BookingsManagementPage
 - [x] دمج القوالب المشتركة في OfferLeadsManagement
 - [x] دمج القوالب المشتركة في CampRegistrationsManagement
+
+### إضافة ميزة السحب والإفلات لترتيب الأعمدة ✅ مكتمل
+- [x] تثبيت مكتبة @dnd-kit/core و @dnd-kit/sortable و @dnd-kit/utilities
+- [x] تحديث مكون ColumnVisibility لدعم السحب والإفلات
+- [x] إضافة أيقونة GripVertical لكل عمود قابل للسحب
+- [x] حفظ ترتيب الأعمدة مع القالب في قاعدة البيانات
+- [x] تطبيق ترتيب الأعمدة المخصص في BookingsManagementPage
+- [x] تطبيق ترتيب الأعمدة المخصص في OfferLeadsManagement
+- [x] تطبيق ترتيب الأعمدة المخصص في CampRegistrationsManagement
+- [x] تحديث دوال الطباعة والتصدير لاحترام الترتيب المخصص

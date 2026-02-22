@@ -190,6 +190,31 @@ export default function OfferLeadsManagement({
     });
   };
 
+  // Column order state
+  const defaultOfferColumnOrder = offerLeadColumns.map(c => c.key);
+  const [offerColumnOrder, setOfferColumnOrder] = useState<string[]>(() => {
+    const saved = localStorage.getItem('offerLeadColumnOrder');
+    return saved ? JSON.parse(saved) : defaultOfferColumnOrder;
+  });
+
+  const { data: savedOfferColumnOrder } = trpc.preferences.get.useQuery(
+    { key: 'offerLeadColumnOrder' },
+    { retry: false }
+  );
+
+  useEffect(() => {
+    if (savedOfferColumnOrder && Array.isArray(savedOfferColumnOrder)) {
+      setOfferColumnOrder(savedOfferColumnOrder);
+      localStorage.setItem('offerLeadColumnOrder', JSON.stringify(savedOfferColumnOrder));
+    }
+  }, [savedOfferColumnOrder]);
+
+  const handleOfferColumnOrderChange = (newOrder: string[]) => {
+    setOfferColumnOrder(newOrder);
+    localStorage.setItem('offerLeadColumnOrder', JSON.stringify(newOrder));
+    saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnOrder', value: newOrder });
+  };
+
   const handleOfferLeadColumnsReset = () => {
     const defaultVisible: Record<string, boolean> = {};
     offerLeadColumns.forEach(col => {
@@ -197,10 +222,13 @@ export default function OfferLeadsManagement({
     });
     setOfferLeadVisibleColumns(defaultVisible);
     setActiveOfferTemplateId(null);
+    setOfferColumnOrder(defaultOfferColumnOrder);
     localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(defaultVisible));
     localStorage.removeItem('activeOfferTemplateId');
+    localStorage.setItem('offerLeadColumnOrder', JSON.stringify(defaultOfferColumnOrder));
     saveOfferPreferencesMutation.mutate({ key: 'offerLeadVisibleColumns', value: defaultVisible });
     saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: null });
+    saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnOrder', value: defaultOfferColumnOrder });
   };
 
   // === Column Templates ===
@@ -269,12 +297,13 @@ export default function OfferLeadsManagement({
     dbId: t.id,
   }));
 
-  const handleSaveSharedOfferTemplate = (name: string, columns: Record<string, boolean>) => {
+  const handleSaveSharedOfferTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[]) => {
     createSharedOfferTemplateMutation.mutate({
       name,
       tableKey: 'offerLeads',
       columns,
-    });
+      columnOrder: columnOrder || offerColumnOrder,
+    } as any);
   };
 
   const handleDeleteSharedOfferTemplate = (dbId: number) => {
@@ -286,17 +315,23 @@ export default function OfferLeadsManagement({
   const handleApplyOfferTemplate = (template: ColumnTemplate) => {
     setOfferLeadVisibleColumns(template.columns);
     setActiveOfferTemplateId(template.id);
+    if (template.columnOrder) {
+      setOfferColumnOrder(template.columnOrder);
+      localStorage.setItem('offerLeadColumnOrder', JSON.stringify(template.columnOrder));
+      saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnOrder', value: template.columnOrder });
+    }
     localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(template.columns));
     localStorage.setItem('activeOfferTemplateId', template.id);
     saveOfferPreferencesMutation.mutate({ key: 'offerLeadVisibleColumns', value: template.columns });
     saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: template.id });
   };
 
-  const handleSaveOfferTemplate = (name: string, columns: Record<string, boolean>) => {
+  const handleSaveOfferTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[]) => {
     const newTemplate: ColumnTemplate = {
       id: `offerLeads_custom_${Date.now()}`,
       name,
       columns,
+      columnOrder: columnOrder || offerColumnOrder,
       isDefault: false,
     };
     const updated = [...customOfferTemplates, newTemplate];
@@ -771,7 +806,9 @@ export default function OfferLeadsManagement({
               <ColumnVisibility
                 columns={offerLeadColumns}
                 visibleColumns={offerLeadVisibleColumns}
+                columnOrder={offerColumnOrder}
                 onVisibilityChange={handleOfferLeadColumnVisibilityChange}
+                onColumnOrderChange={handleOfferColumnOrderChange}
                 onReset={handleOfferLeadColumnsReset}
                 templates={allOfferTemplates}
                 activeTemplateId={activeOfferTemplateId}
