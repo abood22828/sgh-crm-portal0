@@ -2950,3 +2950,14 @@
 - [x] تحسين CampDetailPage - skeleton loading, breadcrumb, hero section, تفاصيل المخيم, نموذج التسجيل
 - [x] تحسين RTL والاستجابة للجوال في جميع الصفحات
 - [x] اختبارات vitest للتحسينات (40 اختبار ناجح)
+
+### تحسين صفحات إدارة المحتوى في لوحة التحكم ✅ مكتمل
+- [x] فحص DoctorsManagementPage وتحديد مجالات التحسين
+- [x] فحص OffersManagementPage وتحديد مجالات التحسين
+- [x] فحص CampsManagementPage وتحديد مجالات التحسين
+- [x] تحسين DoctorsManagement - بطاقات إحصائيات محسنة، إزالة Card wrapper، skeleton loading، EmptyState
+- [x] تحسين OffersManagement - بطاقات إحصائيات محسنة، إزالة Card wrapper، skeleton loading، EmptyState
+- [x] تحسين CampsManagement - بطاقات إحصائيات محسنة، إزالة Card wrapper، skeleton loading، EmptyState
+- [x] تحسين حوارات الإضافة/التعديل/الحذف في الصفحات الثلاث - أيقونات وأقسام منظمة
+- [x] ضمان التوافق مع الجوال وسطح المكتب
+- [x] اختبارات vitest للتحسينات (28 اختبار ناجح)
