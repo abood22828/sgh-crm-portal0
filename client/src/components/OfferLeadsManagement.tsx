@@ -178,7 +178,7 @@ export default function OfferLeadsManagement({
   // Reset page when filters change
   useEffect(() => {
     setOfferPage(1);
-  }, [debouncedSearch, dateRange.from, dateRange.to, statusFilter, sourceFilter, selectedOffer]);
+  }, [debouncedSearch, dateRange.from, dateRange.to, statusFilter, sourceFilter, selectedOffer, dateFilter]);
   
   const offerLimit = offerPageSize === "all" ? 100000 : parseInt(offerPageSize);
   const { data: offerLeadsData, isLoading, refetch } = trpc.offerLeads.listPaginated.useQuery({
@@ -187,6 +187,7 @@ export default function OfferLeadsManagement({
     searchTerm: debouncedSearch,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
+    dateFilter: dateFilter !== 'all' ? dateFilter as "today" | "week" | "month" : undefined,
     offerIds: selectedOffer && selectedOffer.length > 0 ? selectedOffer.map(Number) : undefined,
     sources: sourceFilter && sourceFilter.length > 0 ? sourceFilter : undefined,
     statuses: statusFilter && statusFilter.length > 0 ? statusFilter : undefined,

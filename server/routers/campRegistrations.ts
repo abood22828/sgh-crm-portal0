@@ -4,6 +4,7 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { campRegistrations } from "../../drizzle/schema";
 import { sendNewCampRegistrationTelegram } from "../telegram";
+import { serverCache, CacheKeys, CacheTTL } from "../cache";
 
 export const campRegistrationsRouter = router({
   // Submit a new camp registration (public)
@@ -89,38 +90,49 @@ export const campRegistrationsRouter = router({
         });
       }
 
+      // Invalidate camp registration caches after new submission
+      serverCache.invalidateByPrefix("paginated:campRegistrations:");
+      serverCache.invalidate("list:campRegistrations");
+      serverCache.invalidate(CacheKeys.campRegistrationStats());
+
       return { success: true, id: registration.insertId };
     }),
 
   // List all camp registrations (protected)
   list: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) return [];
+    return serverCache.getOrCompute(
+      "list:campRegistrations",
+      CacheTTL.LIST,
+      async () => {
+        const db = await getDb();
+        if (!db) return [];
 
-    const { camps } = await import("../../drizzle/schema");
-    
-    const results = await db
-      .select({
-        id: campRegistrations.id,
-        campId: campRegistrations.campId,
-        campName: camps.name,
-        fullName: campRegistrations.fullName,
-        phone: campRegistrations.phone,
-        email: campRegistrations.email,
-        age: campRegistrations.age,
-        procedures: campRegistrations.procedures,
-        medicalCondition: campRegistrations.medicalCondition,
-        notes: campRegistrations.notes,
-        source: campRegistrations.source,
-        status: campRegistrations.status,
-        createdAt: campRegistrations.createdAt,
-        updatedAt: campRegistrations.updatedAt,
-      })
-      .from(campRegistrations)
-      .leftJoin(camps, eq(camps.id, campRegistrations.campId))
-      .orderBy(desc(campRegistrations.createdAt));
+        const { camps } = await import("../../drizzle/schema");
+        
+        const results = await db
+          .select({
+            id: campRegistrations.id,
+            campId: campRegistrations.campId,
+            campName: camps.name,
+            fullName: campRegistrations.fullName,
+            phone: campRegistrations.phone,
+            email: campRegistrations.email,
+            age: campRegistrations.age,
+            procedures: campRegistrations.procedures,
+            medicalCondition: campRegistrations.medicalCondition,
+            notes: campRegistrations.notes,
+            source: campRegistrations.source,
+            status: campRegistrations.status,
+            createdAt: campRegistrations.createdAt,
+            updatedAt: campRegistrations.updatedAt,
+          })
+          .from(campRegistrations)
+          .leftJoin(camps, eq(camps.id, campRegistrations.campId))
+          .orderBy(desc(campRegistrations.createdAt));
 
-    return results;
+        return results;
+      }
+    );
   }),
 
   // List camp registrations with pagination (protected)
@@ -139,34 +151,47 @@ export const campRegistrationsRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const { getCampRegistrationsPaginated } = await import('../db');
-      return getCampRegistrationsPaginated(
-        input.page,
-        input.limit,
-        input.searchTerm,
-        input.campIds,
-        input.sources,
-        input.statuses,
-        input.dateFilter,
-        input.dateFrom,
-        input.dateTo
+      const cacheKey = CacheKeys.campRegistrationsPaginated(input);
+      return serverCache.getOrCompute(
+        cacheKey,
+        CacheTTL.PAGINATED,
+        async () => {
+          const { getCampRegistrationsPaginated } = await import('../db');
+          return getCampRegistrationsPaginated(
+            input.page,
+            input.limit,
+            input.searchTerm,
+            input.campIds,
+            input.sources,
+            input.statuses,
+            input.dateFilter,
+            input.dateFrom,
+            input.dateTo
+          );
+        }
       );
     }),
 
   // Get stats for camp registrations (protected)
   stats: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) return { total: 0, pending: 0, confirmed: 0, attended: 0, cancelled: 0 };
+    return serverCache.getOrCompute(
+      CacheKeys.campRegistrationStats(),
+      CacheTTL.STATS,
+      async () => {
+        const db = await getDb();
+        if (!db) return { total: 0, pending: 0, confirmed: 0, attended: 0, cancelled: 0 };
 
-    const all = await db.select().from(campRegistrations);
+        const all = await db.select().from(campRegistrations);
 
-    return {
-      total: all.length,
-      pending: all.filter((r) => r.status === "pending").length,
-      confirmed: all.filter((r) => r.status === "confirmed").length,
-      attended: all.filter((r) => r.status === "attended").length,
-      cancelled: all.filter((r) => r.status === "cancelled").length,
-    };
+        return {
+          total: all.length,
+          pending: all.filter((r) => r.status === "pending").length,
+          confirmed: all.filter((r) => r.status === "confirmed").length,
+          attended: all.filter((r) => r.status === "attended").length,
+          cancelled: all.filter((r) => r.status === "cancelled").length,
+        };
+      }
+    );
   }),
 
   // Update camp registration status (protected)
@@ -216,6 +241,11 @@ export const campRegistrationsRouter = router({
         }
       }
 
+      // Invalidate camp registration caches after status update
+      serverCache.invalidateByPrefix("paginated:campRegistrations:");
+      serverCache.invalidate("list:campRegistrations");
+      serverCache.invalidate(CacheKeys.campRegistrationStats());
+
       return { success: true };
     }),
 
@@ -246,6 +276,11 @@ export const campRegistrationsRouter = router({
           .where(eq(campRegistrations.id, id));
       }
 
+      // Invalidate camp registration caches after bulk update
+      serverCache.invalidateByPrefix("paginated:campRegistrations:");
+      serverCache.invalidate("list:campRegistrations");
+      serverCache.invalidate(CacheKeys.campRegistrationStats());
+
       return { success: true, count: input.ids.length };
     }),
 
@@ -257,6 +292,11 @@ export const campRegistrationsRouter = router({
       if (!db) throw new Error("Database not available");
 
       await db.delete(campRegistrations).where(eq(campRegistrations.id, input.id));
+
+      // Invalidate camp registration caches after deletion
+      serverCache.invalidateByPrefix("paginated:campRegistrations:");
+      serverCache.invalidate("list:campRegistrations");
+      serverCache.invalidate(CacheKeys.campRegistrationStats());
 
       return { success: true };
     }),

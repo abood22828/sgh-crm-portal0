@@ -185,7 +185,7 @@ export default function CampRegistrationsManagement({
   // Reset page when filters change
   useEffect(() => {
     setCampPage(1);
-  }, [debouncedSearch, dateRange.from, dateRange.to, statusFilter, sourceFilter, selectedCamp]);
+  }, [debouncedSearch, dateRange.from, dateRange.to, statusFilter, sourceFilter, selectedCamp, dateFilter]);
   
   const campLimit = campPageSize === "all" ? 100000 : parseInt(campPageSize);
   const { data: registrationsData, isLoading, refetch } = trpc.campRegistrations.listPaginated.useQuery({
@@ -194,6 +194,7 @@ export default function CampRegistrationsManagement({
     searchTerm: debouncedSearch,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
+    dateFilter: dateFilter !== 'all' ? dateFilter as "today" | "week" | "month" : undefined,
     campIds: selectedCamp && selectedCamp.length > 0 ? selectedCamp.map(Number) : undefined,
     sources: sourceFilter && sourceFilter.length > 0 ? sourceFilter : undefined,
     statuses: statusFilter && statusFilter.length > 0 ? statusFilter : undefined,

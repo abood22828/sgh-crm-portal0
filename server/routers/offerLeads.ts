@@ -4,6 +4,7 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { offerLeads } from "../../drizzle/schema";
 import { sendNewOfferLeadTelegram } from "../telegram";
+import { serverCache, CacheKeys, CacheTTL } from "../cache";
 
 export const offerLeadsRouter = router({
   // Submit a new offer lead (public)
@@ -81,35 +82,46 @@ export const offerLeadsRouter = router({
         });
       }
 
+      // Invalidate offer leads caches after new submission
+      serverCache.invalidateByPrefix("paginated:offerLeads:");
+      serverCache.invalidate("list:offerLeads");
+      serverCache.invalidate(CacheKeys.offerLeadStats());
+
       return { success: true, id: lead.insertId };
     }),
 
   // List all offer leads (protected)
   list: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) return [];
+    return serverCache.getOrCompute(
+      "list:offerLeads",
+      CacheTTL.LIST,
+      async () => {
+        const db = await getDb();
+        if (!db) return [];
 
-    const { offers } = await import("../../drizzle/schema");
-    
-    const results = await db
-      .select({
-        id: offerLeads.id,
-        offerId: offerLeads.offerId,
-        offerTitle: offers.title,
-        fullName: offerLeads.fullName,
-        phone: offerLeads.phone,
-        email: offerLeads.email,
-        notes: offerLeads.notes,
-        source: offerLeads.source,
-        status: offerLeads.status,
-        createdAt: offerLeads.createdAt,
-        updatedAt: offerLeads.updatedAt,
-      })
-      .from(offerLeads)
-      .leftJoin(offers, eq(offers.id, offerLeads.offerId))
-      .orderBy(desc(offerLeads.createdAt));
+        const { offers } = await import("../../drizzle/schema");
+        
+        const results = await db
+          .select({
+            id: offerLeads.id,
+            offerId: offerLeads.offerId,
+            offerTitle: offers.title,
+            fullName: offerLeads.fullName,
+            phone: offerLeads.phone,
+            email: offerLeads.email,
+            notes: offerLeads.notes,
+            source: offerLeads.source,
+            status: offerLeads.status,
+            createdAt: offerLeads.createdAt,
+            updatedAt: offerLeads.updatedAt,
+          })
+          .from(offerLeads)
+          .leftJoin(offers, eq(offers.id, offerLeads.offerId))
+          .orderBy(desc(offerLeads.createdAt));
 
-    return results;
+        return results;
+      }
+    );
   }),
 
   // List offer leads with pagination (protected)
@@ -128,35 +140,48 @@ export const offerLeadsRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const { getOfferLeadsPaginated } = await import('../db');
-      return getOfferLeadsPaginated(
-        input.page,
-        input.limit,
-        input.searchTerm,
-        input.offerIds,
-        input.sources,
-        input.statuses,
-        input.dateFilter,
-        input.dateFrom,
-        input.dateTo
+      const cacheKey = CacheKeys.offerLeadsPaginated(input);
+      return serverCache.getOrCompute(
+        cacheKey,
+        CacheTTL.PAGINATED,
+        async () => {
+          const { getOfferLeadsPaginated } = await import('../db');
+          return getOfferLeadsPaginated(
+            input.page,
+            input.limit,
+            input.searchTerm,
+            input.offerIds,
+            input.sources,
+            input.statuses,
+            input.dateFilter,
+            input.dateFrom,
+            input.dateTo
+          );
+        }
       );
     }),
 
   // Get stats for offer leads (protected)
   stats: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) return { total: 0, new: 0, contacted: 0, booked: 0, not_interested: 0, no_answer: 0 };
+    return serverCache.getOrCompute(
+      CacheKeys.offerLeadStats(),
+      CacheTTL.STATS,
+      async () => {
+        const db = await getDb();
+        if (!db) return { total: 0, new: 0, contacted: 0, booked: 0, not_interested: 0, no_answer: 0 };
 
-    const all = await db.select().from(offerLeads);
+        const all = await db.select().from(offerLeads);
 
-    return {
-      total: all.length,
-      new: all.filter((l) => l.status === "new").length,
-      contacted: all.filter((l) => l.status === "contacted").length,
-      booked: all.filter((l) => l.status === "booked").length,
-      not_interested: all.filter((l) => l.status === "not_interested").length,
-      no_answer: all.filter((l) => l.status === "no_answer").length,
-    };
+        return {
+          total: all.length,
+          new: all.filter((l) => l.status === "new").length,
+          contacted: all.filter((l) => l.status === "contacted").length,
+          booked: all.filter((l) => l.status === "booked").length,
+          not_interested: all.filter((l) => l.status === "not_interested").length,
+          no_answer: all.filter((l) => l.status === "no_answer").length,
+        };
+      }
+    );
   }),
 
   // Update offer lead status (protected)
@@ -196,6 +221,11 @@ export const offerLeadsRouter = router({
         }
       }
 
+      // Invalidate offer leads caches after status update
+      serverCache.invalidateByPrefix("paginated:offerLeads:");
+      serverCache.invalidate("list:offerLeads");
+      serverCache.invalidate(CacheKeys.offerLeadStats());
+
       return { success: true };
     }),
 
@@ -224,6 +254,11 @@ export const offerLeadsRouter = router({
           .where(eq(offerLeads.id, id));
       }
 
+      // Invalidate offer leads caches after bulk update
+      serverCache.invalidateByPrefix("paginated:offerLeads:");
+      serverCache.invalidate("list:offerLeads");
+      serverCache.invalidate(CacheKeys.offerLeadStats());
+
       return { success: true, count: input.ids.length };
     }),
 
@@ -235,6 +270,11 @@ export const offerLeadsRouter = router({
       if (!db) throw new Error("Database not available");
 
       await db.delete(offerLeads).where(eq(offerLeads.id, input.id));
+
+      // Invalidate offer leads caches after deletion
+      serverCache.invalidateByPrefix("paginated:offerLeads:");
+      serverCache.invalidate("list:offerLeads");
+      serverCache.invalidate(CacheKeys.offerLeadStats());
 
       return { success: true };
     }),

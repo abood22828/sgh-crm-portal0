@@ -12,6 +12,7 @@ import { getDb } from '../db';
 import { offers } from '../../drizzle/schema';
 import { eq, and, isNotNull } from 'drizzle-orm';
 import { generateSlug, isValidSlug } from '../../shared/_core/utils/slug';
+import { serverCache, CacheKeys, CacheTTL } from '../cache';
 
 /**
  * Validation schema for creating/updating offers
@@ -31,21 +32,27 @@ export const offersRouter = router({
    * الحصول على جميع العروض النشطة
    */
   getAll: publicProcedure.query(async () => {
-    try {
-      const dbInstance = await getDb();
-      if (!dbInstance) throw new Error('Database not available');
-      
-      const allOffers = await dbInstance
-        .select()
-        .from(offers)
-        .where(eq(offers.isActive, true))
-        .orderBy(offers.createdAt);
+    return serverCache.getOrCompute(
+      CacheKeys.offersList(),
+      CacheTTL.LIST,
+      async () => {
+        try {
+          const dbInstance = await getDb();
+          if (!dbInstance) throw new Error('Database not available');
+          
+          const allOffers = await dbInstance
+            .select()
+            .from(offers)
+            .where(eq(offers.isActive, true))
+            .orderBy(offers.createdAt);
 
-      return allOffers;
-    } catch (error) {
-      console.error('Error fetching offers:', error);
-      throw new Error('Failed to fetch offers');
-    }
+          return allOffers;
+        } catch (error) {
+          console.error('Error fetching offers:', error);
+          throw new Error('Failed to fetch offers');
+        }
+      }
+    );
   }),
 
   /**
@@ -148,6 +155,9 @@ export const offersRouter = router({
           isActive: true,
         });
 
+        // Invalidate offers cache
+        serverCache.invalidate(CacheKeys.offersList());
+
         return { success: true, slug };
       } catch (error) {
         console.error('Error creating offer:', error);
@@ -197,6 +207,9 @@ export const offersRouter = router({
           })
           .where(eq(offers.id, input.id));
 
+        // Invalidate offers cache
+        serverCache.invalidate(CacheKeys.offersList());
+
         return { success: true };
       } catch (error) {
         console.error('Error updating offer:', error);
@@ -225,6 +238,9 @@ export const offersRouter = router({
           .set({ isActive: false })
           .where(eq(offers.id, input.id));
 
+        // Invalidate offers cache
+        serverCache.invalidate(CacheKeys.offersList());
+
         return { success: true };
       } catch (error) {
         console.error('Error deactivating offer:', error);
@@ -249,6 +265,9 @@ export const offersRouter = router({
         if (!dbInstance) throw new Error('Database not available');
         
         await dbInstance.delete(offers).where(eq(offers.id, input.id));
+
+        // Invalidate offers cache
+        serverCache.invalidate(CacheKeys.offersList());
 
         return { success: true };
       } catch (error) {

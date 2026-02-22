@@ -3,15 +3,22 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { doctors } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { serverCache, CacheKeys, CacheTTL } from "../cache";
 
 export const doctorsRouter = router({
-  // List all doctors (public)
+  // List all doctors (public) - cached
   list: publicProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) return [];
+    return serverCache.getOrCompute(
+      CacheKeys.doctorsList(),
+      CacheTTL.LIST,
+      async () => {
+        const db = await getDb();
+        if (!db) return [];
 
-    const results = await db.select().from(doctors);
-    return results;
+        const results = await db.select().from(doctors);
+        return results;
+      }
+    );
   }),
 
   // Get doctor by ID (public)
@@ -59,6 +66,9 @@ export const doctorsRouter = router({
 
       const doctor = await db.insert(doctors).values(input);
 
+      // Invalidate doctors list cache
+      serverCache.invalidate(CacheKeys.doctorsList());
+
       return { success: true, id: Number(doctor[0].insertId) };
     }),
 
@@ -88,6 +98,9 @@ export const doctorsRouter = router({
 
       await db.update(doctors).set(data).where(eq(doctors.id, id));
 
+      // Invalidate doctors list cache
+      serverCache.invalidate(CacheKeys.doctorsList());
+
       return { success: true };
     }),
 
@@ -99,6 +112,9 @@ export const doctorsRouter = router({
       if (!db) throw new Error("Database not available");
 
       await db.delete(doctors).where(eq(doctors.id, input.id));
+
+      // Invalidate doctors list cache
+      serverCache.invalidate(CacheKeys.doctorsList());
 
       return { success: true };
     }),
@@ -116,6 +132,9 @@ export const doctorsRouter = router({
       if (!db) throw new Error("Database not available");
 
       await db.update(doctors).set({ available: input.available }).where(eq(doctors.id, input.id));
+
+      // Invalidate doctors list cache
+      serverCache.invalidate(CacheKeys.doctorsList());
 
       return { success: true };
     }),

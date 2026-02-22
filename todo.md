@@ -2864,3 +2864,16 @@
 - [x] إضافة inArray من drizzle-orm لدعم فلاتر IN في SQL
 - [x] إعادة تعيين الصفحة إلى 1 عند تغيير أي فلتر (الحالة، المصدر، الطبيب/العرض/المخيم)
 - [x] التحقق من عمل جميع الفلاتر - 141 اختبار vitest ناجح، لا أخطاء TypeScript
+
+### نقل فلتر التاريخ (### نقل فلتر التاريخ (dateFilter) إلى الخادم وإضافة Caching ✅ مكتمل
+- [x] dateFilter كان مدعوماً بالفعل في الخادم (db queries + routers) - لا تعديل مطلوب
+- [x] تحديث BookingsManagementPage لإرسال dateFilter للخادم مع إعادة تعيين الصفحة
+- [x] تحديث OfferLeadsManagement لإرسال dateFilter للخادم مع إعادة تعيين الصفحة
+- [x] تحديث CampRegistrationsManagement لإرسال dateFilter للخادم مع إعادة تعيين الصفحة
+- [x] إنشاء نظام caching (server/cache.ts) مع TTL-based expiration و auto-cleanup
+- [x] تطبيق caching على stats queries (offerLeads, campRegistrations) - TTL: 30s
+- [x] تطبيق caching على list queries (appointments, offerLeads, campRegistrations) - TTL: 60s
+- [x] تطبيق caching على paginated queries (appointments, offerLeads, campRegistrations) - TTL: 15s
+- [x] تطبيق caching على doctors list, offers list, camps list - TTL: 60s
+- [x] إضافة cache invalidation عند submit, updateStatus, bulkUpdateStatus, delete, create, update
+- [x] التحقق من عمل النظام - 142 اختبار ناجح، لا أخطاء TypeScript

@@ -265,7 +265,7 @@ export default function BookingsManagementPage() {
   // Reset page when filters change
   useEffect(() => {
     setAppointmentPage(1);
-  }, [debouncedAppointmentSearch, dateRange.from, dateRange.to, appointmentStatusFilter, appointmentSourceFilter, selectedDoctor]);
+  }, [debouncedAppointmentSearch, dateRange.from, dateRange.to, appointmentStatusFilter, appointmentSourceFilter, selectedDoctor, dateFilter]);
   
   const appointmentLimit = appointmentPageSize === "all" ? 100000 : parseInt(appointmentPageSize);
   const { data: appointmentsData, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.listPaginated.useQuery({
@@ -274,6 +274,7 @@ export default function BookingsManagementPage() {
     searchTerm: debouncedAppointmentSearch,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
+    dateFilter: dateFilter !== 'all' ? dateFilter as "today" | "week" | "month" : undefined,
     doctorIds: selectedDoctor && selectedDoctor.length > 0 ? selectedDoctor.map(Number) : undefined,
     sources: appointmentSourceFilter && appointmentSourceFilter.length > 0 ? appointmentSourceFilter : undefined,
     statuses: appointmentStatusFilter && appointmentStatusFilter.length > 0 ? appointmentStatusFilter : undefined,

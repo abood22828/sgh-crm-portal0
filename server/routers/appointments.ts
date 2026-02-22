@@ -16,6 +16,7 @@ import { notifyOwner } from "../_core/notification";
 import { sendNewAppointmentEmail } from "../email";
 import { sendWelcomeMessage } from "../whatsapp";
 import { sendNewAppointmentTelegram } from "../telegram";
+import { serverCache, CacheKeys, CacheTTL } from "../cache";
 
 export const appointmentsRouter = router({
   submit: publicProcedure
@@ -140,11 +141,20 @@ export const appointmentsRouter = router({
         });
       }
 
+      // Invalidate appointment caches after new submission
+      serverCache.invalidateByPrefix("paginated:appointments:");
+      serverCache.invalidate("list:appointments");
+      serverCache.invalidate(CacheKeys.appointmentStats());
+
       return appointment;
     }),
 
   list: protectedProcedure.query(async () => {
-    return getAllAppointments();
+    return serverCache.getOrCompute(
+      "list:appointments",
+      CacheTTL.LIST,
+      () => getAllAppointments()
+    );
   }),
 
   listPaginated: protectedProcedure
@@ -160,17 +170,24 @@ export const appointmentsRouter = router({
       dateTo: z.string().optional(),
     }))
     .query(async ({ input }) => {
-      const { getAppointmentsPaginated } = await import('../db');
-      return getAppointmentsPaginated(
-        input.page,
-        input.limit,
-        input.searchTerm,
-        input.doctorIds,
-        input.sources,
-        input.statuses,
-        input.dateFilter,
-        input.dateFrom,
-        input.dateTo
+      const cacheKey = CacheKeys.appointmentsPaginated(input);
+      return serverCache.getOrCompute(
+        cacheKey,
+        CacheTTL.PAGINATED,
+        async () => {
+          const { getAppointmentsPaginated } = await import('../db');
+          return getAppointmentsPaginated(
+            input.page,
+            input.limit,
+            input.searchTerm,
+            input.doctorIds,
+            input.sources,
+            input.statuses,
+            input.dateFilter,
+            input.dateFrom,
+            input.dateTo
+          );
+        }
       );
     }),
 
@@ -183,6 +200,11 @@ export const appointmentsRouter = router({
     .mutation(async ({ input }) => {
       await updateAppointmentStatus(input.id, input.status, input.staffNotes);
       
+      // Invalidate appointment caches after status update
+      serverCache.invalidateByPrefix("paginated:appointments:");
+      serverCache.invalidate("list:appointments");
+      serverCache.invalidate(CacheKeys.appointmentStats());
+
       // Send welcome message when status changes to "attended" (Patient Journey)
       if (input.status === "حضر" || input.status === "attended") {
         const db = await getDb();
@@ -227,6 +249,11 @@ export const appointmentsRouter = router({
       }
 
       await db.update(appointments).set(updateData).where(eq(appointments.id, input.id));
+
+      // Invalidate appointment caches after update
+      serverCache.invalidateByPrefix("paginated:appointments:");
+      serverCache.invalidate("list:appointments");
+
       return { success: true };
     }),
 
@@ -268,7 +295,14 @@ export const appointmentsRouter = router({
       staffNotes: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
-      return await bulkUpdateAppointmentStatus(input.ids, input.status, input.staffNotes);
+      const result = await bulkUpdateAppointmentStatus(input.ids, input.status, input.staffNotes);
+
+      // Invalidate appointment caches after bulk update
+      serverCache.invalidateByPrefix("paginated:appointments:");
+      serverCache.invalidate("list:appointments");
+      serverCache.invalidate(CacheKeys.appointmentStats());
+
+      return result;
     }),
 
   // Generate and save receipt number

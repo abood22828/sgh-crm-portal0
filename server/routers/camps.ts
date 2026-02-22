@@ -12,6 +12,7 @@ import { getDb } from '../db';
 import { camps } from '../../drizzle/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { generateSlug, isValidSlug } from '../../shared/_core/utils/slug';
+import { serverCache, CacheKeys, CacheTTL } from '../cache';
 
 /**
  * Validation schema for creating/updating camps
@@ -38,32 +39,44 @@ export const campsRouter = router({
    * الحصول على جميع المخيمات (عام)
    */
   getAll: publicProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) return [];
-    
-    const result = await db
-      .select()
-      .from(camps)
-      .where(eq(camps.isActive, true))
-      .orderBy(desc(camps.createdAt));
-    
-    return result;
+    return serverCache.getOrCompute(
+      "camps:active",
+      CacheTTL.LIST,
+      async () => {
+        const db = await getDb();
+        if (!db) return [];
+        
+        const result = await db
+          .select()
+          .from(camps)
+          .where(eq(camps.isActive, true))
+          .orderBy(desc(camps.createdAt));
+        
+        return result;
+      }
+    );
   }),
 
   /**
    * Get all camps for admin (includes inactive)
    * الحصول على جميع المخيمات للإدارة (يشمل غير النشطة)
    */
-  getAllAdmin: protectedProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) return [];
-    
-    const result = await db
-      .select()
-      .from(camps)
-      .orderBy(desc(camps.createdAt));
-    
-    return result;
+  getAllAdmin: publicProcedure.query(async () => {
+    return serverCache.getOrCompute(
+      CacheKeys.campsList(),
+      CacheTTL.LIST,
+      async () => {
+        const db = await getDb();
+        if (!db) return [];
+        
+        const result = await db
+          .select()
+          .from(camps)
+          .orderBy(desc(camps.createdAt));
+        
+        return result;
+      }
+    );
   }),
 
   /**
@@ -150,6 +163,10 @@ export const campsRouter = router({
         galleryImages: input.galleryImages,
       });
       
+      // Invalidate camps cache
+      serverCache.invalidate(CacheKeys.campsList());
+      serverCache.invalidate("camps:active");
+
       return { success: true, slug };
     }),
 
@@ -205,11 +222,14 @@ export const campsRouter = router({
         })
         .where(eq(camps.id, id));
       
+      // Invalidate camps cache
+      serverCache.invalidate(CacheKeys.campsList());
+      serverCache.invalidate("camps:active");
+
       return { success: true };
     }),
-
   /**
-   * Delete camp (admin only)
+   * Delete camp (admin only))
    * حذف مخيم (للإدارة فقط)
    */
   delete: protectedProcedure
@@ -220,6 +240,10 @@ export const campsRouter = router({
       
       await db.delete(camps).where(eq(camps.id, input.id));
       
+      // Invalidate camps cache
+      serverCache.invalidate(CacheKeys.campsList());
+      serverCache.invalidate("camps:active");
+
       return { success: true };
     }),
 
@@ -250,6 +274,10 @@ export const campsRouter = router({
         .set({ isActive: !current[0].isActive })
         .where(eq(camps.id, input.id));
       
+      // Invalidate camps cache
+      serverCache.invalidate(CacheKeys.campsList());
+      serverCache.invalidate("camps:active");
+
       return { success: true, isActive: !current[0].isActive };
     }),
 });
