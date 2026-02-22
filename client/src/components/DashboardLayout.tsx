@@ -11,9 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut } from "lucide-react";
+import { User, Settings, LogOut, Bell } from "lucide-react";
 import { toast } from "sonner";
-
 import { useLocation } from "wouter";
 
 export default function DashboardLayout({
@@ -34,33 +33,27 @@ export default function DashboardLayout({
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative group">
-              <div className="relative">
-                <img
-                  src={APP_LOGO}
-                  alt={APP_TITLE}
-                  className="h-20 w-20 rounded-xl object-cover shadow"
-                />
-              </div>
-            </div>
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight">{APP_TITLE}</h1>
-              <p className="text-sm text-muted-foreground">
-                Please sign in to continue
-              </p>
-            </div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5">
+        <div className="flex flex-col items-center gap-6 p-8 max-w-sm w-full">
+          <img
+            src="/assets/new-logo.png"
+            alt={APP_TITLE}
+            className="h-20 w-auto object-contain"
+          />
+          <div className="text-center space-y-1.5">
+            <h1 className="text-xl font-bold tracking-tight">{APP_TITLE}</h1>
+            <p className="text-sm text-muted-foreground">
+              يرجى تسجيل الدخول للوصول إلى لوحة التحكم
+            </p>
           </div>
           <Button
             onClick={() => {
               window.location.href = getLoginUrl();
             }}
             size="lg"
-            className="w-full shadow-lg hover:shadow-xl transition-all"
+            className="w-full"
           >
-            Sign in
+            تسجيل الدخول
           </Button>
         </div>
       </div>
@@ -68,28 +61,28 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex" dir="rtl">
+    <div className="min-h-screen bg-slate-50/80 flex" dir="rtl">
       {/* Sidebar */}
       <DashboardSidebar currentPath={location} />
       
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:pb-0 pb-20">
+      <div className="flex-1 flex flex-col lg:pb-0 pb-14">
         {/* Top Header Bar */}
-        <div className="bg-white border-b shadow-sm sticky top-0 z-10">
-          <div className="flex items-center justify-between px-4 py-3 md:px-6">
-            {/* Logo and Title */}
-            <div className="flex items-center gap-3">
+        <header className="dashboard-header border-b border-border/40 sticky top-0 z-10">
+          <div className="flex items-center justify-between px-4 py-2.5 md:px-6">
+            {/* Page Title */}
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <img
                 src="/assets/new-logo.png"
                 alt="المستشفى السعودي الألماني"
-                className="h-10 md:h-12 w-auto object-contain flex-shrink-0"
+                className="h-9 md:h-10 w-auto object-contain flex-shrink-0 lg:hidden"
               />
-              <div className="flex-1 text-right">
-                <h1 className="text-xl md:text-2xl font-bold text-primary">
-                  {pageTitle || APP_TITLE}
+              <div className="min-w-0 flex-1">
+                <h1 className="text-base md:text-lg font-bold text-foreground truncate">
+                  {pageTitle || "لوحة التحكم"}
                 </h1>
                 {pageDescription && (
-                  <p className="text-sm text-muted-foreground hidden sm:block">
+                  <p className="text-xs text-muted-foreground hidden sm:block truncate">
                     {pageDescription}
                   </p>
                 )}
@@ -97,60 +90,65 @@ export default function DashboardLayout({
             </div>
             
             {/* User Info with Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer focus:outline-none">
-                  <div className="text-right hidden md:block">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</p>
-                  </div>
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-semibold">
-                      {user.name?.charAt(0) || 'U'}
-                    </span>
-                  </div>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="text-right">
-                  <div>
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email || 'لا يوجد بريد إلكتروني'}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer text-right"
-                  onClick={() => setLocation('/dashboard/profile')}
-                >
-                  <User className="ml-2 h-4 w-4" />
-                  <span>الملف الشخصي</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer text-right"
-                  onClick={() => setLocation('/dashboard/settings')}
-                >
-                  <Settings className="ml-2 h-4 w-4" />
-                  <span>الإعدادات</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer text-right text-red-600 focus:text-red-600"
-                  onClick={async () => {
-                    await logout();
-                    toast.success('تم تسجيل الخروج بنجاح');
-                    setLocation('/');
-                  }}
-                >
-                  <LogOut className="ml-2 h-4 w-4" />
-                  <span>تسجيل الخروج</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer focus:outline-none">
+                    <div className="text-right hidden md:block">
+                      <p className="text-sm font-medium leading-tight">{user.name}</p>
+                      <p className="text-[11px] text-muted-foreground">{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</p>
+                    </div>
+                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
+                      <span className="text-primary font-semibold text-sm">
+                        {user.name?.charAt(0) || 'U'}
+                      </span>
+                    </div>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuLabel className="text-right">
+                    <div>
+                      <p className="font-medium text-sm">{user.name}</p>
+                      <p className="text-[11px] text-muted-foreground">{user.email || 'لا يوجد بريد إلكتروني'}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer text-right text-sm"
+                    onClick={() => setLocation('/dashboard/profile')}
+                  >
+                    <User className="ml-2 h-4 w-4" />
+                    <span>الملف الشخصي</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer text-right text-sm"
+                    onClick={() => setLocation('/dashboard/settings')}
+                  >
+                    <Settings className="ml-2 h-4 w-4" />
+                    <span>الإعدادات</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer text-right text-sm text-red-600 focus:text-red-600"
+                    onClick={async () => {
+                      await logout();
+                      toast.success('تم تسجيل الخروج بنجاح');
+                      setLocation('/');
+                    }}
+                  >
+                    <LogOut className="ml-2 h-4 w-4" />
+                    <span>تسجيل الخروج</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </div>
+        </header>
         
-        {children}
+        {/* Page Content */}
+        <main className="flex-1">
+          {children}
+        </main>
       </div>
     </div>
   );

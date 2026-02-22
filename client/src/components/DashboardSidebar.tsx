@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   LayoutDashboard, 
   Settings as SettingsIcon, 
@@ -8,13 +9,10 @@ import {
   FileText, 
   BarChart3,
   MessageCircle,
-  ChevronLeft,
-  ChevronRight,
   ChevronDown,
   FileEdit,
   Users,
   Calendar,
-  Briefcase,
   CheckSquare,
   Target,
   Megaphone,
@@ -24,30 +22,48 @@ import {
   UserCheck,
   Gift,
   Tent,
+  Contact,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Menu,
+  X,
+  Home,
   ClipboardList,
-  Contact
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  children?: NavItem[];
+  badge?: number;
 }
 
-const navItems: NavItem[] = [
+interface NavGroup {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
+  defaultOpen?: boolean;
+}
+
+const navGroups: NavGroup[] = [
   {
-    title: "الصفحة الرئيسية",
-    href: "/dashboard",
-    icon: LayoutDashboard,
+    label: "الرئيسية",
+    icon: Home,
+    defaultOpen: true,
+    items: [
+      {
+        title: "لوحة التحكم",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+      },
+    ],
   },
   {
-    title: "إدارة الحجوزات",
-    href: "/dashboard/bookings",
-    icon: Calendar,
-    children: [
+    label: "إدارة الحجوزات",
+    icon: ClipboardList,
+    items: [
       {
         title: "العملاء المحتملين",
         href: "/dashboard/bookings/leads",
@@ -81,84 +97,114 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    title: "الإدارة",
-    href: "/dashboard/management",
-    icon: SettingsIcon,
-  },
-  {
-    title: "إدارة المحتوى",
-    href: "/dashboard/content",
+    label: "إدارة المحتوى",
     icon: FileEdit,
+    items: [
+      {
+        title: "الإدارة",
+        href: "/dashboard/management",
+        icon: SettingsIcon,
+      },
+      {
+        title: "المحتوى",
+        href: "/dashboard/content",
+        icon: FileEdit,
+      },
+      {
+        title: "النشر",
+        href: "/dashboard/publishing",
+        icon: Send,
+      },
+    ],
   },
   {
-    title: "إدارة المستخدمين",
-    href: "/dashboard/users",
-    icon: Users,
-  },
-  {
-    title: "النشر",
-    href: "/dashboard/publishing",
-    icon: Send,
-  },
-  {
-    title: "واتس اب",
-    href: "/dashboard/whatsapp",
+    label: "التواصل",
     icon: MessageCircle,
+    items: [
+      {
+        title: "واتساب",
+        href: "/dashboard/whatsapp",
+        icon: MessageCircle,
+      },
+      {
+        title: "الرسائل",
+        href: "/dashboard/messages",
+        icon: MessageSquare,
+      },
+      {
+        title: "إعدادات الرسائل",
+        href: "/dashboard/message-settings",
+        icon: SettingsIcon,
+      },
+      {
+        title: "طوابير الرسائل",
+        href: "/dashboard/queue",
+        icon: SettingsIcon,
+      },
+    ],
   },
   {
-    title: "الرسائل",
-    href: "/dashboard/messages",
-    icon: MessageSquare,
+    label: "الفرق",
+    icon: Users,
+    items: [
+      {
+        title: "التسويق الرقمي",
+        href: "/dashboard/teams/digital-marketing",
+        icon: Megaphone,
+      },
+      {
+        title: "وحدة الإعلام",
+        href: "/dashboard/teams/media",
+        icon: Video,
+      },
+      {
+        title: "التسويق الميداني",
+        href: "/dashboard/teams/field-marketing",
+        icon: MapPin,
+      },
+      {
+        title: "خدمة العملاء",
+        href: "/dashboard/teams/customer-service",
+        icon: Headphones,
+      },
+    ],
   },
   {
-    title: "إعدادات الرسائل",
-    href: "/dashboard/message-settings",
-    icon: SettingsIcon,
-  },
-  {
-    title: "طوابير الرسائل",
-    href: "/dashboard/queue",
-    icon: SettingsIcon,
-  },
-  {
-    title: "التقارير",
-    href: "/dashboard/reports",
-    icon: FileText,
-  },
-  {
-    title: "التحليلات",
-    href: "/dashboard/analytics",
+    label: "التقارير والتحليلات",
     icon: BarChart3,
+    items: [
+      {
+        title: "التقارير",
+        href: "/dashboard/reports",
+        icon: FileText,
+      },
+      {
+        title: "التحليلات",
+        href: "/dashboard/analytics",
+        icon: BarChart3,
+      },
+    ],
   },
   {
-    title: "فريق التسويق الرقمي",
-    href: "/dashboard/teams/digital-marketing",
-    icon: Megaphone,
-  },
-  {
-    title: "فريق وحدة الإعلام",
-    href: "/dashboard/teams/media",
-    icon: Video,
-  },
-  {
-    title: "فريق التسويق الميداني",
-    href: "/dashboard/teams/field-marketing",
-    icon: MapPin,
-  },
-  {
-    title: "فريق خدمة العملاء",
-    href: "/dashboard/teams/customer-service",
-    icon: Headphones,
-  },
-  {
-    title: "إدارة الحملات والمشاريع",
-    href: "/dashboard/projects",
-    icon: Target,
-  },
-  {
-    title: "المراجعة والاعتماد",
-    href: "/dashboard/review-approval",
-    icon: CheckSquare,
+    label: "الإدارة العامة",
+    icon: SettingsIcon,
+    items: [
+      {
+        title: "المستخدمين",
+        href: "/dashboard/users",
+        icon: Users,
+      },
+      {
+        title: "الحملات والمشاريع",
+        href: "/dashboard/projects",
+        icon: Target,
+      },
+      {
+        title: "المراجعة والاعتماد",
+        href: "/dashboard/review-approval",
+        icon: CheckSquare,
+      },
+    ],
   },
 ];
 
@@ -169,184 +215,299 @@ interface DashboardSidebarProps {
 export default function DashboardSidebar({ currentPath }: DashboardSidebarProps) {
   const [, setLocation] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   // Auto-expand groups that contain the active page
   useEffect(() => {
-    navItems.forEach(item => {
-      if (item.children) {
-        const isChildActive = item.children.some(child => 
-          currentPath === child.href || currentPath.startsWith(child.href)
-        );
-        const isParentActive = currentPath === item.href;
-        if (isChildActive || isParentActive) {
-          setExpandedGroups(prev => ({ ...prev, [item.href]: true }));
-        }
+    const newExpanded: Record<string, boolean> = {};
+    navGroups.forEach(group => {
+      const hasActive = group.items.some(item => {
+        if (item.href === "/dashboard") return currentPath === "/dashboard";
+        return currentPath === item.href || currentPath.startsWith(item.href + "/");
+      });
+      if (hasActive || group.defaultOpen) {
+        newExpanded[group.label] = true;
       }
     });
+    setExpandedGroups(prev => ({ ...prev, ...newExpanded }));
   }, [currentPath]);
 
-  const toggleGroup = (href: string) => {
-    setExpandedGroups(prev => ({ ...prev, [href]: !prev[href] }));
-  };
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [currentPath]);
 
-  const isItemActive = (item: NavItem) => {
-    if (item.children) {
-      return currentPath === item.href || item.children.some(child => 
-        currentPath === child.href || currentPath.startsWith(child.href)
+  // Close mobile sidebar on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    if (mobileOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  const toggleGroup = useCallback((label: string) => {
+    setExpandedGroups(prev => ({ ...prev, [label]: !prev[label] }));
+  }, []);
+
+  const isItemActive = useCallback((item: NavItem) => {
+    if (item.href === "/dashboard") {
+      return currentPath === "/dashboard";
+    }
+    return currentPath === item.href || currentPath.startsWith(item.href + "/");
+  }, [currentPath]);
+
+  const handleNavClick = useCallback((href: string) => {
+    setLocation(href);
+    setMobileOpen(false);
+  }, [setLocation]);
+
+  const renderNavItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const isActive = isItemActive(item);
+
+    if (collapsed) {
+      return (
+        <Tooltip key={item.href} delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => handleNavClick(item.href)}
+              className={cn(
+                "w-full flex items-center justify-center h-9 rounded-md transition-all duration-150",
+                isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <Icon className="h-[18px] w-[18px]" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="left" className="font-medium text-xs">
+            {item.title}
+          </TooltipContent>
+        </Tooltip>
       );
     }
-    return currentPath === item.href || 
-      (item.href !== "/dashboard" && currentPath.startsWith(item.href));
+
+    return (
+      <button
+        key={item.href}
+        onClick={() => handleNavClick(item.href)}
+        className={cn(
+          "w-full flex items-center gap-2.5 px-2.5 h-9 rounded-md text-[13px] transition-all duration-150",
+          isActive
+            ? "bg-primary/10 text-primary font-semibold nav-item-active"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        )}
+      >
+        <Icon className="h-4 w-4 flex-shrink-0" />
+        <span className="truncate">{item.title}</span>
+        {item.badge && item.badge > 0 && (
+          <span className="mr-auto bg-destructive text-destructive-foreground text-[10px] rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none">
+            {item.badge}
+          </span>
+        )}
+      </button>
+    );
   };
 
-  const renderNavItem = (item: NavItem, isChild = false) => {
-    const Icon = item.icon;
-    const hasChildren = item.children && item.children.length > 0;
-    const isActive = isItemActive(item);
-    const isExpanded = expandedGroups[item.href];
+  const renderNavGroup = (group: NavGroup, index: number) => {
+    const isExpanded = expandedGroups[group.label] !== false;
+    const hasActiveItem = group.items.some(item => isItemActive(item));
+    const GroupIcon = group.icon;
 
-    if (hasChildren) {
+    if (collapsed) {
       return (
-        <div key={item.href}>
-          <Button
-            variant={isActive && !isChild ? "default" : "ghost"}
-            className={cn(
-              "w-full justify-start gap-3",
-              collapsed && "justify-center px-2"
-            )}
-            onClick={() => {
-              if (collapsed) {
-                setCollapsed(false);
-                setExpandedGroups(prev => ({ ...prev, [item.href]: true }));
-              } else {
-                toggleGroup(item.href);
-              }
-            }}
-          >
-            <Icon className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && (
-              <>
-                <span className="flex-1 text-right">{item.title}</span>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
-                  isExpanded && "rotate-180"
-                )} />
-              </>
-            )}
-          </Button>
-          {!collapsed && isExpanded && (
-            <div className="mr-4 mt-1 space-y-1 border-r-2 border-muted pr-2">
-              {item.children!.map(child => {
-                const ChildIcon = child.icon;
-                const childActive = currentPath === child.href || currentPath.startsWith(child.href);
-                return (
-                  <Button
-                    key={child.href}
-                    variant={childActive ? "secondary" : "ghost"}
-                    className={cn(
-                      "w-full justify-start gap-2 h-9 text-sm",
-                      childActive && "bg-accent font-medium"
-                    )}
-                    onClick={() => setLocation(child.href)}
-                  >
-                    <ChildIcon className="h-4 w-4 flex-shrink-0" />
-                    <span>{child.title}</span>
-                  </Button>
-                );
-              })}
-            </div>
-          )}
+        <div key={group.label} className="space-y-0.5">
+          {index > 0 && <div className="border-t border-border/40 my-1.5 mx-1" />}
+          {group.items.map(item => renderNavItem(item))}
         </div>
       );
     }
 
     return (
-      <Button
-        key={item.href}
-        variant={isActive ? "default" : "ghost"}
-        className={cn(
-          "w-full justify-start gap-3",
-          collapsed && "justify-center px-2",
-          isChild && "h-9 text-sm"
-        )}
-        onClick={() => setLocation(item.href)}
-      >
-        <Icon className="h-5 w-5 flex-shrink-0" />
-        {!collapsed && <span>{item.title}</span>}
-      </Button>
+      <div key={group.label}>
+        {index > 0 && <div className="border-t border-border/30 my-2 mx-2" />}
+        {/* Group Header */}
+        <button
+          onClick={() => toggleGroup(group.label)}
+          className={cn(
+            "w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors rounded-md",
+            hasActiveItem ? "text-primary" : "text-muted-foreground/60 hover:text-muted-foreground"
+          )}
+        >
+          <GroupIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-60" />
+          <span className="flex-1 text-right">{group.label}</span>
+          <ChevronDown className={cn(
+            "h-3 w-3 transition-transform duration-200 opacity-50",
+            !isExpanded && "-rotate-90"
+          )} />
+        </button>
+
+        {/* Group Items with animation */}
+        <div className={cn(
+          "overflow-hidden transition-all duration-200",
+          isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+        )}>
+          <div className="space-y-0.5 pt-0.5">
+            {group.items.map(item => renderNavItem(item))}
+          </div>
+        </div>
+      </div>
     );
   };
+
+  const sidebarContent = (
+    <>
+      {/* Logo Section */}
+      <div className={cn(
+        "flex items-center border-b border-border/40 flex-shrink-0",
+        collapsed ? "justify-center px-2 py-3" : "gap-3 px-4 py-3"
+      )}>
+        <img
+          src="/assets/new-logo.png"
+          alt="المستشفى السعودي الألماني"
+          className={cn(
+            "object-contain flex-shrink-0 transition-all duration-300",
+            collapsed ? "h-9 w-9" : "h-10"
+          )}
+        />
+        {!collapsed && (
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[13px] font-bold text-foreground leading-tight truncate">
+              المستشفى السعودي الألماني
+            </h2>
+            <p className="text-[10px] text-muted-foreground/70 truncate">
+              لوحة التحكم الإدارية
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <ScrollArea className="flex-1 py-2">
+        <nav className={cn("space-y-0", collapsed ? "px-1.5" : "px-2")}>
+          {navGroups.map((group, index) => renderNavGroup(group, index))}
+        </nav>
+      </ScrollArea>
+
+      {/* Collapse Toggle - Desktop Only */}
+      <div className="hidden lg:flex border-t border-border/40 p-1.5 flex-shrink-0">
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="w-full flex items-center justify-center gap-2 h-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-xs"
+            >
+              {collapsed ? (
+                <PanelLeftOpen className="h-4 w-4" />
+              ) : (
+                <>
+                  <PanelLeftClose className="h-4 w-4" />
+                  <span>طي القائمة</span>
+                </>
+              )}
+            </button>
+          </TooltipTrigger>
+          {collapsed && (
+            <TooltipContent side="left" className="text-xs">
+              توسيع القائمة
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </div>
+    </>
+  );
 
   return (
     <>
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col bg-white border-l shadow-sm transition-all duration-300",
-          collapsed ? "w-20" : "w-64"
+          "hidden lg:flex flex-col bg-card border-l border-border/50 transition-all duration-300 h-screen sticky top-0",
+          collapsed ? "w-[60px]" : "w-60"
         )}
       >
-        {/* Toggle Button */}
-        <div className="p-4 border-b flex justify-end">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCollapsed(!collapsed)}
-            className="h-8 w-8"
-          >
-            {collapsed ? (
-              <ChevronLeft className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {navItems.map((item) => renderNavItem(item))}
-        </nav>
+        {sidebarContent}
       </aside>
 
-      {/* Mobile Bottom Navigation - show all items flat */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50 overflow-x-auto">
-        <div className="flex gap-1 p-2 min-w-max">
-          {navItems.flatMap((item) => {
-            if (item.children) {
-              return item.children.map(child => {
-                const ChildIcon = child.icon;
-                const childActive = currentPath === child.href || currentPath.startsWith(child.href);
-                return (
-                  <Button
-                    key={child.href}
-                    variant={childActive ? "default" : "ghost"}
-                    className="flex-col h-auto py-2 px-3 min-w-[80px]"
-                    onClick={() => setLocation(child.href)}
-                  >
-                    <ChildIcon className="h-5 w-5 mb-1 flex-shrink-0" />
-                    <span className="text-xs whitespace-nowrap">{child.title}</span>
-                  </Button>
-                );
-              });
-            }
-            const Icon = item.icon;
-            const isActive = currentPath === item.href || 
-              (item.href !== "/dashboard" && currentPath.startsWith(item.href));
-            return (
-              <Button
-                key={item.href}
-                variant={isActive ? "default" : "ghost"}
-                className="flex-col h-auto py-2 px-3 min-w-[80px]"
-                onClick={() => setLocation(item.href)}
-              >
-                <Icon className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs whitespace-nowrap">{item.title}</span>
-              </Button>
-            );
-          })}
+      {/* Mobile Bottom Navigation Bar */}
+      <div className="lg:hidden fixed bottom-0 right-0 left-0 z-40 bg-card border-t border-border/50 safe-bottom">
+        <div className="flex items-center justify-around px-1 py-1.5">
+          <button
+            onClick={() => handleNavClick("/dashboard")}
+            className={cn(
+              "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] transition-colors",
+              currentPath === "/dashboard" ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span>الرئيسية</span>
+          </button>
+          <button
+            onClick={() => handleNavClick("/dashboard/bookings/leads")}
+            className={cn(
+              "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] transition-colors",
+              currentPath.includes("/bookings") ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            <UserCheck className="h-5 w-5" />
+            <span>الحجوزات</span>
+          </button>
+          <button
+            onClick={() => handleNavClick("/dashboard/reports")}
+            className={cn(
+              "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] transition-colors",
+              currentPath.includes("/reports") || currentPath.includes("/analytics") ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            <BarChart3 className="h-5 w-5" />
+            <span>التقارير</span>
+          </button>
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] text-muted-foreground"
+          >
+            <Menu className="h-5 w-5" />
+            <span>المزيد</span>
+          </button>
         </div>
-      </nav>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar */}
+      <aside
+        className={cn(
+          "lg:hidden fixed top-0 right-0 z-50 h-full w-[280px] bg-card border-l border-border/50 shadow-xl flex flex-col transition-transform duration-300 ease-out",
+          mobileOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        {/* Mobile Close Button */}
+        <div className="absolute top-2.5 left-2.5 z-10">
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors"
+            aria-label="إغلاق القائمة"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        {sidebarContent}
+      </aside>
     </>
   );
 }

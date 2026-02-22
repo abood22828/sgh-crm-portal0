@@ -8,7 +8,7 @@ import SourceAnalytics from "@/components/SourceAnalytics";
 import RecentActivity from "@/components/RecentActivity";
 import QuickPatientSearch from "@/components/QuickPatientSearch";
 import DetailedStatsCards from "@/components/DetailedStatsCards";
-import DashboardSidebar from "@/components/DashboardSidebar";
+import DashboardLayout from "@/components/DashboardLayout";
 import DoctorsManagement from "@/components/DoctorsManagement";
 import LeadCard from "@/components/LeadCard";
 import TableSkeleton from "@/components/TableSkeleton";
@@ -51,15 +51,12 @@ import {
   UserX, 
   Calendar, 
   Search, 
-  LogOut,
   TrendingUp,
   Phone,
   Mail,
   MessageSquare,
   Loader2,
   Eye,
-  WifiOff,
-  Settings,
   Download,
   BarChart3,
   Printer,
@@ -67,8 +64,6 @@ import {
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport, formatAppointmentsForExport } from "@/lib/exportToExcel";
 import { printReceipt } from "@/components/PrintReceipt";
-import { getLoginUrl } from "@/const";
-import { useLocation } from "wouter";
 
 const statusLabels = {
   new: "جديد",
@@ -87,8 +82,7 @@ const statusColors = {
 };
 
 export default function AdminDashboard() {
-  const { user, loading: authLoading, logout } = useAuth();
-  const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const utils = trpc.useUtils();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLead, setSelectedLead] = useState<any>(null);
@@ -351,125 +345,12 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleLogout = async () => {
-    await logout();
-    setLocation("/");
-  };
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
-        <Card className="max-w-md w-full">
-          <CardHeader className="text-center">
-            <img 
-              src="/assets/new-logo.png" 
-              alt="المستشفى السعودي الألماني" 
-              className="h-20 mx-auto mb-4"
-            />
-            <CardTitle className="text-2xl">لوحة التحكم الإدارية</CardTitle>
-            <CardDescription>يرجى تسجيل الدخول للوصول إلى لوحة التحكم</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              className="w-full" 
-              size="lg"
-              onClick={() => window.location.href = getLoginUrl()}
-            >
-              تسجيل الدخول
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex" dir="rtl">
-      {/* Sidebar */}
-      <DashboardSidebar currentPath="/dashboard" />
-      
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:pb-0 pb-20">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div className="container py-3 md:py-4">
-          <div className="flex items-center justify-between gap-2">
-            {/* Logo and Title */}
-            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
-              <img 
-                src="/assets/new-logo.png" 
-                alt="المستشفى السعودي الألماني" 
-                className="h-10 md:h-12 flex-shrink-0"
-              />
-              <div className="min-w-0">
-                <h1 className="text-base md:text-xl font-bold text-foreground truncate">لوحة التحكم الإدارية</h1>
-                <p className="text-xs md:text-sm text-muted-foreground hidden sm:block truncate">إدارة حملات التسويق والعملاء</p>
-              </div>
-            </div>
-            
-            {/* Actions */}
-            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-              {/* User Info - Desktop Only */}
-              <div className="text-left hidden lg:block">
-                <p className="text-sm font-semibold truncate max-w-[150px]">{user.name}</p>
-                <p className="text-xs text-muted-foreground truncate max-w-[150px]">{user.email}</p>
-              </div>
-              
-              {/* Settings Button */}
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => setLocation("/settings")}
-                className="h-9 w-9"
-                title="الإعدادات"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-              
-              {/* Access Requests Button */}
-              {/* Offline Page Button */}
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => setLocation("/offline")}
-                className="h-9 w-9"
-                title="صفحة Offline"
-              >
-                <WifiOff className="w-4 h-4" />
-              </Button>
-              
-              {/* Logout Button */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleLogout} 
-                className="hidden sm:flex"
-              >
-                <LogOut className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">تسجيل الخروج</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={handleLogout} 
-                className="sm:hidden h-9 w-9"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="container py-4 md:py-8">
+    <DashboardLayout
+      pageTitle="لوحة التحكم الإدارية"
+      pageDescription="إدارة حملات التسويق والعملاء"
+    >
+      <div className="container py-4 md:py-6">
         {/* Detailed Stats Cards */}
         <DetailedStatsCards />
 
@@ -1068,8 +949,6 @@ export default function AdminDashboard() {
         {/* Camp Registrations Management removed */}
 
 
-      </main>
-
       {/* Status Update Dialog */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent className="max-w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto" dir="rtl">
@@ -1284,8 +1163,8 @@ export default function AdminDashboard() {
           )}
         </DialogContent>
       </Dialog>
-      </div>
     </div>
+    </DashboardLayout>
   );
 }
 
