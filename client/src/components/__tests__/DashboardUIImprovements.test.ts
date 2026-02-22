@@ -253,6 +253,85 @@ describe('Dashboard UI Improvements', () => {
     });
   });
 
+  describe('Notification Sound (useNotificationSound)', () => {
+    const hookPath = path.join(basePath, 'client/src/hooks/useNotificationSound.ts');
+    let hookContent: string;
+
+    it('should exist', () => {
+      expect(fs.existsSync(hookPath)).toBe(true);
+      hookContent = fs.readFileSync(hookPath, 'utf-8');
+    });
+
+    it('should export useNotificationSound hook', () => {
+      hookContent = fs.readFileSync(hookPath, 'utf-8');
+      expect(hookContent).toContain('export function useNotificationSound');
+    });
+
+    it('should return soundEnabled and toggleSound', () => {
+      hookContent = fs.readFileSync(hookPath, 'utf-8');
+      expect(hookContent).toContain('soundEnabled');
+      expect(hookContent).toContain('toggleSound');
+    });
+
+    it('should use trpc.sidebarBadges.useQuery for monitoring', () => {
+      hookContent = fs.readFileSync(hookPath, 'utf-8');
+      expect(hookContent).toContain('trpc.sidebarBadges.useQuery');
+    });
+
+    it('should persist sound preference in localStorage', () => {
+      hookContent = fs.readFileSync(hookPath, 'utf-8');
+      expect(hookContent).toContain('localStorage');
+      expect(hookContent).toContain('notification-sound-enabled');
+    });
+
+    it('should use Web Audio API for notification sound', () => {
+      hookContent = fs.readFileSync(hookPath, 'utf-8');
+      expect(hookContent).toContain('AudioContext');
+    });
+
+    it('should track previous count to detect new messages', () => {
+      hookContent = fs.readFileSync(hookPath, 'utf-8');
+      expect(hookContent).toContain('prevWhatsappCountRef');
+    });
+
+    it('should have sound toggle button in DashboardSidebar', () => {
+      const sidebarContent = fs.readFileSync(
+        path.join(basePath, 'client/src/components/DashboardSidebar.tsx'), 'utf-8'
+      );
+      expect(sidebarContent).toContain('useNotificationSound');
+      expect(sidebarContent).toContain('toggleSound');
+      expect(sidebarContent).toContain('soundEnabled');
+      expect(sidebarContent).toContain('Volume2');
+      expect(sidebarContent).toContain('VolumeX');
+    });
+
+    it('should show sound toggle in desktop slim sidebar', () => {
+      const sidebarContent = fs.readFileSync(
+        path.join(basePath, 'client/src/components/DashboardSidebar.tsx'), 'utf-8'
+      );
+      const slimSection = sidebarContent.split('renderDesktopSlimSidebar')[1];
+      expect(slimSection).toContain('toggleSound');
+      expect(slimSection).toContain('التنبيه');
+      expect(slimSection).toContain('صامت');
+    });
+
+    it('should show sound toggle in all tools panel', () => {
+      const sidebarContent = fs.readFileSync(
+        path.join(basePath, 'client/src/components/DashboardSidebar.tsx'), 'utf-8'
+      );
+      const allToolsSection = sidebarContent.split('renderAllToolsPanel')[1];
+      expect(allToolsSection).toContain('toggleSound');
+    });
+
+    it('should show sound toggle in mobile sidebar', () => {
+      const sidebarContent = fs.readFileSync(
+        path.join(basePath, 'client/src/components/DashboardSidebar.tsx'), 'utf-8'
+      );
+      const mobileSection = sidebarContent.split('renderMobileSidebar')[1];
+      expect(mobileSection).toContain('toggleSound');
+    });
+  });
+
   describe('DashboardLayout', () => {
     const layoutPath = path.join(basePath, 'client/src/components/DashboardLayout.tsx');
     let layoutContent: string;

@@ -33,9 +33,12 @@ import {
   Pencil,
   GripVertical,
   Check,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   DndContext,
@@ -367,6 +370,9 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   const allToolsRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Notification sound for new WhatsApp messages
+  const { soundEnabled, toggleSound } = useNotificationSound();
+
   // Fetch sidebar badge counts (auto-refresh every 60 seconds)
   const { data: badgeCounts } = trpc.sidebarBadges.useQuery(undefined, {
     refetchInterval: 60_000,
@@ -638,6 +644,31 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           <TooltipContent side="left" className="text-xs">كل الأدوات</TooltipContent>
         </Tooltip>
 
+        {/* Notification Sound Toggle */}
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={toggleSound}
+              className={cn(
+                "w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150",
+                soundEnabled
+                  ? "text-green-600 hover:bg-green-50"
+                  : "text-gray-400 hover:bg-gray-50 hover:text-gray-500"
+              )}
+            >
+              {soundEnabled ? (
+                <Volume2 className="h-[18px] w-[18px]" />
+              ) : (
+                <VolumeX className="h-[18px] w-[18px]" />
+              )}
+              <span className="text-[8px] font-medium mt-0.5">{soundEnabled ? "التنبيه" : "صامت"}</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="left" className="text-xs">
+            {soundEnabled ? "إيقاف صوت التنبيه" : "تفعيل صوت التنبيه"}
+          </TooltipContent>
+        </Tooltip>
+
         {/* Settings */}
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
@@ -887,6 +918,16 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
             <span>بحث</span>
           </button>
           <button
+            onClick={toggleSound}
+            className={cn(
+              "flex items-center gap-2 py-1.5 text-sm transition-colors",
+              soundEnabled ? "text-green-600 hover:text-green-700" : "text-gray-400 hover:text-gray-500"
+            )}
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            <span>{soundEnabled ? "التنبيه" : "صامت"}</span>
+          </button>
+          <button
             onClick={() => handleNavClick("/dashboard/settings")}
             className="flex items-center gap-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
@@ -1097,6 +1138,18 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
 
         {/* Bottom Actions */}
         <div className="border-t border-gray-100 p-3 flex items-center gap-2">
+          <button
+            onClick={toggleSound}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm transition-colors",
+              soundEnabled
+                ? "text-green-600 hover:bg-green-50"
+                : "text-gray-400 hover:bg-gray-50 hover:text-gray-500"
+            )}
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            <span>{soundEnabled ? "التنبيه" : "صامت"}</span>
+          </button>
           <button
             onClick={() => handleNavClick("/dashboard/settings")}
             className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
