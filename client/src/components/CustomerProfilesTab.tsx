@@ -1,22 +1,20 @@
 /**
  * CustomerProfilesTab - تبويب ملفات العملاء الموحد
  * يعرض قائمة بجميع العملاء الفريدين مع إمكانية عرض تفاصيل كل عميل
+ * 
+ * يستخدم:
+ * - useTableFeatures: لإدارة الأعمدة (إخفاء/إظهار، ترتيب، تجميد، قوالب، أحجام، فرز)
+ * - useFilterUtils: لإدارة الفلاتر (بحث، حالة، مصدر، تاريخ)
+ * - useExportUtils: للتصدير والطباعة
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -30,9 +28,28 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableRow,
+  TableHeader,
+} from "@/components/ui/table";
 import Pagination, { type PageSizeValue } from "@/components/Pagination";
 import TableSkeleton from "@/components/TableSkeleton";
 import ActionButtons from "@/components/ActionButtons";
+import EmptyState from "@/components/EmptyState";
+import SavedFilters from "@/components/SavedFilters";
+import { ColumnVisibility, getColumnWidth, type ColumnConfig } from "@/components/ColumnVisibility";
+import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
+import { useTableFeatures } from "@/hooks/useTableFeatures";
+import { useFilterUtils } from "@/hooks/useFilterUtils";
+import { useExportUtils } from "@/hooks/useExportUtils";
 import {
   Users,
   Search,
@@ -44,6 +61,9 @@ import {
   Eye,
   Clock,
   Activity,
+  Download,
+  Printer,
+  RotateCcw,
 } from "lucide-react";
 import { SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 
@@ -101,27 +121,70 @@ function formatDateTime(date: string | Date | null | undefined) {
   }
 }
 
+// === تعريف أعمدة جدول العملاء ===
+const customerColumns: ColumnConfig[] = [
+  { key: 'index', label: '#', defaultVisible: true, sortable: false, defaultWidth: 50, minWidth: 40, maxWidth: 80 },
+  { key: 'name', label: 'الاسم', defaultVisible: true, sortType: 'string' },
+  { key: 'phone', label: 'الهاتف', defaultVisible: true, sortType: 'string' },
+  { key: 'email', label: 'البريد الإلكتروني', defaultVisible: true, sortType: 'string' },
+  { key: 'totalRecords', label: 'عدد التفاعلات', defaultVisible: true, sortType: 'number' },
+  { key: 'lastSeen', label: 'آخر تفاعل', defaultVisible: true, sortType: 'date' },
+  { key: 'firstSeen', label: 'أول تفاعل', defaultVisible: true, sortType: 'date' },
+  { key: 'actions', label: 'الإجراءات', defaultVisible: true, sortable: false },
+];
+
 export default function CustomerProfilesTab() {
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSizeValue>("100");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
-  // Debounce search
-  const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    if (searchTimeout) clearTimeout(searchTimeout);
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(value);
-      setPage(1);
-    }, 300);
-    setSearchTimeout(timeout);
-  };
+  // === useFilterUtils hook ===
+  const customerFilter = useFilterUtils<any>({
+    data: undefined,
+    searchFields: [],
+  });
+
+  const searchTerm = customerFilter.filters.searchTerm;
+  const setSearchTerm = customerFilter.filters.setSearchTerm;
+  const debouncedSearch = customerFilter.filters.debouncedSearch;
+
+  // === useTableFeatures hook ===
+  const customerTable = useTableFeatures({
+    tableKey: 'customers',
+    columns: customerColumns,
+  });
+
+  // === useExportUtils hook ===
+  const customerExport = useExportUtils({
+    tableName: 'ملفات العملاء',
+    filenamePrefix: 'ملفات_العملاء',
+    exportColumns: [
+      { key: 'name', label: 'الاسم' },
+      { key: 'phone', label: 'الهاتف' },
+      { key: 'email', label: 'البريد الإلكتروني' },
+      { key: 'totalRecords', label: 'عدد التفاعلات' },
+      { key: 'lastSeen', label: 'آخر تفاعل' },
+      { key: 'firstSeen', label: 'أول تفاعل' },
+    ],
+    mapToExportRow: (customer: any) => ({
+      name: customer.name || '-',
+      phone: customer.phone || '-',
+      email: customer.email || '-',
+      totalRecords: customer.totalRecords || 0,
+      lastSeen: customer.lastSeen ? new Date(customer.lastSeen).toLocaleDateString('ar-SA') : '-',
+      firstSeen: customer.firstSeen ? new Date(customer.firstSeen).toLocaleDateString('ar-SA') : '-',
+    }),
+  });
 
   const limit = pageSize === "all" ? 100000 : parseInt(pageSize);
+
+  // Reset page when search changes
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setPage(1);
+  }, [setSearchTerm]);
 
   // Fetch paginated customers
   const { data: customersData, isLoading } = trpc.customers.listPaginated.useQuery({
@@ -140,6 +203,54 @@ export default function CustomerProfilesTab() {
   const totalCustomers = customersData?.total || 0;
   const totalPages = Math.ceil(totalCustomers / limit);
 
+  // === Apply sorting using useTableFeatures ===
+  const sortedCustomers = useMemo(() => {
+    if (!customers || customers.length === 0) return [];
+
+    const sorted = customerTable.sortData(customers, (item: any, key: string) => {
+      switch (key) {
+        case 'name': return item.name || '';
+        case 'phone': return item.phone || '';
+        case 'email': return item.email || '';
+        case 'totalRecords': return Number(item.totalRecords) || 0;
+        case 'lastSeen': return item.lastSeen;
+        case 'firstSeen': return item.firstSeen;
+        default: return item[key];
+      }
+    });
+
+    // Default sort: newest first if no sort is active
+    if (!customerTable.sortState.direction) {
+      sorted.sort((a: any, b: any) => {
+        const aDate = new Date(a.lastSeen || 0).getTime();
+        const bDate = new Date(b.lastSeen || 0).getTime();
+        return bDate - aDate;
+      });
+    }
+
+    return sorted;
+  }, [customers, customerTable.sortState, customerTable.sortData]);
+
+  // === Export options ===
+  const getExportOptions = useCallback(() => {
+    const activeFilters = customerExport.buildActiveFilters([
+      { label: 'البحث', value: debouncedSearch || undefined },
+    ]);
+    return {
+      data: sortedCustomers,
+      activeFilters,
+      visibleColumns: customerTable.visibleColumns,
+    };
+  }, [sortedCustomers, debouncedSearch, customerTable.visibleColumns, customerExport]);
+
+  const handleExport = useCallback(async (format: 'excel' | 'csv' | 'pdf') => {
+    await customerExport.handleExport(format, getExportOptions());
+  }, [customerExport, getExportOptions]);
+
+  const handlePrint = useCallback(() => {
+    customerExport.handlePrint(getExportOptions());
+  }, [customerExport, getExportOptions]);
+
   return (
     <div className="space-y-4">
       {/* Stats */}
@@ -155,7 +266,7 @@ export default function CustomerProfilesTab() {
         </Card>
       </div>
 
-      {/* Search */}
+      {/* Main Table Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -167,87 +278,246 @@ export default function CustomerProfilesTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="بحث بالاسم أو رقم الهاتف..."
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pr-10"
-              />
+          {/* Filters & Actions Row */}
+          <div className="flex flex-col gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="بحث بالاسم أو رقم الهاتف..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pr-10"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Print Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrint}
+                  className="gap-2 h-9"
+                >
+                  <Printer className="h-4 w-4" />
+                  <span className="hidden sm:inline">طباعة</span>
+                </Button>
+
+                {/* Export Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 h-9"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="hidden sm:inline">تصدير</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleExport('excel')}>
+                      تصدير Excel
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('csv')}>
+                      تصدير CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                      تصدير PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Column Visibility */}
+                <ColumnVisibility
+                  columns={customerColumns}
+                  visibleColumns={customerTable.visibleColumns}
+                  columnOrder={customerTable.columnOrder}
+                  onVisibilityChange={customerTable.handleColumnVisibilityChange}
+                  onColumnOrderChange={customerTable.handleColumnOrderChange}
+                  onReset={customerTable.handleResetAll}
+                  templates={customerTable.allTemplates}
+                  activeTemplateId={customerTable.activeTemplateId}
+                  onApplyTemplate={customerTable.handleApplyTemplate}
+                  onSaveTemplate={customerTable.handleSaveTemplate}
+                  onDeleteTemplate={customerTable.handleDeleteTemplate}
+                  tableKey="customers"
+                  columnWidths={customerTable.columnWidths.columnWidths}
+                  frozenColumns={customerTable.frozenColumns.frozenColumns}
+                  onToggleFrozen={customerTable.frozenColumns.toggleFrozen}
+                  isAdmin={user?.role === 'admin'}
+                  sharedTemplates={customerTable.sharedTemplates}
+                  onSaveSharedTemplate={customerTable.handleSaveSharedTemplate}
+                  onDeleteSharedTemplate={customerTable.handleDeleteSharedTemplate}
+                />
+
+                {/* Saved Filters */}
+                <SavedFilters
+                  pageKey="customers"
+                  currentFilters={{
+                    searchTerm: customerFilter.filters.searchTerm,
+                  }}
+                  onApplyFilter={(filters) => {
+                    if (filters.searchTerm) customerFilter.filters.setSearchTerm(filters.searchTerm);
+                    else customerFilter.filters.setSearchTerm('');
+                  }}
+                />
+              </div>
             </div>
+
+            {/* Reset Filters Button */}
+            {customerFilter.filters.activeFilterCount > 0 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    customerFilter.filters.resetAll();
+                    setPage(1);
+                  }}
+                  className="gap-1 text-muted-foreground hover:text-foreground h-8"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  إعادة تعيين الفلاتر ({customerFilter.filters.activeFilterCount})
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Table */}
           {isLoading ? (
             <TableSkeleton rows={10} />
-          ) : customers.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">لا يوجد عملاء</p>
-              <p className="text-sm">لم يتم العثور على عملاء مطابقين للبحث</p>
-            </div>
+          ) : sortedCustomers.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="لا يوجد عملاء"
+              description="لم يتم العثور على عملاء مطابقين للبحث"
+            />
           ) : (
             <>
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-right">#</TableHead>
-                      <TableHead className="text-right">الاسم</TableHead>
-                      <TableHead className="text-right">الهاتف</TableHead>
-                      <TableHead className="text-right">البريد</TableHead>
-                      <TableHead className="text-right">عدد التفاعلات</TableHead>
-                      <TableHead className="text-right">آخر تفاعل</TableHead>
-                      <TableHead className="text-right">أول تفاعل</TableHead>
-                      <TableHead className="text-right">إجراءات</TableHead>
+              <ResizableTable
+                frozenColumns={customerTable.frozenColumns.frozenColumns}
+                columnWidths={customerTable.columnWidths.columnWidths}
+                visibleColumnOrder={customerTable.columnOrder.filter(key => customerTable.visibleColumns[key])}
+              >
+                <TableHeader>
+                  <TableRow>
+                    {customerTable.columnOrder
+                      .filter(key => customerTable.visibleColumns[key])
+                      .map(colKey => {
+                        const col = customerColumns.find(c => c.key === colKey);
+                        if (!col) return null;
+                        const widthConfig = getColumnWidth(colKey, col);
+                        return (
+                          <ResizableHeaderCell
+                            key={colKey}
+                            columnKey={colKey}
+                            width={customerTable.columnWidths.getWidth(colKey)}
+                            minWidth={widthConfig.min}
+                            maxWidth={widthConfig.max}
+                            onResize={customerTable.columnWidths.handleResize}
+                            {...customerTable.getSortProps(colKey)}
+                          >
+                            {col.label}
+                          </ResizableHeaderCell>
+                        );
+                      })}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedCustomers.map((customer: any, index: number) => (
+                    <TableRow
+                      key={customer.phone}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => {
+                        setSelectedPhone(customer.phone);
+                        setDetailsOpen(true);
+                      }}
+                    >
+                      {customerTable.columnOrder
+                        .filter(key => customerTable.visibleColumns[key])
+                        .map(colKey => {
+                          switch (colKey) {
+                            case 'index':
+                              return (
+                                <FrozenTableCell key={colKey} columnKey={colKey} className="font-medium">
+                                  {(page - 1) * limit + index + 1}
+                                </FrozenTableCell>
+                              );
+                            case 'name':
+                              return (
+                                <FrozenTableCell key={colKey} columnKey={colKey} className="font-medium">
+                                  {customer.name || "-"}
+                                </FrozenTableCell>
+                              );
+                            case 'phone':
+                              return (
+                                <FrozenTableCell key={colKey} columnKey={colKey}>
+                                  <div className="flex items-center gap-2">
+                                    <span dir="ltr" className="font-mono">{customer.phone}</span>
+                                    <span onClick={(e) => e.stopPropagation()}>
+                                      <ActionButtons
+                                        phoneNumber={customer.phone}
+                                        size="sm"
+                                      />
+                                    </span>
+                                  </div>
+                                </FrozenTableCell>
+                              );
+                            case 'email':
+                              return (
+                                <FrozenTableCell key={colKey} columnKey={colKey}>
+                                  {customer.email || "-"}
+                                </FrozenTableCell>
+                              );
+                            case 'totalRecords':
+                              return (
+                                <FrozenTableCell key={colKey} columnKey={colKey}>
+                                  <Badge variant="secondary">{customer.totalRecords}</Badge>
+                                </FrozenTableCell>
+                              );
+                            case 'lastSeen':
+                              return (
+                                <FrozenTableCell key={colKey} columnKey={colKey}>
+                                  {formatDate(customer.lastSeen)}
+                                </FrozenTableCell>
+                              );
+                            case 'firstSeen':
+                              return (
+                                <FrozenTableCell key={colKey} columnKey={colKey}>
+                                  {formatDate(customer.firstSeen)}
+                                </FrozenTableCell>
+                              );
+                            case 'actions':
+                              return (
+                                <FrozenTableCell key={colKey} columnKey={colKey}>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedPhone(customer.phone);
+                                      setDetailsOpen(true);
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </FrozenTableCell>
+                              );
+                            default:
+                              return (
+                                <FrozenTableCell key={colKey} columnKey={colKey}>
+                                  -
+                                </FrozenTableCell>
+                              );
+                          }
+                        })}
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {customers.map((customer: any, index: number) => (
-                      <TableRow
-                        key={customer.phone}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => {
-                          setSelectedPhone(customer.phone);
-                          setDetailsOpen(true);
-                        }}
-                      >
-                        <TableCell className="font-medium">
-                          {(page - 1) * limit + index + 1}
-                        </TableCell>
-                        <TableCell className="font-medium">{customer.name || "-"}</TableCell>
-                        <TableCell dir="ltr" className="text-right">
-                          {customer.phone}
-                        </TableCell>
-                        <TableCell>{customer.email || "-"}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{customer.totalRecords}</Badge>
-                        </TableCell>
-                        <TableCell>{formatDate(customer.lastSeen)}</TableCell>
-                        <TableCell>{formatDate(customer.firstSeen)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPhone(customer.phone);
-                                setDetailsOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <ActionButtons phoneNumber={customer.phone} size="sm" />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                  ))}
+                </TableBody>
+              </ResizableTable>
 
               <Pagination
                 currentPage={page}
@@ -287,7 +557,7 @@ export default function CustomerProfilesTab() {
             <div className="flex-1 overflow-hidden flex flex-col">
               {/* Customer Info Header */}
               <div className="bg-muted/50 rounded-lg p-4 mb-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium">{customerProfile.name}</span>

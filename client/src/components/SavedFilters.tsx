@@ -21,7 +21,7 @@ import { Bookmark, Save, Trash2, ChevronDown, Star } from "lucide-react";
 import { toast } from "sonner";
 
 interface SavedFiltersProps {
-  pageKey: "appointments" | "offerLeads" | "campRegistrations";
+  pageKey: "appointments" | "offerLeads" | "campRegistrations" | "customers";
   currentFilters: Record<string, any>;
   onApplyFilter: (filters: Record<string, any>) => void;
 }
