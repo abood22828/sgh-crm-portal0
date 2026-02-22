@@ -2795,3 +2795,13 @@
 - [x] تطبيق التنسيق على CampRegistrationsManagement (wrap للملاحظات)
 - [x] الجداول البسيطة (Doctors, Offers, Camps) تستفيد تلقائياً من التحديثات
 - [x] اختبارات vitest (19 اختبار ناجح) وحفظ checkpoint
+
+### تطبيق useTableFeatures hook على بقية الجداول ✅ مكتمل
+- [x] تطبيق useTableFeatures على UsersManagementPage (جدول إدارة المستخدمين)
+- [x] إضافة ResizableTable و ResizableHeaderCell و FrozenTableCell
+- [x] إضافة ColumnVisibility للتحكم بالأعمدة المرئية
+- [x] إضافة الفرز (sorting) لجميع الأعمدة
+- [x] إضافة تجميد عمود المستخدم (frozen column)
+- [x] إضافة عمود تاريخ الإنشاء (مخفي افتراضياً)
+- [x] التحقق من أن AdminDashboard لا يحتوي على جداول نشطة تحتاج تحديث (الجداول مخفية بـ false &&)
+- [x] التحقق من أن جميع المكونات الأخرى (Doctors, Offers, Camps, BookingsManagement, OfferLeads, CampRegistrations) تستخدم useTableFeatures بالفعل

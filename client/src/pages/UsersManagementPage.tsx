@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,9 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -50,6 +48,10 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardLayout from "@/components/DashboardLayout";
 import RecentActivity from "@/components/RecentActivity";
+import { type ColumnConfig } from "@/components/ColumnVisibility";
+import { ColumnVisibility } from "@/components/ColumnVisibility";
+import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
+import { useTableFeatures } from "@/hooks/useTableFeatures";
 
 const roleLabels: Record<string, string> = {
   admin: "مسؤول",
@@ -101,6 +103,17 @@ const exportToCSV = (users: any[]) => {
   link.click();
 };
 
+// === تعريف أعمدة جدول المستخدمين ===
+const userColumns: ColumnConfig[] = [
+  { key: "user", label: "المستخدم", defaultVisible: true, defaultWidth: 220, minWidth: 150, maxWidth: 400, sortType: 'string' },
+  { key: "email", label: "البريد الإلكتروني", defaultVisible: true, defaultWidth: 200, minWidth: 120, maxWidth: 400, sortType: 'string' },
+  { key: "role", label: "الدور", defaultVisible: true, defaultWidth: 120, minWidth: 80, maxWidth: 200, sortType: 'string' },
+  { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 180, sortType: 'string' },
+  { key: "lastSignedIn", label: "آخر تسجيل", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
+  { key: "createdAt", label: "تاريخ الإنشاء", defaultVisible: false, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
+  { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 150, minWidth: 120, maxWidth: 250, sortable: false },
+];
+
 export default function UsersManagementPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [activeSection, setActiveSection] = useState<"users" | "requests" | "activity">("users");
@@ -115,6 +128,13 @@ export default function UsersManagementPage() {
     email: "",
     role: "user" as "user" | "admin" | "manager" | "staff" | "viewer",
     isActive: "yes" as "yes" | "no",
+  });
+
+  // === useTableFeatures hook ===
+  const userTable = useTableFeatures({
+    tableKey: 'users',
+    columns: userColumns,
+    defaultFrozenColumns: ['user'],
   });
 
   const { data: users, isLoading, refetch } = trpc.users.getAll.useQuery();
@@ -234,18 +254,35 @@ export default function UsersManagementPage() {
     toggleActiveMutation.mutate({ id: userId });
   };
 
-  // Filter users
-  const filteredUsers = users?.filter((user) => {
-    const matchesSearch = 
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+  // Filter and sort users
+  const filteredUsers = useMemo(() => {
+    if (!users) return [];
     
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus = statusFilter === "all" || user.isActive === statusFilter;
-    
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+    let filtered = users.filter((user) => {
+      const matchesSearch = 
+        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesRole = roleFilter === "all" || user.role === roleFilter;
+      const matchesStatus = statusFilter === "all" || user.isActive === statusFilter;
+      
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+
+    // Apply sorting using useTableFeatures
+    return userTable.sortData(filtered, (item: any, key: string) => {
+      switch (key) {
+        case 'user': return item.name || item.username;
+        case 'email': return item.email;
+        case 'role': return roleLabels[item.role] || item.role;
+        case 'status': return item.isActive === 'yes' ? 'نشط' : 'معطل';
+        case 'lastSignedIn': return item.lastSignedIn;
+        case 'createdAt': return item.createdAt;
+        default: return item[key];
+      }
+    });
+  }, [users, searchQuery, roleFilter, statusFilter, userTable.sortState, userTable.sortData]);
 
   // Calculate statistics
   const totalUsers = users?.length || 0;
@@ -334,9 +371,7 @@ export default function UsersManagementPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-green-600">{activeUsers}</div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0}% من الإجمالي
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">مستخدمون نشطون حالياً</p>
                 </CardContent>
               </Card>
 
@@ -487,10 +522,10 @@ export default function UsersManagementPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                  <div className="relative flex-1">
+              <CardContent className="space-y-4">
+                {/* Filters & Column Controls */}
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                  <div className="relative flex-1 w-full">
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
                       type="text"
@@ -525,100 +560,144 @@ export default function UsersManagementPage() {
                       <SelectItem value="no">معطل</SelectItem>
                     </SelectContent>
                   </Select>
+                  <ColumnVisibility {...userTable.columnVisibilityProps} />
                 </div>
 
-                {/* Users Table */}
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">المستخدم</TableHead>
-                        <TableHead className="text-right hidden md:table-cell">البريد الإلكتروني</TableHead>
-                        <TableHead className="text-right">الدور</TableHead>
-                        <TableHead className="text-right">الحالة</TableHead>
-                        <TableHead className="text-right hidden lg:table-cell">آخر تسجيل</TableHead>
-                        <TableHead className="text-right">الإجراءات</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredUsers && filteredUsers.length > 0 ? (
-                        filteredUsers.map((user) => (
-                          <TableRow key={user.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                                    {getInitials(user.name || user.username)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium">{user.name || user.username}</div>
-                                  <div className="text-sm text-gray-500">@{user.username}</div>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="hidden md:table-cell" dir="ltr">
-                              {user.email || "-"}
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={roleColors[user.role] + " border"}>
-                                {roleLabels[user.role]}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={user.isActive === "yes" ? "default" : "secondary"}>
-                                {user.isActive === "yes" ? "نشط" : "معطل"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="hidden lg:table-cell text-sm text-gray-500">
-                              {user.lastSignedIn
-                                ? new Date(user.lastSignedIn).toLocaleDateString("ar-EG")
-                                : "-"}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEdit(user)}
-                                  title="تعديل"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleToggleActive(user.id)}
-                                  title={user.isActive === "yes" ? "تعطيل" : "تفعيل"}
-                                >
-                                  <Power className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDelete(user.id)}
-                                  className="text-red-600 hover:text-red-700"
-                                  title="حذف"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-12">
-                            <div className="text-gray-500">
-                              <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                              <p>لا توجد نتائج</p>
-                            </div>
-                          </TableCell>
+                {/* Users Table - ResizableTable */}
+                <ResizableTable {...userTable.resizableTableProps}>
+                  <TableHeader>
+                    <TableRow>
+                      {userTable.visibleColumnOrder.map(colKey => {
+                        const col = userColumns.find(c => c.key === colKey);
+                        if (!col || !userTable.visibleColumns[colKey]) return null;
+                        return (
+                          <ResizableHeaderCell
+                            key={colKey}
+                            columnKey={colKey}
+                            width={userTable.columnWidths.columnWidths[colKey] || col.defaultWidth || 150}
+                            minWidth={col.minWidth || 80}
+                            maxWidth={col.maxWidth || 500}
+                            onResize={userTable.columnWidths.handleResize}
+                            {...userTable.getSortProps(colKey)}
+                          >
+                            {col.label}
+                          </ResizableHeaderCell>
+                        );
+                      })}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers && filteredUsers.length > 0 ? (
+                      filteredUsers.map((user) => (
+                        <TableRow key={user.id}>
+                          {userTable.visibleColumnOrder.map(colKey => {
+                            if (!userTable.visibleColumns[colKey]) return null;
+                            
+                            switch (colKey) {
+                              case 'user':
+                                return (
+                                  <FrozenTableCell key={colKey} columnKey={colKey}>
+                                    <div className="flex items-center gap-3">
+                                      <Avatar className="h-10 w-10 flex-shrink-0">
+                                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                          {getInitials(user.name || user.username)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="min-w-0">
+                                        <div className="font-medium truncate">{user.name || user.username}</div>
+                                        <div className="text-sm text-gray-500 truncate">@{user.username}</div>
+                                      </div>
+                                    </div>
+                                  </FrozenTableCell>
+                                );
+                              case 'email':
+                                return (
+                                  <FrozenTableCell key={colKey} columnKey={colKey}>
+                                    <span dir="ltr" className="truncate">{user.email || "-"}</span>
+                                  </FrozenTableCell>
+                                );
+                              case 'role':
+                                return (
+                                  <FrozenTableCell key={colKey} columnKey={colKey}>
+                                    <Badge className={roleColors[user.role] + " border"}>
+                                      {roleLabels[user.role]}
+                                    </Badge>
+                                  </FrozenTableCell>
+                                );
+                              case 'status':
+                                return (
+                                  <FrozenTableCell key={colKey} columnKey={colKey}>
+                                    <Badge variant={user.isActive === "yes" ? "default" : "secondary"}>
+                                      {user.isActive === "yes" ? "نشط" : "معطل"}
+                                    </Badge>
+                                  </FrozenTableCell>
+                                );
+                              case 'lastSignedIn':
+                                return (
+                                  <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-gray-500">
+                                    {user.lastSignedIn
+                                      ? new Date(user.lastSignedIn).toLocaleDateString("ar-EG")
+                                      : "-"}
+                                  </FrozenTableCell>
+                                );
+                              case 'createdAt':
+                                return (
+                                  <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-gray-500">
+                                    {user.createdAt
+                                      ? new Date(user.createdAt).toLocaleDateString("ar-EG")
+                                      : "-"}
+                                  </FrozenTableCell>
+                                );
+                              case 'actions':
+                                return (
+                                  <FrozenTableCell key={colKey} columnKey={colKey}>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleEdit(user)}
+                                        title="تعديل"
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleToggleActive(user.id)}
+                                        title={user.isActive === "yes" ? "تعطيل" : "تفعيل"}
+                                      >
+                                        <Power className="w-4 h-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleDelete(user.id)}
+                                        className="text-red-600 hover:text-red-700"
+                                        title="حذف"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </FrozenTableCell>
+                                );
+                              default:
+                                return null;
+                            }
+                          })}
                         </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <FrozenTableCell columnKey="" colSpan={userTable.visibleColumnOrder.filter(k => userTable.visibleColumns[k]).length} className="text-center py-12">
+                          <div className="text-gray-500">
+                            <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                            <p>لا توجد نتائج</p>
+                          </div>
+                        </FrozenTableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </ResizableTable>
 
                 {/* Results Count */}
                 {filteredUsers && filteredUsers.length > 0 && (
@@ -693,28 +772,28 @@ export default function UsersManagementPage() {
                 </div>
               ) : (
                 <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">الاسم</TableHead>
-                        <TableHead className="text-right hidden md:table-cell">البريد الإلكتروني</TableHead>
-                        <TableHead className="text-right hidden lg:table-cell">الهاتف</TableHead>
-                        <TableHead className="text-right hidden xl:table-cell">السبب</TableHead>
-                        <TableHead className="text-right">تاريخ الطلب</TableHead>
-                        <TableHead className="text-right">الإجراءات</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <table className="w-full caption-bottom text-sm" dir="rtl">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="h-10 px-3 text-right align-middle font-medium text-muted-foreground">الاسم</th>
+                        <th className="h-10 px-3 text-right align-middle font-medium text-muted-foreground hidden md:table-cell">البريد الإلكتروني</th>
+                        <th className="h-10 px-3 text-right align-middle font-medium text-muted-foreground hidden lg:table-cell">الهاتف</th>
+                        <th className="h-10 px-3 text-right align-middle font-medium text-muted-foreground hidden xl:table-cell">السبب</th>
+                        <th className="h-10 px-3 text-right align-middle font-medium text-muted-foreground">تاريخ الطلب</th>
+                        <th className="h-10 px-3 text-right align-middle font-medium text-muted-foreground">الإجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
                       {accessRequests.map((request) => (
-                        <TableRow key={request.id}>
-                          <TableCell className="font-medium">{request.name}</TableCell>
-                          <TableCell className="hidden md:table-cell">
+                        <tr key={request.id} className="border-b">
+                          <td className="p-3 align-middle font-medium">{request.name}</td>
+                          <td className="p-3 align-middle hidden md:table-cell">
                             <div className="flex items-center gap-2">
                               <Mail className="w-4 h-4 text-gray-400" />
                               <span className="text-sm" dir="ltr">{request.email}</span>
                             </div>
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
+                          </td>
+                          <td className="p-3 align-middle hidden lg:table-cell">
                             {request.phone ? (
                               <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-gray-400" />
@@ -723,18 +802,18 @@ export default function UsersManagementPage() {
                             ) : (
                               <span className="text-gray-400 text-sm">-</span>
                             )}
-                          </TableCell>
-                          <TableCell className="hidden xl:table-cell">
+                          </td>
+                          <td className="p-3 align-middle hidden xl:table-cell">
                             <span className="text-sm text-gray-600">
                               {request.reason || "غير محدد"}
                             </span>
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td className="p-3 align-middle">
                             <span className="text-sm text-gray-600">
                               {new Date(request.requestedAt).toLocaleDateString('ar-YE')}
                             </span>
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td className="p-3 align-middle">
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
@@ -755,11 +834,11 @@ export default function UsersManagementPage() {
                                 رفض
                               </Button>
                             </div>
-                          </TableCell>
-                        </TableRow>
+                          </td>
+                        </tr>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>
