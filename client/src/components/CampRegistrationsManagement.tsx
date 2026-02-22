@@ -1,12 +1,13 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
 import MultiSelect from "@/components/MultiSelect";
-import { ColumnVisibility, getDefaultTemplates, getColumnWidth, type ColumnConfig, type ColumnTemplate } from "@/components/ColumnVisibility";
-import { ResizableTable, ResizableHeaderCell, useColumnWidths, useFrozenColumns, FrozenTableCell } from "@/components/ResizableTable";
+import { ColumnVisibility, getColumnWidth, type ColumnConfig } from "@/components/ColumnVisibility";
+import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
+import { useTableFeatures } from "@/hooks/useTableFeatures";
 import TableSkeleton from "@/components/TableSkeleton";
 import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
@@ -159,249 +160,11 @@ export default function CampRegistrationsManagement({
     { key: 'actions', label: 'الإجراءات', defaultVisible: true },
   ];
 
-  // Load preferences from database
-  const { data: savedCampPreferences } = trpc.preferences.get.useQuery(
-    { key: 'campRegVisibleColumns' },
-    { retry: false }
-  );
-  
-  const saveCampPreferencesMutation = trpc.preferences.set.useMutation();
-  
-  const [campRegVisibleColumns, setCampRegVisibleColumns] = useState<Record<string, boolean>>(() => {
-    // Try localStorage first for immediate load
-    const saved = localStorage.getItem('campRegVisibleColumns');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    const defaultVisible: Record<string, boolean> = {};
-    campRegColumns.forEach(col => {
-      defaultVisible[col.key] = col.defaultVisible;
-    });
-    return defaultVisible;
+  // === استخدام useTableFeatures الموحد لإدارة جميع ميزات الجدول ===
+  const campTable = useTableFeatures({
+    tableKey: 'campRegistrations',
+    columns: campRegColumns,
   });
-
-  // Sync database preferences to state when loaded
-  useEffect(() => {
-    if (savedCampPreferences) {
-      setCampRegVisibleColumns(savedCampPreferences);
-      localStorage.setItem('campRegVisibleColumns', JSON.stringify(savedCampPreferences));
-    }
-  }, [savedCampPreferences]);
-  
-  const handleCampRegColumnVisibilityChange = (columnKey: string, visible: boolean) => {
-    const updated = { ...campRegVisibleColumns, [columnKey]: visible };
-    setCampRegVisibleColumns(updated);
-    localStorage.setItem('campRegVisibleColumns', JSON.stringify(updated));
-    saveCampPreferencesMutation.mutate({
-      key: 'campRegVisibleColumns',
-      value: updated,
-    });
-  };
-
-  // Column order state
-  const defaultCampColumnOrder = campRegColumns.map(c => c.key);
-  const [campColumnOrder, setCampColumnOrder] = useState<string[]>(() => {
-    const saved = localStorage.getItem('campRegColumnOrder');
-    return saved ? JSON.parse(saved) : defaultCampColumnOrder;
-  });
-
-  const { data: savedCampColumnOrder } = trpc.preferences.get.useQuery(
-    { key: 'campRegColumnOrder' },
-    { retry: false }
-  );
-
-  useEffect(() => {
-    if (savedCampColumnOrder && Array.isArray(savedCampColumnOrder)) {
-      setCampColumnOrder(savedCampColumnOrder);
-      localStorage.setItem('campRegColumnOrder', JSON.stringify(savedCampColumnOrder));
-    }
-  }, [savedCampColumnOrder]);
-  const handleCampRegColumnOrderChange = (newOrder: string[]) => {
-    setCampColumnOrder(newOrder);
-    localStorage.setItem('campRegColumnOrder', JSON.stringify(newOrder));
-    saveCampPreferencesMutation.mutate({ key: 'campRegColumnOrder', value: newOrder });
-  };
-
-  // Column widths - with database sync
-  const { data: savedCampColumnWidths } = trpc.preferences.get.useQuery(
-    { key: 'campRegColumnWidths' },
-    { retry: false }
-  );
-  const saveCampColumnWidthsFn = useCallback((widths: Record<string, number>) => {
-    saveCampPreferencesMutation.mutate({ key: 'campRegColumnWidths', value: widths });
-  }, [saveCampPreferencesMutation]);
-  const campColumnWidths = useColumnWidths(
-    campRegColumns, campColumnOrder, 'campRegistrations',
-    saveCampColumnWidthsFn, savedCampColumnWidths as Record<string, number> | null
-  );
-
-  // Frozen columns - with database sync
-  const { data: savedCampFrozenColumns } = trpc.preferences.get.useQuery(
-    { key: 'campRegFrozenColumns' },
-    { retry: false }
-  );
-  const saveCampFrozenColumnsFn = useCallback((frozen: string[]) => {
-    saveCampPreferencesMutation.mutate({ key: 'campRegFrozenColumns', value: frozen });
-  }, [saveCampPreferencesMutation]);
-  const campFrozenColumns = useFrozenColumns(
-    'campRegistrations',
-    [],
-    saveCampFrozenColumnsFn,
-    savedCampFrozenColumns as string[] | null
-  );
-
-  const handleCampRegColumnsReset = () => {
-    const defaultVisible: Record<string, boolean> = {};
-    campRegColumns.forEach(col => {
-      defaultVisible[col.key] = col.defaultVisible;
-    });
-    setCampRegVisibleColumns(defaultVisible);
-    setActiveCampTemplateId(null);
-    setCampColumnOrder(defaultCampColumnOrder);
-    campColumnWidths.resetWidths();
-    campFrozenColumns.resetFrozen();
-    localStorage.setItem('campRegVisibleColumns', JSON.stringify(defaultVisible));
-    localStorage.removeItem('activeCampTemplateId');
-    localStorage.setItem('campRegColumnOrder', JSON.stringify(defaultCampColumnOrder));
-    saveCampPreferencesMutation.mutate({ key: 'campRegVisibleColumns', value: defaultVisible });
-    saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: null });
-    saveCampPreferencesMutation.mutate({ key: 'campRegColumnOrder', value: defaultCampColumnOrder });
-  };
-
-  // === Column Templates ===
-  const defaultCampTemplates = getDefaultTemplates(campRegColumns, 'campRegistrations');
-  
-  const { data: savedCampTemplates } = trpc.preferences.get.useQuery(
-    { key: 'campRegColumnTemplates' },
-    { retry: false }
-  );
-  
-  const { data: savedCampActiveTemplateId } = trpc.preferences.get.useQuery(
-    { key: 'activeCampTemplateId' },
-    { retry: false }
-  );
-
-  const [customCampTemplates, setCustomCampTemplates] = useState<ColumnTemplate[]>(() => {
-    const saved = localStorage.getItem('campRegColumnTemplates');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [activeCampTemplateId, setActiveCampTemplateId] = useState<string | null>(() => {
-    return localStorage.getItem('activeCampTemplateId') || null;
-  });
-
-  useEffect(() => {
-    if (savedCampTemplates && Array.isArray(savedCampTemplates)) {
-      setCustomCampTemplates(savedCampTemplates);
-      localStorage.setItem('campRegColumnTemplates', JSON.stringify(savedCampTemplates));
-    }
-  }, [savedCampTemplates]);
-
-  useEffect(() => {
-    if (savedCampActiveTemplateId !== undefined) {
-      setActiveCampTemplateId(savedCampActiveTemplateId);
-      if (savedCampActiveTemplateId) {
-        localStorage.setItem('activeCampTemplateId', savedCampActiveTemplateId);
-      } else {
-        localStorage.removeItem('activeCampTemplateId');
-      }
-    }
-  }, [savedCampActiveTemplateId]);
-
-  // Shared templates from admin
-  const { data: sharedCampTemplatesData } = trpc.sharedTemplates.list.useQuery(
-    { tableKey: 'campRegistrations' },
-    { retry: false }
-  );
-  const createSharedCampTemplateMutation = trpc.sharedTemplates.create.useMutation({
-    onSuccess: () => {
-      utils.sharedTemplates.list.invalidate({ tableKey: 'campRegistrations' });
-    },
-  });
-  const deleteSharedCampTemplateMutation = trpc.sharedTemplates.delete.useMutation({
-    onSuccess: () => {
-      utils.sharedTemplates.list.invalidate({ tableKey: 'campRegistrations' });
-    },
-  });
-
-  const sharedCampTemplates: ColumnTemplate[] = (sharedCampTemplatesData || []).map((t: any) => ({
-    id: `shared_campRegistrations_${t.id}`,
-    name: t.name,
-    columns: t.columns,
-    isDefault: false,
-    isShared: true,
-    createdByName: t.createdByName,
-    dbId: t.id,
-  }));
-
-  const handleSaveSharedCampTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[], columnWidths?: Record<string, number>, frozenCols?: string[]) => {
-    createSharedCampTemplateMutation.mutate({
-      name,
-      tableKey: 'campRegistrations',
-      columns,
-      columnOrder: columnOrder || campColumnOrder,
-      columnWidths: columnWidths || campColumnWidths.columnWidths,
-      frozenColumns: frozenCols || campFrozenColumns.frozenColumns,
-    } as any);
-  };
-
-  const handleDeleteSharedCampTemplate = (dbId: number) => {
-    deleteSharedCampTemplateMutation.mutate({ id: dbId });
-  };
-
-  const allCampTemplates = [...defaultCampTemplates, ...customCampTemplates];
-
-  const handleApplyCampTemplate = (template: ColumnTemplate) => {
-    setCampRegVisibleColumns(template.columns);
-    setActiveCampTemplateId(template.id);
-    if (template.columnOrder) {
-      setCampColumnOrder(template.columnOrder);
-      localStorage.setItem('campRegColumnOrder', JSON.stringify(template.columnOrder));
-      saveCampPreferencesMutation.mutate({ key: 'campRegColumnOrder', value: template.columnOrder });
-    }
-    if (template.columnWidths) {
-      campColumnWidths.applyWidths(template.columnWidths);
-      saveCampPreferencesMutation.mutate({ key: 'campRegColumnWidths', value: template.columnWidths });
-    }
-    if (template.frozenColumns) {
-      campFrozenColumns.setFrozen(template.frozenColumns);
-    }
-    localStorage.setItem('campRegVisibleColumns', JSON.stringify(template.columns));
-    localStorage.setItem('activeCampTemplateId', template.id);
-    saveCampPreferencesMutation.mutate({ key: 'campRegVisibleColumns', value: template.columns });
-    saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: template.id });
-  };
-
-  const handleSaveCampTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[], columnWidths?: Record<string, number>, frozenCols?: string[]) => {
-    const newTemplate: ColumnTemplate = {
-      id: `campRegistrations_custom_${Date.now()}`,
-      name,
-      columns,
-      columnOrder: columnOrder || campColumnOrder,
-      columnWidths: columnWidths || campColumnWidths.columnWidths,
-      frozenColumns: frozenCols || campFrozenColumns.frozenColumns,
-      isDefault: false,
-    };
-    const updated = [...customCampTemplates, newTemplate];
-    setCustomCampTemplates(updated);
-    setActiveCampTemplateId(newTemplate.id);
-    localStorage.setItem('campRegColumnTemplates', JSON.stringify(updated));
-    localStorage.setItem('activeCampTemplateId', newTemplate.id);
-    saveCampPreferencesMutation.mutate({ key: 'campRegColumnTemplates', value: updated });
-    saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: newTemplate.id });
-  };
-
-  const handleDeleteCampTemplate = (templateId: string) => {
-    const updated = customCampTemplates.filter(t => t.id !== templateId);
-    setCustomCampTemplates(updated);
-    if (activeCampTemplateId === templateId) {
-      setActiveCampTemplateId(null);
-      localStorage.removeItem('activeCampTemplateId');
-      saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: null });
-    }
-    localStorage.setItem('campRegColumnTemplates', JSON.stringify(updated));
-    saveCampPreferencesMutation.mutate({ key: 'campRegColumnTemplates', value: updated });
-  };
   
   // Debounced search for better performance
   const debouncedSearch = useDebounce(campRegistrationsSearchTerm, 500);
@@ -494,7 +257,7 @@ export default function CampRegistrationsManagement({
       };
 
       // تحضير الأعمدة المرئية
-      const visibleCols = Object.entries(campRegVisibleColumns)
+      const visibleCols = Object.entries(campTable.visibleColumns)
         .filter(([_, visible]) => visible)
         .map(([key]) => {
           const col = columnDefinitions.find(c => c.key === key);
@@ -589,7 +352,7 @@ export default function CampRegistrationsManagement({
       };
 
       // تحضير الأعمدة المرئية
-      const visibleCols = Object.entries(campRegVisibleColumns)
+      const visibleCols = Object.entries(campTable.visibleColumns)
         .filter(([_, visible]) => visible)
         .map(([key]) => {
           const col = columnDefinitions.find(c => c.key === key);
@@ -859,24 +622,24 @@ export default function CampRegistrationsManagement({
             <div className="flex gap-2">
               <ColumnVisibility
                  columns={campRegColumns}
-                 visibleColumns={campRegVisibleColumns}
-                 columnOrder={campColumnOrder}
-                 onVisibilityChange={handleCampRegColumnVisibilityChange}
-                 onColumnOrderChange={handleCampRegColumnOrderChange}
-                 onReset={handleCampRegColumnsReset}
-                 templates={allCampTemplates}
-                 activeTemplateId={activeCampTemplateId}
-                 onApplyTemplate={handleApplyCampTemplate}
-                 onSaveTemplate={handleSaveCampTemplate}
-                 onDeleteTemplate={handleDeleteCampTemplate}
+                 visibleColumns={campTable.visibleColumns}
+                 columnOrder={campTable.columnOrder}
+                 onVisibilityChange={campTable.handleColumnVisibilityChange}
+                 onColumnOrderChange={campTable.handleColumnOrderChange}
+                 onReset={campTable.handleResetAll}
+                 templates={campTable.allTemplates}
+                 activeTemplateId={campTable.activeTemplateId}
+                 onApplyTemplate={campTable.handleApplyTemplate}
+                 onSaveTemplate={campTable.handleSaveTemplate}
+                 onDeleteTemplate={campTable.handleDeleteTemplate}
                  tableKey="campRegistrations"
-                  columnWidths={campColumnWidths.columnWidths}
-                  frozenColumns={campFrozenColumns.frozenColumns}
-                  onToggleFrozen={campFrozenColumns.toggleFrozen}
+                  columnWidths={campTable.columnWidths.columnWidths}
+                  frozenColumns={campTable.frozenColumns.frozenColumns}
+                  onToggleFrozen={campTable.frozenColumns.toggleFrozen}
                   isAdmin={user?.role === 'admin'}
-                  sharedTemplates={sharedCampTemplates}
-                  onSaveSharedTemplate={handleSaveSharedCampTemplate}
-                  onDeleteSharedTemplate={handleDeleteSharedCampTemplate}
+                  sharedTemplates={campTable.sharedTemplates}
+                  onSaveSharedTemplate={campTable.handleSaveSharedTemplate}
+                  onDeleteSharedTemplate={campTable.handleDeleteSharedTemplate}
                 />
               <Button
                 variant="outline"
@@ -1040,13 +803,13 @@ export default function CampRegistrationsManagement({
           {/* Desktop Table View */}
           <div className="hidden md:block border rounded-lg">
              <ResizableTable
-               frozenColumns={campFrozenColumns.frozenColumns}
-               columnWidths={campColumnWidths.columnWidths}
-               visibleColumnOrder={campColumnOrder.filter(key => campRegVisibleColumns[key])}
+               frozenColumns={campTable.frozenColumns.frozenColumns}
+               columnWidths={campTable.columnWidths.columnWidths}
+               visibleColumnOrder={campTable.columnOrder.filter(key => campTable.visibleColumns[key])}
              >
               <TableHeader>
                 <TableRow>
-                  {campColumnOrder.filter(key => campRegVisibleColumns[key]).map(colKey => {
+                  {campTable.columnOrder.filter(key => campTable.visibleColumns[key]).map(colKey => {
                     const col = campRegColumns.find(c => c.key === colKey);
                     if (!col) return null;
                     const sortableFields = ['receiptNumber', 'name', 'phone', 'email', 'age', 'camp', 'source', 'status', 'date'];
@@ -1066,10 +829,10 @@ export default function CampRegistrationsManagement({
                       <ResizableHeaderCell
                         key={colKey}
                         columnKey={colKey}
-                        width={campColumnWidths.getWidth(colKey)}
+                        width={campTable.columnWidths.getWidth(colKey)}
                         minWidth={widthConfig.min}
                         maxWidth={widthConfig.max}
-                        onResize={campColumnWidths.handleResize}
+                        onResize={campTable.columnWidths.handleResize}
                         className={isSortable ? 'cursor-pointer hover:bg-muted/50 select-none' : ''}
                         onClick={isSortable ? () => {
                           if (sortField === colKey) {
@@ -1094,13 +857,13 @@ export default function CampRegistrationsManagement({
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={campColumnOrder.filter(k => campRegVisibleColumns[k]).length || 1} className="p-0">
-                      <TableSkeleton rows={5} columns={campColumnOrder.filter(k => campRegVisibleColumns[k]).length || 11} />
+                    <TableCell colSpan={campTable.columnOrder.filter(k => campTable.visibleColumns[k]).length || 1} className="p-0">
+                      <TableSkeleton rows={5} columns={campTable.columnOrder.filter(k => campTable.visibleColumns[k]).length || 11} />
                     </TableCell>
                   </TableRow>
                 ) : filteredRegistrations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={campColumnOrder.filter(k => campRegVisibleColumns[k]).length || 1} className="py-12">
+                    <TableCell colSpan={campTable.columnOrder.filter(k => campTable.visibleColumns[k]).length || 1} className="py-12">
                       <EmptyState
                         icon={TentTree}
                         title="لا توجد تسجيلات"
@@ -1111,7 +874,7 @@ export default function CampRegistrationsManagement({
                 ) : (
                   filteredRegistrations.map((reg: any) => (
                     <TableRow key={reg.id} className={reg.status === 'pending' ? 'bg-red-50 hover:bg-red-100' : ''}>
-                      {campColumnOrder.filter(key => campRegVisibleColumns[key]).map(colKey => {
+                      {campTable.columnOrder.filter(key => campTable.visibleColumns[key]).map(colKey => {
                         switch(colKey) {
                           case 'checkbox':
                             return (

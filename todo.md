@@ -2757,3 +2757,11 @@
 - [x] حفظ الأعمدة المجمدة مع القوالب (frozenColumns في ColumnTemplate)
 - [x] مزامنة تفضيلات التجميد مع قاعدة البيانات
 - [x] كتابة اختبارات vitest (14 اختبار ناجح)
+
+### توحيد نظام الجداول (useTableFeatures Hook) ✅ مكتمل
+- [x] إنشاء useTableFeatures hook موحد يجمع كل منطق إدارة الأعمدة
+- [x] تطبيق الـ hook على BookingsManagementPage (~260 سطر محذوف)
+- [x] تطبيق الـ hook على OfferLeadsManagement (~250 سطر محذوف)
+- [x] تطبيق الـ hook على CampRegistrationsManagement (~250 سطر محذوف)
+- [x] تنظيف imports غير المستخدمة (useCallback, getDefaultTemplates, etc.)
+- [x] كتابة اختبارات vitest (19 اختبار ناجح)
