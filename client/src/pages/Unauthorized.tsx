@@ -28,7 +28,7 @@ export default function Unauthorized() {
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-gray-900">
+            <CardTitle className="text-2xl font-bold text-foreground">
               غير مصرح بالدخول
             </CardTitle>
             <CardDescription className="text-base mt-2">
@@ -39,7 +39,7 @@ export default function Unauthorized() {
         
         <CardContent className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-gray-700 text-center">
+            <p className="text-sm text-foreground text-center">
               إذا كنت تعتقد أن هذا خطأ، يرجى التواصل مع مدير النظام للحصول على الصلاحيات المطلوبة.
             </p>
           </div>
@@ -52,7 +52,7 @@ export default function Unauthorized() {
             العودة إلى الصفحة الرئيسية
           </Button>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>المستشفى السعودي الألماني - صنعاء</p>
             <p className="mt-1">نرعاكم كأهالينا</p>
           </div>

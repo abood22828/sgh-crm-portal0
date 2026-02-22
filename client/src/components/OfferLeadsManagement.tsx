@@ -666,7 +666,7 @@ export default function OfferLeadsManagement({
                                 setSelectedIds([]);
                               }
                             }}
-                            className="rounded border-gray-300"
+                            className="rounded border-border"
                           />
                         </ResizableHeaderCell>
                       );
@@ -723,7 +723,7 @@ export default function OfferLeadsManagement({
                                       setSelectedIds(selectedIds.filter(id => id !== lead.id));
                                     }
                                   }}
-                                  className="rounded border-gray-300"
+                                  className="rounded border-border"
                                 />
                               </FrozenTableCell>
                             );

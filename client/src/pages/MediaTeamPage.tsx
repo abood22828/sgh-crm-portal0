@@ -76,7 +76,7 @@ const mediaCategories: { value: TaskCategory; label: string; icon: React.ReactNo
 ];
 
 const statusConfig: Record<TaskStatus, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
-  todo: { label: 'قيد الانتظار', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: <Circle className="w-4 h-4" /> },
+  todo: { label: 'قيد الانتظار', color: 'text-muted-foreground', bgColor: 'bg-muted', icon: <Circle className="w-4 h-4" /> },
   in_progress: { label: 'قيد التنفيذ', color: 'text-blue-600', bgColor: 'bg-blue-100', icon: <Timer className="w-4 h-4" /> },
   review: { label: 'مراجعة', color: 'text-orange-600', bgColor: 'bg-orange-100', icon: <AlertCircle className="w-4 h-4" /> },
   completed: { label: 'مكتمل', color: 'text-green-600', bgColor: 'bg-green-100', icon: <CheckCircle2 className="w-4 h-4" /> },
@@ -84,7 +84,7 @@ const statusConfig: Record<TaskStatus, { label: string; color: string; bgColor: 
 };
 
 const priorityConfig: Record<TaskPriority, { label: string; color: string; bgColor: string }> = {
-  low: { label: 'منخفضة', color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  low: { label: 'منخفضة', color: 'text-muted-foreground', bgColor: 'bg-muted' },
   medium: { label: 'متوسطة', color: 'text-blue-600', bgColor: 'bg-blue-100' },
   high: { label: 'عالية', color: 'text-orange-600', bgColor: 'bg-orange-100' },
   urgent: { label: 'عاجلة', color: 'text-red-600', bgColor: 'bg-red-100' },
@@ -379,7 +379,7 @@ export default function MediaTeamPage() {
     const config = statusConfig[status];
     
     return (
-      <div className="flex-shrink-0 w-[300px]">
+      <div className="flex-shrink-0 w-[280px] sm:w-[300px]">
         <div className={`rounded-t-lg p-3 ${config.bgColor}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -429,7 +429,7 @@ export default function MediaTeamPage() {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label>الحالة</Label>
           <Select
@@ -467,7 +467,7 @@ export default function MediaTeamPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label>التصنيف</Label>
           <Select
@@ -500,7 +500,7 @@ export default function MediaTeamPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label>المعيّن إليه</Label>
           <Select
@@ -602,7 +602,7 @@ export default function MediaTeamPage() {
           </Card>
           <Card>
             <CardContent className="p-3 md:p-4">
-              <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-600">{stats.pending}</div>
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-muted-foreground">{stats.pending}</div>
               <div className="text-xs sm:text-sm text-muted-foreground">قيد الانتظار</div>
             </CardContent>
           </Card>

@@ -83,7 +83,7 @@ export default function InstallPWAButton() {
         <Button
           onClick={handleInstallClick}
           size="sm"
-          className="bg-white text-green-700 hover:bg-white/90 font-bold flex-shrink-0"
+          className="bg-white dark:bg-card text-green-700 hover:bg-white/90 font-bold flex-shrink-0"
         >
           تثبيت
         </Button>

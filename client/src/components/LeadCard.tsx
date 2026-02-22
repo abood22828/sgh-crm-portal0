@@ -17,7 +17,7 @@ const statusConfig: Record<string, { bg: string; text: string; dot: string; bord
   contacted: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", border: "border-amber-200" },
   booked: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", border: "border-emerald-200" },
   not_interested: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500", border: "border-red-200" },
-  no_answer: { bg: "bg-gray-50", text: "text-gray-700", dot: "bg-gray-500", border: "border-gray-200" },
+  no_answer: { bg: "bg-muted/50", text: "text-foreground", dot: "bg-gray-500", border: "border-border" },
 };
 
 interface LeadCardProps {

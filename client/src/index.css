@@ -805,3 +805,103 @@ html.theme-transition *::after {
 .gentle-shake {
   animation: gentle-shake 0.4s ease-in-out;
 }
+
+
+/* ============================================
+   Enhanced Mobile Responsive Improvements
+   ============================================ */
+
+/* Better dialog sizing on mobile */
+@media (max-width: 640px) {
+  [role="dialog"] > div {
+    max-height: 85vh !important;
+    margin: 0.5rem;
+    border-radius: 0.75rem;
+  }
+  
+  /* Improve tab lists on mobile */
+  [role="tablist"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  [role="tablist"]::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Better select dropdowns on mobile */
+  [role="listbox"] {
+    max-height: 50vh;
+  }
+  
+  /* Improve table readability on mobile */
+  .table-responsive table th,
+  .table-responsive table td {
+    white-space: nowrap;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.625rem;
+  }
+  
+  /* Better spacing for form elements on mobile */
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+}
+
+/* Improve touch scrolling */
+.overflow-x-auto,
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Better card spacing on small screens */
+@media (max-width: 480px) {
+  .grid-cols-2 {
+    gap: 0.5rem;
+  }
+  
+  /* Compact badges on very small screens */
+  .badge, [class*="Badge"] {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+  }
+}
+
+/* Ensure bottom bar doesn't overlap content */
+@media (max-width: 1023px) {
+  .pb-14 {
+    padding-bottom: 3.75rem;
+  }
+}
+
+/* Smooth scroll for tab containers */
+.overflow-x-auto {
+  scroll-snap-type: x proximity;
+  scroll-behavior: smooth;
+}
+
+/* Better focus states for mobile */
+@media (hover: none) {
+  button:active,
+  a:active,
+  [role="button"]:active {
+    opacity: 0.85;
+    transition: opacity 0.1s ease;
+  }
+}
+
+/* Responsive images in cards */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Better text wrapping for Arabic on mobile */
+@media (max-width: 640px) {
+  p, span, li, td, th, label {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+}

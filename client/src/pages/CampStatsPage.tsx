@@ -144,10 +144,10 @@ export default function CampStatsPage() {
                 <ArrowRight className="w-4 h-4 ml-2" />
                 عودة إلى لوحة التحكم
               </Button>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
                 تقارير إحصائية للمخيمات
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-muted-foreground mt-1">
                 تحليل شامل لتسجيلات المخيمات الطبية
               </p>
             </div>
@@ -174,7 +174,7 @@ export default function CampStatsPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 إجمالي التسجيلات
               </CardTitle>
@@ -186,7 +186,7 @@ export default function CampStatsPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 قيد الانتظار
               </CardTitle>
@@ -198,7 +198,7 @@ export default function CampStatsPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Activity className="w-4 h-4" />
                 مؤكد
               </CardTitle>
@@ -210,7 +210,7 @@ export default function CampStatsPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 حضر
               </CardTitle>
@@ -347,11 +347,11 @@ export default function CampStatsPage() {
         {totalRegistrations === 0 && (
           <Card>
             <CardContent className="py-12 text-center">
-              <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 لا توجد تسجيلات
               </h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 لا توجد تسجيلات للمخيم المحدد حالياً
               </p>
             </CardContent>

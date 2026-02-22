@@ -145,8 +145,8 @@ export default function GlobalSearch({ onClose }: GlobalSearchProps) {
 
       {/* Search Dropdown */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 w-[90vw] md:w-[500px] max-h-[80vh] overflow-y-auto bg-white rounded-lg shadow-2xl border z-[100]">
-          <div className="p-4 border-b sticky top-0 bg-white">
+        <div className="absolute left-0 top-full mt-2 w-[90vw] md:w-[500px] max-h-[80vh] overflow-y-auto bg-white dark:bg-card rounded-lg shadow-2xl border z-[100]">
+          <div className="p-4 border-b sticky top-0 bg-white dark:bg-card">
             <div className="relative">
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input

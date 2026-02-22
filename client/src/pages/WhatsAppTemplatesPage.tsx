@@ -138,7 +138,7 @@ export default function WhatsAppTemplatesPage() {
       case "thank_you":
         return "bg-pink-100 text-pink-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-foreground";
     }
   };
 
@@ -153,8 +153,8 @@ export default function WhatsAppTemplatesPage() {
                 <FileText className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">قوالب الرسائل</h1>
-                <p className="text-gray-600">إدارة قوالب رسائل واتساب الجاهزة</p>
+                <h1 className="text-3xl font-bold text-foreground">قوالب الرسائل</h1>
+                <p className="text-muted-foreground">إدارة قوالب رسائل واتساب الجاهزة</p>
               </div>
             </div>
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -205,7 +205,7 @@ export default function WhatsAppTemplatesPage() {
                       onChange={(e) => setContent(e.target.value)}
                       rows={6}
                     />
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-muted-foreground mt-2">
                       يمكنك استخدام متغيرات: {"{name}"}, {"{date}"}, {"{time}"}, {"{doctor}"}, {"{service}"}
                     </p>
                   </div>
@@ -244,7 +244,7 @@ export default function WhatsAppTemplatesPage() {
 
         {/* Templates Grid */}
         {isLoading ? (
-          <div className="text-center py-12 text-gray-500">جاري التحميل...</div>
+          <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>
         ) : templates && templates.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {templates.map((template: any) => (
@@ -269,8 +269,8 @@ export default function WhatsAppTemplatesPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{template.content}</p>
+                  <div className="bg-muted/50 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{template.content}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -307,8 +307,8 @@ export default function WhatsAppTemplatesPage() {
           <Card className="shadow-lg">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <FileText className="h-16 w-16 text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">لا توجد قوالب</h3>
-              <p className="text-gray-500 mb-4">ابدأ بإنشاء قالب رسالة جديد</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">لا توجد قوالب</h3>
+              <p className="text-muted-foreground mb-4">ابدأ بإنشاء قالب رسالة جديد</p>
               <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                 <Plus className="h-5 w-5" />
                 إنشاء قالب
@@ -360,7 +360,7 @@ export default function WhatsAppTemplatesPage() {
                   onChange={(e) => setContent(e.target.value)}
                   rows={6}
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   يمكنك استخدام متغيرات: {"{name}"}, {"{date}"}, {"{time}"}, {"{doctor}"}, {"{service}"}
                 </p>
               </div>

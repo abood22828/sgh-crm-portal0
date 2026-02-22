@@ -259,25 +259,25 @@ export default function DoctorsManagement() {
         {/* Stats Skeleton */}
         <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4">
+            <div key={i} className="bg-white dark:bg-card dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4">
               <div className="flex items-center justify-between mb-3">
-                <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
-                <div className="h-8 w-8 bg-gray-100 rounded-lg animate-pulse" />
+                <div className="h-3 w-16 bg-muted rounded animate-pulse" />
+                <div className="h-8 w-8 bg-muted rounded-lg animate-pulse" />
               </div>
-              <div className="h-7 w-12 bg-gray-200 rounded animate-pulse mb-1" />
-              <div className="h-2.5 w-20 bg-gray-100 rounded animate-pulse" />
+              <div className="h-7 w-12 bg-muted rounded animate-pulse mb-1" />
+              <div className="h-2.5 w-20 bg-muted rounded animate-pulse" />
             </div>
           ))}
         </div>
         {/* Table Skeleton */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <div className="bg-white dark:bg-card rounded-xl border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
-            <div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
-            <div className="h-9 w-36 bg-gray-200 rounded animate-pulse" />
+            <div className="h-5 w-32 bg-muted rounded animate-pulse" />
+            <div className="h-9 w-36 bg-muted rounded animate-pulse" />
           </div>
-          <div className="h-10 w-full bg-gray-100 rounded animate-pulse mb-4" />
+          <div className="h-10 w-full bg-muted rounded animate-pulse mb-4" />
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-14 w-full bg-gray-50 rounded animate-pulse mb-2" />
+            <div key={i} className="h-14 w-full bg-muted/50 rounded animate-pulse mb-2" />
           ))}
         </div>
       </div>
@@ -289,43 +289,43 @@ export default function DoctorsManagement() {
       {/* Stats Cards */}
       <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         {/* إجمالي الأطباء */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-card dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">إجمالي الأطباء</span>
+            <span className="text-[10px] sm:text-xs font-medium text-muted-foreground dark:text-muted-foreground">إجمالي الأطباء</span>
             <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
             </div>
           </div>
-          <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{doctorStats.total}</div>
-          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">جميع الأطباء</p>
+          <div className="text-lg sm:text-2xl font-bold text-foreground dark:text-gray-100">{doctorStats.total}</div>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">جميع الأطباء</p>
         </div>
 
         {/* متاحون */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-card dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">متاحون</span>
+            <span className="text-[10px] sm:text-xs font-medium text-muted-foreground dark:text-muted-foreground">متاحون</span>
             <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
               <UserCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600" />
             </div>
           </div>
           <div className="text-lg sm:text-2xl font-bold text-emerald-600">{doctorStats.available}</div>
-          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">متاحون للحجز</p>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">متاحون للحجز</p>
         </div>
 
         {/* غير متاحين */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-card dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">غير متاحين</span>
+            <span className="text-[10px] sm:text-xs font-medium text-muted-foreground dark:text-muted-foreground">غير متاحين</span>
             <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center">
               <UserX className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500" />
             </div>
           </div>
           <div className="text-lg sm:text-2xl font-bold text-red-500">{doctorStats.unavailable}</div>
-          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">غير متاحين حالياً</p>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">غير متاحين حالياً</p>
         </div>
 
         {/* أطباء زائرون */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-purple-100 dark:border-purple-800 p-3 sm:p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-card dark:bg-gray-800 rounded-xl border border-purple-100 dark:border-purple-800 p-3 sm:p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-[10px] sm:text-xs font-medium text-purple-600">أطباء زائرون</span>
             <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
@@ -333,31 +333,31 @@ export default function DoctorsManagement() {
             </div>
           </div>
           <div className="text-lg sm:text-2xl font-bold text-purple-700">{doctorStats.visiting}</div>
-          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">إجمالي الزائرين</p>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">إجمالي الزائرين</p>
         </div>
 
         {/* زائرون متاحون */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-card dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">زائرون متاحون</span>
+            <span className="text-[10px] sm:text-xs font-medium text-muted-foreground dark:text-muted-foreground">زائرون متاحون</span>
             <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
               <UserCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
             </div>
           </div>
           <div className="text-lg sm:text-2xl font-bold text-green-600">{doctorStats.visitingAvailable}</div>
-          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">زائرون للحجز</p>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">زائرون للحجز</p>
         </div>
 
         {/* زائرون غير متاحين */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-card dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">زائرون غير متاحين</span>
+            <span className="text-[10px] sm:text-xs font-medium text-muted-foreground dark:text-muted-foreground">زائرون غير متاحين</span>
             <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center">
               <UserX className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />
             </div>
           </div>
           <div className="text-lg sm:text-2xl font-bold text-orange-500">{doctorStats.visitingUnavailable}</div>
-          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">زائرون غير متاحين</p>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">زائرون غير متاحين</p>
         </div>
       </div>
 
@@ -382,7 +382,7 @@ export default function DoctorsManagement() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-card rounded-xl border border-gray-100 overflow-hidden">
         {filteredDoctors.length === 0 ? (
           <EmptyState
             icon={Stethoscope}
@@ -415,7 +415,7 @@ export default function DoctorsManagement() {
             </TableHeader>
             <TableBody>
               {filteredDoctors.map((doctor: any) => (
-                <TableRow key={doctor.id} className="hover:bg-gray-50/50">
+                <TableRow key={doctor.id} className="hover:bg-muted/50/50">
                   {doctorTable.visibleColumnOrder.map(colKey => {
                     if (!doctorTable.visibleColumns[colKey]) return null;
                     
@@ -447,25 +447,25 @@ export default function DoctorsManagement() {
                       case 'specialty':
                         return (
                           <FrozenTableCell key={colKey} columnKey={colKey}>
-                            <span className="truncate text-sm text-gray-700">{doctor.specialty}</span>
+                            <span className="truncate text-sm text-foreground">{doctor.specialty}</span>
                           </FrozenTableCell>
                         );
                       case 'experience':
                         return (
                           <FrozenTableCell key={colKey} columnKey={colKey}>
-                            <span className="text-sm text-gray-600">{doctor.experience || "-"}</span>
+                            <span className="text-sm text-muted-foreground">{doctor.experience || "-"}</span>
                           </FrozenTableCell>
                         );
                       case 'languages':
                         return (
                           <FrozenTableCell key={colKey} columnKey={colKey}>
-                            <span className="text-sm text-gray-600">{doctor.languages || "-"}</span>
+                            <span className="text-sm text-muted-foreground">{doctor.languages || "-"}</span>
                           </FrozenTableCell>
                         );
                       case 'consultationFee':
                         return (
                           <FrozenTableCell key={colKey} columnKey={colKey}>
-                            <span className="text-sm font-medium text-gray-700">{doctor.consultationFee || "-"}</span>
+                            <span className="text-sm font-medium text-foreground">{doctor.consultationFee || "-"}</span>
                           </FrozenTableCell>
                         );
                       case 'isVisiting':
@@ -473,7 +473,7 @@ export default function DoctorsManagement() {
                           <FrozenTableCell key={colKey} columnKey={colKey}>
                             <Badge variant="outline" className={doctor.isVisiting === "yes" 
                               ? "bg-purple-50 text-purple-700 border-purple-200" 
-                              : "bg-gray-50 text-gray-600 border-gray-200"}>
+                              : "bg-muted/50 text-muted-foreground border-border"}>
                               {doctor.isVisiting === "yes" ? "زائر" : "مقيم"}
                             </Badge>
                           </FrozenTableCell>
@@ -511,7 +511,7 @@ export default function DoctorsManagement() {
                                 className="h-8 w-8"
                                 onClick={() => handleOpenDialog(doctor)}
                               >
-                                <Edit className="h-3.5 w-3.5 text-gray-500" />
+                                <Edit className="h-3.5 w-3.5 text-muted-foreground" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -558,13 +558,13 @@ export default function DoctorsManagement() {
           <div className="space-y-5 py-4">
             {/* القسم الأول: المعلومات الأساسية */}
             <div className="space-y-1 mb-4">
-              <h4 className="text-sm font-semibold text-gray-700">المعلومات الأساسية</h4>
-              <div className="h-px bg-gray-100" />
+              <h4 className="text-sm font-semibold text-foreground">المعلومات الأساسية</h4>
+              <div className="h-px bg-muted" />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="name">الاسم *</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="name">الاسم *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -578,7 +578,7 @@ export default function DoctorsManagement() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="slug">الرابط (Slug) *</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="slug">الرابط (Slug) *</Label>
                 <Input
                   id="slug"
                   value={formData.slug}
@@ -591,7 +591,7 @@ export default function DoctorsManagement() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="specialty">التخصص *</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="specialty">التخصص *</Label>
                 <Input
                   id="specialty"
                   value={formData.specialty}
@@ -600,7 +600,7 @@ export default function DoctorsManagement() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="experience">سنوات الخبرة</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="experience">سنوات الخبرة</Label>
                 <Input
                   id="experience"
                   value={formData.experience}
@@ -611,7 +611,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="image">رابط الصورة</Label>
+              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="image">رابط الصورة</Label>
               <Input
                 id="image"
                 value={formData.image}
@@ -622,7 +622,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="bio">نبذة عن الطبيب</Label>
+              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="bio">نبذة عن الطبيب</Label>
               <Textarea
                 id="bio"
                 value={formData.bio}
@@ -634,13 +634,13 @@ export default function DoctorsManagement() {
 
             {/* القسم الثاني: التفاصيل */}
             <div className="space-y-1 mb-4 mt-6">
-              <h4 className="text-sm font-semibold text-gray-700">التفاصيل والإعدادات</h4>
-              <div className="h-px bg-gray-100" />
+              <h4 className="text-sm font-semibold text-foreground">التفاصيل والإعدادات</h4>
+              <div className="h-px bg-muted" />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="languages">اللغات</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="languages">اللغات</Label>
                 <Input
                   id="languages"
                   value={formData.languages}
@@ -649,7 +649,7 @@ export default function DoctorsManagement() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="consultationFee">رسوم الاستشارة</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="consultationFee">رسوم الاستشارة</Label>
                 <Input
                   id="consultationFee"
                   value={formData.consultationFee}
@@ -660,7 +660,7 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="procedures">الإجراءات المتاحة (فصل بفاصلة)</Label>
+              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="procedures">الإجراءات المتاحة (فصل بفاصلة)</Label>
               <Textarea
                 id="procedures"
                 value={formData.procedures}
@@ -668,14 +668,14 @@ export default function DoctorsManagement() {
                 placeholder="مثال: كشف عام, تخطيط قلب, إيكو على القلب"
                 rows={2}
               />
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-muted-foreground">
                 سيتم عرضها في نموذج الحجز كخيارات للمريض
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="isVisiting">طبيب زائر</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="isVisiting">طبيب زائر</Label>
                 <Select
                   value={formData.isVisiting}
                   onValueChange={(value: "yes" | "no") =>
@@ -692,7 +692,7 @@ export default function DoctorsManagement() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="available">الحالة</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="available">الحالة</Label>
                 <Select
                   value={formData.available}
                   onValueChange={(value: "yes" | "no") =>

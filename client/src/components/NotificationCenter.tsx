@@ -164,14 +164,14 @@ export default function NotificationCenter() {
 
                   {/* Expanded Content - Show last 5 requests */}
                   {isExpanded && (
-                    <div className="border-t bg-white">
+                    <div className="border-t bg-white dark:bg-card">
                       {section.items.length > 0 ? (
                         <div className="divide-y">
                           {section.items.map((item: any, index: number) => (
                             <button
                               key={index}
                               onClick={() => handleItemClick(section.type)}
-                              className="w-full p-3 text-right hover:bg-gray-50 transition-colors flex items-center justify-between group"
+                              className="w-full p-3 text-right hover:bg-muted/50 transition-colors flex items-center justify-between group"
                             >
                               <span className="font-medium group-hover:text-primary transition-colors">
                                 {item.fullName || item.name}

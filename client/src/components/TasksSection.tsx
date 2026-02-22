@@ -149,7 +149,7 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
       case "cancelled":
         return <AlertCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <Circle className="h-4 w-4 text-gray-400" />;
+        return <Circle className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -276,7 +276,7 @@ export default function TasksSection({ entityType, entityId }: TasksSectionProps
                   rows={3}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">الأولوية</label>
                   <Select value={priority} onValueChange={(value: any) => setPriority(value)}>

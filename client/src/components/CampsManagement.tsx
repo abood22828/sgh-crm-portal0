@@ -189,21 +189,21 @@ export default function CampsManagement() {
         {/* Stats Skeleton */}
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 p-4">
+            <div key={i} className="bg-white dark:bg-card rounded-xl border border-gray-100 p-4">
               <div className="flex items-center justify-between mb-3">
-                <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
-                <div className="h-8 w-8 bg-gray-100 rounded-lg animate-pulse" />
+                <div className="h-3 w-16 bg-muted rounded animate-pulse" />
+                <div className="h-8 w-8 bg-muted rounded-lg animate-pulse" />
               </div>
-              <div className="h-7 w-12 bg-gray-200 rounded animate-pulse mb-1" />
-              <div className="h-2.5 w-20 bg-gray-100 rounded animate-pulse" />
+              <div className="h-7 w-12 bg-muted rounded animate-pulse mb-1" />
+              <div className="h-2.5 w-20 bg-muted rounded animate-pulse" />
             </div>
           ))}
         </div>
         {/* Table Skeleton */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="h-10 w-full bg-gray-100 rounded animate-pulse mb-4" />
+        <div className="bg-white dark:bg-card rounded-xl border border-gray-100 p-6">
+          <div className="h-10 w-full bg-muted rounded animate-pulse mb-4" />
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-14 w-full bg-gray-50 rounded animate-pulse mb-2" />
+            <div key={i} className="h-14 w-full bg-muted/50 rounded animate-pulse mb-2" />
           ))}
         </div>
       </div>
@@ -215,39 +215,39 @@ export default function CampsManagement() {
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
         {/* إجمالي المخيمات */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-card rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-gray-500">إجمالي المخيمات</span>
+            <span className="text-xs font-medium text-muted-foreground">إجمالي المخيمات</span>
             <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center">
               <Tent className="h-4 w-4 text-purple-600" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-gray-900">{totalCamps}</div>
-          <p className="text-[11px] text-gray-400 mt-0.5">جميع المخيمات</p>
+          <div className="text-2xl font-bold text-foreground">{totalCamps}</div>
+          <p className="text-[11px] text-muted-foreground mt-0.5">جميع المخيمات</p>
         </div>
 
         {/* مخيمات نشطة */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-card rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-gray-500">مخيمات نشطة</span>
+            <span className="text-xs font-medium text-muted-foreground">مخيمات نشطة</span>
             <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             </div>
           </div>
           <div className="text-2xl font-bold text-emerald-600">{activeCamps}</div>
-          <p className="text-[11px] text-gray-400 mt-0.5">نشطة حالياً</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">نشطة حالياً</p>
         </div>
 
         {/* مخيمات غير نشطة */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-card rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-gray-500">غير نشطة</span>
-            <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
-              <XCircle className="h-4 w-4 text-gray-500" />
+            <span className="text-xs font-medium text-muted-foreground">غير نشطة</span>
+            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
+              <XCircle className="h-4 w-4 text-muted-foreground" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-gray-500">{inactiveCamps}</div>
-          <p className="text-[11px] text-gray-400 mt-0.5">معطلة</p>
+          <div className="text-2xl font-bold text-muted-foreground">{inactiveCamps}</div>
+          <p className="text-[11px] text-muted-foreground mt-0.5">معطلة</p>
         </div>
       </div>
 
@@ -272,7 +272,7 @@ export default function CampsManagement() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-card rounded-xl border border-gray-100 overflow-hidden">
         {filteredCamps.length === 0 ? (
           <EmptyState
             icon={Tent}
@@ -305,7 +305,7 @@ export default function CampsManagement() {
             </TableHeader>
             <TableBody>
               {filteredCamps.map((camp: any) => (
-                <TableRow key={camp.id} className="hover:bg-gray-50/50">
+                <TableRow key={camp.id} className="hover:bg-muted/50/50">
                   {campTable.visibleColumnOrder.map(colKey => {
                     if (!campTable.visibleColumns[colKey]) return null;
                     
@@ -342,7 +342,7 @@ export default function CampsManagement() {
                           <FrozenTableCell key={colKey} columnKey={colKey}>
                             <Badge variant="outline" className={camp.isActive 
                               ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
-                              : "bg-gray-50 text-gray-600 border-gray-200"}>
+                              : "bg-muted/50 text-muted-foreground border-border"}>
                               <span className={`inline-block w-1.5 h-1.5 rounded-full ml-1.5 ${camp.isActive ? "bg-emerald-500" : "bg-gray-400"}`} />
                               {camp.isActive ? "نشط" : "غير نشط"}
                             </Badge>
@@ -350,13 +350,13 @@ export default function CampsManagement() {
                         );
                       case 'startDate':
                         return (
-                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-gray-600">
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
                             {camp.startDate ? new Date(camp.startDate).toLocaleDateString('ar-YE') : "-"}
                           </FrozenTableCell>
                         );
                       case 'endDate':
                         return (
-                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-gray-600">
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
                             {camp.endDate ? new Date(camp.endDate).toLocaleDateString('ar-YE') : "-"}
                           </FrozenTableCell>
                         );
@@ -370,7 +370,7 @@ export default function CampsManagement() {
                                 className="h-8 w-8"
                                 onClick={() => handleEdit(camp)}
                               >
-                                <Edit className="h-3.5 w-3.5 text-gray-500" />
+                                <Edit className="h-3.5 w-3.5 text-muted-foreground" />
                               </Button>
                               <Button 
                                 variant="ghost"
@@ -414,13 +414,13 @@ export default function CampsManagement() {
           <div className="space-y-5 py-4">
             {/* المعلومات الأساسية */}
             <div className="space-y-1 mb-4">
-              <h4 className="text-sm font-semibold text-gray-700">المعلومات الأساسية</h4>
-              <div className="h-px bg-gray-100" />
+              <h4 className="text-sm font-semibold text-foreground">المعلومات الأساسية</h4>
+              <div className="h-px bg-muted" />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="name">اسم المخيم *</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="name">اسم المخيم *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -429,7 +429,7 @@ export default function CampsManagement() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="slug">الرابط (slug) *</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="slug">الرابط (slug) *</Label>
                 <Input
                   id="slug"
                   value={formData.slug}
@@ -441,7 +441,7 @@ export default function CampsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="description">الوصف</Label>
+              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="description">الوصف</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -452,7 +452,7 @@ export default function CampsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="imageUrl">رابط الصورة الرئيسية</Label>
+              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="imageUrl">رابط الصورة الرئيسية</Label>
               <Input
                 id="imageUrl"
                 value={formData.imageUrl}
@@ -464,12 +464,12 @@ export default function CampsManagement() {
 
             {/* تفاصيل المخيم */}
             <div className="space-y-1 mb-4 mt-6">
-              <h4 className="text-sm font-semibold text-gray-700">تفاصيل المخيم</h4>
-              <div className="h-px bg-gray-100" />
+              <h4 className="text-sm font-semibold text-foreground">تفاصيل المخيم</h4>
+              <div className="h-px bg-muted" />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="freeOffers">العروض المجانية</Label>
+              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="freeOffers">العروض المجانية</Label>
               <Textarea
                 id="freeOffers"
                 value={formData.freeOffers}
@@ -480,7 +480,7 @@ export default function CampsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="discountedOffers">العروض المخفضة</Label>
+              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="discountedOffers">العروض المخفضة</Label>
               <Textarea
                 id="discountedOffers"
                 value={formData.discountedOffers}
@@ -491,7 +491,7 @@ export default function CampsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="availableProcedures">الإجراءات المتاحة</Label>
+              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="availableProcedures">الإجراءات المتاحة</Label>
               <Textarea
                 id="availableProcedures"
                 value={formData.availableProcedures}
@@ -502,7 +502,7 @@ export default function CampsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="galleryImages">روابط الصور الإضافية</Label>
+              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="galleryImages">روابط الصور الإضافية</Label>
               <Textarea
                 id="galleryImages"
                 value={formData.galleryImages}
@@ -515,13 +515,13 @@ export default function CampsManagement() {
 
             {/* الإعدادات والتواريخ */}
             <div className="space-y-1 mb-4 mt-6">
-              <h4 className="text-sm font-semibold text-gray-700">الإعدادات والتواريخ</h4>
-              <div className="h-px bg-gray-100" />
+              <h4 className="text-sm font-semibold text-foreground">الإعدادات والتواريخ</h4>
+              <div className="h-px bg-muted" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="startDate">تاريخ البداية</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="startDate">تاريخ البداية</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -530,7 +530,7 @@ export default function CampsManagement() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-right block text-xs font-medium text-gray-600" htmlFor="endDate">تاريخ النهاية</Label>
+                <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="endDate">تاريخ النهاية</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -548,7 +548,7 @@ export default function CampsManagement() {
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                 className="rounded"
               />
-              <Label htmlFor="isActive" className="text-sm text-gray-700">المخيم نشط</Label>
+              <Label htmlFor="isActive" className="text-sm text-foreground">المخيم نشط</Label>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">

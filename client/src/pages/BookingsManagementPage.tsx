@@ -743,7 +743,7 @@ export default function BookingsManagementPage() {
                       <TrendingUp className="h-4 w-4" />
                       {leadsStatusFilter.includes("new") && leadsStatusFilter.length === 1 ? "عرض الكل" : "المعلقة فقط"}
                       {!(leadsStatusFilter.includes("new") && leadsStatusFilter.length === 1) && pendingCounts.leads > 0 && (
-                        <Badge variant="secondary" className="mr-1 bg-white text-orange-600">
+                        <Badge variant="secondary" className="mr-1 bg-white dark:bg-card text-orange-600">
                           {pendingCounts.leads}
                         </Badge>
                       )}
@@ -1165,7 +1165,7 @@ export default function BookingsManagementPage() {
                                       setSelectedAppointmentIds([]);
                                     }
                                   }}
-                                  className="rounded border-gray-300"
+                                  className="rounded border-border"
                                 />
                               </ResizableHeaderCell>
                             );
@@ -1225,7 +1225,7 @@ export default function BookingsManagementPage() {
                                             setSelectedAppointmentIds(selectedAppointmentIds.filter((id: number) => id !== appointment.id));
                                           }
                                         }}
-                                        className="rounded border-gray-300"
+                                        className="rounded border-border"
                                       />
                                     </FrozenTableCell>
                                   );

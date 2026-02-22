@@ -290,9 +290,9 @@ function SortableEditItem({
       style={style}
       className={cn(
         "w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 select-none",
-        isChecked ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-50",
+        isChecked ? "bg-blue-50 text-blue-700" : "text-muted-foreground hover:bg-muted/50",
         isHome && "opacity-60",
-        isDragging && "shadow-lg ring-2 ring-blue-300 bg-white"
+        isDragging && "shadow-lg ring-2 ring-blue-300 bg-white dark:bg-card"
       )}
     >
       {/* Drag Handle */}
@@ -300,7 +300,7 @@ function SortableEditItem({
         {...attributes}
         {...listeners}
         className={cn(
-          "flex-shrink-0 cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-gray-200/60 text-gray-400 hover:text-gray-600 touch-none",
+          "flex-shrink-0 cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-muted/60 text-muted-foreground hover:text-muted-foreground touch-none",
           isHome && "invisible"
         )}
         tabIndex={-1}
@@ -314,7 +314,7 @@ function SortableEditItem({
         onClick={() => !isHome && onToggle(item.id)}
         className={cn(
           "h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors",
-          isChecked ? "bg-blue-600 border-blue-600" : "border-gray-300",
+          isChecked ? "bg-blue-600 border-blue-600" : "border-border",
           isHome ? "cursor-not-allowed" : "cursor-pointer"
         )}
       >
@@ -329,11 +329,11 @@ function SortableEditItem({
           isHome ? "cursor-not-allowed" : "cursor-pointer"
         )}
       >
-        <Icon className={cn("h-4 w-4 flex-shrink-0", isChecked ? "text-blue-600" : "text-gray-400")} />
+        <Icon className={cn("h-4 w-4 flex-shrink-0", isChecked ? "text-blue-600" : "text-muted-foreground")} />
         <span className="truncate">{item.title}</span>
       </button>
 
-      {isHome && <span className="text-[10px] text-gray-400 flex-shrink-0">(ثابت)</span>}
+      {isHome && <span className="text-[10px] text-muted-foreground flex-shrink-0">(ثابت)</span>}
     </div>
   );
 }
@@ -587,7 +587,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   // الشريط الضيق الرئيسي (Desktop) - بأسلوب Meta
   // ============================================
   const renderDesktopSlimSidebar = () => (
-    <aside className="hidden lg:flex flex-col h-screen sticky top-0 w-[60px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 z-30">
+    <aside className="hidden lg:flex flex-col h-screen sticky top-0 w-[60px] bg-white dark:bg-card dark:bg-gray-900 border-l border-border dark:border-gray-700 z-30">
       {/* Logo */}
       <div className="flex items-center justify-center py-2 border-b border-gray-100 dark:border-gray-700">
         <img
@@ -612,7 +612,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                       "relative w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150 group",
                       isActive
                         ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground dark:text-muted-foreground dark:hover:bg-gray-800 dark:hover:text-gray-300"
                     )}
                   >
                     <div className="relative">
@@ -654,7 +654,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 "w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150",
                 allToolsOpen
                   ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground dark:text-muted-foreground dark:hover:bg-gray-800 dark:hover:text-gray-300"
               )}
             >
               <Menu className="h-[18px] w-[18px]" />
@@ -673,7 +673,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 "w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150",
                 soundEnabled
                   ? "text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
-                  : "text-gray-400 hover:bg-gray-50 hover:text-gray-500 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-400"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-muted-foreground dark:text-muted-foreground dark:hover:bg-gray-800 dark:hover:text-muted-foreground"
               )}
             >
               {soundEnabled ? (
@@ -698,7 +698,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 "w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150",
                 theme === 'dark'
                   ? "text-amber-400 hover:bg-amber-50/10"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:hover:bg-gray-800"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground dark:hover:bg-gray-800"
               )}
             >
               {theme === 'dark' ? (
@@ -723,7 +723,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 "w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150",
                 isItemActive("/dashboard/settings")
                   ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground dark:text-muted-foreground dark:hover:bg-gray-800 dark:hover:text-gray-300"
               )}
             >
               <SettingsIcon className="h-[18px] w-[18px]" />
@@ -753,16 +753,16 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
       <div
         ref={allToolsRef}
         className={cn(
-          "hidden lg:flex fixed top-0 right-[60px] z-50 h-screen w-[320px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-xl flex-col transition-transform duration-300 ease-out",
+          "hidden lg:flex fixed top-0 right-[60px] z-50 h-screen w-[320px] bg-white dark:bg-card dark:bg-gray-900 border-l border-border dark:border-gray-700 shadow-xl flex-col transition-transform duration-300 ease-out",
           allToolsOpen ? "translate-x-0" : "translate-x-full opacity-0 pointer-events-none"
         )}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">كل الأدوات</h2>
+          <h2 className="text-lg font-bold text-foreground dark:text-gray-100">كل الأدوات</h2>
           <button
             onClick={() => { setAllToolsOpen(false); setEditMode(false); }}
-            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-muted dark:hover:bg-gray-800 text-muted-foreground dark:text-muted-foreground transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -772,14 +772,14 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         {!editMode && (
           <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
             <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
               <input
                 ref={searchInputRef}
                 type="text"
                 placeholder="ابحث في كل الأدوات..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pr-9 pl-3 rounded-full bg-gray-100 dark:bg-gray-800 border-0 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white dark:focus:bg-gray-700 transition-all"
+                className="w-full h-9 pr-9 pl-3 rounded-full bg-muted dark:bg-gray-800 border-0 text-sm text-foreground dark:text-gray-300 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white dark:bg-card dark:focus:bg-gray-700 transition-all"
               />
             </div>
           </div>
@@ -789,11 +789,11 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         {editMode && (
           <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-blue-50/50 dark:bg-blue-900/20">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">تعديل الشريط الجانبي</span>
+              <span className="text-sm font-semibold text-foreground dark:text-gray-300">تعديل الشريط الجانبي</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={cancelEditMode}
-                  className="text-xs px-3 py-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="text-xs px-3 py-1.5 rounded-md text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-gray-800 transition-colors"
                 >
                   إلغاء
                 </button>
@@ -806,7 +806,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 </button>
               </div>
             </div>
-            <p className="text-[11px] text-gray-500">اختر العناصر واسحبها لإعادة ترتيبها في الشريط الجانبي</p>
+            <p className="text-[11px] text-muted-foreground">اختر العناصر واسحبها لإعادة ترتيبها في الشريط الجانبي</p>
           </div>
         )}
 
@@ -823,7 +823,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 {/* Checked items - sortable */}
                 {editingItemIds.length > 0 && (
                   <>
-                    <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+                    <div className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
                       <GripVertical className="h-3 w-3" />
                       معروض في الشريط — اسحب لإعادة الترتيب
                     </div>
@@ -850,8 +850,8 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 {/* Unchecked items - not sortable */}
                 {allNavItems.filter(item => !editingItemIds.includes(item.id)).length > 0 && (
                   <>
-                    <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
-                    <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-2 py-1 mb-1">
+                    <div className="border-t border-border dark:border-gray-700 my-2" />
+                    <div className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">
                       عناصر مخفية — انقر لإضافتها
                     </div>
                     {allNavItems
@@ -862,11 +862,11 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                           <button
                             key={item.id}
                             onClick={() => toggleEditItem(item.id)}
-                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-150 mb-0.5"
+                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-muted-foreground dark:text-muted-foreground hover:bg-muted/50 dark:hover:bg-gray-800 transition-all duration-150 mb-0.5"
                           >
                             <div className="w-5 flex-shrink-0" />
-                            <div className="h-5 w-5 rounded border-2 border-gray-300 flex items-center justify-center flex-shrink-0" />
-                            <Icon className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                            <div className="h-5 w-5 rounded border-2 border-border flex items-center justify-center flex-shrink-0" />
+                            <Icon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                             <span className="truncate">{item.title}</span>
                           </button>
                         );
@@ -889,7 +889,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                     {/* Group Header */}
                     <button
                       onClick={() => toggleGroup(group.label)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-md"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider hover:text-foreground dark:hover:text-gray-300 transition-colors rounded-md"
                     >
                       <span className="flex-1 text-right">{group.label}</span>
                       <ChevronDown className={cn(
@@ -915,11 +915,11 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                                 "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150",
                                 isActive
                                   ? "bg-blue-50 text-blue-600 font-semibold dark:bg-blue-900/30 dark:text-blue-400"
-                                  : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                                  : "text-foreground hover:bg-muted/50 dark:text-gray-300 dark:hover:bg-gray-800"
                               )}
                             >
                               <div className="relative flex-shrink-0">
-                                <Icon className={cn("h-4.5 w-4.5", isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500")} />
+                                <Icon className={cn("h-4.5 w-4.5", isActive ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground dark:text-muted-foreground")} />
                                 <SidebarBadge count={getBadgeCount(item.id)} />
                               </div>
                               <span className="truncate flex-1">{item.title}</span>
@@ -945,7 +945,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-3">
             <button
               onClick={startEditMode}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border border-gray-200 dark:border-gray-700"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-muted-foreground dark:text-muted-foreground hover:bg-muted/50 dark:hover:bg-gray-800 hover:text-foreground dark:hover:text-gray-300 transition-colors border border-border dark:border-gray-700"
             >
               <Pencil className="h-3.5 w-3.5" />
               <span>تعديل</span>
@@ -957,7 +957,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-2 flex items-center gap-3">
           <button
             onClick={() => handleNavClick("/dashboard/settings")}
-            className="flex items-center gap-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            className="flex items-center gap-2 py-1.5 text-sm text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-gray-300 transition-colors"
           >
             <Search className="h-4 w-4" />
             <span>بحث</span>
@@ -966,7 +966,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
             onClick={toggleSound}
             className={cn(
               "flex items-center gap-2 py-1.5 text-sm transition-colors",
-              soundEnabled ? "text-green-600 dark:text-green-400 hover:text-green-700" : "text-gray-400 dark:text-gray-500 hover:text-gray-500"
+              soundEnabled ? "text-green-600 dark:text-green-400 hover:text-green-700" : "text-muted-foreground dark:text-muted-foreground hover:text-muted-foreground"
             )}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
@@ -974,13 +974,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           </button>
           <button
             onClick={() => handleNavClick("/dashboard/settings")}
-            className="flex items-center gap-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            className="flex items-center gap-2 py-1.5 text-sm text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-gray-300 transition-colors"
           >
             <SettingsIcon className="h-4 w-4" />
             <span>الإعدادات</span>
           </button>
           <button
-            className="flex items-center gap-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            className="flex items-center gap-2 py-1.5 text-sm text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-gray-300 transition-colors"
           >
             <HelpCircle className="h-4 w-4" />
             <span>مساعدة</span>
@@ -994,13 +994,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   // Mobile Bottom Navigation Bar
   // ============================================
   const renderMobileBottomBar = () => (
-    <div className="lg:hidden fixed bottom-0 right-0 left-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-bottom">
+    <div className="lg:hidden fixed bottom-0 right-0 left-0 z-40 bg-white dark:bg-card dark:bg-gray-900 border-t border-border dark:border-gray-700 safe-bottom">
       <div className="flex items-center justify-around px-1 py-1.5">
         <button
           onClick={() => handleNavClick("/dashboard")}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] transition-colors min-w-[56px]",
-            currentPath === "/dashboard" ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"
+            currentPath === "/dashboard" ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground dark:text-muted-foreground"
           )}
         >
           <Home className={cn("h-5 w-5", currentPath === "/dashboard" && "stroke-[2.5]")} />
@@ -1010,7 +1010,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           onClick={() => handleNavClick("/dashboard/bookings/leads")}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] transition-colors min-w-[56px]",
-            currentPath.includes("/bookings") ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"
+            currentPath.includes("/bookings") ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground dark:text-muted-foreground"
           )}
         >
           <div className="relative">
@@ -1023,7 +1023,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           onClick={() => handleNavClick("/dashboard/reports")}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] transition-colors min-w-[56px]",
-            currentPath.includes("/reports") || currentPath.includes("/analytics") ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"
+            currentPath.includes("/reports") || currentPath.includes("/analytics") ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground dark:text-muted-foreground"
           )}
         >
           <BarChart3 className={cn("h-5 w-5", (currentPath.includes("/reports") || currentPath.includes("/analytics")) && "stroke-[2.5]")} />
@@ -1031,7 +1031,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         </button>
         <button
           onClick={() => setMobileOpen(true)}
-          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] text-gray-500 dark:text-gray-400 min-w-[56px]"
+          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] text-muted-foreground dark:text-muted-foreground min-w-[56px]"
         >
           <div className="relative">
             <Menu className="h-5 w-5" />
@@ -1061,7 +1061,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
       {/* Sidebar */}
       <aside
         className={cn(
-          "lg:hidden fixed top-0 right-0 z-50 h-full w-[300px] bg-white dark:bg-gray-900 shadow-xl flex flex-col transition-transform duration-300 ease-out",
+          "lg:hidden fixed top-0 right-0 z-50 h-full w-[300px] bg-white dark:bg-card dark:bg-gray-900 shadow-xl flex flex-col transition-transform duration-300 ease-out",
           mobileOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
@@ -1074,13 +1074,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
               className="h-9 w-9 object-contain"
             />
             <div>
-              <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">المستشفى السعودي الألماني</h2>
-              <p className="text-[10px] text-gray-400 dark:text-gray-500">لوحة التحكم</p>
+              <h2 className="text-sm font-bold text-foreground dark:text-gray-100">المستشفى السعودي الألماني</h2>
+              <p className="text-[10px] text-muted-foreground dark:text-muted-foreground">لوحة التحكم</p>
             </div>
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-muted dark:hover:bg-gray-800 text-muted-foreground dark:text-muted-foreground transition-colors"
             aria-label="إغلاق القائمة"
           >
             <X className="h-4 w-4" />
@@ -1090,13 +1090,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         {/* Search */}
         <div className="px-4 py-2.5">
           <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
               <input
                 type="text"
                 placeholder="بحث..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pr-9 pl-3 rounded-full bg-gray-100 dark:bg-gray-800 border-0 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white dark:focus:bg-gray-700 transition-all"
+                className="w-full h-9 pr-9 pl-3 rounded-full bg-muted dark:bg-gray-800 border-0 text-sm text-foreground dark:text-gray-300 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white dark:bg-card dark:focus:bg-gray-700 transition-all"
             />
           </div>
         </div>
@@ -1111,10 +1111,10 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 mb-1",
                 currentPath === "/dashboard"
                   ? "bg-blue-50 text-blue-600 font-semibold dark:bg-blue-900/30 dark:text-blue-400"
-                  : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                  : "text-foreground hover:bg-muted/50 dark:text-gray-300 dark:hover:bg-gray-800"
               )}
             >
-              <Home className={cn("h-5 w-5 flex-shrink-0", currentPath === "/dashboard" ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500")} />
+              <Home className={cn("h-5 w-5 flex-shrink-0", currentPath === "/dashboard" ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground dark:text-muted-foreground")} />
               <span>الرئيسية</span>
             </button>
 
@@ -1131,7 +1131,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                     onClick={() => toggleGroup(group.label)}
                     className={cn(
                       "w-full flex items-center gap-2 px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-colors rounded-md",
-                      hasActiveItem ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                      hasActiveItem ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground dark:text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground"
                     )}
                   >
                     <span className="flex-1 text-right">{group.label}</span>
@@ -1157,11 +1157,11 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                               "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150",
                               isActive
                                 ? "bg-blue-50 text-blue-600 font-semibold dark:bg-blue-900/30 dark:text-blue-400"
-                                : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                                : "text-foreground hover:bg-muted/50 dark:text-gray-300 dark:hover:bg-gray-800"
                             )}
                           >
                             <div className="relative flex-shrink-0">
-                              <Icon className={cn("h-4 w-4", isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500")} />
+                              <Icon className={cn("h-4 w-4", isActive ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground dark:text-muted-foreground")} />
                               <SidebarBadge count={getBadgeCount(item.id)} />
                             </div>
                             <span className="truncate flex-1">{item.title}</span>
@@ -1189,7 +1189,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
               "flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm transition-colors",
               soundEnabled
                 ? "text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
-                : "text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-500"
+                : "text-muted-foreground dark:text-muted-foreground hover:bg-muted/50 dark:hover:bg-gray-800 hover:text-muted-foreground"
             )}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
@@ -1201,7 +1201,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
               "flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm transition-colors",
               theme === 'dark'
                 ? "text-amber-400 hover:bg-amber-50/10"
-                : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700"
+                : "text-muted-foreground dark:text-muted-foreground hover:bg-muted/50 dark:hover:bg-gray-800 hover:text-foreground"
             )}
           >
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -1209,7 +1209,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           </button>
           <button
             onClick={() => handleNavClick("/dashboard/settings")}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-muted-foreground dark:text-muted-foreground hover:bg-muted/50 dark:hover:bg-gray-800 hover:text-foreground dark:hover:text-gray-300 transition-colors"
           >
             <SettingsIcon className="h-4 w-4" />
             <span>الإعدادات</span>

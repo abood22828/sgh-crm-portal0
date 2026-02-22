@@ -82,13 +82,13 @@ const getCampaignStatusLabel = (status: string) => {
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    draft: "bg-gray-100 text-gray-800",
+    draft: "bg-muted text-foreground",
     active: "bg-green-100 text-green-800",
     paused: "bg-yellow-100 text-yellow-800",
     completed: "bg-blue-100 text-blue-800",
     cancelled: "bg-red-100 text-red-800",
   };
-  return colors[status] || "bg-gray-100 text-gray-800";
+  return colors[status] || "bg-muted text-foreground";
 };
 
 const getStatusIcon = (status: string) => {
@@ -462,7 +462,7 @@ export default function CampaignsPage() {
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="relative flex-1">
-                <Search className="absolute right-2.5 sm:right-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400" />
+                <Search className="absolute right-2.5 sm:right-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                 <Input
                   placeholder="بحث في الحملات..."
                   value={searchQuery}
@@ -518,12 +518,12 @@ export default function CampaignsPage() {
                   </TableHeader>
                   <TableBody>
                     {campaigns.map((campaign: any) => (
-                      <TableRow key={campaign.id} className="hover:bg-gray-50">
+                      <TableRow key={campaign.id} className="hover:bg-muted/50">
                         <TableCell>
                           <div>
                             <div className="font-medium">{campaign.name}</div>
                             {campaign.description && (
-                              <div className="text-sm text-gray-500 line-clamp-1">{campaign.description}</div>
+                              <div className="text-sm text-muted-foreground line-clamp-1">{campaign.description}</div>
                             )}
                           </div>
                         </TableCell>
@@ -539,7 +539,7 @@ export default function CampaignsPage() {
                         <TableCell className="hidden md:table-cell">
                           <div className="text-sm">
                             <div>مخطط: {campaign.plannedBudget?.toLocaleString() || 0}</div>
-                            <div className="text-gray-500">فعلي: {campaign.actualBudget?.toLocaleString() || 0}</div>
+                            <div className="text-muted-foreground">فعلي: {campaign.actualBudget?.toLocaleString() || 0}</div>
                           </div>
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
@@ -557,7 +557,7 @@ export default function CampaignsPage() {
                               <div>{format(new Date(campaign.startDate), "dd/MM/yyyy")}</div>
                             )}
                             {campaign.endDate && (
-                              <div className="text-gray-500">إلى {format(new Date(campaign.endDate), "dd/MM/yyyy")}</div>
+                              <div className="text-muted-foreground">إلى {format(new Date(campaign.endDate), "dd/MM/yyyy")}</div>
                             )}
                           </div>
                         </TableCell>
@@ -577,7 +577,7 @@ export default function CampaignsPage() {
                               onClick={() => openEditDialog(campaign)}
                               title="تعديل"
                             >
-                              <Edit className="h-4 w-4 text-gray-600" />
+                              <Edit className="h-4 w-4 text-muted-foreground" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -597,7 +597,7 @@ export default function CampaignsPage() {
             ) : (
               <div className="text-center py-12">
                 <Megaphone className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500 mb-4">لا توجد حملات</p>
+                <p className="text-muted-foreground mb-4">لا توجد حملات</p>
                 <Button onClick={() => { setFormData(initialFormData); setIsCreateDialogOpen(true); }}>
                   <Plus className="ml-2 h-4 w-4" />
                   إنشاء أول حملة
@@ -778,14 +778,14 @@ export default function CampaignsPage() {
                 {/* Platforms */}
                 <div className="grid gap-2">
                   <Label>المنصات</Label>
-                  <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-gray-50">
+                  <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-muted/50">
                     {platformOptions.map((platform) => (
                       <div
                         key={platform.value}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors ${
                           formData.platforms.includes(platform.value)
                             ? "bg-primary text-white"
-                            : "bg-white border hover:bg-gray-100"
+                            : "bg-white dark:bg-card border hover:bg-muted"
                         }`}
                         onClick={() => handlePlatformToggle(platform.value)}
                       >
@@ -864,7 +864,7 @@ export default function CampaignsPage() {
                   <div>
                     <h3 className="text-xl font-bold">{selectedCampaign.name}</h3>
                     {selectedCampaign.description && (
-                      <p className="text-gray-600 mt-1">{selectedCampaign.description}</p>
+                      <p className="text-muted-foreground mt-1">{selectedCampaign.description}</p>
                     )}
                   </div>
                   <Badge className={getStatusColor(selectedCampaign.status)}>
@@ -889,17 +889,17 @@ export default function CampaignsPage() {
                 </Card>
 
                 {/* Details Grid */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-gray-500">النوع</Label>
+                    <Label className="text-muted-foreground">النوع</Label>
                     <p className="font-medium">{getCampaignTypeLabel(selectedCampaign.type)}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-gray-500">الرابط</Label>
+                    <Label className="text-muted-foreground">الرابط</Label>
                     <p className="font-medium text-primary" dir="ltr">{selectedCampaign.slug}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-gray-500">تاريخ البدء</Label>
+                    <Label className="text-muted-foreground">تاريخ البدء</Label>
                     <p className="font-medium">
                       {selectedCampaign.startDate
                         ? format(new Date(selectedCampaign.startDate), "dd MMMM yyyy", { locale: ar })
@@ -907,7 +907,7 @@ export default function CampaignsPage() {
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-gray-500">تاريخ الانتهاء</Label>
+                    <Label className="text-muted-foreground">تاريخ الانتهاء</Label>
                     <p className="font-medium">
                       {selectedCampaign.endDate
                         ? format(new Date(selectedCampaign.endDate), "dd MMMM yyyy", { locale: ar })
@@ -915,19 +915,19 @@ export default function CampaignsPage() {
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-gray-500">الميزانية المخططة</Label>
+                    <Label className="text-muted-foreground">الميزانية المخططة</Label>
                     <p className="font-medium">{selectedCampaign.plannedBudget?.toLocaleString() || 0} ريال</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-gray-500">الميزانية الفعلية</Label>
+                    <Label className="text-muted-foreground">الميزانية الفعلية</Label>
                     <p className="font-medium">{selectedCampaign.actualBudget?.toLocaleString() || 0} ريال</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-gray-500">هدف الحجوزات</Label>
+                    <Label className="text-muted-foreground">هدف الحجوزات</Label>
                     <p className="font-medium">{selectedCampaign.targetBookings || 0}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-gray-500">هدف الإيرادات</Label>
+                    <Label className="text-muted-foreground">هدف الإيرادات</Label>
                     <p className="font-medium">{selectedCampaign.targetRevenue?.toLocaleString() || 0} ريال</p>
                   </div>
                 </div>
@@ -935,7 +935,7 @@ export default function CampaignsPage() {
                 {/* Platforms */}
                 {selectedCampaign.platforms && (
                   <div className="space-y-2">
-                    <Label className="text-gray-500">المنصات</Label>
+                    <Label className="text-muted-foreground">المنصات</Label>
                     <div className="flex flex-wrap gap-2">
                       {selectedCampaign.platforms.split(",").map((platform: string) => (
                         <Badge key={platform} variant="outline">
@@ -949,7 +949,7 @@ export default function CampaignsPage() {
                 {/* Team */}
                 {selectedCampaign.teamMembers && (
                   <div className="space-y-2">
-                    <Label className="text-gray-500">الفريق المسؤول</Label>
+                    <Label className="text-muted-foreground">الفريق المسؤول</Label>
                     <p>{selectedCampaign.teamMembers}</p>
                   </div>
                 )}
@@ -957,7 +957,7 @@ export default function CampaignsPage() {
                 {/* KPIs */}
                 {selectedCampaign.kpis && (
                   <div className="space-y-2">
-                    <Label className="text-gray-500">مؤشرات الأداء</Label>
+                    <Label className="text-muted-foreground">مؤشرات الأداء</Label>
                     <p>{selectedCampaign.kpis}</p>
                   </div>
                 )}
@@ -965,8 +965,8 @@ export default function CampaignsPage() {
                 {/* Notes */}
                 {selectedCampaign.notes && (
                   <div className="space-y-2">
-                    <Label className="text-gray-500">ملاحظات</Label>
-                    <p className="text-gray-700">{selectedCampaign.notes}</p>
+                    <Label className="text-muted-foreground">ملاحظات</Label>
+                    <p className="text-foreground">{selectedCampaign.notes}</p>
                   </div>
                 )}
 

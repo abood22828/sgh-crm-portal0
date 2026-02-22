@@ -55,29 +55,29 @@ export default function ThankYou() {
   const IconComponent = typeInfo.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 flex items-center justify-center p-3 sm:p-4" dir="rtl">
       <Card className="max-w-2xl w-full shadow-2xl border-2 border-primary/20">
-        <CardContent className="pt-12 pb-8 text-center">
-          <div className={`w-24 h-24 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-6`}>
-            <IconComponent className={`w-16 h-16 ${typeInfo.color}`} />
+        <CardContent className="pt-6 sm:pt-8 md:pt-12 pb-4 sm:pb-6 md:pb-8 px-3 sm:px-6 text-center">
+          <div className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 md:mb-6`}>
+            <IconComponent className={`w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 ${typeInfo.color}`} />
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-3 md:mb-4">
             {typeInfo.title}
           </h1>
 
-          <p className="text-lg text-muted-foreground mb-8 max-w-lg mx-auto">
+          <p className="text-xs sm:text-sm md:text-lg text-muted-foreground mb-4 sm:mb-6 md:mb-8 max-w-lg mx-auto">
             تم استلام طلبك بنجاح. سيتواصل معك فريقنا الطبي خلال 24 ساعة لتأكيد موعدك وتقديم المساعدة اللازمة.
           </p>
 
           {/* Booking Details */}
           {bookingInfo && (
-            <div className="bg-white rounded-xl p-6 mb-8 border border-border">
-              <h3 className="font-bold text-lg mb-4 text-right">تفاصيل الحجز</h3>
-              <div className="space-y-3 text-right">
-                <div className="flex items-center gap-3">
-                  <User className="w-5 h-5 text-primary" />
-                  <span className="text-sm text-muted-foreground">الاسم:</span>
+            <div className="bg-white dark:bg-card rounded-xl p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8 border border-border">
+              <h3 className="font-bold text-sm sm:text-base md:text-lg mb-2 sm:mb-3 md:mb-4 text-right">تفاصيل الحجز</h3>
+              <div className="space-y-2 sm:space-y-3 text-right">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-muted-foreground">الاسم:</span>
                   <span className="font-medium">{bookingInfo.name}</span>
                 </div>
                 {bookingInfo.phone && (
@@ -130,18 +130,18 @@ export default function ThankYou() {
             </div>
           )}
 
-          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 mb-8">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <Phone className="w-6 h-6 text-primary" />
-              <span className="text-sm text-muted-foreground">للاستفسارات العاجلة</span>
+          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
+            <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <Phone className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-primary" />
+              <span className="text-xs sm:text-sm text-muted-foreground">للاستفسارات العاجلة</span>
             </div>
-            <p className="text-3xl font-bold text-primary">8000018</p>
-            <p className="text-sm text-muted-foreground mt-2">الرقم المجاني - متاح على مدار الساعة</p>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary">8000018</p>
+            <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mt-1 sm:mt-2">الرقم المجاني - متاح على مدار الساعة</p>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-white rounded-lg p-4 border border-border">
-              <h3 className="font-bold text-lg mb-2">ما التالي؟</h3>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="bg-white dark:bg-card rounded-lg p-3 sm:p-4 border border-border">
+              <h3 className="font-bold text-sm sm:text-base md:text-lg mb-1.5 sm:mb-2">ما التالي؟</h3>
               <ul className="text-right space-y-2 text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">1.</span>
@@ -159,20 +159,20 @@ export default function ThankYou() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild variant="default" size="lg">
+          <div className="mt-4 sm:mt-6 md:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+            <Button asChild variant="default" size="default" className="sm:text-base">
               <Link href="/">
-                <Home className="w-5 h-5 ml-2" />
+                <Home className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2" />
                 العودة للصفحة الرئيسية
               </Link>
             </Button>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-border">
+          <div className="mt-4 sm:mt-6 md:mt-8 pt-4 sm:pt-6 border-t border-border">
             <img 
               src="/assets/new-logo.png" 
               alt="المستشفى السعودي الألماني" 
-              className="h-16 mx-auto mb-3"
+              className="h-10 sm:h-12 md:h-16 mx-auto mb-2 sm:mb-3"
             />
             <p className="text-sm text-muted-foreground">
               المستشفى السعودي الألماني - صنعاء

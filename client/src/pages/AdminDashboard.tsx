@@ -1291,7 +1291,7 @@ function OffersManagement() {
         </div>
         
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3 mt-4 stagger-cards">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 stagger-cards">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 stat-card-animated">
             <CardContent className="p-3 md:p-4">
               <div className="text-xs md:text-sm text-blue-700 mb-1">إجمالي العروض</div>
@@ -1304,10 +1304,10 @@ function OffersManagement() {
               <div className="text-xl md:text-2xl font-bold text-green-900">{activeOffers}</div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-gray-200 dark:border-gray-700">
+          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-border dark:border-gray-700">
             <CardContent className="p-3 md:p-4">
-              <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300 mb-1">عروض غير نشطة</div>
-              <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">{inactiveOffers}</div>
+              <div className="text-xs md:text-sm text-foreground dark:text-gray-300 mb-1">عروض غير نشطة</div>
+              <div className="text-xl md:text-2xl font-bold text-foreground dark:text-gray-100">{inactiveOffers}</div>
             </CardContent>
           </Card>
         </div>
@@ -1427,7 +1427,7 @@ function OffersManagement() {
                 dir="ltr"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startDate">تاريخ البداية</Label>
                 <Input
@@ -1597,7 +1597,7 @@ function CampsManagement() {
         </div>
         
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3 mt-4 stagger-cards">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 stagger-cards">
           <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 stat-card-animated">
             <CardContent className="p-3 md:p-4">
               <div className="text-xs md:text-sm text-purple-700 mb-1">إجمالي المخيمات</div>
@@ -1610,10 +1610,10 @@ function CampsManagement() {
               <div className="text-xl md:text-2xl font-bold text-green-900">{activeCamps}</div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-gray-200 dark:border-gray-700">
+          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-border dark:border-gray-700">
             <CardContent className="p-3 md:p-4">
-              <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300 mb-1">مخيمات غير نشطة</div>
-              <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">{inactiveCamps}</div>
+              <div className="text-xs md:text-sm text-foreground dark:text-gray-300 mb-1">مخيمات غير نشطة</div>
+              <div className="text-xl md:text-2xl font-bold text-foreground dark:text-gray-100">{inactiveCamps}</div>
             </CardContent>
           </Card>
         </div>
@@ -1624,7 +1624,7 @@ function CampsManagement() {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : camps && camps.length > 0 ? (
-          <div className="rounded-md border">
+          <div className="rounded-md border table-responsive">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -1735,7 +1735,7 @@ function CampsManagement() {
                 dir="ltr"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startDate">تاريخ البداية</Label>
                 <Input

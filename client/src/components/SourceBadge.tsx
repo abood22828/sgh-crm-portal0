@@ -84,8 +84,8 @@ export default function SourceBadge({
       },
       tiktok: {
         icon: Music,
-        color: "text-gray-900",
-        bgColor: "bg-gray-100",
+        color: "text-foreground",
+        bgColor: "bg-muted",
         label: "تيك توك",
       },
       youtube: {
@@ -126,8 +126,8 @@ export default function SourceBadge({
       },
       direct: {
         icon: Globe,
-        color: "text-gray-600",
-        bgColor: "bg-gray-100",
+        color: "text-muted-foreground",
+        bgColor: "bg-muted",
         label: "مباشر",
       },
     };
@@ -167,7 +167,7 @@ export default function SourceBadge({
       </div>
 
       {showDetails && (utmMedium || utmCampaign || referrer) && (
-        <div className="text-xs text-gray-500 space-y-0.5">
+        <div className="text-xs text-muted-foreground space-y-0.5">
           {utmMedium && (
             <div>
               <span className="font-semibold">الوسيط:</span> {utmMedium}
