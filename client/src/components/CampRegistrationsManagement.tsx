@@ -1092,7 +1092,7 @@ export default function CampRegistrationsManagement({
           </DialogHeader>
           {selectedRegistration && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">الاسم الكامل</p>
                   <p className="text-base font-semibold">{selectedRegistration.fullName}</p>
@@ -1125,7 +1125,7 @@ export default function CampRegistrationsManagement({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">الحالة</p>
-                  <Badge className={`${statusColors[selectedRegistration.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}`}>
+                  <Badge className={`${statusColors[selectedRegistration.status as keyof typeof statusColors] || 'bg-muted text-foreground'}`}>
                     {statusLabels[selectedRegistration.status as keyof typeof statusLabels] || selectedRegistration.status}
                   </Badge>
                 </div>

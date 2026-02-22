@@ -72,18 +72,18 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout pageTitle="الملف الشخصي" pageDescription="معلومات حسابك الشخصي">
-      <div className="container max-w-4xl py-6 space-y-6">
+      <div className="container max-w-4xl py-4 sm:py-6 px-3 sm:px-4 md:px-6 space-y-4 sm:space-y-6">
         {/* Profile Header Card */}
         <Card>
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-4xl font-bold text-primary">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">
                   {user.name?.charAt(0) || 'U'}
                 </span>
               </div>
             </div>
-            <CardTitle className="text-2xl">{user.name}</CardTitle>
+            <CardTitle className="text-lg sm:text-xl md:text-2xl">{user.name}</CardTitle>
             <CardDescription className="flex items-center justify-center gap-2">
               <Shield className="h-4 w-4" />
               {user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}
@@ -217,9 +217,9 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 p-3 rounded-lg bg-muted/50">
                 <div>
-                  <p className="font-medium">تغيير كلمة المرور</p>
+                  <p className="font-medium text-sm sm:text-base">تغيير كلمة المرور</p>
                   <p className="text-sm text-muted-foreground">قم بتحديث كلمة المرور الخاصة بك</p>
                 </div>
                 <Button variant="outline" disabled>
@@ -227,9 +227,9 @@ export default function ProfilePage() {
                 </Button>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 p-3 rounded-lg bg-muted/50">
                 <div>
-                  <p className="font-medium">المصادقة الثنائية</p>
+                  <p className="font-medium text-sm sm:text-base">المصادقة الثنائية</p>
                   <p className="text-sm text-muted-foreground">أضف طبقة أمان إضافية لحسابك</p>
                 </div>
                 <Button variant="outline" disabled>

@@ -58,7 +58,7 @@ function BookingCard({ booking }: { booking: any }) {
         <div className="space-y-3">
           {/* Type Badge */}
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500">{booking.type}</span>
+            <span className="text-xs font-medium text-muted-foreground">{booking.type}</span>
             <span
               className="px-2 py-1 rounded text-xs text-white font-medium"
               style={{ backgroundColor: STATUS_COLORS[booking.status] || COLORS.info }}
@@ -69,17 +69,17 @@ function BookingCard({ booking }: { booking: any }) {
 
           {/* Name */}
           <div>
-            <h3 className="font-semibold text-gray-900">{booking.fullName}</h3>
-            <p className="text-sm text-gray-600 mt-1">{booking.service || "غير محدد"}</p>
+            <h3 className="font-semibold text-foreground">{booking.fullName}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{booking.service || "غير محدد"}</p>
           </div>
 
           {/* Contact Info */}
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-mono text-gray-700">{booking.phone}</span>
+            <span className="font-mono text-foreground">{booking.phone}</span>
           </div>
 
           {/* Source and Date */}
-          <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>المصدر: {getSourceLabel(booking.source || "direct")}</span>
             <span>{format(new Date(booking.createdAt), "dd/MM/yyyy", { locale: ar })}</span>
           </div>
@@ -402,43 +402,43 @@ export default function ReportsPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               <Card>
                 <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
-                  <CardTitle className="text-xs md:text-sm font-medium text-gray-600">إجمالي الحجوزات</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">إجمالي الحجوزات</CardTitle>
                 </CardHeader>
                 <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
                   <div className="text-2xl md:text-3xl font-bold text-primary">{bookingsReport?.grandTotal || 0}</div>
-                  <p className="text-xs text-gray-500 mt-1">جميع الأنواع</p>
+                  <p className="text-xs text-muted-foreground mt-1">جميع الأنواع</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
-                  <CardTitle className="text-xs md:text-sm font-medium text-gray-600">العملاء الجدد</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">العملاء الجدد</CardTitle>
                 </CardHeader>
                 <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
                   <div className="text-2xl md:text-3xl font-bold text-secondary">{leadsReport?.totalLeads || 0}</div>
-                  <p className="text-xs text-gray-500 mt-1">عملاء محتملين</p>
+                  <p className="text-xs text-muted-foreground mt-1">عملاء محتملين</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
-                  <CardTitle className="text-xs md:text-sm font-medium text-gray-600">معدل التحويل</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">معدل التحويل</CardTitle>
                 </CardHeader>
                 <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
                   <div className="text-2xl md:text-3xl font-bold text-purple">
                     {conversionReport?.overall.conversionRate.toFixed(1) || 0}%
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">نسبة التحويل</p>
+                  <p className="text-xs text-muted-foreground mt-1">نسبة التحويل</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
-                  <CardTitle className="text-xs md:text-sm font-medium text-gray-600">الإيرادات</CardTitle>
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">الإيرادات</CardTitle>
                 </CardHeader>
                 <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
                   <div className="text-2xl md:text-3xl font-bold text-warning">{revenueReport?.totalRevenue || 0}</div>
-                  <p className="text-xs text-gray-500 mt-1">قريباً</p>
+                  <p className="text-xs text-muted-foreground mt-1">قريباً</p>
                 </CardContent>
               </Card>
             </div>
@@ -453,7 +453,7 @@ export default function ReportsPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                   {/* Pie Chart - Bookings by Type */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-3 md:mb-4">توزيع الحجوزات حسب النوع</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3 md:mb-4">توزيع الحجوزات حسب النوع</h3>
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
@@ -478,7 +478,7 @@ export default function ReportsPage() {
 
                   {/* Bar Chart - Appointments by Status */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-3 md:mb-4">مواعيد الأطباء حسب الحالة</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3 md:mb-4">مواعيد الأطباء حسب الحالة</h3>
                     <ResponsiveContainer width="100%" height={250}>
                       <BarChart data={appointmentsStatusData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -498,12 +498,12 @@ export default function ReportsPage() {
                 {/* Detailed Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mt-4 md:mt-6">
                   <div className="bg-green-50 p-3 md:p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">مواعيد الأطباء</h4>
+                    <h4 className="text-sm font-medium text-foreground mb-2">مواعيد الأطباء</h4>
                     <div className="text-xl md:text-2xl font-bold text-green-600">{bookingsReport?.appointments.total || 0}</div>
                     <div className="mt-2 space-y-1">
                       {bookingsReport?.appointments.byStatus.map((stat) => (
                         <div key={stat.status} className="flex justify-between text-xs">
-                          <span className="text-gray-600">{getStatusLabel(stat.status)}</span>
+                          <span className="text-muted-foreground">{getStatusLabel(stat.status)}</span>
                           <span className="font-medium">{stat.total}</span>
                         </div>
                       ))}
@@ -511,12 +511,12 @@ export default function ReportsPage() {
                   </div>
 
                   <div className="bg-blue-50 p-3 md:p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">تسجيلات المخيمات</h4>
+                    <h4 className="text-sm font-medium text-foreground mb-2">تسجيلات المخيمات</h4>
                     <div className="text-xl md:text-2xl font-bold text-blue-600">{bookingsReport?.campRegistrations.total || 0}</div>
                     <div className="mt-2 space-y-1">
                       {bookingsReport?.campRegistrations.byStatus.map((stat) => (
                         <div key={stat.status} className="flex justify-between text-xs">
-                          <span className="text-gray-600">{getStatusLabel(stat.status)}</span>
+                          <span className="text-muted-foreground">{getStatusLabel(stat.status)}</span>
                           <span className="font-medium">{stat.total}</span>
                         </div>
                       ))}
@@ -524,12 +524,12 @@ export default function ReportsPage() {
                   </div>
 
                   <div className="bg-orange-50 p-3 md:p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">طلبات العروض</h4>
+                    <h4 className="text-sm font-medium text-foreground mb-2">طلبات العروض</h4>
                     <div className="text-xl md:text-2xl font-bold text-orange-600">{bookingsReport?.offerLeads.total || 0}</div>
                     <div className="mt-2 space-y-1">
                       {bookingsReport?.offerLeads.byStatus.map((stat) => (
                         <div key={stat.status} className="flex justify-between text-xs">
-                          <span className="text-gray-600">{getStatusLabel(stat.status)}</span>
+                          <span className="text-muted-foreground">{getStatusLabel(stat.status)}</span>
                           <span className="font-medium">{stat.total}</span>
                         </div>
                       ))}
@@ -549,7 +549,7 @@ export default function ReportsPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                   {/* Bar Chart - Leads by Source */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-3 md:mb-4">العملاء حسب المصدر</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3 md:mb-4">العملاء حسب المصدر</h3>
                     <ResponsiveContainer width="100%" height={250}>
                       <BarChart data={leadsSourceData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -563,7 +563,7 @@ export default function ReportsPage() {
 
                   {/* Pie Chart - Leads by Status */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-3 md:mb-4">العملاء حسب الحالة</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3 md:mb-4">العملاء حسب الحالة</h3>
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
@@ -600,7 +600,7 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent className="px-3 md:px-6">
                 <div className="mb-4 md:mb-6">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3 md:mb-4">معدلات التحويل حسب النوع</h3>
+                  <h3 className="text-sm font-medium text-foreground mb-3 md:mb-4">معدلات التحويل حسب النوع</h3>
                   <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={conversionChartData}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -615,41 +615,41 @@ export default function ReportsPage() {
                 {/* Detailed Conversion Stats */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                   <div className="bg-purple-50 p-3 md:p-4 rounded-lg">
-                    <h4 className="text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">العملاء المحتملين</h4>
+                    <h4 className="text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">العملاء المحتملين</h4>
                     <div className="text-xl md:text-2xl font-bold text-purple-600">
                       {conversionReport?.leads.conversionRate.toFixed(1) || 0}%
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {conversionReport?.leads.converted || 0} من {conversionReport?.leads.total || 0}
                     </p>
                   </div>
 
                   <div className="bg-green-50 p-3 md:p-4 rounded-lg">
-                    <h4 className="text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">مواعيد الأطباء</h4>
+                    <h4 className="text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">مواعيد الأطباء</h4>
                     <div className="text-xl md:text-2xl font-bold text-green-600">
                       {conversionReport?.appointments.conversionRate.toFixed(1) || 0}%
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {conversionReport?.appointments.converted || 0} من {conversionReport?.appointments.total || 0}
                     </p>
                   </div>
 
                   <div className="bg-orange-50 p-3 md:p-4 rounded-lg">
-                    <h4 className="text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">طلبات العروض</h4>
+                    <h4 className="text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">طلبات العروض</h4>
                     <div className="text-xl md:text-2xl font-bold text-orange-600">
                       {conversionReport?.offerLeads.conversionRate.toFixed(1) || 0}%
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {conversionReport?.offerLeads.converted || 0} من {conversionReport?.offerLeads.total || 0}
                     </p>
                   </div>
 
                   <div className="bg-blue-50 p-3 md:p-4 rounded-lg">
-                    <h4 className="text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">تسجيلات المخيمات</h4>
+                    <h4 className="text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">تسجيلات المخيمات</h4>
                     <div className="text-xl md:text-2xl font-bold text-blue-600">
                       {conversionReport?.campRegistrations.conversionRate.toFixed(1) || 0}%
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {conversionReport?.campRegistrations.converted || 0} من {conversionReport?.campRegistrations.total || 0}
                     </p>
                   </div>
@@ -664,9 +664,9 @@ export default function ReportsPage() {
                 <CardDescription className="text-xs md:text-sm">سيتم تفعيلها بعد تكامل نظام الدفع</CardDescription>
               </CardHeader>
               <CardContent className="px-3 md:px-6">
-                <div className="bg-gray-50 p-6 md:p-8 rounded-lg text-center">
-                  <FileText className="h-10 md:h-12 w-10 md:w-12 text-gray-400 mx-auto mb-3 md:mb-4" />
-                  <p className="text-sm md:text-base text-gray-600">{revenueReport?.note}</p>
+                <div className="bg-muted/50 p-6 md:p-8 rounded-lg text-center">
+                  <FileText className="h-10 md:h-12 w-10 md:w-12 text-muted-foreground mx-auto mb-3 md:mb-4" />
+                  <p className="text-sm md:text-base text-muted-foreground">{revenueReport?.note}</p>
                 </div>
               </CardContent>
             </Card>
@@ -685,7 +685,7 @@ export default function ReportsPage() {
                       <BookingCard key={`${booking.type}-${booking.id}`} booking={booking} />
                     ))}
                     {detailedBookings.length > 20 && (
-                      <p className="text-xs text-gray-500 mt-3 text-center">
+                      <p className="text-xs text-muted-foreground mt-3 text-center">
                         عرض أول 20 حجز من أصل {detailedBookings.length} حجز
                       </p>
                     )}
@@ -707,7 +707,7 @@ export default function ReportsPage() {
                       </thead>
                       <tbody>
                         {detailedBookings.slice(0, 50).map((booking) => (
-                          <tr key={`${booking.type}-${booking.id}`} className="border-b hover:bg-gray-50">
+                          <tr key={`${booking.type}-${booking.id}`} className="border-b hover:bg-muted/50">
                             <td className="p-2">{booking.type}</td>
                             <td className="p-2">{booking.fullName}</td>
                             <td className="p-2 font-mono">{booking.phone}</td>
@@ -727,7 +727,7 @@ export default function ReportsPage() {
                       </tbody>
                     </table>
                     {detailedBookings.length > 50 && (
-                      <p className="text-sm text-gray-500 mt-4 text-center">
+                      <p className="text-sm text-muted-foreground mt-4 text-center">
                         عرض أول 50 حجز من أصل {detailedBookings.length} حجز. استخدم التصدير لعرض القائمة الكاملة.
                       </p>
                     )}

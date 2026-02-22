@@ -43,7 +43,7 @@ const statusConfig: Record<string, { bg: string; text: string; dot: string; bord
   contacted: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", border: "border-amber-200" },
   booked: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", border: "border-emerald-200" },
   not_interested: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500", border: "border-red-200" },
-  no_answer: { bg: "bg-gray-50 dark:bg-gray-800", text: "text-gray-700 dark:text-gray-300", dot: "bg-gray-500", border: "border-gray-200 dark:border-gray-700" },
+  no_answer: { bg: "bg-muted/50 dark:bg-gray-800", text: "text-foreground dark:text-gray-300", dot: "bg-gray-500", border: "border-border dark:border-gray-700" },
 };
 
 const sanitizeLead = (lead: any) => {
@@ -544,7 +544,7 @@ export default function LeadsManagementPage() {
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">الحالة الجديدة</Label>
-                  <div className="grid grid-cols-5 gap-1.5">
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                     {[
                       { value: 'new', label: 'جديد', color: 'blue' },
                       { value: 'contacted', label: 'تم التواصل', color: 'amber' },

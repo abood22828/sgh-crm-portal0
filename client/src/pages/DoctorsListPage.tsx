@@ -82,7 +82,7 @@ export default function DoctorAppointments() {
       <MetaPixel pixelId="2008380493273171" />
       <div className="min-h-screen bg-gradient-to-b from-white to-blue-50" dir="rtl">
         {/* Header */}
-        <header className="bg-white shadow-sm sticky top-0 z-50">
+        <header className="bg-white dark:bg-card shadow-sm sticky top-0 z-50">
           <div className="container py-4">
             <div className="flex items-center justify-between">
               <img 
@@ -110,10 +110,10 @@ export default function DoctorAppointments() {
                 <Stethoscope className="w-5 h-5" />
                 <span className="font-semibold">احجز موعدك الآن</span>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
                 احجز موعدك مع أفضل الأطباء
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
+              <p className="text-xl text-muted-foreground mb-8">
                 فريق طبي متميز من الاستشاريين والأخصائيين في مختلف التخصصات
               </p>
             </div>
@@ -121,7 +121,7 @@ export default function DoctorAppointments() {
         </section>
 
         {/* Doctors Grid */}
-        <section className="py-12 bg-white">
+        <section className="py-12 bg-white dark:bg-card">
           <div className="container">
             <h2 className="text-3xl font-bold text-center mb-12">أطباؤنا المتميزون</h2>
             
@@ -313,7 +313,7 @@ export default function DoctorAppointments() {
         </section>
 
         {/* Contact Section */}
-        <section className="py-12 bg-white">
+        <section className="py-12 bg-white dark:bg-card">
           <div className="container">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-3xl font-bold text-center mb-8">تواصل معنا</h2>

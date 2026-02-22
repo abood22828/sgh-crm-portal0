@@ -33,7 +33,7 @@ const statusConfig: Record<string, { bg: string; text: string; dot: string; bord
 };
 
 export default function CampRegistrationCard({ registration, onEdit, onViewDetails, onPrint }: CampRegistrationCardProps) {
-  const status = statusConfig[registration.status] || { bg: "bg-gray-50", text: "text-gray-700", dot: "bg-gray-500", border: "border-gray-200", label: registration.status };
+  const status = statusConfig[registration.status] || { bg: "bg-muted/50", text: "text-foreground", dot: "bg-gray-500", border: "border-border", label: registration.status };
   const isUrgent = registration.status === 'pending' || registration.status === 'new';
 
   const handleCall = () => {

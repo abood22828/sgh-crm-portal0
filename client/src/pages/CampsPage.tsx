@@ -86,8 +86,8 @@ export default function CampsPage() {
         <Card className="max-w-md mx-4">
           <CardContent className="pt-6 text-center">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">تم التسجيل بنجاح!</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-2xl font-bold text-foreground mb-2">تم التسجيل بنجاح!</h2>
+            <p className="text-muted-foreground mb-4">
               شكراً لاهتمامك بالمخيمات الطبية. سيتواصل معك فريقنا خلال 24 ساعة.
             </p>
             <Button onClick={() => setSubmitted(false)} variant="outline">
@@ -102,13 +102,13 @@ export default function CampsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="bg-white dark:bg-card shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-5 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <img src={APP_LOGO} alt={APP_TITLE} className="h-9 sm:h-12 w-auto" />
             <div>
               <h1 className="text-sm sm:text-lg font-bold text-green-900 leading-tight">{APP_TITLE}</h1>
-              <p className="text-xs sm:text-sm text-gray-500">المخيمات الطبية</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">المخيمات الطبية</p>
             </div>
           </div>
           <a href="tel:8000018" className="flex items-center gap-2 text-green-600 hover:text-green-800">
@@ -125,7 +125,7 @@ export default function CampsPage() {
           <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-green-900 mb-3 sm:mb-4">
             المخيمات الطبية المجانية
           </h1>
-          <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             خدمات طبية مجانية للمجتمع بإشراف أفضل الأطباء والاستشاريين
           </p>
         </div>
@@ -165,7 +165,7 @@ export default function CampsPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">{camp.description}</p>
+                    <p className="text-muted-foreground">{camp.description}</p>
                     <Button 
                       className="w-full mt-4" 
                       variant={selectedCamp === camp.id ? "default" : "outline"}
@@ -179,8 +179,8 @@ export default function CampsPage() {
           ) : (
             <Card className="max-w-md mx-auto">
               <CardContent className="pt-6 text-center">
-                <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">لا توجد مخيمات متاحة حالياً</p>
+                <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">لا توجد مخيمات متاحة حالياً</p>
               </CardContent>
             </Card>
           )}
@@ -189,7 +189,7 @@ export default function CampsPage() {
 
       {/* Registration Form */}
       {selectedCamp && (
-        <section className="py-12 bg-white">
+        <section className="py-12 bg-white dark:bg-card">
           <div className="container mx-auto px-5 sm:px-6">
             <Card className="max-w-lg mx-auto">
               <CardHeader className="text-center">

@@ -136,7 +136,7 @@ export default function WhatsAppPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "sent":
-        return <CheckCheck className="h-3 w-3 text-gray-400" />;
+        return <CheckCheck className="h-3 w-3 text-muted-foreground" />;
       case "delivered":
         return <CheckCheck className="h-3 w-3 text-blue-500" />;
       case "read":
@@ -144,7 +144,7 @@ export default function WhatsAppPage() {
       case "failed":
         return <span className="text-red-500 text-xs">فشل</span>;
       default:
-        return <Clock className="h-3 w-3 text-gray-400" />;
+        return <Clock className="h-3 w-3 text-muted-foreground" />;
     }
   };
 
@@ -158,8 +158,8 @@ export default function WhatsAppPage() {
               <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 truncate">إدارة محادثات واتساب</h1>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">تواصل مع العملاء عبر واتساب بيزنس</p>
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground dark:text-gray-100 truncate">إدارة محادثات واتساب</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground dark:text-muted-foreground">تواصل مع العملاء عبر واتساب بيزنس</p>
             </div>
             <div className="flex gap-1 sm:gap-2 items-center flex-shrink-0">
               {/* Connection Status Badge */}
@@ -258,7 +258,7 @@ export default function WhatsAppPage() {
                 </Dialog>
               </div>
               <div className="relative mt-4">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
                 <Input
                   placeholder="ابحث عن محادثة..."
                   value={searchQuery}
@@ -270,7 +270,7 @@ export default function WhatsAppPage() {
             <CardContent className="p-0">
               <ScrollArea className="h-[calc(100vh-300px)]">
                 {conversationsLoading ? (
-                  <div className="p-4 text-center text-gray-500 dark:text-gray-400">جاري التحميل...</div>
+                  <div className="p-4 text-center text-muted-foreground dark:text-muted-foreground">جاري التحميل...</div>
                 ) : filteredConversations && filteredConversations.length > 0 ? (
                   <div className="divide-y">
                     {filteredConversations.map((conv: any, index: number) => (
@@ -291,7 +291,7 @@ export default function WhatsAppPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
-                              <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                              <h3 className="font-semibold text-foreground dark:text-gray-100 truncate">
                                 {conv.customerName || "عميل جديد"}
                               </h3>
                               {conv.unreadCount > 0 && (
@@ -300,11 +300,11 @@ export default function WhatsAppPage() {
                                 </Badge>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground mb-1">
                               <Phone className="h-3 w-3" />
                               <span dir="ltr">{conv.phoneNumber}</span>
                             </div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                               {conv.lastMessageAt
                                 ? formatDistanceToNow(new Date(conv.lastMessageAt), {
                                     addSuffix: true,
@@ -318,8 +318,8 @@ export default function WhatsAppPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                    <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+                  <div className="p-8 text-center text-muted-foreground dark:text-muted-foreground">
+                    <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-muted-foreground" />
                     <p>لا توجد محادثات</p>
                   </div>
                 )}
@@ -350,7 +350,7 @@ export default function WhatsAppPage() {
                   {/* Messages */}
                   <ScrollArea className="flex-1 p-4">
                     {messagesLoading ? (
-                      <div className="text-center text-gray-500 dark:text-gray-400">جاري تحميل الرسائل...</div>
+                      <div className="text-center text-muted-foreground dark:text-muted-foreground">جاري تحميل الرسائل...</div>
                     ) : messages && messages.length > 0 ? (
                       <div className="space-y-4">
                         {messages.map((msg: any, index: number) => (
@@ -366,13 +366,13 @@ export default function WhatsAppPage() {
                               className={`max-w-[70%] rounded-lg p-3 ${
                                 msg.direction === "outbound"
                                   ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white"
-                                  : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                  : "bg-muted dark:bg-gray-800 text-foreground dark:text-gray-100"
                               }`}
                             >
                               <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                               <div
                                 className={`flex items-center gap-1 mt-1 text-xs ${
-                                  msg.direction === "outbound" ? "text-white/80" : "text-gray-500 dark:text-gray-400"
+                                  msg.direction === "outbound" ? "text-white/80" : "text-muted-foreground dark:text-muted-foreground"
                                 }`}
                               >
                                 <span>
@@ -388,8 +388,8 @@ export default function WhatsAppPage() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                        <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+                      <div className="text-center text-muted-foreground dark:text-muted-foreground py-8">
+                        <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-muted-foreground" />
                         <p>لا توجد رسائل في هذه المحادثة</p>
                       </div>
                     )}
@@ -417,7 +417,7 @@ export default function WhatsAppPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleUseTemplate(template.content)}
-                              className="text-xs bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-700 hover:border-purple-300"
+                              className="text-xs bg-white dark:bg-card dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-700 hover:border-purple-300"
                             >
                               <FileText className="h-3 w-3 ml-1" />
                               {template.name}
@@ -432,7 +432,7 @@ export default function WhatsAppPage() {
                   )}
 
                   {/* Message Input */}
-                  <div className="border-t dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
+                  <div className="border-t dark:border-gray-700 p-4 bg-white dark:bg-card dark:bg-gray-900">
                     <div className="flex gap-2">
                       <Textarea
                         placeholder="اكتب رسالتك هنا..."
@@ -460,8 +460,8 @@ export default function WhatsAppPage() {
               </>
             ) : (
               <CardContent className="flex items-center justify-center h-[calc(100vh-200px)]">
-                <div className="text-center text-gray-500 dark:text-gray-400">
-                  <MessageCircle className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <div className="text-center text-muted-foreground dark:text-muted-foreground">
+                  <MessageCircle className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-muted-foreground" />
                   <p className="text-lg">اختر محادثة لبدء المراسلة</p>
                 </div>
               </CardContent>

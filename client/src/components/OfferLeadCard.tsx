@@ -27,12 +27,12 @@ const statusConfig: Record<string, { bg: string; text: string; dot: string; bord
   booked: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", border: "border-emerald-200", label: "تم الحجز" },
   notInterested: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500", border: "border-red-200", label: "غير مهتم" },
   not_interested: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500", border: "border-red-200", label: "غير مهتم" },
-  no_answer: { bg: "bg-gray-50", text: "text-gray-700", dot: "bg-gray-500", border: "border-gray-200", label: "لم يرد" },
+  no_answer: { bg: "bg-muted/50", text: "text-foreground", dot: "bg-gray-500", border: "border-border", label: "لم يرد" },
   pending: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", border: "border-amber-200", label: "قيد الانتظار" },
 };
 
 export default function OfferLeadCard({ lead, onEdit, onPrint }: OfferLeadCardProps) {
-  const status = statusConfig[lead.status] || { bg: "bg-gray-50", text: "text-gray-700", dot: "bg-gray-500", border: "border-gray-200", label: lead.status };
+  const status = statusConfig[lead.status] || { bg: "bg-muted/50", text: "text-foreground", dot: "bg-gray-500", border: "border-border", label: lead.status };
   const isUrgent = lead.status === 'new' || lead.status === 'pending';
 
   const handleCall = () => {

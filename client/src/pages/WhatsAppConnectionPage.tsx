@@ -107,8 +107,8 @@ export default function WhatsAppConnectionPage() {
                 <Smartphone className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">اتصال WhatsApp Web</h1>
-                <p className="text-gray-600">امسح رمز QR للاتصال بحسابك</p>
+                <h1 className="text-3xl font-bold text-foreground">اتصال WhatsApp Web</h1>
+                <p className="text-muted-foreground">امسح رمز QR للاتصال بحسابك</p>
               </div>
             </div>
             {getStatusBadge()}
@@ -127,30 +127,30 @@ export default function WhatsAppConnectionPage() {
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                  <div className={`p-2 rounded-full ${statusData?.isReady ? 'bg-green-100' : 'bg-gray-200'}`}>
-                    <Power className={`h-5 w-5 ${statusData?.isReady ? 'text-green-600' : 'text-gray-400'}`} />
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                  <div className={`p-2 rounded-full ${statusData?.isReady ? 'bg-green-100' : 'bg-muted'}`}>
+                    <Power className={`h-5 w-5 ${statusData?.isReady ? 'text-green-600' : 'text-muted-foreground'}`} />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">الحالة</p>
+                    <p className="text-sm text-muted-foreground">الحالة</p>
                     <p className="font-semibold">{statusData?.isReady ? "متصل" : "غير متصل"}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                  <div className={`p-2 rounded-full ${statusData?.isConnecting ? 'bg-blue-100' : 'bg-gray-200'}`}>
-                    <Loader2 className={`h-5 w-5 ${statusData?.isConnecting ? 'text-blue-600 animate-spin' : 'text-gray-400'}`} />
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                  <div className={`p-2 rounded-full ${statusData?.isConnecting ? 'bg-blue-100' : 'bg-muted'}`}>
+                    <Loader2 className={`h-5 w-5 ${statusData?.isConnecting ? 'text-blue-600 animate-spin' : 'text-muted-foreground'}`} />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">الاتصال</p>
+                    <p className="text-sm text-muted-foreground">الاتصال</p>
                     <p className="font-semibold">{statusData?.isConnecting ? "جاري..." : "غير نشط"}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                  <div className={`p-2 rounded-full ${statusData?.hasQRCode ? 'bg-purple-100' : 'bg-gray-200'}`}>
-                    <QrCode className={`h-5 w-5 ${statusData?.hasQRCode ? 'text-purple-600' : 'text-gray-400'}`} />
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                  <div className={`p-2 rounded-full ${statusData?.hasQRCode ? 'bg-purple-100' : 'bg-muted'}`}>
+                    <QrCode className={`h-5 w-5 ${statusData?.hasQRCode ? 'text-purple-600' : 'text-muted-foreground'}`} />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">QR Code</p>
+                    <p className="text-sm text-muted-foreground">QR Code</p>
                     <p className="font-semibold">{statusData?.hasQRCode ? "متوفر" : "غير متوفر"}</p>
                   </div>
                 </div>
@@ -214,7 +214,7 @@ export default function WhatsAppConnectionPage() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center">
-                  <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+                  <div className="bg-white dark:bg-card p-4 rounded-lg shadow-md mb-4">
                     <img
                       src={qrData.qrCode}
                       alt="WhatsApp QR Code"
@@ -265,7 +265,7 @@ export default function WhatsAppConnectionPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">اضغط على "بدء الاتصال"</h3>
-                      <p className="text-sm text-gray-600">سيتم تهيئة الاتصال وإنشاء رمز QR</p>
+                      <p className="text-sm text-muted-foreground">سيتم تهيئة الاتصال وإنشاء رمز QR</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -274,7 +274,7 @@ export default function WhatsAppConnectionPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">امسح رمز QR</h3>
-                      <p className="text-sm text-gray-600">استخدم تطبيق WhatsApp على هاتفك لمسح الرمز</p>
+                      <p className="text-sm text-muted-foreground">استخدم تطبيق WhatsApp على هاتفك لمسح الرمز</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -283,7 +283,7 @@ export default function WhatsAppConnectionPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">ابدأ المراسلة</h3>
-                      <p className="text-sm text-gray-600">بعد الاتصال، يمكنك إرسال واستقبال الرسائل مباشرة</p>
+                      <p className="text-sm text-muted-foreground">بعد الاتصال، يمكنك إرسال واستقبال الرسائل مباشرة</p>
                     </div>
                   </div>
                 </div>

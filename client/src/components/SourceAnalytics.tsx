@@ -37,8 +37,8 @@ const sourceDisplayMap: Record<string, { name: string; color: string; lightColor
   direct: {
     name: "مباشر",
     color: "bg-gray-500",
-    lightColor: "bg-gray-100",
-    textColor: "text-gray-600",
+    lightColor: "bg-muted",
+    textColor: "text-muted-foreground",
     icon: Globe,
   },
   // للتوافق مع التسجيلات القديمة
@@ -96,8 +96,8 @@ export default function SourceAnalytics() {
         const displayInfo = sourceDisplayMap[source] || {
           name: source,
           color: "bg-gray-500",
-          lightColor: "bg-gray-100",
-          textColor: "text-gray-600",
+          lightColor: "bg-muted",
+          textColor: "text-muted-foreground",
           icon: Globe,
         };
         

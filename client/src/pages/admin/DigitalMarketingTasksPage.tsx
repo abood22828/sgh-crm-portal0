@@ -88,13 +88,13 @@ const getStatusLabel = (status: TaskStatus) => {
 
 const getStatusColor = (status: TaskStatus) => {
   const colors: Record<TaskStatus, string> = {
-    todo: "bg-gray-100 text-gray-800 border-gray-200",
+    todo: "bg-muted text-foreground border-border",
     in_progress: "bg-blue-100 text-blue-800 border-blue-200",
     review: "bg-yellow-100 text-yellow-800 border-yellow-200",
     completed: "bg-green-100 text-green-800 border-green-200",
     cancelled: "bg-red-100 text-red-800 border-red-200",
   };
-  return colors[status] || "bg-gray-100 text-gray-800";
+  return colors[status] || "bg-muted text-foreground";
 };
 
 const getPriorityLabel = (priority: TaskPriority) => {
@@ -109,12 +109,12 @@ const getPriorityLabel = (priority: TaskPriority) => {
 
 const getPriorityColor = (priority: TaskPriority) => {
   const colors: Record<TaskPriority, string> = {
-    low: "bg-gray-100 text-gray-600",
+    low: "bg-muted text-muted-foreground",
     medium: "bg-blue-100 text-blue-600",
     high: "bg-orange-100 text-orange-600",
     urgent: "bg-red-100 text-red-600",
   };
-  return colors[priority] || "bg-gray-100 text-gray-600";
+  return colors[priority] || "bg-muted text-muted-foreground";
 };
 
 const getCategoryLabel = (category: TaskCategory) => {
@@ -138,9 +138,9 @@ const getCategoryColor = (category: TaskCategory) => {
     seo: "bg-cyan-100 text-cyan-600",
     social_media: "bg-indigo-100 text-indigo-600",
     analytics: "bg-amber-100 text-amber-600",
-    other: "bg-gray-100 text-gray-600",
+    other: "bg-muted text-muted-foreground",
   };
-  return colors[category] || "bg-gray-100 text-gray-600";
+  return colors[category] || "bg-muted text-muted-foreground";
 };
 
 const formatDate = (date: Date | string | null) => {
@@ -386,7 +386,7 @@ function TaskDetailsDialog({
             </div>
             
             {/* Details Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="text-muted-foreground">المعيّن إليه</Label>
                 <p className="font-medium">
@@ -612,7 +612,7 @@ function TaskFormDialog({
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>الأولوية</Label>
               <Select
@@ -651,7 +651,7 @@ function TaskFormDialog({
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>التصنيف</Label>
               <Select
@@ -694,7 +694,7 @@ function TaskFormDialog({
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>الحملة المرتبطة</Label>
               <Select
@@ -854,8 +854,8 @@ export default function DigitalMarketingTasksPage() {
           <Card>
             <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 sm:p-2 bg-gray-100 rounded-lg">
-                  <Circle className="h-4 w-4 text-gray-600" />
+                <div className="p-1.5 sm:p-2 bg-muted rounded-lg">
+                  <Circle className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div>
                   <p className="text-[10px] sm:text-xs text-muted-foreground">قيد الانتظار</p>

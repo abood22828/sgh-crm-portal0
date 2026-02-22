@@ -20,7 +20,7 @@ export default function AccessRequest() {
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-gray-900">
+            <CardTitle className="text-2xl font-bold text-foreground">
               تم إرسال طلب التصريح
             </CardTitle>
             <CardDescription className="text-base mt-2">
@@ -33,7 +33,7 @@ export default function AccessRequest() {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
             <div className="flex items-start gap-3">
               <Clock className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-gray-700">
+              <div className="text-sm text-foreground">
                 <p className="font-semibold mb-1">طلبك قيد المراجعة</p>
                 <p>سيتم مراجعة طلبك من قبل فريق الإدارة وسنقوم بإشعارك عبر البريد الإلكتروني فور الموافقة على الطلب.</p>
               </div>
@@ -41,14 +41,14 @@ export default function AccessRequest() {
           </div>
 
           {email && (
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <p className="text-sm text-gray-600">البريد الإلكتروني المسجل:</p>
-              <p className="text-sm font-medium text-gray-900 mt-1" dir="ltr">{email}</p>
+            <div className="bg-muted/50 rounded-lg p-3 text-center">
+              <p className="text-sm text-muted-foreground">البريد الإلكتروني المسجل:</p>
+              <p className="text-sm font-medium text-foreground mt-1" dir="ltr">{email}</p>
             </div>
           )}
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-gray-700 text-center">
+            <p className="text-sm text-foreground text-center">
               عادة ما تستغرق عملية المراجعة من 24 إلى 48 ساعة. شكراً لصبرك.
             </p>
           </div>
@@ -61,7 +61,7 @@ export default function AccessRequest() {
             العودة إلى الصفحة الرئيسية
           </Button>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>المستشفى السعودي الألماني - صنعاء</p>
             <p className="mt-1">نرعاكم كأهالينا</p>
           </div>

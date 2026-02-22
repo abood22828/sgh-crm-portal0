@@ -65,7 +65,7 @@ const roleColors: Record<string, string> = {
   admin: "bg-red-100 text-red-800 border-red-200",
   manager: "bg-blue-100 text-blue-800 border-blue-200",
   staff: "bg-green-100 text-green-800 border-green-200",
-  viewer: "bg-gray-100 text-gray-800 border-gray-200",
+  viewer: "bg-muted text-foreground border-border",
   user: "bg-purple-100 text-purple-800 border-purple-200",
 };
 
@@ -330,7 +330,7 @@ export default function UsersManagementPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">جاري التحميل...</p>
+            <p className="text-muted-foreground dark:text-muted-foreground">جاري التحميل...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -383,40 +383,40 @@ export default function UsersManagementPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground dark:text-muted-foreground flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     إجمالي المستخدمين
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">{totalUsers}</div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">جميع المستخدمين المسجلين</p>
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">جميع المستخدمين المسجلين</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground dark:text-muted-foreground flex items-center gap-2">
                     <UserCheck className="h-4 w-4" />
                     المستخدمون النشطون
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-green-600">{activeUsers}</div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">مستخدمون نشطون حالياً</p>
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">مستخدمون نشطون حالياً</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground dark:text-muted-foreground flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     المسؤولون
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-red-600">{adminUsers}</div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">مستخدمون بصلاحيات كاملة</p>
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">مستخدمون بصلاحيات كاملة</p>
                 </CardContent>
               </Card>
             </div>
@@ -558,7 +558,7 @@ export default function UsersManagementPage() {
                 {/* Filters & Column Controls */}
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                   <div className="relative flex-1 w-full">
-                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input
                       type="text"
                       placeholder="بحث عن مستخدم..."
@@ -637,7 +637,7 @@ export default function UsersManagementPage() {
                                       </Avatar>
                                       <div className="min-w-0">
                                         <div className="font-medium truncate">{user.name || user.username}</div>
-                                        <div className="text-sm text-gray-500 truncate">@{user.username}</div>
+                                        <div className="text-sm text-muted-foreground truncate">@{user.username}</div>
                                       </div>
                                     </div>
                                   </FrozenTableCell>
@@ -666,7 +666,7 @@ export default function UsersManagementPage() {
                                 );
                               case 'lastSignedIn':
                                 return (
-                                  <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-gray-500">
+                                  <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
                                     {user.lastSignedIn
                                       ? new Date(user.lastSignedIn).toLocaleDateString("ar-EG")
                                       : "-"}
@@ -674,7 +674,7 @@ export default function UsersManagementPage() {
                                 );
                               case 'createdAt':
                                 return (
-                                  <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-gray-500">
+                                  <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
                                     {user.createdAt
                                       ? new Date(user.createdAt).toLocaleDateString("ar-EG")
                                       : "-"}
@@ -721,7 +721,7 @@ export default function UsersManagementPage() {
                     ) : (
                       <TableRow>
                         <FrozenTableCell columnKey="" colSpan={userTable.visibleColumnOrder.filter(k => userTable.visibleColumns[k]).length} className="text-center py-12">
-                          <div className="text-gray-500">
+                          <div className="text-muted-foreground">
                             <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
                             <p>لا توجد نتائج</p>
                           </div>
@@ -733,7 +733,7 @@ export default function UsersManagementPage() {
 
                 {/* Results Count */}
                 {filteredUsers && filteredUsers.length > 0 && (
-                  <div className="mt-4 text-sm text-gray-600">
+                  <div className="mt-4 text-sm text-muted-foreground">
                     عرض {filteredUsers.length} من أصل {totalUsers} مستخدم
                   </div>
                 )}
@@ -750,31 +750,31 @@ export default function UsersManagementPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="p-4 border rounded-lg">
                     <Badge className={roleColors.admin + " mb-2 border"}>مسؤول</Badge>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       صلاحيات كاملة لإدارة النظام، المستخدمين، والإعدادات
                     </p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <Badge className={roleColors.manager + " mb-2 border"}>مدير</Badge>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       إدارة المحتوى والحجوزات والتقارير
                     </p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <Badge className={roleColors.staff + " mb-2 border"}>موظف</Badge>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       معالجة الحجوزات وتحديث البيانات
                     </p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <Badge className={roleColors.viewer + " mb-2 border"}>مشاهد</Badge>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       عرض البيانات والتقارير فقط دون تعديل
                     </p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <Badge className={roleColors.user + " mb-2 border"}>مستخدم</Badge>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       صلاحيات محدودة للوصول الأساسي
                     </p>
                   </div>
@@ -794,11 +794,11 @@ export default function UsersManagementPage() {
             <CardContent>
               {!accessRequests || accessRequests.length === 0 ? (
                 <div className="text-center py-12">
-                  <UserCheck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg font-semibold text-gray-600 mb-2">
+                  <UserCheck className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg font-semibold text-muted-foreground mb-2">
                     لا توجد طلبات معلقة
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     جميع طلبات الوصول تمت معالجتها
                   </p>
                 </div>
@@ -849,7 +849,7 @@ export default function UsersManagementPage() {
                                 return (
                                   <FrozenTableCell key={colKey} columnKey={colKey}>
                                     <div className="flex items-center gap-2">
-                                      <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                      <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                                       <span className="text-sm truncate" dir="ltr">{request.email}</span>
                                     </div>
                                   </FrozenTableCell>
@@ -859,25 +859,25 @@ export default function UsersManagementPage() {
                                   <FrozenTableCell key={colKey} columnKey={colKey}>
                                     {request.phone ? (
                                       <div className="flex items-center gap-2">
-                                        <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                        <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                                         <span dir="ltr">{request.phone}</span>
                                       </div>
                                     ) : (
-                                      <span className="text-gray-400 text-sm">-</span>
+                                      <span className="text-muted-foreground text-sm">-</span>
                                     )}
                                   </FrozenTableCell>
                                 );
                               case 'reason':
                                 return (
                                   <FrozenTableCell key={colKey} columnKey={colKey} wrap>
-                                    <span className="text-sm text-gray-600">
+                                    <span className="text-sm text-muted-foreground">
                                       {request.reason || "غير محدد"}
                                     </span>
                                   </FrozenTableCell>
                                 );
                               case 'requestedAt':
                                 return (
-                                  <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-gray-600">
+                                  <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
                                     {new Date(request.requestedAt).toLocaleDateString('ar-YE')}
                                   </FrozenTableCell>
                                 );
@@ -916,7 +916,7 @@ export default function UsersManagementPage() {
                   </ResizableTable>
 
                   {/* Results Count */}
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-muted-foreground">
                     عرض {sortedRequests.length} طلب معلق
                   </div>
                 </div>

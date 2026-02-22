@@ -90,7 +90,7 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
           {/* Custom Date Selection */}
           <div className="space-y-2">
             <div className="text-xs text-muted-foreground">أو اختر تاريخ مخصص:</div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium mb-1 block">من</label>
                 <CalendarComponent

@@ -25,7 +25,7 @@ export default function ContentManagementPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               سيتم إضافة ميزات إدارة المحتوى قريباً، والتي ستتيح لك:
             </p>
             <ul className="text-right space-y-2 max-w-md mx-auto">

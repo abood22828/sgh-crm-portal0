@@ -3075,3 +3075,36 @@
 - [x] دعم الوضع المظلم كامل
 - [x] دمج DashboardCharts في AdminDashboard
 - [x] 444 اختبار vitest ناجح (20 ملف)
+
+### تحسين تنسيق الصفحات للويب والهاتف - شامل ✅ مكتمل
+- [x] فحص جميع الصفحات على الويب (1280px) والهاتف (375px) وتوثيق المشاكل
+- [x] تحسين Navbar (تباعد، hamburger menu، RTL)
+- [x] تحسين HomePage (hero section، بطاقات الخدمات، spacing)
+- [x] تحسين صفحات الأطباء والعروض والمخيمات (بطاقات، grids، نصوص)
+- [x] تحسين صفحات التفاصيل (DoctorDetail، OfferDetail، CampDetail)
+- [x] تحسين Footer (تنسيق، responsive)
+- [x] تحسين لوحة التحكم AdminDashboard (بطاقات، charts، جداول)
+- [x] تحسين صفحات الإدارة (Leads، Bookings، Appointments، Users)
+- [ ] تحسين صفحة WhatsApp (محادثات، رسائل، إرسال)
+- [x] تحسين المكونات المشتركة (Dialog، Forms، Stats Cards)
+- [x] تحسين DashboardSidebar (شريط ضيق، لوحة كل الأدوات، جوال)
+- [ ] كتابة اختبارات vitest
+
+### تحسين تنسيق الصفحات للويب والهاتف (Responsive Design Enhancement) ✅ مكتمل
+- [x] تحسين Navbar للهاتف (قائمة hamburger, أحجام مناسبة)
+- [x] تحسين HomePage للهاتف (أحجام نصوص, spacing, أزرار)
+- [x] تحسين صفحة الأطباء للهاتف
+- [x] تحسين صفحة العروض للهاتف
+- [x] تحسين صفحة المخيمات للهاتف
+- [x] تحسين صفحات التفاصيل للهاتف (DoctorDetail, OfferDetail, CampDetail)
+- [x] تحسين لوحة التحكم والجداول للهاتف
+- [x] تحسين النوافذ المنبثقة والنماذج للهاتف
+- [x] تحسين Footer للهاتف
+- [x] تحسين DashboardLayout sidebar للهاتف
+- [x] تحسين SettingsPage للهاتف
+- [x] تحسين ProfilePage للهاتف
+- [x] تحسين QueueDashboard للهاتف
+- [x] تحسين UnderDevelopmentPage للهاتف
+- [x] تحسين VisitingDoctors للهاتف
+- [x] تحسين ThankYou page للهاتف
+- [x] إضافة تحسينات CSS عامة في index.css (scrollbar, tables, dialogs)

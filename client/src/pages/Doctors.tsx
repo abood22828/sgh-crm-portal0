@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Search, Stethoscope, Calendar } from "lucide-react";
+import { Loader2, Search, Stethoscope, Calendar, User } from "lucide-react";
 import { APP_LOGO } from "@/const";
 import SEO from "@/components/SEO";
 import InstallPWAButton from "@/components/InstallPWAButton";
@@ -54,42 +54,42 @@ export default function Doctors() {
         description="تعرف على أطبائنا المتميزين في مختلف التخصصات. احجز موعدك الآن مع أفضل الأطباء في صنعاء."
         image={APP_LOGO}
       />
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900" dir="rtl">
         <Navbar />
 
         {/* Hero Section */}
-        <section className="pt-10 sm:pt-24 pb-8 sm:pb-12 px-5 sm:px-6">
+        <section className="pt-6 sm:pt-10 md:pt-24 pb-4 sm:pb-8 md:pb-12 px-4 sm:px-5 md:px-6">
           <div className="container mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full mb-6">
-              <Stethoscope className="w-5 h-5" />
-              <span className="text-sm font-medium">أطباء متخصصون</span>
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-3 sm:mb-6">
+              <Stethoscope className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-xs sm:text-sm font-medium">أطباء متخصصون</span>
             </div>
-            <h1 className="text-xl sm:text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
+            <h1 className="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-bold text-foreground dark:text-white mb-2 sm:mb-3 md:mb-4">
               أطباؤنا المتميزون
             </h1>
-            <p className="text-sm sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-lg lg:text-xl text-muted-foreground dark:text-muted-foreground max-w-2xl mx-auto px-2">
               فريق طبي متكامل من أفضل الأطباء في مختلف التخصصات
             </p>
           </div>
         </section>
 
         {/* Search and Filter */}
-        <section className="pb-6 sm:pb-8 px-5 sm:px-6">
+        <section className="pb-4 sm:pb-6 md:pb-8 px-4 sm:px-5 md:px-6">
           <div className="container mx-auto max-w-4xl">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="grid md:grid-cols-2 gap-4">
+            <Card className="dark:bg-gray-800/50 dark:border-gray-700/50">
+              <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4">
                   <div className="relative">
-                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 sm:w-5 sm:h-5" />
                     <Input
                       placeholder="ابحث عن طبيب أو تخصص..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pr-10 text-right"
+                      className="pr-9 sm:pr-10 text-right text-xs sm:text-sm h-9 sm:h-10"
                     />
                   </div>
                   <Select value={specialtyFilter} onValueChange={setSpecialtyFilter}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-xs sm:text-sm h-9 sm:h-10">
                       <SelectValue placeholder="جميع التخصصات" />
                     </SelectTrigger>
                     <SelectContent>
@@ -108,77 +108,78 @@ export default function Doctors() {
         </section>
 
         {/* Doctors Grid */}
-        <section className="pb-12 sm:pb-16 px-5 sm:px-6">
+        <section className="pb-8 sm:pb-12 md:pb-16 px-4 sm:px-5 md:px-6">
           <div className="container mx-auto">
             {isLoading ? (
-              <div className="flex justify-center items-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+              <div className="flex justify-center items-center py-16 sm:py-20">
+                <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-emerald-600" />
               </div>
             ) : filteredDoctors && filteredDoctors.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
                 {filteredDoctors.map((doctor) => (
                   <Card
                     key={doctor.id}
-                    className="hover:shadow-lg transition-all cursor-pointer group"
+                    className="hover:shadow-lg transition-all cursor-pointer group dark:bg-gray-800/50 dark:border-gray-700/50 dark:hover:border-emerald-600/50 overflow-hidden"
                     onClick={() => setLocation(`/doctors/${doctor.slug}`)}
                   >
-                    <CardHeader className="text-center pb-3">
-                      <div className="mx-auto mb-3 relative">
+                    {/* Mobile: Horizontal layout | Desktop: Vertical layout */}
+                    <div className="flex flex-row sm:flex-col">
+                      {/* Image */}
+                      <div className="flex items-center justify-center p-2.5 sm:p-0 sm:pt-5">
                         {doctor.image ? (
                           <img
                             src={doctor.image}
                             alt={doctor.name}
-                            className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover border-2 sm:border-3 border-emerald-100 group-hover:border-emerald-200 transition-colors"
+                            className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full object-cover border-2 border-emerald-100 dark:border-emerald-800 group-hover:border-emerald-300 dark:group-hover:border-emerald-600 transition-colors shrink-0"
                           />
                         ) : (
-                          <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-emerald-100 flex items-center justify-center border-2 sm:border-3 border-emerald-200">
-                            <Stethoscope className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-emerald-600" />
+                          <div className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 flex items-center justify-center border-2 border-emerald-200 dark:border-emerald-800 shrink-0">
+                            <User className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 text-emerald-500 dark:text-emerald-400" />
                           </div>
                         )}
                       </div>
-                      <CardTitle className="text-sm sm:text-base md:text-lg text-gray-900 group-hover:text-emerald-600 transition-colors line-clamp-2">
-                        {doctor.name}
-                      </CardTitle>
-                      <CardDescription className="text-xs sm:text-sm line-clamp-1">
-                        {doctor.specialty}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-center space-y-2 pt-3">
-                      {doctor.experience && (
-                        <p className="text-xs sm:text-sm text-gray-600 text-right line-clamp-1">
-                          <span className="font-semibold">الخبرة:</span> {doctor.experience}
+
+                      {/* Content */}
+                      <div className="flex-1 p-2.5 sm:p-3 md:p-4 sm:text-center">
+                        <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-foreground dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-2 mb-0.5 sm:mb-1">
+                          {doctor.name}
+                        </h3>
+                        <p className="text-[10px] sm:text-xs md:text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1.5 sm:mb-2 line-clamp-1">
+                          {doctor.specialty}
                         </p>
-                      )}
-                      {doctor.languages && (
-                        <p className="text-xs sm:text-sm text-gray-600 text-right line-clamp-1">
-                          <span className="font-semibold">اللغات:</span> {doctor.languages}
-                        </p>
-                      )}
-                      {doctor.consultationFee && (
-                        <p className="text-xs sm:text-sm text-emerald-600 font-semibold text-center">
-                          رسوم الاستشارة: {doctor.consultationFee}
-                        </p>
-                      )}
-                      <Button
-                        size="sm"
-                        className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-xs sm:text-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLocation(`/doctors/${doctor.slug}`);
-                        }}
-                      >
-                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                        احجز موعد
-                      </Button>
-                    </CardContent>
+                        
+                        {doctor.experience && (
+                          <p className="text-[10px] sm:text-xs text-muted-foreground dark:text-muted-foreground mb-0.5 sm:mb-1 line-clamp-1">
+                            <span className="font-semibold">الخبرة:</span> {doctor.experience}
+                          </p>
+                        )}
+                        {doctor.consultationFee && (
+                          <p className="text-[10px] sm:text-xs text-muted-foreground dark:text-muted-foreground mb-1.5 sm:mb-2">
+                            <span className="font-semibold">رسوم الاستشارة:</span> {doctor.consultationFee}
+                          </p>
+                        )}
+                        
+                        <Button
+                          size="sm"
+                          className="w-full mt-0.5 sm:mt-1 bg-emerald-600 hover:bg-emerald-700 text-[10px] sm:text-xs md:text-sm h-7 sm:h-8 md:h-9"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLocation(`/doctors/${doctor.slug}`);
+                          }}
+                        >
+                          <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1 sm:ml-1.5" />
+                          احجز موعد
+                        </Button>
+                      </div>
+                    </div>
                   </Card>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20">
-                <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-xl text-gray-500">لا توجد نتائج مطابقة للبحث</p>
-                <p className="text-gray-400 mt-2">جرب تغيير معايير البحث</p>
+              <div className="text-center py-12 sm:py-20">
+                <Stethoscope className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 dark:text-muted-foreground mx-auto mb-3 sm:mb-4" />
+                <p className="text-base sm:text-xl text-muted-foreground dark:text-muted-foreground">لا توجد نتائج مطابقة للبحث</p>
+                <p className="text-xs sm:text-base text-muted-foreground dark:text-muted-foreground mt-1 sm:mt-2">جرب تغيير معايير البحث</p>
               </div>
             )}
           </div>

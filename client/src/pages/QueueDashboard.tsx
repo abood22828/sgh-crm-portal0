@@ -64,31 +64,32 @@ export default function QueueDashboard() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6">
         <div>
-          <h1 className="text-3xl font-bold">مراقبة طوابير الرسائل</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">مراقبة طوابير الرسائل</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             متابعة حالة إرسال رسائل WhatsApp
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
+            className="flex-1 sm:flex-initial text-xs sm:text-sm"
           >
-            {autoRefresh ? "إيقاف التحديث التلقائي" : "تفعيل التحديث التلقائي"}
+            {autoRefresh ? "إيقاف التحديث" : "تفعيل التحديث"}
           </Button>
           <Button variant="outline" size="sm" onClick={handleRefresh}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            تحديث
+            <RefreshCw className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">تحديث</span>
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">قيد الانتظار</CardTitle>

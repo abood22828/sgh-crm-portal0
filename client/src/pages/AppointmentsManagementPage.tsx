@@ -546,7 +546,7 @@ export default function AppointmentsManagementPage() {
                                 if (e.target.checked) setSelectedAppointmentIds(filteredAppointments.map((a: any) => a.id));
                                 else setSelectedAppointmentIds([]);
                               }}
-                              className="rounded border-gray-300"
+                              className="rounded border-border"
                             />
                           </ResizableHeaderCell>
                         );
@@ -600,7 +600,7 @@ export default function AppointmentsManagementPage() {
                                       if (e.target.checked) setSelectedAppointmentIds(prev => [...prev, appointment.id]);
                                       else setSelectedAppointmentIds(prev => prev.filter(id => id !== appointment.id));
                                     }}
-                                    className="rounded border-gray-300"
+                                    className="rounded border-border"
                                   />
                                 </FrozenTableCell>
                               );
