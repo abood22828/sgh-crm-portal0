@@ -1,4 +1,4 @@
-import { eq, desc, and, like, or, sql } from "drizzle-orm";
+import { eq, desc, and, like, or, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, campaigns, leads, leadStatusHistory, settings, doctors, appointments, accessRequests, InsertCampaign, InsertLead, InsertLeadStatusHistory, InsertSetting, InsertAppointment, InsertAccessRequest, sharedColumnTemplates, InsertSharedColumnTemplate } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -412,9 +412,9 @@ export async function getAppointmentsPaginated(
   page: number = 1,
   limit: number = 20,
   searchTerm?: string,
-  doctorId?: number,
-  source?: string,
-  status?: string,
+  doctorIds?: number[],
+  sources?: string[],
+  statuses?: string[],
   dateFilter?: "all" | "today" | "week" | "month",
   dateFrom?: string,
   dateTo?: string
@@ -439,19 +439,19 @@ export async function getAppointmentsPaginated(
     );
   }
   
-  // Filter by doctor
-  if (doctorId) {
-    whereConditions.push(eq(appointments.doctorId, doctorId));
+  // Filter by doctor (multi-select)
+  if (doctorIds && doctorIds.length > 0) {
+    whereConditions.push(inArray(appointments.doctorId, doctorIds));
   }
   
-  // Filter by source
-  if (source && source !== "all") {
-    whereConditions.push(eq(appointments.source, source));
+  // Filter by source (multi-select)
+  if (sources && sources.length > 0) {
+    whereConditions.push(inArray(appointments.source, sources));
   }
   
-  // Filter by status
-  if (status && status !== "all") {
-    whereConditions.push(eq(appointments.status, status as any));
+  // Filter by status (multi-select)
+  if (statuses && statuses.length > 0) {
+    whereConditions.push(inArray(appointments.status, statuses as any));
   }
   
   // Filter by date range (custom dateFrom/dateTo takes priority)
@@ -888,9 +888,9 @@ export async function getOfferLeadsPaginated(
   page: number = 1,
   limit: number = 20,
   searchTerm?: string,
-  offerId?: number,
-  source?: string,
-  status?: string,
+  offerIds?: number[],
+  sources?: string[],
+  statuses?: string[],
   dateFilter?: "all" | "today" | "week" | "month",
   dateFrom?: string,
   dateTo?: string
@@ -918,19 +918,19 @@ export async function getOfferLeadsPaginated(
     );
   }
   
-  // Filter by offer
-  if (offerId) {
-    whereConditions.push(eq(offerLeads.offerId, offerId));
+  // Filter by offer (multi-select)
+  if (offerIds && offerIds.length > 0) {
+    whereConditions.push(inArray(offerLeads.offerId, offerIds));
   }
   
-  // Filter by source
-  if (source && source !== "all") {
-    whereConditions.push(eq(offerLeads.source, source));
+  // Filter by source (multi-select)
+  if (sources && sources.length > 0) {
+    whereConditions.push(inArray(offerLeads.source, sources));
   }
   
-  // Filter by status
-  if (status && status !== "all") {
-    whereConditions.push(eq(offerLeads.status, status as any));
+  // Filter by status (multi-select)
+  if (statuses && statuses.length > 0) {
+    whereConditions.push(inArray(offerLeads.status, statuses as any));
   }
   
   // Filter by date range (custom dateFrom/dateTo takes priority)
@@ -1026,9 +1026,9 @@ export async function getCampRegistrationsPaginated(
   page: number = 1,
   limit: number = 20,
   searchTerm?: string,
-  campId?: number,
-  source?: string,
-  status?: string,
+  campIds?: number[],
+  sources?: string[],
+  statuses?: string[],
   dateFilter?: "all" | "today" | "week" | "month",
   dateFrom?: string,
   dateTo?: string
@@ -1056,19 +1056,19 @@ export async function getCampRegistrationsPaginated(
     );
   }
   
-  // Filter by camp
-  if (campId) {
-    whereConditions.push(eq(campRegistrations.campId, campId));
+  // Filter by camp (multi-select)
+  if (campIds && campIds.length > 0) {
+    whereConditions.push(inArray(campRegistrations.campId, campIds));
   }
   
-  // Filter by source
-  if (source && source !== "all") {
-    whereConditions.push(eq(campRegistrations.source, source));
+  // Filter by source (multi-select)
+  if (sources && sources.length > 0) {
+    whereConditions.push(inArray(campRegistrations.source, sources));
   }
   
-  // Filter by status
-  if (status && status !== "all") {
-    whereConditions.push(eq(campRegistrations.status, status as any));
+  // Filter by status (multi-select)
+  if (statuses && statuses.length > 0) {
+    whereConditions.push(inArray(campRegistrations.status, statuses as any));
   }
   
   // Filter by date range (custom dateFrom/dateTo takes priority)

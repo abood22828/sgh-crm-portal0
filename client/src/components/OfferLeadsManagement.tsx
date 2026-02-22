@@ -178,7 +178,7 @@ export default function OfferLeadsManagement({
   // Reset page when filters change
   useEffect(() => {
     setOfferPage(1);
-  }, [debouncedSearch, dateRange.from, dateRange.to]);
+  }, [debouncedSearch, dateRange.from, dateRange.to, statusFilter, sourceFilter, selectedOffer]);
   
   const offerLimit = offerPageSize === "all" ? 100000 : parseInt(offerPageSize);
   const { data: offerLeadsData, isLoading, refetch } = trpc.offerLeads.listPaginated.useQuery({
@@ -187,6 +187,9 @@ export default function OfferLeadsManagement({
     searchTerm: debouncedSearch,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
+    offerIds: selectedOffer && selectedOffer.length > 0 ? selectedOffer.map(Number) : undefined,
+    sources: sourceFilter && sourceFilter.length > 0 ? sourceFilter : undefined,
+    statuses: statusFilter && statusFilter.length > 0 ? statusFilter : undefined,
   });
   const offerLeads = offerLeadsData?.data || [];
   const { data: stats } = trpc.offerLeads.stats.useQuery();
@@ -283,26 +286,11 @@ export default function OfferLeadsManagement({
     return unique;
   }, [offerLeads]);
 
-  // Apply filtering and sorting to offer leads
+  // Apply sorting to offer leads (filtering is now done server-side)
   const filteredLeads = useMemo(() => {
     if (!offerLeads) return [];
     
     let filtered = [...offerLeads];
-    
-    // Filter by offer (multiple selection)
-    if (selectedOffer && selectedOffer.length > 0) {
-      filtered = filtered.filter((lead: any) => selectedOffer.includes(lead.offerId?.toString()));
-    }
-    
-    // Filter by source (multiple selection)
-    if (sourceFilter && sourceFilter.length > 0) {
-      filtered = filtered.filter((lead: any) => sourceFilter.includes(lead.source));
-    }
-    
-    // Filter by status (multiple selection)
-    if (statusFilter && statusFilter.length > 0) {
-      filtered = filtered.filter((lead: any) => statusFilter.includes(lead.status));
-    }
     
     // Apply sorting using useTableFeatures
     const sorted = offerTable.sortData(filtered, (item: any, key: string) => {
@@ -338,7 +326,7 @@ export default function OfferLeadsManagement({
     }
     
     return sorted;
-  }, [offerLeads, selectedOffer, sourceFilter, statusFilter, offerTable.sortState, offerTable.sortData]);
+  }, [offerLeads, offerTable.sortState, offerTable.sortData]);
 
   // useExportUtils hook لحجوزات العروض
   const offerExport = useExportUtils({
