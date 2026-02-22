@@ -283,6 +283,41 @@ export const appRouter = router({
   comments: commentsRouter,
   followUpTasks: followUpTasksRouter,
 
+  // Sidebar badges - aggregated counts for sidebar icons
+  sidebarBadges: protectedProcedure.query(async () => {
+    try {
+      const { getLeadsStats } = await import("./db");
+      const { getTasksStats } = await import("./db/tasks");
+      const { getUnreadWhatsAppConversationsCount } = await import("./db");
+      const { getPendingAccessRequests } = await import("./db");
+
+      // Fetch all stats in parallel
+      const [leadsStats, tasksStats, whatsappUnread, pendingAccess] = await Promise.allSettled([
+        getLeadsStats(),
+        getTasksStats(),
+        getUnreadWhatsAppConversationsCount(),
+        getPendingAccessRequests(),
+      ]);
+
+      const newLeads = leadsStats.status === 'fulfilled' && leadsStats.value ? Number(leadsStats.value.new) || 0 : 0;
+      const pendingTasks = tasksStats.status === 'fulfilled' && tasksStats.value
+        ? (Number(tasksStats.value.todo) || 0) + (Number(tasksStats.value.overdue) || 0)
+        : 0;
+      const unreadMessages = whatsappUnread.status === 'fulfilled' ? Number(whatsappUnread.value) || 0 : 0;
+      const pendingAccessCount = pendingAccess.status === 'fulfilled' ? pendingAccess.value.length : 0;
+
+      return {
+        leads: newLeads,
+        tasks: pendingTasks,
+        whatsapp: unreadMessages,
+        management: pendingAccessCount,
+      };
+    } catch (error) {
+      console.error('[SidebarBadges] Error fetching badge counts:', error);
+      return { leads: 0, tasks: 0, whatsapp: 0, management: 0 };
+    }
+  }),
+
   // Export to PDF
   export: router({
     generatePDF: protectedProcedure

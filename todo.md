@@ -2992,3 +2992,10 @@
 - [x] تعديل وضع التعديل في DashboardSidebar لدعم إعادة ترتيب العناصر بالسحب (SortableEditItem + DndContext)
 - [x] حفظ ترتيب العناصر في localStorage عبر editingItemIds
 - [x] تحديث 48 اختبار vitest ناجح
+
+### إضافة شارات أرقام (badges) على أيقونات الشريط الجانبي ✅ مكتمل
+- [x] إنشاء tRPC procedure (sidebarBadges) لجلب عدادات الإشعارات (عملاء جدد، مواعيد اليوم، رسائل غير مقروءة، مهام معلقة، عروض، مخيمات)
+- [x] إضافة SidebarBadge component على أيقونات الشريط الضيق + لوحة كل الأدوات + الجوال
+- [x] ربط البيانات الحقيقية من الـ API (leads, appointments, tasks, whatsapp, offers, camps)
+- [x] تحديث تلقائي (polling) كل 60 ثانية مع refetchOnWindowFocus
+- [x] تحديث 56 اختبار vitest ناجح

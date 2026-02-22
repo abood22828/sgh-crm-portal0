@@ -35,6 +35,7 @@ import {
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { trpc } from "@/lib/trpc";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   DndContext,
@@ -335,6 +336,25 @@ interface DashboardSidebarProps {
   currentPath: string;
 }
 
+// Badge component for sidebar icons
+function SidebarBadge({ count, className }: { count: number; className?: string }) {
+  if (!count || count <= 0) return null;
+  const display = count > 99 ? '99+' : String(count);
+  return (
+    <span
+      className={cn(
+        "absolute flex items-center justify-center rounded-full bg-red-500 text-white font-bold shadow-sm border border-white",
+        count > 99 ? "min-w-[18px] h-[14px] text-[7px] px-0.5 -top-1 -left-1.5" :
+        count > 9 ? "min-w-[16px] h-[14px] text-[7px] px-0.5 -top-1 -left-1" :
+        "h-[14px] w-[14px] text-[7px] -top-0.5 -left-0.5",
+        className
+      )}
+    >
+      {display}
+    </span>
+  );
+}
+
 export default function DashboardSidebar({ currentPath }: DashboardSidebarProps) {
   const [, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -346,6 +366,26 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   const [editingItemIds, setEditingItemIds] = useState<string[]>([]);
   const allToolsRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch sidebar badge counts (auto-refresh every 60 seconds)
+  const { data: badgeCounts } = trpc.sidebarBadges.useQuery(undefined, {
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    staleTime: 30_000,
+    retry: 1,
+  });
+
+  // Map nav item IDs to their badge counts
+  const getBadgeCount = useCallback((itemId: string): number => {
+    if (!badgeCounts) return 0;
+    const mapping: Record<string, number> = {
+      leads: badgeCounts.leads,
+      tasks: badgeCounts.tasks,
+      whatsapp: badgeCounts.whatsapp,
+      management: badgeCounts.management,
+    };
+    return mapping[itemId] || 0;
+  }, [badgeCounts]);
 
   // العناصر الرئيسية المعروضة في الشريط الضيق
   const primaryNavItems = useMemo(() => {
@@ -551,7 +591,8 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                   >
                     <div className="relative">
                       <Icon className={cn("h-[18px] w-[18px]", isActive && "stroke-[2.5]")} />
-                      {item.hasDot && (
+                      <SidebarBadge count={getBadgeCount(item.id)} />
+                      {!getBadgeCount(item.id) && item.hasDot && (
                         <span className="absolute -top-0.5 -left-0.5 h-1.5 w-1.5 bg-red-500 rounded-full" />
                       )}
                     </div>
@@ -801,8 +842,16 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                                   : "text-gray-700 hover:bg-gray-50"
                               )}
                             >
-                              <Icon className={cn("h-4.5 w-4.5 flex-shrink-0", isActive ? "text-blue-600" : "text-gray-400")} />
-                              <span className="truncate">{item.title}</span>
+                              <div className="relative flex-shrink-0">
+                                <Icon className={cn("h-4.5 w-4.5", isActive ? "text-blue-600" : "text-gray-400")} />
+                                <SidebarBadge count={getBadgeCount(item.id)} />
+                              </div>
+                              <span className="truncate flex-1">{item.title}</span>
+                              {getBadgeCount(item.id) > 0 && (
+                                <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
+                                  {getBadgeCount(item.id)}
+                                </span>
+                              )}
                             </button>
                           );
                         })}
@@ -878,7 +927,10 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
             currentPath.includes("/bookings") ? "text-blue-600" : "text-gray-500"
           )}
         >
-          <UserCheck className={cn("h-5 w-5", currentPath.includes("/bookings") && "stroke-[2.5]")} />
+          <div className="relative">
+            <UserCheck className={cn("h-5 w-5", currentPath.includes("/bookings") && "stroke-[2.5]")} />
+            <SidebarBadge count={(badgeCounts?.leads || 0)} />
+          </div>
           <span className={currentPath.includes("/bookings") ? "font-bold" : "font-medium"}>الحجوزات</span>
         </button>
         <button
@@ -895,7 +947,12 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           onClick={() => setMobileOpen(true)}
           className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] text-gray-500 min-w-[56px]"
         >
-          <Menu className="h-5 w-5" />
+          <div className="relative">
+            <Menu className="h-5 w-5" />
+            {((badgeCounts?.tasks || 0) + (badgeCounts?.whatsapp || 0) + (badgeCounts?.management || 0)) > 0 && (
+              <span className="absolute -top-0.5 -left-0.5 h-2 w-2 bg-red-500 rounded-full" />
+            )}
+          </div>
           <span className="font-medium">المزيد</span>
         </button>
       </div>
@@ -1017,8 +1074,16 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                                 : "text-gray-700 hover:bg-gray-50"
                             )}
                           >
-                            <Icon className={cn("h-4 w-4 flex-shrink-0", isActive ? "text-blue-600" : "text-gray-400")} />
-                            <span className="truncate">{item.title}</span>
+                            <div className="relative flex-shrink-0">
+                              <Icon className={cn("h-4 w-4", isActive ? "text-blue-600" : "text-gray-400")} />
+                              <SidebarBadge count={getBadgeCount(item.id)} />
+                            </div>
+                            <span className="truncate flex-1">{item.title}</span>
+                            {getBadgeCount(item.id) > 0 && (
+                              <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
+                                {getBadgeCount(item.id)}
+                              </span>
+                            )}
                           </button>
                         );
                       })}

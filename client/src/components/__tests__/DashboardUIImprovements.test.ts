@@ -198,6 +198,59 @@ describe('Dashboard UI Improvements', () => {
       expect(sidebarContent).toContain('id: "customers"');
       expect(sidebarContent).toContain('id: "tasks"');
     });
+
+    // Sidebar Badges tests
+    it('should have SidebarBadge component for notification counts', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('SidebarBadge');
+      expect(sidebarContent).toContain('count');
+    });
+
+    it('should fetch badge counts from sidebarBadges tRPC query', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('trpc.sidebarBadges.useQuery');
+      expect(sidebarContent).toContain('badgeCounts');
+    });
+
+    it('should have getBadgeCount function mapping item IDs to counts', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('getBadgeCount');
+    });
+
+    it('should show badges on desktop slim sidebar icons', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      // SidebarBadge should appear in the slim sidebar section
+      const slimSidebarSection = sidebarContent.split('renderDesktopSlimSidebar')[1];
+      expect(slimSidebarSection).toContain('SidebarBadge');
+      expect(slimSidebarSection).toContain('getBadgeCount');
+    });
+
+    it('should show badges on all tools panel items', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      // SidebarBadge should appear in the all tools panel section
+      const allToolsSection = sidebarContent.split('renderAllToolsPanel')[1];
+      expect(allToolsSection).toContain('SidebarBadge');
+    });
+
+    it('should show badges on mobile sidebar items', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      // SidebarBadge should appear in the mobile sidebar section
+      const mobileSidebarSection = sidebarContent.split('renderMobileSidebar')[1];
+      expect(mobileSidebarSection).toContain('SidebarBadge');
+    });
+
+    it('should show badges on mobile bottom bar', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      // SidebarBadge should appear in the mobile bottom bar section
+      const mobileBottomSection = sidebarContent.split('renderMobileBottomBar')[1];
+      expect(mobileBottomSection).toContain('SidebarBadge');
+    });
+
+    it('should auto-refresh badges periodically', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('refetchInterval');
+      expect(sidebarContent).toContain('60_000');
+    });
   });
 
   describe('DashboardLayout', () => {
