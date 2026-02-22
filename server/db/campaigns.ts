@@ -1,5 +1,5 @@
-import { eq, desc, and, gte, lte, sql, or, like } from "drizzle-orm";
-import { campaigns, appointments, leads, offerLeads, campRegistrations } from "../../drizzle/schema";
+import { eq, desc, and, gte, lte, sql, or, like, inArray } from "drizzle-orm";
+import { campaigns, appointments, leads, offerLeads, campRegistrations, campaignOffers, campaignCamps, campaignDoctors, offers, camps, doctors } from "../../drizzle/schema";
 import { getDb } from "../db";
 
 /**
@@ -153,6 +153,156 @@ export async function getCampaignStats(campaignId: number) {
       count: Number(item.count),
     })),
   };
+}
+
+// ==========================================
+// Campaign Linking Functions (Offers, Camps, Doctors)
+// ==========================================
+
+/**
+ * Get linked offers for a campaign
+ */
+export async function getCampaignLinkedOffers(campaignId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select({
+      linkId: campaignOffers.id,
+      offerId: campaignOffers.offerId,
+      offerTitle: offers.title,
+      offerSlug: offers.slug,
+      offerIsActive: offers.isActive,
+      linkedAt: campaignOffers.createdAt,
+    })
+    .from(campaignOffers)
+    .innerJoin(offers, eq(campaignOffers.offerId, offers.id))
+    .where(eq(campaignOffers.campaignId, campaignId))
+    .orderBy(desc(campaignOffers.createdAt));
+
+  return result;
+}
+
+/**
+ * Get linked camps for a campaign
+ */
+export async function getCampaignLinkedCamps(campaignId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select({
+      linkId: campaignCamps.id,
+      campId: campaignCamps.campId,
+      campName: camps.name,
+      campSlug: camps.slug,
+      campIsActive: camps.isActive,
+      linkedAt: campaignCamps.createdAt,
+    })
+    .from(campaignCamps)
+    .innerJoin(camps, eq(campaignCamps.campId, camps.id))
+    .where(eq(campaignCamps.campaignId, campaignId))
+    .orderBy(desc(campaignCamps.createdAt));
+
+  return result;
+}
+
+/**
+ * Get linked doctors for a campaign
+ */
+export async function getCampaignLinkedDoctors(campaignId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select({
+      linkId: campaignDoctors.id,
+      doctorId: campaignDoctors.doctorId,
+      doctorName: doctors.name,
+      doctorSlug: doctors.slug,
+      doctorSpecialty: doctors.specialty,
+      doctorAvailable: doctors.available,
+      linkedAt: campaignDoctors.createdAt,
+    })
+    .from(campaignDoctors)
+    .innerJoin(doctors, eq(campaignDoctors.doctorId, doctors.id))
+    .where(eq(campaignDoctors.campaignId, campaignId))
+    .orderBy(desc(campaignDoctors.createdAt));
+
+  return result;
+}
+
+/**
+ * Link offers to a campaign (replaces existing links)
+ */
+export async function linkOffersToCampaign(campaignId: number, offerIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Remove existing links
+  await db.delete(campaignOffers).where(eq(campaignOffers.campaignId, campaignId));
+
+  // Add new links
+  if (offerIds.length > 0) {
+    await db.insert(campaignOffers).values(
+      offerIds.map(offerId => ({ campaignId, offerId }))
+    );
+  }
+
+  return { success: true };
+}
+
+/**
+ * Link camps to a campaign (replaces existing links)
+ */
+export async function linkCampsToCampaign(campaignId: number, campIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Remove existing links
+  await db.delete(campaignCamps).where(eq(campaignCamps.campaignId, campaignId));
+
+  // Add new links
+  if (campIds.length > 0) {
+    await db.insert(campaignCamps).values(
+      campIds.map(campId => ({ campaignId, campId }))
+    );
+  }
+
+  return { success: true };
+}
+
+/**
+ * Link doctors to a campaign (replaces existing links)
+ */
+export async function linkDoctorsToCampaign(campaignId: number, doctorIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Remove existing links
+  await db.delete(campaignDoctors).where(eq(campaignDoctors.campaignId, campaignId));
+
+  // Add new links
+  if (doctorIds.length > 0) {
+    await db.insert(campaignDoctors).values(
+      doctorIds.map(doctorId => ({ campaignId, doctorId }))
+    );
+  }
+
+  return { success: true };
+}
+
+/**
+ * Get all campaign links (offers, camps, doctors) at once
+ */
+export async function getCampaignAllLinks(campaignId: number) {
+  const [linkedOffers, linkedCamps, linkedDoctors] = await Promise.all([
+    getCampaignLinkedOffers(campaignId),
+    getCampaignLinkedCamps(campaignId),
+    getCampaignLinkedDoctors(campaignId),
+  ]);
+
+  return { linkedOffers, linkedCamps, linkedDoctors };
 }
 
 /**

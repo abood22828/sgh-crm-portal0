@@ -38,6 +38,7 @@ import {
   Plane,
   AlertTriangle,
   Phone,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { type ColumnConfig } from "@/components/ColumnVisibility";
@@ -45,16 +46,22 @@ import { ColumnVisibility } from "@/components/ColumnVisibility";
 import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
 import { useTableFeatures } from "@/hooks/useTableFeatures";
 import EmptyState from "@/components/EmptyState";
+import { useSlugGenerator } from "@/hooks/useSlugGenerator";
+import ImageUpload from "@/components/ImageUpload";
 
 // === تعريف أعمدة جدول الأطباء ===
 const doctorColumns: ColumnConfig[] = [
   { key: "name", label: "الاسم", defaultVisible: true, defaultWidth: 200, minWidth: 150, maxWidth: 400, sortType: 'string' },
+  { key: "slug", label: "الرابط", defaultVisible: false, defaultWidth: 160, minWidth: 100, maxWidth: 300, sortType: 'string' },
   { key: "specialty", label: "التخصص", defaultVisible: true, defaultWidth: 180, minWidth: 120, maxWidth: 350, sortType: 'string' },
+  { key: "bio", label: "السيرة الذاتية", defaultVisible: false, defaultWidth: 200, minWidth: 120, maxWidth: 400, sortable: false },
+  { key: "image", label: "الصورة", defaultVisible: false, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortable: false },
   { key: "experience", label: "الخبرة", defaultVisible: true, defaultWidth: 100, minWidth: 70, maxWidth: 200, sortType: 'string' },
   { key: "languages", label: "اللغات", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 300, sortType: 'string' },
   { key: "consultationFee", label: "رسوم الاستشارة", defaultVisible: true, defaultWidth: 130, minWidth: 100, maxWidth: 250, sortType: 'number' },
   { key: "isVisiting", label: "طبيب زائر", defaultVisible: false, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortType: 'string' },
   { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortType: 'string' },
+  { key: "createdAt", label: "تاريخ الإضافة", defaultVisible: false, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
   { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300, sortable: false },
 ];
 
@@ -78,6 +85,12 @@ export default function DoctorsManagement() {
     isVisiting: "no" as "yes" | "no",
     available: "yes" as "yes" | "no",
   });
+
+  // Slug auto-generation hook
+  const { autoGenerateSlug, resetManualEdit } = useSlugGenerator(
+    (slug) => setFormData(prev => ({ ...prev, slug })),
+    { isEditing: !!editingDoctor }
+  );
 
   // === useTableFeatures hook ===
   const doctorTable = useTableFeatures({
@@ -190,6 +203,26 @@ export default function DoctorsManagement() {
       available: "yes",
     });
     setEditingDoctor(null);
+    resetManualEdit();
+  };
+
+  // Duplicate doctor
+  const handleDuplicate = (doctor: any) => {
+    setEditingDoctor(null);
+    setFormData({
+      name: doctor.name + " (نسخة)",
+      slug: doctor.slug + "-copy",
+      specialty: doctor.specialty || "",
+      image: doctor.image || "",
+      bio: doctor.bio || "",
+      experience: doctor.experience || "",
+      languages: doctor.languages || "",
+      consultationFee: doctor.consultationFee || "",
+      procedures: doctor.procedures || "",
+      isVisiting: doctor.isVisiting || "no",
+      available: "yes",
+    });
+    setDialogOpen(true);
   };
 
   const handleOpenDialog = (doctor?: any) => {
@@ -243,15 +276,7 @@ export default function DoctorsManagement() {
     });
   };
 
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^\w\-]+/g, "")
-      .replace(/\-\-+/g, "-")
-      .replace(/^-+/, "")
-      .replace(/-+$/, "");
-  };
+  // generateSlug is now handled by useSlugGenerator hook
 
   if (isLoading) {
     return (
@@ -478,6 +503,28 @@ export default function DoctorsManagement() {
                             </Badge>
                           </FrozenTableCell>
                         );
+                      case 'slug':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey}>
+                            <a href={`/doctors/${doctor.slug}`} target="_blank" className="text-blue-600 hover:underline text-sm truncate">
+                              {doctor.slug}
+                            </a>
+                          </FrozenTableCell>
+                        );
+                      case 'bio':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
+                            <span className="truncate block max-w-[200px]">{doctor.bio || '-'}</span>
+                          </FrozenTableCell>
+                        );
+                      case 'image':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey}>
+                            {doctor.image ? (
+                              <img src={doctor.image} alt="" className="h-8 w-8 rounded-full object-cover" />
+                            ) : '-'}
+                          </FrozenTableCell>
+                        );
                       case 'status':
                         return (
                           <FrozenTableCell key={colKey} columnKey={colKey}>
@@ -487,6 +534,12 @@ export default function DoctorsManagement() {
                               <span className={`inline-block w-1.5 h-1.5 rounded-full ml-1.5 ${doctor.available === "yes" ? "bg-emerald-500" : "bg-red-500"}`} />
                               {doctor.available === "yes" ? "متاح" : "غير متاح"}
                             </Badge>
+                          </FrozenTableCell>
+                        );
+                      case 'createdAt':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
+                            {doctor.createdAt ? new Date(doctor.createdAt).toLocaleDateString('ar-YE') : "-"}
                           </FrozenTableCell>
                         );
                       case 'actions':
@@ -510,8 +563,18 @@ export default function DoctorsManagement() {
                                 size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleOpenDialog(doctor)}
+                                title="تعديل"
                               >
                                 <Edit className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleDuplicate(doctor)}
+                                title="نسخ"
+                              >
+                                <Copy className="h-3.5 w-3.5 text-blue-400" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -521,6 +584,7 @@ export default function DoctorsManagement() {
                                   setDeletingDoctor(doctor);
                                   setDeleteDialogOpen(true);
                                 }}
+                                title="حذف"
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-red-400" />
                               </Button>
@@ -570,9 +634,7 @@ export default function DoctorsManagement() {
                   value={formData.name}
                   onChange={(e) => {
                     setFormData({ ...formData, name: e.target.value });
-                    if (!editingDoctor) {
-                      setFormData((prev) => ({ ...prev, slug: generateSlug(e.target.value) }));
-                    }
+                    autoGenerateSlug(e.target.value);
                   }}
                   placeholder="د. أحمد محمد"
                 />
@@ -611,13 +673,12 @@ export default function DoctorsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="image">رابط الصورة</Label>
-              <Input
-                id="image"
+              <Label className="text-right block text-xs font-medium text-muted-foreground">صورة الطبيب</Label>
+              <ImageUpload
                 value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                placeholder="https://example.com/doctor-image.jpg"
-                dir="ltr"
+                onChange={(url) => setFormData({ ...formData, image: url })}
+                folder="doctors"
+                placeholder="اسحب صورة الطبيب هنا أو اضغط للاختيار"
               />
             </div>
 

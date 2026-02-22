@@ -270,6 +270,7 @@ export type InsertCamp = typeof camps.$inferInsert;
 export const offerLeads = mysqlTable("offerLeads", {
   id: int("id").autoincrement().primaryKey(),
   offerId: int("offerId").notNull(),
+  campaignId: int("campaignId"), // Optional: link to campaign
   fullName: varchar("fullName", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }).notNull(),
   email: varchar("email", { length: 320 }),
@@ -307,6 +308,7 @@ export type InsertOfferLead = typeof offerLeads.$inferInsert;
 export const campRegistrations = mysqlTable("campRegistrations", {
   id: int("id").autoincrement().primaryKey(),
   campId: int("campId").notNull(),
+  campaignId: int("campaignId"), // Optional: link to campaign
   fullName: varchar("fullName", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }).notNull(),
   email: varchar("email", { length: 320 }),
@@ -929,3 +931,57 @@ export const patientResults = mysqlTable("patientResults", {
 
 export type PatientResult = typeof patientResults.$inferSelect;
 export type InsertPatientResult = typeof patientResults.$inferInsert;
+
+/**
+ * Campaign-Offers linking table (many-to-many)
+ * جدول ربط الحملات بالعروض
+ */
+export const campaignOffers = mysqlTable("campaignOffers", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  offerId: int("offerId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  campaignIdx: index("campaignOffers_campaign_idx").on(table.campaignId),
+  offerIdx: index("campaignOffers_offer_idx").on(table.offerId),
+  uniqueIdx: index("campaignOffers_unique_idx").on(table.campaignId, table.offerId),
+}));
+
+export type CampaignOffer = typeof campaignOffers.$inferSelect;
+export type InsertCampaignOffer = typeof campaignOffers.$inferInsert;
+
+/**
+ * Campaign-Camps linking table (many-to-many)
+ * جدول ربط الحملات بالمخيمات
+ */
+export const campaignCamps = mysqlTable("campaignCamps", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  campId: int("campId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  campaignIdx: index("campaignCamps_campaign_idx").on(table.campaignId),
+  campIdx: index("campaignCamps_camp_idx").on(table.campId),
+  uniqueIdx: index("campaignCamps_unique_idx").on(table.campaignId, table.campId),
+}));
+
+export type CampaignCamp = typeof campaignCamps.$inferSelect;
+export type InsertCampaignCamp = typeof campaignCamps.$inferInsert;
+
+/**
+ * Campaign-Doctors linking table (many-to-many)
+ * جدول ربط الحملات بالأطباء
+ */
+export const campaignDoctors = mysqlTable("campaignDoctors", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  doctorId: int("doctorId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  campaignIdx: index("campaignDoctors_campaign_idx").on(table.campaignId),
+  doctorIdx: index("campaignDoctors_doctor_idx").on(table.doctorId),
+  uniqueIdx: index("campaignDoctors_unique_idx").on(table.campaignId, table.doctorId),
+}));
+
+export type CampaignDoctor = typeof campaignDoctors.$inferSelect;
+export type InsertCampaignDoctor = typeof campaignDoctors.$inferInsert;

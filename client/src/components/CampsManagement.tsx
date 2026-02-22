@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -24,14 +25,19 @@ import { ColumnVisibility } from "@/components/ColumnVisibility";
 import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
 import { useTableFeatures } from "@/hooks/useTableFeatures";
 import EmptyState from "@/components/EmptyState";
+import { useSlugGenerator } from "@/hooks/useSlugGenerator";
+import ImageUpload from "@/components/ImageUpload";
 
 // === تعريف أعمدة جدول المخيمات ===
 const campColumns: ColumnConfig[] = [
   { key: "name", label: "الاسم", defaultVisible: true, defaultWidth: 220, minWidth: 150, maxWidth: 400, sortType: 'string' },
   { key: "slug", label: "الرابط", defaultVisible: true, defaultWidth: 160, minWidth: 100, maxWidth: 300, sortType: 'string' },
+  { key: "description", label: "الوصف", defaultVisible: false, defaultWidth: 200, minWidth: 120, maxWidth: 400, sortable: false },
+  { key: "imageUrl", label: "الصورة", defaultVisible: false, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortable: false },
   { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortType: 'string' },
   { key: "startDate", label: "تاريخ البداية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
   { key: "endDate", label: "تاريخ النهاية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
+  { key: "createdAt", label: "تاريخ الإنشاء", defaultVisible: false, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
   { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300, sortable: false },
 ];
 
@@ -54,6 +60,12 @@ export default function CampsManagement() {
     availableProcedures: "",
     galleryImages: "",
   });
+
+  // Slug auto-generation hook
+  const { autoGenerateSlug, resetManualEdit } = useSlugGenerator(
+    (slug) => setFormData(prev => ({ ...prev, slug })),
+    { isEditing: !!editingCamp }
+  );
 
   // === useTableFeatures hook ===
   const campTable = useTableFeatures({
@@ -116,6 +128,26 @@ export default function CampsManagement() {
       galleryImages: "",
     });
     setEditingCamp(null);
+    resetManualEdit();
+  };
+
+  // Duplicate camp
+  const handleDuplicate = (camp: any) => {
+    setEditingCamp(null);
+    setFormData({
+      name: camp.name + " (نسخة)",
+      slug: camp.slug + "-copy",
+      description: camp.description || "",
+      imageUrl: camp.imageUrl || "",
+      isActive: false,
+      startDate: camp.startDate ? new Date(camp.startDate).toISOString().split('T')[0] : "",
+      endDate: camp.endDate ? new Date(camp.endDate).toISOString().split('T')[0] : "",
+      freeOffers: camp.freeOffers || "",
+      discountedOffers: camp.discountedOffers || "",
+      availableProcedures: camp.availableProcedures || "",
+      galleryImages: camp.galleryImages || "",
+    });
+    setShowAddDialog(true);
   };
 
   const handleSubmit = () => {
@@ -360,6 +392,26 @@ export default function CampsManagement() {
                             {camp.endDate ? new Date(camp.endDate).toLocaleDateString('ar-YE') : "-"}
                           </FrozenTableCell>
                         );
+                      case 'description':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
+                            <span className="truncate block max-w-[200px]">{camp.description || '-'}</span>
+                          </FrozenTableCell>
+                        );
+                      case 'imageUrl':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey}>
+                            {camp.imageUrl ? (
+                              <img src={camp.imageUrl} alt="" className="h-8 w-8 rounded object-cover" />
+                            ) : '-'}
+                          </FrozenTableCell>
+                        );
+                      case 'createdAt':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">
+                            {camp.createdAt ? new Date(camp.createdAt).toLocaleDateString('ar-YE') : "-"}
+                          </FrozenTableCell>
+                        );
                       case 'actions':
                         return (
                           <FrozenTableCell key={colKey} columnKey={colKey}>
@@ -369,8 +421,18 @@ export default function CampsManagement() {
                                 size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleEdit(camp)}
+                                title="تعديل"
                               >
                                 <Edit className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleDuplicate(camp)}
+                                title="نسخ"
+                              >
+                                <Copy className="h-3.5 w-3.5 text-blue-400" />
                               </Button>
                               <Button 
                                 variant="ghost"
@@ -380,6 +442,7 @@ export default function CampsManagement() {
                                   setDeletingCamp(camp);
                                   setDeleteDialogOpen(true);
                                 }}
+                                title="حذف"
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-red-400" />
                               </Button>
@@ -424,7 +487,10 @@ export default function CampsManagement() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    autoGenerateSlug(e.target.value);
+                  }}
                   placeholder="مثال: مخيم الجراحة العامة"
                 />
               </div>
@@ -452,13 +518,12 @@ export default function CampsManagement() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-right block text-xs font-medium text-muted-foreground" htmlFor="imageUrl">رابط الصورة الرئيسية</Label>
-              <Input
-                id="imageUrl"
+              <Label className="text-right block text-xs font-medium text-muted-foreground">صورة المخيم</Label>
+              <ImageUpload
                 value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="https://example.com/camp-image.jpg"
-                dir="ltr"
+                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                folder="camps"
+                placeholder="اسحب صورة المخيم هنا أو اضغط للاختيار"
               />
             </div>
 

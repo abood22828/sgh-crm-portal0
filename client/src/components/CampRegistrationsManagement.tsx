@@ -169,6 +169,7 @@ export default function CampRegistrationsManagement({
     { key: 'referrer', label: 'المحيل', defaultVisible: false, sortType: 'string' },
     { key: 'fbclid', label: 'Facebook Click ID', defaultVisible: false, sortType: 'string' },
     { key: 'gclid', label: 'Google Click ID', defaultVisible: false, sortType: 'string' },
+    { key: 'campaignId', label: 'الحملة', defaultVisible: false, sortType: 'number' },
     { key: 'date', label: 'تاريخ التسجيل', defaultVisible: true, sortType: 'date' },
     { key: 'comments', label: 'التعليقات', defaultVisible: true, sortable: false },
     { key: 'tasks', label: 'المهام', defaultVisible: true, sortable: false },
@@ -319,6 +320,7 @@ export default function CampRegistrationsManagement({
         case 'referrer': return item.referrer;
         case 'fbclid': return item.fbclid;
         case 'gclid': return item.gclid;
+        case 'campaignId': return item.campaignId;
         default: return item[key];
       }
     });
@@ -859,6 +861,8 @@ export default function CampRegistrationsManagement({
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs font-mono">{reg.fbclid || '-'}</FrozenTableCell>;
                           case 'gclid':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs font-mono">{reg.gclid || '-'}</FrozenTableCell>;
+                          case 'campaignId':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs">{reg.campaignId || '-'}</FrozenTableCell>;
                           case 'comments':
                             return <FrozenTableCell key={colKey} columnKey={colKey}><CommentCount entityType="campRegistration" entityId={reg.id} /></FrozenTableCell>;
                           case 'tasks':
