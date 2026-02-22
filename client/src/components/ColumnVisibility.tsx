@@ -54,6 +54,10 @@ export interface ColumnConfig {
   minWidth?: number;
   /** Maximum width in pixels */
   maxWidth?: number;
+  /** Whether this column is sortable (default: true) */
+  sortable?: boolean;
+  /** Sort type hint for proper comparison: 'string' | 'number' | 'date' | 'boolean' (default: 'string') */
+  sortType?: 'string' | 'number' | 'date' | 'boolean';
 }
 
 // Smart default widths based on column content type

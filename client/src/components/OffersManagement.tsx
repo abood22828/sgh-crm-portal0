@@ -17,12 +17,12 @@ import { useTableFeatures } from "@/hooks/useTableFeatures";
 
 // === تعريف أعمدة جدول العروض ===
 const offerColumns: ColumnConfig[] = [
-  { key: "title", label: "العنوان", defaultVisible: true, defaultWidth: 220, minWidth: 150, maxWidth: 400 },
-  { key: "slug", label: "الرابط", defaultVisible: true, defaultWidth: 160, minWidth: 100, maxWidth: 300 },
-  { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200 },
-  { key: "startDate", label: "تاريخ البداية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250 },
-  { key: "endDate", label: "تاريخ النهاية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250 },
-  { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300 },
+  { key: "title", label: "العنوان", defaultVisible: true, defaultWidth: 220, minWidth: 150, maxWidth: 400, sortType: 'string' },
+  { key: "slug", label: "الرابط", defaultVisible: true, defaultWidth: 160, minWidth: 100, maxWidth: 300, sortType: 'string' },
+  { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortType: 'string' },
+  { key: "startDate", label: "تاريخ البداية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
+  { key: "endDate", label: "تاريخ النهاية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
+  { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300, sortable: false },
 ];
 
 export default function OffersManagement() {
@@ -133,14 +133,29 @@ export default function OffersManagement() {
 
   const filteredOffers = useMemo(() => {
     if (!offers) return [];
-    if (!searchTerm) return offers;
-    const term = searchTerm.toLowerCase();
-    return offers.filter(
-      (o: any) =>
-        o.title.toLowerCase().includes(term) ||
-        o.slug.toLowerCase().includes(term)
-    );
-  }, [offers, searchTerm]);
+    let filtered = [...offers];
+    
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (o: any) =>
+          o.title.toLowerCase().includes(term) ||
+          o.slug.toLowerCase().includes(term)
+      );
+    }
+
+    // Apply sorting using useTableFeatures
+    return offerTable.sortData(filtered, (item: any, key: string) => {
+      switch (key) {
+        case 'title': return item.title;
+        case 'slug': return item.slug;
+        case 'status': return item.status;
+        case 'startDate': return item.startDate;
+        case 'endDate': return item.endDate;
+        default: return item[key];
+      }
+    });
+  }, [offers, searchTerm, offerTable.sortState, offerTable.sortData]);
 
   // Calculate stats
   const totalOffers = offers?.length || 0;
@@ -217,10 +232,9 @@ export default function OffersManagement() {
                       minWidth={col.minWidth || 80}
                       maxWidth={col.maxWidth || 500}
                       onResize={offerTable.columnWidths.handleResize}
+                      {...offerTable.getSortProps(colKey)}
                     >
-                      <TableHead className="text-right h-auto p-0 border-0">
-                        {col.label}
-                      </TableHead>
+                      {col.label}
                     </ResizableHeaderCell>
                   );
                 })}

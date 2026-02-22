@@ -17,12 +17,12 @@ import { useTableFeatures } from "@/hooks/useTableFeatures";
 
 // === تعريف أعمدة جدول المخيمات ===
 const campColumns: ColumnConfig[] = [
-  { key: "name", label: "الاسم", defaultVisible: true, defaultWidth: 220, minWidth: 150, maxWidth: 400 },
-  { key: "slug", label: "الرابط", defaultVisible: true, defaultWidth: 160, minWidth: 100, maxWidth: 300 },
-  { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200 },
-  { key: "startDate", label: "تاريخ البداية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250 },
-  { key: "endDate", label: "تاريخ النهاية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250 },
-  { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300 },
+  { key: "name", label: "الاسم", defaultVisible: true, defaultWidth: 220, minWidth: 150, maxWidth: 400, sortType: 'string' },
+  { key: "slug", label: "الرابط", defaultVisible: true, defaultWidth: 160, minWidth: 100, maxWidth: 300, sortType: 'string' },
+  { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortType: 'string' },
+  { key: "startDate", label: "تاريخ البداية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
+  { key: "endDate", label: "تاريخ النهاية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250, sortType: 'date' },
+  { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300, sortable: false },
 ];
 
 export default function CampsManagement() {
@@ -145,14 +145,29 @@ export default function CampsManagement() {
 
   const filteredCamps = useMemo(() => {
     if (!camps) return [];
-    if (!searchTerm) return camps;
-    const term = searchTerm.toLowerCase();
-    return camps.filter(
-      (c: any) =>
-        c.name.toLowerCase().includes(term) ||
-        c.slug.toLowerCase().includes(term)
-    );
-  }, [camps, searchTerm]);
+    let filtered = [...camps];
+    
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (c: any) =>
+          c.name.toLowerCase().includes(term) ||
+          c.slug.toLowerCase().includes(term)
+      );
+    }
+
+    // Apply sorting using useTableFeatures
+    return campTable.sortData(filtered, (item: any, key: string) => {
+      switch (key) {
+        case 'name': return item.name;
+        case 'slug': return item.slug;
+        case 'status': return item.status;
+        case 'startDate': return item.startDate;
+        case 'endDate': return item.endDate;
+        default: return item[key];
+      }
+    });
+  }, [camps, searchTerm, campTable.sortState, campTable.sortData]);
 
   // Calculate stats
   const totalCamps = camps?.length || 0;
@@ -229,10 +244,9 @@ export default function CampsManagement() {
                       minWidth={col.minWidth || 80}
                       maxWidth={col.maxWidth || 500}
                       onResize={campTable.columnWidths.handleResize}
+                      {...campTable.getSortProps(colKey)}
                     >
-                      <TableHead className="text-right h-auto p-0 border-0">
-                        {col.label}
-                      </TableHead>
+                      {col.label}
                     </ResizableHeaderCell>
                   );
                 })}

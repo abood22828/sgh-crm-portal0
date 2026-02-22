@@ -2771,3 +2771,14 @@
 - [x] تطبيق useTableFeatures على OffersManagement
 - [x] تطبيق useTableFeatures على CampsManagement
 - [x] اختبار النظام والتحقق من عدم وجود أخطاء (17 اختبار ناجح)
+
+### إضافة خاصية الفرز بالنقر على عنوان العمود ✅ مكتمل
+- [x] إضافة نظام الفرز (sort state, toggle, comparator) إلى useTableFeatures hook
+- [x] تحديث ResizableHeaderCell لعرض أيقونة الفرز وتفعيل النقر
+- [x] تطبيق الفرز على BookingsManagementPage
+- [x] تطبيق الفرز على OfferLeadsManagement
+- [x] تطبيق الفرز على CampRegistrationsManagement
+- [x] تطبيق الفرز على DoctorsManagement
+- [x] تطبيق الفرز على OffersManagement
+- [x] تطبيق الفرز على CampsManagement
+- [x] كتابة اختبارات vitest (17 اختبار ناجح)

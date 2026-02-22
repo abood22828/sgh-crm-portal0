@@ -47,14 +47,14 @@ import { useTableFeatures } from "@/hooks/useTableFeatures";
 
 // === تعريف أعمدة جدول الأطباء ===
 const doctorColumns: ColumnConfig[] = [
-  { key: "name", label: "الاسم", defaultVisible: true, defaultWidth: 200, minWidth: 150, maxWidth: 400 },
-  { key: "specialty", label: "التخصص", defaultVisible: true, defaultWidth: 180, minWidth: 120, maxWidth: 350 },
-  { key: "experience", label: "الخبرة", defaultVisible: true, defaultWidth: 100, minWidth: 70, maxWidth: 200 },
-  { key: "languages", label: "اللغات", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 300 },
-  { key: "consultationFee", label: "رسوم الاستشارة", defaultVisible: true, defaultWidth: 130, minWidth: 100, maxWidth: 250 },
-  { key: "isVisiting", label: "طبيب زائر", defaultVisible: false, defaultWidth: 100, minWidth: 80, maxWidth: 200 },
-  { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200 },
-  { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300 },
+  { key: "name", label: "الاسم", defaultVisible: true, defaultWidth: 200, minWidth: 150, maxWidth: 400, sortType: 'string' },
+  { key: "specialty", label: "التخصص", defaultVisible: true, defaultWidth: 180, minWidth: 120, maxWidth: 350, sortType: 'string' },
+  { key: "experience", label: "الخبرة", defaultVisible: true, defaultWidth: 100, minWidth: 70, maxWidth: 200, sortType: 'string' },
+  { key: "languages", label: "اللغات", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 300, sortType: 'string' },
+  { key: "consultationFee", label: "رسوم الاستشارة", defaultVisible: true, defaultWidth: 130, minWidth: 100, maxWidth: 250, sortType: 'number' },
+  { key: "isVisiting", label: "طبيب زائر", defaultVisible: false, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortType: 'string' },
+  { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200, sortType: 'string' },
+  { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300, sortable: false },
 ];
 
 export default function DoctorsManagement() {
@@ -148,16 +148,32 @@ export default function DoctorsManagement() {
 
   const filteredDoctors = useMemo(() => {
     if (!doctors) return [];
-    if (!searchTerm) return doctors;
+    let filtered = [...doctors];
+    
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (doc: any) =>
+          doc.name.toLowerCase().includes(term) ||
+          doc.specialty.toLowerCase().includes(term) ||
+          (doc.languages && doc.languages.toLowerCase().includes(term))
+      );
+    }
 
-    const term = searchTerm.toLowerCase();
-    return doctors.filter(
-      (doc: any) =>
-        doc.name.toLowerCase().includes(term) ||
-        doc.specialty.toLowerCase().includes(term) ||
-        (doc.languages && doc.languages.toLowerCase().includes(term))
-    );
-  }, [doctors, searchTerm]);
+    // Apply sorting using useTableFeatures
+    return doctorTable.sortData(filtered, (item: any, key: string) => {
+      switch (key) {
+        case 'name': return item.name;
+        case 'specialty': return item.specialty;
+        case 'experience': return item.experience;
+        case 'languages': return item.languages;
+        case 'consultationFee': return item.consultationFee;
+        case 'isVisiting': return item.isVisiting ? 'نعم' : 'لا';
+        case 'status': return item.status;
+        default: return item[key];
+      }
+    });
+  }, [doctors, searchTerm, doctorTable.sortState, doctorTable.sortData]);
 
   const resetForm = () => {
     setFormData({
@@ -364,10 +380,9 @@ export default function DoctorsManagement() {
                       minWidth={col.minWidth || 80}
                       maxWidth={col.maxWidth || 500}
                       onResize={doctorTable.columnWidths.handleResize}
+                      {...doctorTable.getSortProps(colKey)}
                     >
-                      <TableHead className="text-right h-auto p-0 border-0">
-                        {col.label}
-                      </TableHead>
+                      {col.label}
                     </ResizableHeaderCell>
                   );
                 })}

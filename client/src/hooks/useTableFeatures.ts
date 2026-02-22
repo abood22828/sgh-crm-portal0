@@ -22,6 +22,13 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { getColumnWidth, getDefaultTemplates, type ColumnConfig, type ColumnTemplate } from "@/components/ColumnVisibility";
+import type { SortDirection } from "@/components/ResizableTable";
+
+/** Sort state for a column */
+export interface SortState {
+  columnKey: string;
+  direction: SortDirection;
+}
 
 export interface UseTableFeaturesOptions {
   /** مفتاح فريد للجدول - يُستخدم لحفظ التفضيلات */
@@ -30,6 +37,8 @@ export interface UseTableFeaturesOptions {
   columns: ColumnConfig[];
   /** الأعمدة المجمدة افتراضياً */
   defaultFrozenColumns?: string[];
+  /** Whether to persist sort preferences (default: true) */
+  persistSort?: boolean;
 }
 
 export interface UseTableFeaturesReturn {
@@ -42,6 +51,15 @@ export interface UseTableFeaturesReturn {
   handleColumnOrderChange: (newOrder: string[]) => void;
   /** ترتيب الأعمدة المرئية فقط */
   visibleColumnOrder: string[];
+  
+  // === Sorting ===
+  sortState: SortState;
+  handleSort: (columnKey: string) => void;
+  getSortDirection: (columnKey: string) => SortDirection;
+  /** Sort an array of data using the current sort state */
+  sortData: <T>(data: T[], getField: (item: T, key: string) => any) => T[];
+  /** Check if a column is sortable */
+  isColumnSortable: (columnKey: string) => boolean;
   
   // === Column Widths ===
   columnWidths: ReturnType<typeof import("@/components/ResizableTable").useColumnWidths>;
@@ -92,12 +110,20 @@ export interface UseTableFeaturesReturn {
     columnWidths: Record<string, number>;
     visibleColumnOrder: string[];
   };
+  
+  // === Props helpers for sort on ResizableHeaderCell ===
+  getSortProps: (columnKey: string) => {
+    sortable: boolean;
+    sortDirection: SortDirection;
+    onSort: (columnKey: string) => void;
+  };
 }
 
 export function useTableFeatures({
   tableKey,
   columns,
   defaultFrozenColumns = [],
+  persistSort = true,
 }: UseTableFeaturesOptions): UseTableFeaturesReturn {
   const utils = trpc.useUtils();
   const savePreferencesMutation = trpc.preferences.set.useMutation();
@@ -480,6 +506,130 @@ export function useTableFeatures({
   }, [deleteSharedTemplateMutation]);
 
   // ==========================================
+  // === Sorting ===
+  // ==========================================
+
+  const { data: savedSortState } = trpc.preferences.get.useQuery(
+    { key: `${tableKey}SortState` },
+    { retry: false, enabled: persistSort }
+  );
+
+  const [sortState, setSortState] = useState<SortState>(() => {
+    if (persistSort) {
+      try {
+        const saved = localStorage.getItem(`${tableKey}SortState`);
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return { columnKey: '', direction: null };
+  });
+
+  useEffect(() => {
+    if (persistSort && savedSortState && typeof savedSortState === 'object' && 'columnKey' in (savedSortState as any)) {
+      setSortState(savedSortState as SortState);
+      try { localStorage.setItem(`${tableKey}SortState`, JSON.stringify(savedSortState)); } catch {}
+    }
+  }, [savedSortState, tableKey, persistSort]);
+
+  const handleSort = useCallback((columnKey: string) => {
+    setSortState(prev => {
+      let newState: SortState;
+      if (prev.columnKey === columnKey) {
+        // Cycle: asc -> desc -> null
+        if (prev.direction === 'asc') {
+          newState = { columnKey, direction: 'desc' };
+        } else if (prev.direction === 'desc') {
+          newState = { columnKey: '', direction: null };
+        } else {
+          newState = { columnKey, direction: 'asc' };
+        }
+      } else {
+        newState = { columnKey, direction: 'asc' };
+      }
+      if (persistSort) {
+        try { localStorage.setItem(`${tableKey}SortState`, JSON.stringify(newState)); } catch {}
+        savePreferencesMutation.mutate({ key: `${tableKey}SortState`, value: newState });
+      }
+      return newState;
+    });
+  }, [tableKey, persistSort, savePreferencesMutation]);
+
+  const getSortDirection = useCallback((columnKey: string): SortDirection => {
+    return sortState.columnKey === columnKey ? sortState.direction : null;
+  }, [sortState]);
+
+  const isColumnSortable = useCallback((columnKey: string): boolean => {
+    const col = columns.find(c => c.key === columnKey);
+    if (!col) return false;
+    // Default sortable=true unless explicitly set to false, or it's 'actions'/'comments'/'tasks'
+    if (col.sortable === false) return false;
+    if (['actions', 'comments', 'tasks'].includes(columnKey)) return false;
+    return true;
+  }, [columns]);
+
+  const sortData = useCallback(<T,>(data: T[], getField: (item: T, key: string) => any): T[] => {
+    if (!sortState.direction || !sortState.columnKey) return data;
+
+    const col = columns.find(c => c.key === sortState.columnKey);
+    const sortType = col?.sortType || 'string';
+    const direction = sortState.direction;
+    const key = sortState.columnKey;
+
+    return [...data].sort((a, b) => {
+      const aVal = getField(a, key);
+      const bVal = getField(b, key);
+
+      // Handle null/undefined
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return direction === 'asc' ? 1 : -1;
+      if (bVal == null) return direction === 'asc' ? -1 : 1;
+
+      let comparison = 0;
+
+      switch (sortType) {
+        case 'number': {
+          const numA = typeof aVal === 'number' ? aVal : parseFloat(String(aVal));
+          const numB = typeof bVal === 'number' ? bVal : parseFloat(String(bVal));
+          if (isNaN(numA) && isNaN(numB)) comparison = 0;
+          else if (isNaN(numA)) comparison = 1;
+          else if (isNaN(numB)) comparison = -1;
+          else comparison = numA - numB;
+          break;
+        }
+        case 'date': {
+          const dateA = aVal instanceof Date ? aVal.getTime() : new Date(String(aVal)).getTime();
+          const dateB = bVal instanceof Date ? bVal.getTime() : new Date(String(bVal)).getTime();
+          if (isNaN(dateA) && isNaN(dateB)) comparison = 0;
+          else if (isNaN(dateA)) comparison = 1;
+          else if (isNaN(dateB)) comparison = -1;
+          else comparison = dateA - dateB;
+          break;
+        }
+        case 'boolean': {
+          const boolA = Boolean(aVal);
+          const boolB = Boolean(bVal);
+          comparison = boolA === boolB ? 0 : boolA ? -1 : 1;
+          break;
+        }
+        default: { // string
+          const strA = String(aVal).toLowerCase();
+          const strB = String(bVal).toLowerCase();
+          comparison = strA.localeCompare(strB, 'ar');
+          break;
+        }
+      }
+
+      return direction === 'asc' ? comparison : -comparison;
+    });
+  }, [sortState, columns]);
+
+  const getSortProps = useCallback((columnKey: string) => ({
+    sortable: isColumnSortable(columnKey),
+    sortDirection: getSortDirection(columnKey),
+    onSort: handleSort,
+  }), [isColumnSortable, getSortDirection, handleSort]);
+
+  // ==========================================
   // === Reset All ===
   // ==========================================
   
@@ -556,6 +706,12 @@ export function useTableFeatures({
     handleSaveSharedTemplate,
     handleDeleteSharedTemplate,
     handleResetAll,
+    sortState,
+    handleSort,
+    getSortDirection,
+    sortData,
+    isColumnSortable,
+    getSortProps,
     columnVisibilityProps,
     resizableTableProps,
   };

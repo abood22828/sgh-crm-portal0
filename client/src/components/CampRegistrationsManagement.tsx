@@ -125,39 +125,38 @@ export default function CampRegistrationsManagement({
   const [campRegistrationsSearchTerm, setCampRegistrationsSearchTerm] = useState("");
   
   // Sorting state
-  const [sortField, setSortField] = useState<'date' | 'name' | 'phone' | 'email' | 'age' | 'camp' | 'source' | 'receiptNumber' | 'status' | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  // Sort state is now managed by campTable.sortState via useTableFeatures
 
   // Column visibility state for CampRegistrations - جميع الأعمدة من قاعدة البيانات
   const campRegColumns: ColumnConfig[] = [
-    { key: 'checkbox', label: 'تحديد', defaultVisible: true },
-    { key: 'receiptNumber', label: 'رقم السند', defaultVisible: true },
-    { key: 'name', label: 'الاسم الكامل', defaultVisible: true },
-    { key: 'phone', label: 'رقم الهاتف', defaultVisible: true },
-    { key: 'email', label: 'البريد الإلكتروني', defaultVisible: true },
-    { key: 'age', label: 'العمر', defaultVisible: true },
-    { key: 'gender', label: 'الجنس', defaultVisible: false },
-    { key: 'camp', label: 'المخيم', defaultVisible: true },
-    { key: 'procedures', label: 'الإجراءات المختارة', defaultVisible: false },
-    { key: 'medicalCondition', label: 'الحالة الصحية', defaultVisible: false },
-    { key: 'notes', label: 'ملاحظات المسجل', defaultVisible: false },
-    { key: 'status', label: 'الحالة', defaultVisible: true },
-    { key: 'statusNotes', label: 'ملاحظات الحالة', defaultVisible: false },
-    { key: 'attendanceDate', label: 'تاريخ الحضور', defaultVisible: false },
-    { key: 'source', label: 'المصدر', defaultVisible: true },
-    { key: 'utmSource', label: 'UTM Source', defaultVisible: false },
-    { key: 'utmMedium', label: 'UTM Medium', defaultVisible: false },
-    { key: 'utmCampaign', label: 'UTM Campaign', defaultVisible: false },
-    { key: 'utmTerm', label: 'UTM Term', defaultVisible: false },
-    { key: 'utmContent', label: 'UTM Content', defaultVisible: false },
-    { key: 'utmPlacement', label: 'UTM Placement', defaultVisible: false },
-    { key: 'referrer', label: 'المحيل', defaultVisible: false },
-    { key: 'fbclid', label: 'Facebook Click ID', defaultVisible: false },
-    { key: 'gclid', label: 'Google Click ID', defaultVisible: false },
-    { key: 'date', label: 'تاريخ التسجيل', defaultVisible: true },
-    { key: 'comments', label: 'التعليقات', defaultVisible: true },
-    { key: 'tasks', label: 'المهام', defaultVisible: true },
-    { key: 'actions', label: 'الإجراءات', defaultVisible: true },
+    { key: 'checkbox', label: 'تحديد', defaultVisible: true, sortable: false },
+    { key: 'receiptNumber', label: 'رقم السند', defaultVisible: true, sortType: 'string' },
+    { key: 'name', label: 'الاسم الكامل', defaultVisible: true, sortType: 'string' },
+    { key: 'phone', label: 'رقم الهاتف', defaultVisible: true, sortType: 'string' },
+    { key: 'email', label: 'البريد الإلكتروني', defaultVisible: true, sortType: 'string' },
+    { key: 'age', label: 'العمر', defaultVisible: true, sortType: 'number' },
+    { key: 'gender', label: 'الجنس', defaultVisible: false, sortType: 'string' },
+    { key: 'camp', label: 'المخيم', defaultVisible: true, sortType: 'string' },
+    { key: 'procedures', label: 'الإجراءات المختارة', defaultVisible: false, sortable: false },
+    { key: 'medicalCondition', label: 'الحالة الصحية', defaultVisible: false, sortable: false },
+    { key: 'notes', label: 'ملاحظات المسجل', defaultVisible: false, sortable: false },
+    { key: 'status', label: 'الحالة', defaultVisible: true, sortType: 'string' },
+    { key: 'statusNotes', label: 'ملاحظات الحالة', defaultVisible: false, sortable: false },
+    { key: 'attendanceDate', label: 'تاريخ الحضور', defaultVisible: false, sortType: 'date' },
+    { key: 'source', label: 'المصدر', defaultVisible: true, sortType: 'string' },
+    { key: 'utmSource', label: 'UTM Source', defaultVisible: false, sortType: 'string' },
+    { key: 'utmMedium', label: 'UTM Medium', defaultVisible: false, sortType: 'string' },
+    { key: 'utmCampaign', label: 'UTM Campaign', defaultVisible: false, sortType: 'string' },
+    { key: 'utmTerm', label: 'UTM Term', defaultVisible: false, sortType: 'string' },
+    { key: 'utmContent', label: 'UTM Content', defaultVisible: false, sortType: 'string' },
+    { key: 'utmPlacement', label: 'UTM Placement', defaultVisible: false, sortType: 'string' },
+    { key: 'referrer', label: 'المحيل', defaultVisible: false, sortType: 'string' },
+    { key: 'fbclid', label: 'Facebook Click ID', defaultVisible: false, sortType: 'string' },
+    { key: 'gclid', label: 'Google Click ID', defaultVisible: false, sortType: 'string' },
+    { key: 'date', label: 'تاريخ التسجيل', defaultVisible: true, sortType: 'date' },
+    { key: 'comments', label: 'التعليقات', defaultVisible: true, sortable: false },
+    { key: 'tasks', label: 'المهام', defaultVisible: true, sortable: false },
+    { key: 'actions', label: 'الإجراءات', defaultVisible: true, sortable: false },
   ];
 
   // === استخدام useTableFeatures الموحد لإدارة جميع ميزات الجدول ===
@@ -464,61 +463,44 @@ export default function CampRegistrationsManagement({
       filtered = filtered.filter((registration: any) => statusFilter.includes(registration.status));
     }
     
-    let sorted = filtered;
+    // Apply sorting using useTableFeatures
+    const sorted = campTable.sortData(filtered, (item: any, key: string) => {
+      switch (key) {
+        case 'date': return item.createdAt;
+        case 'name': return item.fullName;
+        case 'phone': return item.phone;
+        case 'email': return item.email;
+        case 'age': return item.age;
+        case 'gender': return item.gender;
+        case 'camp': return item.campName;
+        case 'source': return item.source;
+        case 'receiptNumber': return item.receiptNumber;
+        case 'status': return item.status;
+        case 'attendanceDate': return item.attendanceDate;
+        case 'utmSource': return item.utmSource;
+        case 'utmMedium': return item.utmMedium;
+        case 'utmCampaign': return item.utmCampaign;
+        case 'utmTerm': return item.utmTerm;
+        case 'utmContent': return item.utmContent;
+        case 'utmPlacement': return item.utmPlacement;
+        case 'referrer': return item.referrer;
+        case 'fbclid': return item.fbclid;
+        case 'gclid': return item.gclid;
+        default: return item[key];
+      }
+    });
     
-    if (sortField) {
+    // Default sort: newest first if no sort is active
+    if (!campTable.sortState.direction) {
       sorted.sort((a: any, b: any) => {
-        let aValue, bValue;
-        
-        switch (sortField) {
-          case 'date':
-            aValue = new Date(a.createdAt).getTime();
-            bValue = new Date(b.createdAt).getTime();
-            break;
-          case 'name':
-            aValue = a.fullName.toLowerCase();
-            bValue = b.fullName.toLowerCase();
-            break;
-          case 'phone':
-            aValue = (a.phone || '').toLowerCase();
-            bValue = (b.phone || '').toLowerCase();
-            break;
-          case 'email':
-            aValue = (a.email || '').toLowerCase();
-            bValue = (b.email || '').toLowerCase();
-            break;
-          case 'age':
-            aValue = a.age || 0;
-            bValue = b.age || 0;
-            break;
-          case 'camp':
-            aValue = (a.campName || '').toLowerCase();
-            bValue = (b.campName || '').toLowerCase();
-            break;
-          case 'source':
-            aValue = (a.source || '').toLowerCase();
-            bValue = (b.source || '').toLowerCase();
-            break;
-          case 'receiptNumber':
-            aValue = (a.receiptNumber || '').toLowerCase();
-            bValue = (b.receiptNumber || '').toLowerCase();
-            break;
-          case 'status':
-            aValue = a.status;
-            bValue = b.status;
-            break;
-          default:
-            return 0;
-        }
-        
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
+        const aDate = new Date(a.createdAt).getTime();
+        const bDate = new Date(b.createdAt).getTime();
+        return bDate - aDate;
       });
     }
     
     return sorted;
-  }, [registrations, selectedCamp, sourceFilter, statusFilter, sortField, sortDirection]);
+  }, [registrations, selectedCamp, sourceFilter, statusFilter, campTable.sortState, campTable.sortData]);
 
   const handleSelectAll = () => {
     if (selectedIds.length === filteredRegistrations.length) {
@@ -812,8 +794,6 @@ export default function CampRegistrationsManagement({
                   {campTable.columnOrder.filter(key => campTable.visibleColumns[key]).map(colKey => {
                     const col = campRegColumns.find(c => c.key === colKey);
                     if (!col) return null;
-                    const sortableFields = ['receiptNumber', 'name', 'phone', 'email', 'age', 'camp', 'source', 'status', 'date'];
-                    const isSortable = sortableFields.includes(colKey);
                     if (colKey === 'checkbox') {
                       return (
                         <ResizableHeaderCell key={colKey} columnKey={colKey} width={40} minWidth={40} maxWidth={40} onResize={() => {}}>
@@ -833,22 +813,9 @@ export default function CampRegistrationsManagement({
                         minWidth={widthConfig.min}
                         maxWidth={widthConfig.max}
                         onResize={campTable.columnWidths.handleResize}
-                        className={isSortable ? 'cursor-pointer hover:bg-muted/50 select-none' : ''}
-                        onClick={isSortable ? () => {
-                          if (sortField === colKey) {
-                            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                          } else {
-                            setSortField(colKey as any);
-                            setSortDirection(colKey === 'date' ? 'desc' : 'asc');
-                          }
-                        } : undefined}
+                        {...campTable.getSortProps(colKey)}
                       >
-                        <div className="flex items-center gap-1 justify-end">
-                          {col.label}
-                          {isSortable && sortField === colKey && (
-                            <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                          )}
-                        </div>
+                        {col.label}
                       </ResizableHeaderCell>
                     );
                   })}

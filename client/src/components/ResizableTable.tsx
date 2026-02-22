@@ -1,6 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo, createContext, useContext } from "react";
 import { cn } from "@/lib/utils";
 import { getColumnWidth, type ColumnConfig } from "./ColumnVisibility";
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+
+/** Sort direction type */
+export type SortDirection = 'asc' | 'desc' | null;
 
 // Context for frozen columns
 interface FrozenColumnsContextType {
@@ -85,6 +89,12 @@ interface ResizableHeaderCellProps {
   className?: string;
   onClick?: () => void;
   style?: React.CSSProperties;
+  /** Whether this column is sortable */
+  sortable?: boolean;
+  /** Current sort direction for this column */
+  sortDirection?: SortDirection;
+  /** Callback when sort is toggled */
+  onSort?: (columnKey: string) => void;
 }
 
 export function ResizableHeaderCell({
@@ -97,6 +107,9 @@ export function ResizableHeaderCell({
   className,
   onClick,
   style,
+  sortable = false,
+  sortDirection,
+  onSort,
 }: ResizableHeaderCellProps) {
   const [isResizing, setIsResizing] = useState(false);
   const startXRef = useRef(0);
@@ -156,7 +169,31 @@ export function ResizableHeaderCell({
       }}
       onClick={!isResizing ? onClick : undefined}
     >
-      {children}
+      <div className="flex items-center gap-1 w-full">
+        <span className="flex-1 truncate">{children}</span>
+        {sortable && (
+          <button
+            type="button"
+            className={cn(
+              "inline-flex items-center justify-center shrink-0 w-5 h-5 rounded-sm transition-colors",
+              sortDirection ? "text-primary" : "text-muted-foreground/40 hover:text-muted-foreground/70"
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSort?.(columnKey);
+            }}
+            title={sortDirection === 'asc' ? 'ترتيب تنازلي' : sortDirection === 'desc' ? 'إلغاء الترتيب' : 'ترتيب تصاعدي'}
+          >
+            {sortDirection === 'asc' ? (
+              <ArrowUp className="w-3.5 h-3.5" />
+            ) : sortDirection === 'desc' ? (
+              <ArrowDown className="w-3.5 h-3.5" />
+            ) : (
+              <ArrowUpDown className="w-3.5 h-3.5" />
+            )}
+          </button>
+        )}
+      </div>
       {/* Resize handle */}
       <div
         className={cn(

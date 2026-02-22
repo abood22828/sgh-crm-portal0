@@ -191,40 +191,39 @@ export default function BookingsManagementPage() {
   const [campRegistrationsPendingCount, setCampRegistrationsPendingCount] = useState(0);
   
   // Sorting state
-  const [appointmentSortField, setAppointmentSortField] = useState<'date' | 'name' | 'phone' | 'doctor' | 'specialty' | 'source' | 'receiptNumber' | 'status' | null>(null);
-  const [appointmentSortDirection, setAppointmentSortDirection] = useState<'asc' | 'desc'>('asc');
+  // Sort state is now managed by appointmentTable.sortState via useTableFeatures
 
   // Column visibility state for Appointments - جميع الأعمدة من قاعدة البيانات
   const appointmentColumns: ColumnConfig[] = [
-    { key: 'receiptNumber', label: 'رقم السند', defaultVisible: true },
-    { key: 'date', label: 'تاريخ الحجز', defaultVisible: true },
-    { key: 'name', label: 'اسم المريض', defaultVisible: true },
-    { key: 'phone', label: 'رقم الهاتف', defaultVisible: true },
-    { key: 'email', label: 'البريد الإلكتروني', defaultVisible: false },
-    { key: 'age', label: 'العمر', defaultVisible: false },
-    { key: 'doctor', label: 'الطبيب', defaultVisible: true },
-    { key: 'specialty', label: 'التخصص', defaultVisible: true },
-    { key: 'procedure', label: 'الإجراء الطبي', defaultVisible: false },
-    { key: 'preferredDate', label: 'التاريخ المفضل', defaultVisible: false },
-    { key: 'preferredTime', label: 'الوقت المفضل', defaultVisible: false },
-    { key: 'appointmentDate', label: 'موعد المقابلة', defaultVisible: false },
-    { key: 'notes', label: 'ملاحظات المريض', defaultVisible: false },
-    { key: 'additionalNotes', label: 'ملاحظات إضافية', defaultVisible: false },
-    { key: 'staffNotes', label: 'ملاحظات الموظفين', defaultVisible: false },
-    { key: 'status', label: 'الحالة', defaultVisible: true },
-    { key: 'source', label: 'المصدر', defaultVisible: true },
-    { key: 'utmSource', label: 'UTM Source', defaultVisible: false },
-    { key: 'utmMedium', label: 'UTM Medium', defaultVisible: false },
-    { key: 'utmCampaign', label: 'UTM Campaign', defaultVisible: false },
-    { key: 'utmTerm', label: 'UTM Term', defaultVisible: false },
-    { key: 'utmContent', label: 'UTM Content', defaultVisible: false },
-    { key: 'utmPlacement', label: 'UTM Placement', defaultVisible: false },
-    { key: 'referrer', label: 'المحيل', defaultVisible: false },
-    { key: 'fbclid', label: 'Facebook Click ID', defaultVisible: false },
-    { key: 'gclid', label: 'Google Click ID', defaultVisible: false },
-    { key: 'comments', label: 'التعليقات', defaultVisible: true },
-    { key: 'tasks', label: 'المهام', defaultVisible: true },
-    { key: 'actions', label: 'الإجراءات', defaultVisible: true },
+    { key: 'receiptNumber', label: 'رقم السند', defaultVisible: true, sortType: 'string' },
+    { key: 'date', label: 'تاريخ الحجز', defaultVisible: true, sortType: 'date' },
+    { key: 'name', label: 'اسم المريض', defaultVisible: true, sortType: 'string' },
+    { key: 'phone', label: 'رقم الهاتف', defaultVisible: true, sortType: 'string' },
+    { key: 'email', label: 'البريد الإلكتروني', defaultVisible: false, sortType: 'string' },
+    { key: 'age', label: 'العمر', defaultVisible: false, sortType: 'number' },
+    { key: 'doctor', label: 'الطبيب', defaultVisible: true, sortType: 'string' },
+    { key: 'specialty', label: 'التخصص', defaultVisible: true, sortType: 'string' },
+    { key: 'procedure', label: 'الإجراء الطبي', defaultVisible: false, sortType: 'string' },
+    { key: 'preferredDate', label: 'التاريخ المفضل', defaultVisible: false, sortType: 'date' },
+    { key: 'preferredTime', label: 'الوقت المفضل', defaultVisible: false, sortType: 'string' },
+    { key: 'appointmentDate', label: 'موعد المقابلة', defaultVisible: false, sortType: 'date' },
+    { key: 'notes', label: 'ملاحظات المريض', defaultVisible: false, sortable: false },
+    { key: 'additionalNotes', label: 'ملاحظات إضافية', defaultVisible: false, sortable: false },
+    { key: 'staffNotes', label: 'ملاحظات الموظفين', defaultVisible: false, sortable: false },
+    { key: 'status', label: 'الحالة', defaultVisible: true, sortType: 'string' },
+    { key: 'source', label: 'المصدر', defaultVisible: true, sortType: 'string' },
+    { key: 'utmSource', label: 'UTM Source', defaultVisible: false, sortType: 'string' },
+    { key: 'utmMedium', label: 'UTM Medium', defaultVisible: false, sortType: 'string' },
+    { key: 'utmCampaign', label: 'UTM Campaign', defaultVisible: false, sortType: 'string' },
+    { key: 'utmTerm', label: 'UTM Term', defaultVisible: false, sortType: 'string' },
+    { key: 'utmContent', label: 'UTM Content', defaultVisible: false, sortType: 'string' },
+    { key: 'utmPlacement', label: 'UTM Placement', defaultVisible: false, sortType: 'string' },
+    { key: 'referrer', label: 'المحيل', defaultVisible: false, sortType: 'string' },
+    { key: 'fbclid', label: 'Facebook Click ID', defaultVisible: false, sortType: 'string' },
+    { key: 'gclid', label: 'Google Click ID', defaultVisible: false, sortType: 'string' },
+    { key: 'comments', label: 'التعليقات', defaultVisible: true, sortable: false },
+    { key: 'tasks', label: 'المهام', defaultVisible: true, sortable: false },
+    { key: 'actions', label: 'الإجراءات', defaultVisible: true, sortable: false },
   ];
 
   // === استخدام useTableFeatures الموحد لإدارة جميع ميزات الجدول ===
@@ -417,64 +416,47 @@ export default function BookingsManagementPage() {
       filtered = filtered.filter((appointment: any) => appointmentStatusFilter.includes(appointment.status));
     }
     
-    let sorted = filtered;
+    // Apply sorting using useTableFeatures
+    const sorted = appointmentTable.sortData(filtered, (item: any, key: string) => {
+      switch (key) {
+        case 'date': return item.createdAt;
+        case 'name': return item.fullName || item.patientName || '';
+        case 'phone': return item.phone;
+        case 'email': return item.email;
+        case 'age': return item.age;
+        case 'doctor': return item.doctorName;
+        case 'specialty': return item.doctorSpecialty;
+        case 'procedure': return item.procedure;
+        case 'preferredDate': return item.preferredDate;
+        case 'preferredTime': return item.preferredTime;
+        case 'appointmentDate': return item.appointmentDate;
+        case 'status': return item.status;
+        case 'source': return item.source;
+        case 'receiptNumber': return item.receiptNumber;
+        case 'utmSource': return item.utmSource;
+        case 'utmMedium': return item.utmMedium;
+        case 'utmCampaign': return item.utmCampaign;
+        case 'utmTerm': return item.utmTerm;
+        case 'utmContent': return item.utmContent;
+        case 'utmPlacement': return item.utmPlacement;
+        case 'referrer': return item.referrer;
+        case 'fbclid': return item.fbclid;
+        case 'gclid': return item.gclid;
+        default: return item[key];
+      }
+    });
     
-    // Default sorting: newest first (by date desc)
-    if (!appointmentSortField) {
+    // Default sort: newest first if no sort is active
+    if (!appointmentTable.sortState.direction) {
       sorted.sort((a: any, b: any) => {
         const aDate = new Date(a.createdAt).getTime();
         const bDate = new Date(b.createdAt).getTime();
-        return bDate - aDate; // Newest first
-      });
-    } else {
-      sorted.sort((a: any, b: any) => {
-        let aValue, bValue;
-        
-        switch (appointmentSortField) {
-          case 'date':
-            aValue = new Date(a.createdAt).getTime();
-            bValue = new Date(b.createdAt).getTime();
-            break;
-          case 'name':
-            aValue = (a.fullName || a.patientName || '').toLowerCase();
-            bValue = (b.fullName || b.patientName || '').toLowerCase();
-            break;
-          case 'phone':
-            aValue = (a.phone || '').toLowerCase();
-            bValue = (b.phone || '').toLowerCase();
-            break;
-          case 'doctor':
-            aValue = (a.doctorName || '').toLowerCase();
-            bValue = (b.doctorName || '').toLowerCase();
-            break;
-          case 'specialty':
-            aValue = (a.doctorSpecialty || '').toLowerCase();
-            bValue = (b.doctorSpecialty || '').toLowerCase();
-            break;
-          case 'source':
-            aValue = (a.source || '').toLowerCase();
-            bValue = (b.source || '').toLowerCase();
-            break;
-          case 'receiptNumber':
-            aValue = (a.receiptNumber || '').toLowerCase();
-            bValue = (b.receiptNumber || '').toLowerCase();
-            break;
-          case 'status':
-            aValue = a.status;
-            bValue = b.status;
-            break;
-          default:
-            return 0;
-        }
-        
-        if (aValue < bValue) return appointmentSortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return appointmentSortDirection === 'asc' ? 1 : -1;
-        return 0;
+        return bDate - aDate;
       });
     }
     
     return sorted;
-  }, [appointments, selectedDoctor, appointmentSourceFilter, appointmentStatusFilter, appointmentSortField, appointmentSortDirection]);
+  }, [appointments, selectedDoctor, appointmentSourceFilter, appointmentStatusFilter, appointmentTable.sortState, appointmentTable.sortData]);
 
   const appointmentStats = useMemo(() => {
     if (!appointments) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
@@ -1247,8 +1229,6 @@ export default function BookingsManagementPage() {
                         {appointmentTable.columnOrder.filter(key => appointmentTable.visibleColumns[key]).map(colKey => {
                           const col = appointmentColumns.find(c => c.key === colKey);
                           if (!col) return null;
-                          const sortableFields = ['date', 'name', 'phone', 'doctor', 'specialty', 'source', 'receiptNumber', 'status'];
-                          const isSortable = sortableFields.includes(colKey);
                           const widthConfig = getColumnWidth(colKey, col);
                           return (
                             <ResizableHeaderCell
@@ -1258,22 +1238,9 @@ export default function BookingsManagementPage() {
                               minWidth={widthConfig.min}
                               maxWidth={widthConfig.max}
                               onResize={appointmentTable.columnWidths.handleResize}
-                              className={isSortable ? 'cursor-pointer hover:bg-muted/50 select-none' : ''}
-                              onClick={isSortable ? () => {
-                                if (appointmentSortField === colKey) {
-                                  setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
-                                } else {
-                                  setAppointmentSortField(colKey as any);
-                                  setAppointmentSortDirection(colKey === 'date' ? 'desc' : 'asc');
-                                }
-                              } : undefined}
+                              {...appointmentTable.getSortProps(colKey)}
                             >
-                              <div className="flex items-center gap-1">
-                                {col.label}
-                                {isSortable && appointmentSortField === colKey && (
-                                  <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
-                                )}
-                              </div>
+                              {col.label}
                             </ResizableHeaderCell>
                           );
                         })}
