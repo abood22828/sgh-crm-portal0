@@ -91,6 +91,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
+import BulkUpdateDialog from "@/components/BulkUpdateDialog";
 
 const statusLabels = {
   new: "جديد",
@@ -189,12 +190,15 @@ export default function BookingsManagementPage() {
   const [leadsSourceFilter, setLeadsSourceFilter] = useState<string[]>([]);
   const [offerLeadsPendingCount, setOfferLeadsPendingCount] = useState(0);
   const [campRegistrationsPendingCount, setCampRegistrationsPendingCount] = useState(0);
+  const [selectedAppointmentIds, setSelectedAppointmentIds] = useState<number[]>([]);
+  const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
   
   // Sorting state
   // Sort state is now managed by appointmentTable.sortState via useTableFeatures
 
   // Column visibility state for Appointments - جميع الأعمدة من قاعدة البيانات
   const appointmentColumns: ColumnConfig[] = [
+    { key: 'checkbox', label: 'تحديد', defaultVisible: true, sortable: false },
     { key: 'receiptNumber', label: 'رقم السند', defaultVisible: true, sortType: 'string' },
     { key: 'date', label: 'تاريخ الحجز', defaultVisible: true, sortType: 'date' },
     { key: 'name', label: 'اسم المريض', defaultVisible: true, sortType: 'string' },
@@ -339,6 +343,18 @@ export default function BookingsManagementPage() {
     onSettled: () => {
       // Always refetch after error or success to ensure sync
       utils.appointments.listPaginated.invalidate();
+    },
+  });
+
+  const bulkUpdateAppointmentsMutation = trpc.appointments.bulkUpdateStatus.useMutation({
+    onSuccess: (data) => {
+      toast.success(`تم تحديث ${data.count} موعد بنجاح`);
+      utils.appointments.listPaginated.invalidate();
+      setBulkUpdateDialogOpen(false);
+      setSelectedAppointmentIds([]);
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء تحديث الحالة");
     },
   });
 
@@ -1071,8 +1087,23 @@ export default function BookingsManagementPage() {
             {/* Filters */}
             <Card>
               <CardHeader>
-                <CardTitle>مواعيد الأطباء</CardTitle>
-                <CardDescription>إدارة ومتابعة مواعيد الأطباء</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>مواعيد الأطباء</CardTitle>
+                    <CardDescription>إدارة ومتابعة مواعيد الأطباء</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    {selectedAppointmentIds.length > 0 && (
+                      <Button
+                        variant="default"
+                        onClick={() => setBulkUpdateDialogOpen(true)}
+                      >
+                        <CheckSquare className="h-4 w-4 ml-2" />
+                        تحديث الحالة ({selectedAppointmentIds.length})
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Filters - Responsive Grid */}
@@ -1229,6 +1260,24 @@ export default function BookingsManagementPage() {
                         {appointmentTable.columnOrder.filter(key => appointmentTable.visibleColumns[key]).map(colKey => {
                           const col = appointmentColumns.find(c => c.key === colKey);
                           if (!col) return null;
+                          if (colKey === 'checkbox') {
+                            return (
+                              <ResizableHeaderCell key={colKey} columnKey={colKey} width={40} minWidth={40} maxWidth={40} onResize={() => {}}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedAppointmentIds.length === filteredAppointments.length && filteredAppointments.length > 0}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedAppointmentIds(filteredAppointments.map((a: any) => a.id));
+                                    } else {
+                                      setSelectedAppointmentIds([]);
+                                    }
+                                  }}
+                                  className="rounded border-gray-300"
+                                />
+                              </ResizableHeaderCell>
+                            );
+                          }
                           const widthConfig = getColumnWidth(colKey, col);
                           return (
                             <ResizableHeaderCell
@@ -1271,6 +1320,23 @@ export default function BookingsManagementPage() {
                           >
                             {appointmentTable.columnOrder.filter(key => appointmentTable.visibleColumns[key]).map(colKey => {
                               switch(colKey) {
+                                case 'checkbox':
+                                  return (
+                                    <FrozenTableCell key={colKey} columnKey={colKey}>
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedAppointmentIds.includes(appointment.id)}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setSelectedAppointmentIds([...selectedAppointmentIds, appointment.id]);
+                                          } else {
+                                            setSelectedAppointmentIds(selectedAppointmentIds.filter((id: number) => id !== appointment.id));
+                                          }
+                                        }}
+                                        className="rounded border-gray-300"
+                                      />
+                                    </FrozenTableCell>
+                                  );
                                 case 'date':
                                   return <FrozenTableCell key={colKey} columnKey={colKey} className="font-medium">{new Date(appointment.createdAt).toLocaleDateString("ar-EG")}</FrozenTableCell>;
                                 case 'name':
@@ -1695,6 +1761,23 @@ export default function BookingsManagementPage() {
             <ManualRegistrationForm />
           </DialogContent>
         </Dialog>
+
+        {/* Bulk Update Appointments Dialog */}
+        <BulkUpdateDialog
+          open={bulkUpdateDialogOpen}
+          onOpenChange={setBulkUpdateDialogOpen}
+          selectedCount={selectedAppointmentIds.length}
+          statusOptions={[
+            { value: "pending", label: "قيد الانتظار" },
+            { value: "confirmed", label: "مؤكد" },
+            { value: "cancelled", label: "ملغي" },
+            { value: "completed", label: "مكتمل" },
+          ]}
+          onConfirm={(newStatus) => {
+            bulkUpdateAppointmentsMutation.mutate({ ids: selectedAppointmentIds, status: newStatus as "pending" | "confirmed" | "cancelled" | "completed" });
+          }}
+          isLoading={bulkUpdateAppointmentsMutation.isPending}
+        />
       </div>
     </DashboardLayout>
   );

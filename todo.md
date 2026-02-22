@@ -2810,3 +2810,12 @@
 - [x] تطبيق useTableFeatures على جدول طلبات الوصول (Access Requests) في UsersManagementPage
 - [x] إضافة ResizableTable و ColumnVisibility والفرز
 - [x] التحقق من عمل التطبيق وحفظ checkpoint
+
+### تحسينات صفحات إدارة الحجوزات ✅ مكتمل
+- [x] إصلاح استعلام getAppointmentsPaginated لاسترجاع الأعمدة الناقصة (source, receiptNumber, utmTerm, utmPlacement, referrer, fbclid, gclid)
+- [x] إصلاح استعلام getAllAppointments لاسترجاع نفس الأعمدة الناقصة
+- [x] إضافة Bulk Update لصفحة المواعيد (BookingsManagementPage) مع BulkUpdateDialog
+- [x] إضافة checkbox column و selectAll/deselectAll في جدول المواعيد
+- [x] إضافة bulkUpdateStatus endpoint في appointments router
+- [x] فصل appointments router إلى ملف منفصل (server/routers/appointments.ts) - 315 سطر
+- [x] تنظيف imports غير المستخدمة في routers.ts (تقليص من 847 إلى 558 سطر)
