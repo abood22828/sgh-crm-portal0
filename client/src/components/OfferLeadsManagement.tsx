@@ -1,12 +1,13 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
 import MultiSelect from "@/components/MultiSelect";
-import { ColumnVisibility, getDefaultTemplates, getColumnWidth, type ColumnConfig, type ColumnTemplate } from "@/components/ColumnVisibility";
-import { ResizableTable, ResizableHeaderCell, useColumnWidths, useFrozenColumns, FrozenTableCell } from "@/components/ResizableTable";
+import { ColumnVisibility, getColumnWidth, type ColumnConfig } from "@/components/ColumnVisibility";
+import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
+import { useTableFeatures } from "@/hooks/useTableFeatures";
 import TableSkeleton from "@/components/TableSkeleton";
 import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
@@ -152,250 +153,11 @@ export default function OfferLeadsManagement({
     { key: 'actions', label: 'الإجراءات', defaultVisible: true },
   ];
 
-  // Load preferences from database
-  const { data: savedOfferPreferences } = trpc.preferences.get.useQuery(
-    { key: 'offerLeadVisibleColumns' },
-    { retry: false }
-  );
-  
-  const saveOfferPreferencesMutation = trpc.preferences.set.useMutation();
-  
-  const [offerLeadVisibleColumns, setOfferLeadVisibleColumns] = useState<Record<string, boolean>>(() => {
-    // Try localStorage first for immediate load
-    const saved = localStorage.getItem('offerLeadVisibleColumns');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    const defaultVisible: Record<string, boolean> = {};
-    offerLeadColumns.forEach(col => {
-      defaultVisible[col.key] = col.defaultVisible;
-    });
-    return defaultVisible;
+  // === استخدام useTableFeatures الموحد لإدارة جميع ميزات الجدول ===
+  const offerTable = useTableFeatures({
+    tableKey: 'offerLeads',
+    columns: offerLeadColumns,
   });
-
-  // Sync database preferences to state when loaded
-  useEffect(() => {
-    if (savedOfferPreferences) {
-      setOfferLeadVisibleColumns(savedOfferPreferences);
-      localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(savedOfferPreferences));
-    }
-  }, [savedOfferPreferences]);
-  
-  const handleOfferLeadColumnVisibilityChange = (columnKey: string, visible: boolean) => {
-    const updated = { ...offerLeadVisibleColumns, [columnKey]: visible };
-    setOfferLeadVisibleColumns(updated);
-    localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(updated));
-    saveOfferPreferencesMutation.mutate({
-      key: 'offerLeadVisibleColumns',
-      value: updated,
-    });
-  };
-
-  // Column order state
-  const defaultOfferColumnOrder = offerLeadColumns.map(c => c.key);
-  const [offerColumnOrder, setOfferColumnOrder] = useState<string[]>(() => {
-    const saved = localStorage.getItem('offerLeadColumnOrder');
-    return saved ? JSON.parse(saved) : defaultOfferColumnOrder;
-  });
-
-  const { data: savedOfferColumnOrder } = trpc.preferences.get.useQuery(
-    { key: 'offerLeadColumnOrder' },
-    { retry: false }
-  );
-
-  useEffect(() => {
-    if (savedOfferColumnOrder && Array.isArray(savedOfferColumnOrder)) {
-      setOfferColumnOrder(savedOfferColumnOrder);
-      localStorage.setItem('offerLeadColumnOrder', JSON.stringify(savedOfferColumnOrder));
-    }
-  }, [savedOfferColumnOrder]);
-
-  const handleOfferLeadColumnOrderChange = (newOrder: string[]) => {
-    setOfferColumnOrder(newOrder);
-    localStorage.setItem('offerLeadColumnOrder', JSON.stringify(newOrder));
-    saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnOrder', value: newOrder });
-  };
-
-  // Column widths - with database sync
-  const { data: savedOfferColumnWidths } = trpc.preferences.get.useQuery(
-    { key: 'offerLeadColumnWidths' },
-    { retry: false }
-  );
-  const saveOfferColumnWidthsFn = useCallback((widths: Record<string, number>) => {
-    saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnWidths', value: widths });
-  }, [saveOfferPreferencesMutation]);
-  const offerColumnWidths = useColumnWidths(
-    offerLeadColumns, offerColumnOrder, 'offerLeads',
-    saveOfferColumnWidthsFn, savedOfferColumnWidths as Record<string, number> | null
-  );
-
-  // Frozen columns - with database sync
-  const { data: savedOfferFrozenColumns } = trpc.preferences.get.useQuery(
-    { key: 'offerLeadFrozenColumns' },
-    { retry: false }
-  );
-  const saveOfferFrozenColumnsFn = useCallback((frozen: string[]) => {
-    saveOfferPreferencesMutation.mutate({ key: 'offerLeadFrozenColumns', value: frozen });
-  }, [saveOfferPreferencesMutation]);
-  const offerFrozenColumns = useFrozenColumns(
-    'offerLeads',
-    [],
-    saveOfferFrozenColumnsFn,
-    savedOfferFrozenColumns as string[] | null
-  );
-
-  const handleOfferLeadColumnsReset = () => {
-    const defaultVisible: Record<string, boolean> = {};
-    offerLeadColumns.forEach(col => {
-      defaultVisible[col.key] = col.defaultVisible;
-    });
-    setOfferLeadVisibleColumns(defaultVisible);
-    setActiveOfferTemplateId(null);
-    setOfferColumnOrder(defaultOfferColumnOrder);
-    offerColumnWidths.resetWidths();
-    offerFrozenColumns.resetFrozen();
-    localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(defaultVisible));
-    localStorage.removeItem('activeOfferTemplateId');
-    localStorage.setItem('offerLeadColumnOrder', JSON.stringify(defaultOfferColumnOrder));
-    saveOfferPreferencesMutation.mutate({ key: 'offerLeadVisibleColumns', value: defaultVisible });
-    saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: null });
-    saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnOrder', value: defaultOfferColumnOrder });
-  };
-
-  // === Column Templates ===
-  const defaultOfferTemplates = getDefaultTemplates(offerLeadColumns, 'offerLeads');
-  
-  const { data: savedOfferTemplates } = trpc.preferences.get.useQuery(
-    { key: 'offerLeadColumnTemplates' },
-    { retry: false }
-  );
-  
-  const { data: savedOfferActiveTemplateId } = trpc.preferences.get.useQuery(
-    { key: 'activeOfferTemplateId' },
-    { retry: false }
-  );
-
-  const [customOfferTemplates, setCustomOfferTemplates] = useState<ColumnTemplate[]>(() => {
-    const saved = localStorage.getItem('offerLeadColumnTemplates');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [activeOfferTemplateId, setActiveOfferTemplateId] = useState<string | null>(() => {
-    return localStorage.getItem('activeOfferTemplateId') || null;
-  });
-
-  useEffect(() => {
-    if (savedOfferTemplates && Array.isArray(savedOfferTemplates)) {
-      setCustomOfferTemplates(savedOfferTemplates);
-      localStorage.setItem('offerLeadColumnTemplates', JSON.stringify(savedOfferTemplates));
-    }
-  }, [savedOfferTemplates]);
-
-  useEffect(() => {
-    if (savedOfferActiveTemplateId !== undefined) {
-      setActiveOfferTemplateId(savedOfferActiveTemplateId);
-      if (savedOfferActiveTemplateId) {
-        localStorage.setItem('activeOfferTemplateId', savedOfferActiveTemplateId);
-      } else {
-        localStorage.removeItem('activeOfferTemplateId');
-      }
-    }
-  }, [savedOfferActiveTemplateId]);
-
-  // Shared templates from admin
-  const { data: sharedOfferTemplatesData } = trpc.sharedTemplates.list.useQuery(
-    { tableKey: 'offerLeads' },
-    { retry: false }
-  );
-  const createSharedOfferTemplateMutation = trpc.sharedTemplates.create.useMutation({
-    onSuccess: () => {
-      utils.sharedTemplates.list.invalidate({ tableKey: 'offerLeads' });
-    },
-  });
-  const deleteSharedOfferTemplateMutation = trpc.sharedTemplates.delete.useMutation({
-    onSuccess: () => {
-      utils.sharedTemplates.list.invalidate({ tableKey: 'offerLeads' });
-    },
-  });
-
-  const sharedOfferTemplates: ColumnTemplate[] = (sharedOfferTemplatesData || []).map((t: any) => ({
-    id: `shared_offerLeads_${t.id}`,
-    name: t.name,
-    columns: t.columns,
-    isDefault: false,
-    isShared: true,
-    createdByName: t.createdByName,
-    dbId: t.id,
-  }));
-
-  const handleSaveSharedOfferTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[], columnWidths?: Record<string, number>, frozenCols?: string[]) => {
-    createSharedOfferTemplateMutation.mutate({
-      name,
-      tableKey: 'offerLeads',
-      columns,
-      columnOrder: columnOrder || offerColumnOrder,
-      columnWidths: columnWidths || offerColumnWidths.columnWidths,
-      frozenColumns: frozenCols || offerFrozenColumns.frozenColumns,
-    } as any);
-  };
-
-  const handleDeleteSharedOfferTemplate = (dbId: number) => {
-    deleteSharedOfferTemplateMutation.mutate({ id: dbId });
-  };
-
-  const allOfferTemplates = [...defaultOfferTemplates, ...customOfferTemplates];
-
-  const handleApplyOfferTemplate = (template: ColumnTemplate) => {
-    setOfferLeadVisibleColumns(template.columns);
-    setActiveOfferTemplateId(template.id);
-    if (template.columnOrder) {
-      setOfferColumnOrder(template.columnOrder);
-      localStorage.setItem('offerLeadColumnOrder', JSON.stringify(template.columnOrder));
-      saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnOrder', value: template.columnOrder });
-    }
-    if (template.columnWidths) {
-      offerColumnWidths.applyWidths(template.columnWidths);
-      saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnWidths', value: template.columnWidths });
-    }
-    if (template.frozenColumns) {
-      offerFrozenColumns.setFrozen(template.frozenColumns);
-    }
-    localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(template.columns));
-    localStorage.setItem('activeOfferTemplateId', template.id);
-    saveOfferPreferencesMutation.mutate({ key: 'offerLeadVisibleColumns', value: template.columns });
-    saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: template.id });
-  };
-
-  const handleSaveOfferTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[], columnWidths?: Record<string, number>, frozenCols?: string[]) => {
-    const newTemplate: ColumnTemplate = {
-      id: `offerLeads_custom_${Date.now()}`,
-      name,
-      columns,
-      columnOrder: columnOrder || offerColumnOrder,
-      columnWidths: columnWidths || offerColumnWidths.columnWidths,
-      frozenColumns: frozenCols || offerFrozenColumns.frozenColumns,
-      isDefault: false,
-    };
-    const updated = [...customOfferTemplates, newTemplate];
-    setCustomOfferTemplates(updated);
-    setActiveOfferTemplateId(newTemplate.id);
-    localStorage.setItem('offerLeadColumnTemplates', JSON.stringify(updated));
-    localStorage.setItem('activeOfferTemplateId', newTemplate.id);
-    saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnTemplates', value: updated });
-    saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: newTemplate.id });
-  };
-
-  const handleDeleteOfferTemplate = (templateId: string) => {
-    const updated = customOfferTemplates.filter(t => t.id !== templateId);
-    setCustomOfferTemplates(updated);
-    if (activeOfferTemplateId === templateId) {
-      setActiveOfferTemplateId(null);
-      localStorage.removeItem('activeOfferTemplateId');
-      saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: null });
-    }
-    localStorage.setItem('offerLeadColumnTemplates', JSON.stringify(updated));
-    saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnTemplates', value: updated });
-  };
   
   // Debounced search for better performance
   const debouncedSearch = useDebounce(offerLeadsSearchTerm, 500);
@@ -488,7 +250,7 @@ export default function OfferLeadsManagement({
       };
 
       // تحضير الأعمدة المرئية
-      const visibleCols = Object.entries(offerLeadVisibleColumns)
+      const visibleCols = Object.entries(offerTable.visibleColumns)
         .filter(([_, visible]) => visible)
         .map(([key]) => {
           const col = columnDefinitions.find(c => c.key === key);
@@ -581,7 +343,7 @@ export default function OfferLeadsManagement({
       };
 
       // تحضير الأعمدة المرئية
-      const visibleCols = Object.entries(offerLeadVisibleColumns)
+      const visibleCols = Object.entries(offerTable.visibleColumns)
         .filter(([_, visible]) => visible)
         .map(([key]) => {
           const col = columnDefinitions.find(c => c.key === key);
@@ -847,24 +609,24 @@ export default function OfferLeadsManagement({
               )}
               <ColumnVisibility
                  columns={offerLeadColumns}
-                 visibleColumns={offerLeadVisibleColumns}
-                 columnOrder={offerColumnOrder}
-                 onVisibilityChange={handleOfferLeadColumnVisibilityChange}
-                 onColumnOrderChange={handleOfferLeadColumnOrderChange}
-                 onReset={handleOfferLeadColumnsReset}
-                 templates={allOfferTemplates}
-                 activeTemplateId={activeOfferTemplateId}
-                 onApplyTemplate={handleApplyOfferTemplate}
-                 onSaveTemplate={handleSaveOfferTemplate}
-                 onDeleteTemplate={handleDeleteOfferTemplate}
+                 visibleColumns={offerTable.visibleColumns}
+                 columnOrder={offerTable.columnOrder}
+                 onVisibilityChange={offerTable.handleColumnVisibilityChange}
+                 onColumnOrderChange={offerTable.handleColumnOrderChange}
+                 onReset={offerTable.handleResetAll}
+                 templates={offerTable.allTemplates}
+                 activeTemplateId={offerTable.activeTemplateId}
+                 onApplyTemplate={offerTable.handleApplyTemplate}
+                 onSaveTemplate={offerTable.handleSaveTemplate}
+                 onDeleteTemplate={offerTable.handleDeleteTemplate}
                  tableKey="offerLeads"
-                  columnWidths={offerColumnWidths.columnWidths}
-                  frozenColumns={offerFrozenColumns.frozenColumns}
-                  onToggleFrozen={offerFrozenColumns.toggleFrozen}
+                  columnWidths={offerTable.columnWidths.columnWidths}
+                  frozenColumns={offerTable.frozenColumns.frozenColumns}
+                  onToggleFrozen={offerTable.frozenColumns.toggleFrozen}
                   isAdmin={user?.role === 'admin'}
-                  sharedTemplates={sharedOfferTemplates}
-                  onSaveSharedTemplate={handleSaveSharedOfferTemplate}
-                  onDeleteSharedTemplate={handleDeleteSharedOfferTemplate}
+                  sharedTemplates={offerTable.sharedTemplates}
+                  onSaveSharedTemplate={offerTable.handleSaveSharedTemplate}
+                  onDeleteSharedTemplate={offerTable.handleDeleteSharedTemplate}
                 />
               <Button
                 variant="outline"
@@ -1000,13 +762,13 @@ export default function OfferLeadsManagement({
           {/* Desktop Table View */}
           <div className="hidden md:block border rounded-lg">
              <ResizableTable
-               frozenColumns={offerFrozenColumns.frozenColumns}
-               columnWidths={offerColumnWidths.columnWidths}
-               visibleColumnOrder={offerColumnOrder.filter(key => offerLeadVisibleColumns[key])}
+               frozenColumns={offerTable.frozenColumns.frozenColumns}
+               columnWidths={offerTable.columnWidths.columnWidths}
+               visibleColumnOrder={offerTable.columnOrder.filter(key => offerTable.visibleColumns[key])}
              >
               <TableHeader>
                 <TableRow>
-                  {offerColumnOrder.filter(key => offerLeadVisibleColumns[key]).map(colKey => {
+                  {offerTable.columnOrder.filter(key => offerTable.visibleColumns[key]).map(colKey => {
                     const col = offerLeadColumns.find(c => c.key === colKey);
                     if (!col) return null;
                     const sortableFields = ['receiptNumber', 'name', 'phone', 'email', 'offer', 'source', 'status', 'date'];
@@ -1034,10 +796,10 @@ export default function OfferLeadsManagement({
                       <ResizableHeaderCell
                         key={colKey}
                         columnKey={colKey}
-                        width={offerColumnWidths.getWidth(colKey)}
+                        width={offerTable.columnWidths.getWidth(colKey)}
                         minWidth={widthConfig.min}
                         maxWidth={widthConfig.max}
-                        onResize={offerColumnWidths.handleResize}
+                        onResize={offerTable.columnWidths.handleResize}
                         className={isSortable ? 'cursor-pointer hover:bg-muted/50 select-none' : ''}
                         onClick={isSortable ? () => {
                           if (sortField === colKey) {
@@ -1062,13 +824,13 @@ export default function OfferLeadsManagement({
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={offerColumnOrder.filter(k => offerLeadVisibleColumns[k]).length || 1} className="p-0">
-                      <TableSkeleton rows={5} columns={offerColumnOrder.filter(k => offerLeadVisibleColumns[k]).length || 10} />
+                    <TableCell colSpan={offerTable.columnOrder.filter(k => offerTable.visibleColumns[k]).length || 1} className="p-0">
+                      <TableSkeleton rows={5} columns={offerTable.columnOrder.filter(k => offerTable.visibleColumns[k]).length || 10} />
                     </TableCell>
                   </TableRow>
                 ) : filteredLeads.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={offerColumnOrder.filter(k => offerLeadVisibleColumns[k]).length || 1} className="py-12">
+                    <TableCell colSpan={offerTable.columnOrder.filter(k => offerTable.visibleColumns[k]).length || 1} className="py-12">
                       <EmptyState
                         icon={ShoppingBag}
                         title="لا توجد حجوزات"
@@ -1079,7 +841,7 @@ export default function OfferLeadsManagement({
                 ) : (
                   filteredLeads.map((lead: any) => (
                     <TableRow key={lead.id} className={lead.status === 'new' ? 'bg-red-50 hover:bg-red-100' : ''}>
-                      {offerColumnOrder.filter(key => offerLeadVisibleColumns[key]).map(colKey => {
+                      {offerTable.columnOrder.filter(key => offerTable.visibleColumns[key]).map(colKey => {
                         switch(colKey) {
                           case 'checkbox':
                             return (

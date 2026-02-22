@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import OfferLeadsManagement from "@/components/OfferLeadsManagement";
@@ -9,8 +9,9 @@ import AppointmentCard from "@/components/AppointmentCard";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
 import MultiSelect from "@/components/MultiSelect";
-import { ColumnVisibility, getDefaultTemplates, getColumnWidth, type ColumnConfig, type ColumnTemplate } from "@/components/ColumnVisibility";
-import { ResizableTable, ResizableHeaderCell, useColumnWidths, useFrozenColumns, FrozenTableCell } from "@/components/ResizableTable";
+import { ColumnVisibility, getColumnWidth, type ColumnConfig, type ColumnTemplate } from "@/components/ColumnVisibility";
+import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
+import { useTableFeatures } from "@/hooks/useTableFeatures";
 import TableSkeleton from "@/components/TableSkeleton";
 import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
@@ -226,264 +227,11 @@ export default function BookingsManagementPage() {
     { key: 'actions', label: 'الإجراءات', defaultVisible: true },
   ];
 
-  // Load preferences from database
-  const { data: savedPreferences } = trpc.preferences.get.useQuery(
-    { key: 'appointmentVisibleColumns' },
-    { retry: false }
-  );
-  
-  const savePreferencesMutation = trpc.preferences.set.useMutation();
-  
-  const [appointmentVisibleColumns, setAppointmentVisibleColumns] = useState<Record<string, boolean>>(() => {
-    // Try localStorage first for immediate load
-    const saved = localStorage.getItem('appointmentVisibleColumns');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    const defaultVisible: Record<string, boolean> = {};
-    appointmentColumns.forEach(col => {
-      defaultVisible[col.key] = col.defaultVisible;
-    });
-    return defaultVisible;
+  // === استخدام useTableFeatures الموحد لإدارة جميع ميزات الجدول ===
+  const appointmentTable = useTableFeatures({
+    tableKey: 'appointments',
+    columns: appointmentColumns,
   });
-
-  // Sync database preferences to state when loaded
-  useEffect(() => {
-    if (savedPreferences) {
-      setAppointmentVisibleColumns(savedPreferences);
-      // Also update localStorage for faster future loads
-      localStorage.setItem('appointmentVisibleColumns', JSON.stringify(savedPreferences));
-    }
-  }, [savedPreferences]);
-  
-  const handleAppointmentColumnVisibilityChange = (columnKey: string, visible: boolean) => {
-    const updated = { ...appointmentVisibleColumns, [columnKey]: visible };
-    setAppointmentVisibleColumns(updated);
-    // Save to both localStorage (immediate) and database (synced)
-    localStorage.setItem('appointmentVisibleColumns', JSON.stringify(updated));
-    savePreferencesMutation.mutate({
-      key: 'appointmentVisibleColumns',
-      value: updated,
-    });
-  };
-
-  // Column order state
-  const defaultColumnOrder = appointmentColumns.map(c => c.key);
-  const [appointmentColumnOrder, setAppointmentColumnOrder] = useState<string[]>(() => {
-    const saved = localStorage.getItem('appointmentColumnOrder');
-    return saved ? JSON.parse(saved) : defaultColumnOrder;
-  });
-
-  const { data: savedColumnOrder } = trpc.preferences.get.useQuery(
-    { key: 'appointmentColumnOrder' },
-    { retry: false }
-  );
-
-  useEffect(() => {
-    if (savedColumnOrder && Array.isArray(savedColumnOrder)) {
-      setAppointmentColumnOrder(savedColumnOrder);
-      localStorage.setItem('appointmentColumnOrder', JSON.stringify(savedColumnOrder));
-    }
-  }, [savedColumnOrder]);
-
-  const handleAppointmentColumnOrderChange = (newOrder: string[]) => {
-    setAppointmentColumnOrder(newOrder);
-    localStorage.setItem('appointmentColumnOrder', JSON.stringify(newOrder));
-    savePreferencesMutation.mutate({ key: 'appointmentColumnOrder', value: newOrder });
-  };
-
-  // Column widths - with database sync
-  const { data: savedColumnWidths } = trpc.preferences.get.useQuery(
-    { key: 'appointmentColumnWidths' },
-    { retry: false }
-  );
-  const saveColumnWidthsFn = useCallback((widths: Record<string, number>) => {
-    savePreferencesMutation.mutate({ key: 'appointmentColumnWidths', value: widths });
-  }, [savePreferencesMutation]);
-  const appointmentColumnWidths = useColumnWidths(
-    appointmentColumns, appointmentColumnOrder, 'appointments',
-    saveColumnWidthsFn, savedColumnWidths as Record<string, number> | null
-  );
-
-  // Frozen columns - with database sync
-  const { data: savedFrozenColumns } = trpc.preferences.get.useQuery(
-    { key: 'appointmentFrozenColumns' },
-    { retry: false }
-  );
-  const saveFrozenColumnsFn = useCallback((frozen: string[]) => {
-    savePreferencesMutation.mutate({ key: 'appointmentFrozenColumns', value: frozen });
-  }, [savePreferencesMutation]);
-  const appointmentFrozenColumns = useFrozenColumns(
-    'appointments',
-    [],
-    saveFrozenColumnsFn,
-    savedFrozenColumns as string[] | null
-  );
-
-  const handleAppointmentColumnsReset = () => {
-    const defaultVisible: Record<string, boolean> = {};
-    appointmentColumns.forEach(col => {
-      defaultVisible[col.key] = col.defaultVisible;
-    });
-    setAppointmentVisibleColumns(defaultVisible);
-    setActiveAppointmentTemplateId(null);
-    setAppointmentColumnOrder(defaultColumnOrder);
-    appointmentColumnWidths.resetWidths();
-    appointmentFrozenColumns.resetFrozen();
-    // Save to both localStorage and database
-    localStorage.setItem('appointmentVisibleColumns', JSON.stringify(defaultVisible));
-    localStorage.removeItem('activeAppointmentTemplateId');
-    localStorage.setItem('appointmentColumnOrder', JSON.stringify(defaultColumnOrder));
-    savePreferencesMutation.mutate({
-      key: 'appointmentVisibleColumns',
-      value: defaultVisible,
-    });
-    savePreferencesMutation.mutate({
-      key: 'activeAppointmentTemplateId',
-      value: null,
-    });
-    savePreferencesMutation.mutate({
-      key: 'appointmentColumnOrder',
-      value: defaultColumnOrder,
-    });
-  };
-
-  // === Column Templates ===
-  const defaultAppointmentTemplates = getDefaultTemplates(appointmentColumns, 'appointments');
-  
-  const { data: savedTemplates } = trpc.preferences.get.useQuery(
-    { key: 'appointmentColumnTemplates' },
-    { retry: false }
-  );
-  
-  const { data: savedActiveTemplateId } = trpc.preferences.get.useQuery(
-    { key: 'activeAppointmentTemplateId' },
-    { retry: false }
-  );
-
-  const [customTemplates, setCustomTemplates] = useState<ColumnTemplate[]>(() => {
-    const saved = localStorage.getItem('appointmentColumnTemplates');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [activeAppointmentTemplateId, setActiveAppointmentTemplateId] = useState<string | null>(() => {
-    return localStorage.getItem('activeAppointmentTemplateId') || null;
-  });
-
-  useEffect(() => {
-    if (savedTemplates && Array.isArray(savedTemplates)) {
-      setCustomTemplates(savedTemplates);
-      localStorage.setItem('appointmentColumnTemplates', JSON.stringify(savedTemplates));
-    }
-  }, [savedTemplates]);
-
-  useEffect(() => {
-    if (savedActiveTemplateId !== undefined) {
-      setActiveAppointmentTemplateId(savedActiveTemplateId);
-      if (savedActiveTemplateId) {
-        localStorage.setItem('activeAppointmentTemplateId', savedActiveTemplateId);
-      } else {
-        localStorage.removeItem('activeAppointmentTemplateId');
-      }
-    }
-  }, [savedActiveTemplateId]);
-
-  // Shared templates from admin
-  const { data: sharedAppointmentTemplatesData } = trpc.sharedTemplates.list.useQuery(
-    { tableKey: 'appointments' },
-    { retry: false }
-  );
-  const createSharedTemplateMutation = trpc.sharedTemplates.create.useMutation({
-    onSuccess: () => {
-      utils.sharedTemplates.list.invalidate({ tableKey: 'appointments' });
-    },
-  });
-  const deleteSharedTemplateMutation = trpc.sharedTemplates.delete.useMutation({
-    onSuccess: () => {
-      utils.sharedTemplates.list.invalidate({ tableKey: 'appointments' });
-    },
-  });
-
-  const sharedAppointmentTemplates: ColumnTemplate[] = (sharedAppointmentTemplatesData || []).map((t: any) => ({
-    id: `shared_appointments_${t.id}`,
-    name: t.name,
-    columns: t.columns,
-    isDefault: false,
-    isShared: true,
-    createdByName: t.createdByName,
-    dbId: t.id,
-  }));
-
-  const handleSaveSharedAppointmentTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[], columnWidths?: Record<string, number>, frozenCols?: string[]) => {
-    createSharedTemplateMutation.mutate({
-      name,
-      tableKey: 'appointments',
-      columns,
-      columnOrder: columnOrder || appointmentColumnOrder,
-      columnWidths: columnWidths || appointmentColumnWidths.columnWidths,
-      frozenColumns: frozenCols || appointmentFrozenColumns.frozenColumns,
-    } as any);
-  };
-
-  const handleDeleteSharedAppointmentTemplate = (dbId: number) => {
-    deleteSharedTemplateMutation.mutate({ id: dbId });
-  };
-
-  const allAppointmentTemplates = [...defaultAppointmentTemplates, ...customTemplates];
-
-  const handleApplyAppointmentTemplate = (template: ColumnTemplate) => {
-    setAppointmentVisibleColumns(template.columns);
-    setActiveAppointmentTemplateId(template.id);
-    if (template.columnOrder) {
-      setAppointmentColumnOrder(template.columnOrder);
-      localStorage.setItem('appointmentColumnOrder', JSON.stringify(template.columnOrder));
-      savePreferencesMutation.mutate({ key: 'appointmentColumnOrder', value: template.columnOrder });
-    }
-    // Apply column widths from template if available
-    if (template.columnWidths) {
-      appointmentColumnWidths.applyWidths(template.columnWidths);
-      savePreferencesMutation.mutate({ key: 'appointmentColumnWidths', value: template.columnWidths });
-    }
-    // Apply frozen columns from template if available
-    if (template.frozenColumns) {
-      appointmentFrozenColumns.setFrozen(template.frozenColumns);
-    }
-    localStorage.setItem('appointmentVisibleColumns', JSON.stringify(template.columns));
-    localStorage.setItem('activeAppointmentTemplateId', template.id);
-    savePreferencesMutation.mutate({ key: 'appointmentVisibleColumns', value: template.columns });
-    savePreferencesMutation.mutate({ key: 'activeAppointmentTemplateId', value: template.id });
-  };
-
-  const handleSaveAppointmentTemplate = (name: string, columns: Record<string, boolean>, columnOrder?: string[], columnWidths?: Record<string, number>, frozenCols?: string[]) => {
-    const newTemplate: ColumnTemplate = {
-      id: `appointments_custom_${Date.now()}`,
-      name,
-      columns,
-      columnOrder: columnOrder || appointmentColumnOrder,
-      columnWidths: columnWidths || appointmentColumnWidths.columnWidths,
-      frozenColumns: frozenCols || appointmentFrozenColumns.frozenColumns,
-      isDefault: false,
-    };
-    const updated = [...customTemplates, newTemplate];
-    setCustomTemplates(updated);
-    setActiveAppointmentTemplateId(newTemplate.id);
-    localStorage.setItem('appointmentColumnTemplates', JSON.stringify(updated));
-    localStorage.setItem('activeAppointmentTemplateId', newTemplate.id);
-    savePreferencesMutation.mutate({ key: 'appointmentColumnTemplates', value: updated });
-    savePreferencesMutation.mutate({ key: 'activeAppointmentTemplateId', value: newTemplate.id });
-  };
-
-  const handleDeleteAppointmentTemplate = (templateId: string) => {
-    const updated = customTemplates.filter(t => t.id !== templateId);
-    setCustomTemplates(updated);
-    if (activeAppointmentTemplateId === templateId) {
-      setActiveAppointmentTemplateId(null);
-      localStorage.removeItem('activeAppointmentTemplateId');
-      savePreferencesMutation.mutate({ key: 'activeAppointmentTemplateId', value: null });
-    }
-    localStorage.setItem('appointmentColumnTemplates', JSON.stringify(updated));
-    savePreferencesMutation.mutate({ key: 'appointmentColumnTemplates', value: updated });
-  };
   
   // Debounced search terms for better performance
   const debouncedAppointmentSearch = useDebounce(appointmentSearchTerm, 500);
@@ -834,7 +582,7 @@ export default function BookingsManagementPage() {
       };
 
       // تحضير الأعمدة المرئية
-      const visibleCols = Object.entries(appointmentVisibleColumns)
+      const visibleCols = Object.entries(appointmentTable.visibleColumns)
         .filter(([_, visible]) => visible)
         .map(([key]) => {
           const col = columnDefinitions.find(c => c.key === key);
@@ -928,7 +676,7 @@ export default function BookingsManagementPage() {
       };
 
       // تحضير الأعمدة المرئية
-      const visibleCols = Object.entries(appointmentVisibleColumns)
+      const visibleCols = Object.entries(appointmentTable.visibleColumns)
         .filter(([_, visible]) => visible)
         .map(([key]) => {
           const col = columnDefinitions.find(c => c.key === key);
@@ -1428,24 +1176,24 @@ export default function BookingsManagementPage() {
                     </DropdownMenu>
                     <ColumnVisibility
                        columns={appointmentColumns}
-                       visibleColumns={appointmentVisibleColumns}
-                       columnOrder={appointmentColumnOrder}
-                       onVisibilityChange={handleAppointmentColumnVisibilityChange}
-                       onColumnOrderChange={handleAppointmentColumnOrderChange}
-                       onReset={handleAppointmentColumnsReset}
-                       templates={allAppointmentTemplates}
-                       activeTemplateId={activeAppointmentTemplateId}
-                       onApplyTemplate={handleApplyAppointmentTemplate}
-                       onSaveTemplate={handleSaveAppointmentTemplate}
-                       onDeleteTemplate={handleDeleteAppointmentTemplate}
+                       visibleColumns={appointmentTable.visibleColumns}
+                       columnOrder={appointmentTable.columnOrder}
+                       onVisibilityChange={appointmentTable.handleColumnVisibilityChange}
+                       onColumnOrderChange={appointmentTable.handleColumnOrderChange}
+                       onReset={appointmentTable.handleResetAll}
+                       templates={appointmentTable.allTemplates}
+                       activeTemplateId={appointmentTable.activeTemplateId}
+                       onApplyTemplate={appointmentTable.handleApplyTemplate}
+                       onSaveTemplate={appointmentTable.handleSaveTemplate}
+                       onDeleteTemplate={appointmentTable.handleDeleteTemplate}
                        tableKey="appointments"
-                        columnWidths={appointmentColumnWidths.columnWidths}
-                        frozenColumns={appointmentFrozenColumns.frozenColumns}
-                        onToggleFrozen={appointmentFrozenColumns.toggleFrozen}
+                        columnWidths={appointmentTable.columnWidths.columnWidths}
+                        frozenColumns={appointmentTable.frozenColumns.frozenColumns}
+                        onToggleFrozen={appointmentTable.frozenColumns.toggleFrozen}
                         isAdmin={user?.role === 'admin'}
-                        sharedTemplates={sharedAppointmentTemplates}
-                        onSaveSharedTemplate={handleSaveSharedAppointmentTemplate}
-                        onDeleteSharedTemplate={handleDeleteSharedAppointmentTemplate}
+                        sharedTemplates={appointmentTable.sharedTemplates}
+                        onSaveSharedTemplate={appointmentTable.handleSaveSharedTemplate}
+                        onDeleteSharedTemplate={appointmentTable.handleDeleteSharedTemplate}
                       />
                   </div>
                 </div>
@@ -1490,13 +1238,13 @@ export default function BookingsManagementPage() {
                 {/* Desktop Table View */}
                 <div className="table-responsive">
                    <ResizableTable
-                     frozenColumns={appointmentFrozenColumns.frozenColumns}
-                     columnWidths={appointmentColumnWidths.columnWidths}
-                     visibleColumnOrder={appointmentColumnOrder.filter(key => appointmentVisibleColumns[key])}
+                     frozenColumns={appointmentTable.frozenColumns.frozenColumns}
+                     columnWidths={appointmentTable.columnWidths.columnWidths}
+                     visibleColumnOrder={appointmentTable.columnOrder.filter(key => appointmentTable.visibleColumns[key])}
                    >
                     <TableHeader>
                       <TableRow>
-                        {appointmentColumnOrder.filter(key => appointmentVisibleColumns[key]).map(colKey => {
+                        {appointmentTable.columnOrder.filter(key => appointmentTable.visibleColumns[key]).map(colKey => {
                           const col = appointmentColumns.find(c => c.key === colKey);
                           if (!col) return null;
                           const sortableFields = ['date', 'name', 'phone', 'doctor', 'specialty', 'source', 'receiptNumber', 'status'];
@@ -1506,10 +1254,10 @@ export default function BookingsManagementPage() {
                             <ResizableHeaderCell
                               key={colKey}
                               columnKey={colKey}
-                              width={appointmentColumnWidths.getWidth(colKey)}
+                              width={appointmentTable.columnWidths.getWidth(colKey)}
                               minWidth={widthConfig.min}
                               maxWidth={widthConfig.max}
-                              onResize={appointmentColumnWidths.handleResize}
+                              onResize={appointmentTable.columnWidths.handleResize}
                               className={isSortable ? 'cursor-pointer hover:bg-muted/50 select-none' : ''}
                               onClick={isSortable ? () => {
                                 if (appointmentSortField === colKey) {
@@ -1534,13 +1282,13 @@ export default function BookingsManagementPage() {
                     <TableBody>
                       {appointmentsLoading ? (
                         <TableRow>
-                          <TableCell colSpan={appointmentColumnOrder.filter(k => appointmentVisibleColumns[k]).length || 1} className="p-0">
-                            <TableSkeleton rows={5} columns={appointmentColumnOrder.filter(k => appointmentVisibleColumns[k]).length || 11} />
+                          <TableCell colSpan={appointmentTable.columnOrder.filter(k => appointmentTable.visibleColumns[k]).length || 1} className="p-0">
+                            <TableSkeleton rows={5} columns={appointmentTable.columnOrder.filter(k => appointmentTable.visibleColumns[k]).length || 11} />
                           </TableCell>
                         </TableRow>
                       ) : filteredAppointments.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={appointmentColumnOrder.filter(k => appointmentVisibleColumns[k]).length || 1} className="py-12">
+                          <TableCell colSpan={appointmentTable.columnOrder.filter(k => appointmentTable.visibleColumns[k]).length || 1} className="py-12">
                             <EmptyState
                               icon={CalendarOff}
                               title="لا توجد مواعيد"
@@ -1554,7 +1302,7 @@ export default function BookingsManagementPage() {
                             key={`appointment-${appointment.id}`}
                             className={appointment.status === 'pending' ? 'bg-red-50 hover:bg-red-100' : ''}
                           >
-                            {appointmentColumnOrder.filter(key => appointmentVisibleColumns[key]).map(colKey => {
+                            {appointmentTable.columnOrder.filter(key => appointmentTable.visibleColumns[key]).map(colKey => {
                               switch(colKey) {
                                 case 'date':
                                   return <FrozenTableCell key={colKey} columnKey={colKey} className="font-medium">{new Date(appointment.createdAt).toLocaleDateString("ar-EG")}</FrozenTableCell>;
