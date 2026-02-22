@@ -2765,3 +2765,9 @@
 - [x] تطبيق الـ hook على CampRegistrationsManagement (~250 سطر محذوف)
 - [x] تنظيف imports غير المستخدمة (useCallback, getDefaultTemplates, etc.)
 - [x] كتابة اختبارات vitest (19 اختبار ناجح)
+
+### تطبيق useTableFeatures على الجداول البسيطة ✅ مكتمل
+- [x] تطبيق useTableFeatures على DoctorsManagement
+- [x] تطبيق useTableFeatures على OffersManagement
+- [x] تطبيق useTableFeatures على CampsManagement
+- [x] اختبار النظام والتحقق من عدم وجود أخطاء (17 اختبار ناجح)

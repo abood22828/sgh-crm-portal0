@@ -7,9 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -42,6 +40,22 @@ import {
   Plane,
 } from "lucide-react";
 import { toast } from "sonner";
+import { type ColumnConfig } from "@/components/ColumnVisibility";
+import { ColumnVisibility } from "@/components/ColumnVisibility";
+import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
+import { useTableFeatures } from "@/hooks/useTableFeatures";
+
+// === تعريف أعمدة جدول الأطباء ===
+const doctorColumns: ColumnConfig[] = [
+  { key: "name", label: "الاسم", defaultVisible: true, defaultWidth: 200, minWidth: 150, maxWidth: 400 },
+  { key: "specialty", label: "التخصص", defaultVisible: true, defaultWidth: 180, minWidth: 120, maxWidth: 350 },
+  { key: "experience", label: "الخبرة", defaultVisible: true, defaultWidth: 100, minWidth: 70, maxWidth: 200 },
+  { key: "languages", label: "اللغات", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 300 },
+  { key: "consultationFee", label: "رسوم الاستشارة", defaultVisible: true, defaultWidth: 130, minWidth: 100, maxWidth: 250 },
+  { key: "isVisiting", label: "طبيب زائر", defaultVisible: false, defaultWidth: 100, minWidth: 80, maxWidth: 200 },
+  { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200 },
+  { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300 },
+];
 
 export default function DoctorsManagement() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -62,6 +76,13 @@ export default function DoctorsManagement() {
     procedures: "",
     isVisiting: "no" as "yes" | "no",
     available: "yes" as "yes" | "no",
+  });
+
+  // === useTableFeatures hook ===
+  const doctorTable = useTableFeatures({
+    tableKey: 'doctors',
+    columns: doctorColumns,
+    defaultFrozenColumns: ['name'],
   });
 
   const { data: doctors, isLoading, refetch } = trpc.doctors.list.useQuery();
@@ -216,15 +237,6 @@ export default function DoctorsManagement() {
       .replace(/-+$/, "");
   };
 
-  const stats = useMemo(() => {
-    if (!doctors) return { total: 0, available: 0, unavailable: 0 };
-    return {
-      total: doctors.length,
-      available: doctors.filter((d: any) => d.available === "yes").length,
-      unavailable: doctors.filter((d: any) => d.available === "no").length,
-    };
-  }, [doctors]);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -243,7 +255,7 @@ export default function DoctorsManagement() {
             <Users className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-2xl font-bold">{doctorStats.total}</div>
             <p className="text-xs text-muted-foreground">جميع الأطباء في النظام</p>
           </CardContent>
         </Card>
@@ -254,7 +266,7 @@ export default function DoctorsManagement() {
             <UserCheck className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.available}</div>
+            <div className="text-2xl font-bold">{doctorStats.available}</div>
             <p className="text-xs text-muted-foreground">أطباء متاحون للحجز</p>
           </CardContent>
         </Card>
@@ -265,7 +277,7 @@ export default function DoctorsManagement() {
             <UserX className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.unavailable}</div>
+            <div className="text-2xl font-bold">{doctorStats.unavailable}</div>
             <p className="text-xs text-muted-foreground">أطباء غير متاحين حالياً</p>
           </CardContent>
         </Card>
@@ -315,7 +327,6 @@ export default function DoctorsManagement() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>إدارة الأطباء</CardTitle>
-              <CardDescription>إضافة وتعديل وحذف بيانات الأطباء</CardDescription>
             </div>
             <Button onClick={() => handleOpenDialog()}>
               <Plus className="h-4 w-4 mr-2" />
@@ -324,104 +335,141 @@ export default function DoctorsManagement() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="البحث بالاسم، التخصص، أو اللغات..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
-            />
+          {/* Search & Column Controls */}
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="البحث بالاسم، التخصص، أو اللغات..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pr-10"
+              />
+            </div>
+            <ColumnVisibility {...doctorTable.columnVisibilityProps} />
           </div>
 
           {/* Table */}
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
+          <ResizableTable {...doctorTable.resizableTableProps}>
+            <TableHeader>
+              <TableRow>
+                {doctorTable.visibleColumnOrder.map(colKey => {
+                  const col = doctorColumns.find(c => c.key === colKey);
+                  if (!col || !doctorTable.visibleColumns[colKey]) return null;
+                  return (
+                    <ResizableHeaderCell
+                      key={colKey}
+                      columnKey={colKey}
+                      width={doctorTable.columnWidths.columnWidths[colKey] || col.defaultWidth || 150}
+                      minWidth={col.minWidth || 80}
+                      maxWidth={col.maxWidth || 500}
+                      onResize={doctorTable.columnWidths.handleResize}
+                    >
+                      <TableHead className="text-right h-auto p-0 border-0">
+                        {col.label}
+                      </TableHead>
+                    </ResizableHeaderCell>
+                  );
+                })}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDoctors.length === 0 ? (
                 <TableRow>
-                  <TableHead className="text-right">الاسم</TableHead>
-                  <TableHead className="text-right">التخصص</TableHead>
-                  <TableHead className="text-right">الخبرة</TableHead>
-                  <TableHead className="text-right">اللغات</TableHead>
-                  <TableHead className="text-right">رسوم الاستشارة</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right">الإجراءات</TableHead>
+                  <FrozenTableCell columnKey="" colSpan={doctorTable.visibleColumnOrder.filter(k => doctorTable.visibleColumns[k]).length} className="text-center py-8 text-muted-foreground">
+                    لا توجد أطباء متاحة
+                  </FrozenTableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDoctors.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      لا توجد أطباء متاحة
-                    </TableCell>
+              ) : (
+                filteredDoctors.map((doctor: any) => (
+                  <TableRow key={doctor.id}>
+                    {doctorTable.visibleColumnOrder.map(colKey => {
+                      if (!doctorTable.visibleColumns[colKey]) return null;
+                      
+                      switch (colKey) {
+                        case 'name':
+                          return (
+                            <FrozenTableCell key={colKey} columnKey={colKey} className="font-medium">
+                              <div className="flex items-center gap-3">
+                                {doctor.image ? (
+                                  <img
+                                    src={doctor.image}
+                                    alt={doctor.name}
+                                    className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                                  />
+                                ) : (
+                                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <Stethoscope className="h-5 w-5 text-primary" />
+                                  </div>
+                                )}
+                                <span className="truncate">{doctor.name}</span>
+                              </div>
+                            </FrozenTableCell>
+                          );
+                        case 'specialty':
+                          return <FrozenTableCell key={colKey} columnKey={colKey}><span className="truncate">{doctor.specialty}</span></FrozenTableCell>;
+                        case 'experience':
+                          return <FrozenTableCell key={colKey} columnKey={colKey}>{doctor.experience || "-"}</FrozenTableCell>;
+                        case 'languages':
+                          return <FrozenTableCell key={colKey} columnKey={colKey}>{doctor.languages || "-"}</FrozenTableCell>;
+                        case 'consultationFee':
+                          return <FrozenTableCell key={colKey} columnKey={colKey}>{doctor.consultationFee || "-"}</FrozenTableCell>;
+                        case 'isVisiting':
+                          return (
+                            <FrozenTableCell key={colKey} columnKey={colKey}>
+                              <Badge className={doctor.isVisiting === "yes" ? "bg-purple-500" : "bg-gray-400"}>
+                                {doctor.isVisiting === "yes" ? "زائر" : "مقيم"}
+                              </Badge>
+                            </FrozenTableCell>
+                          );
+                        case 'status':
+                          return (
+                            <FrozenTableCell key={colKey} columnKey={colKey}>
+                              <Badge className={doctor.available === "yes" ? "bg-green-500" : "bg-red-500"}>
+                                {doctor.available === "yes" ? "متاح" : "غير متاح"}
+                              </Badge>
+                            </FrozenTableCell>
+                          );
+                        case 'actions':
+                          return (
+                            <FrozenTableCell key={colKey} columnKey={colKey}>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleToggleAvailability(doctor)}
+                                >
+                                  {doctor.available === "yes" ? "تعطيل" : "تفعيل"}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleOpenDialog(doctor)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setDeletingDoctor(doctor);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </div>
+                            </FrozenTableCell>
+                          );
+                        default:
+                          return null;
+                      }
+                    })}
                   </TableRow>
-                ) : (
-                  filteredDoctors.map((doctor: any) => (
-                    <TableRow key={doctor.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-3">
-                          {doctor.image ? (
-                            <img
-                              src={doctor.image}
-                              alt={doctor.name}
-                              className="h-10 w-10 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Stethoscope className="h-5 w-5 text-primary" />
-                            </div>
-                          )}
-                          <span>{doctor.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{doctor.specialty}</TableCell>
-                      <TableCell>{doctor.experience || "-"}</TableCell>
-                      <TableCell>{doctor.languages || "-"}</TableCell>
-                      <TableCell>{doctor.consultationFee || "-"}</TableCell>
-                      <TableCell>
-                        <Badge
-                          className={
-                            doctor.available === "yes" ? "bg-green-500" : "bg-red-500"
-                          }
-                        >
-                          {doctor.available === "yes" ? "متاح" : "غير متاح"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleAvailability(doctor)}
-                          >
-                            {doctor.available === "yes" ? "تعطيل" : "تفعيل"}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenDialog(doctor)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setDeletingDoctor(doctor);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                ))
+              )}
+            </TableBody>
+          </ResizableTable>
         </CardContent>
       </Card>
 
