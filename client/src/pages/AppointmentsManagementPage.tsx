@@ -338,7 +338,7 @@ export default function AppointmentsManagementPage() {
       pageTitle="مواعيد الأطباء"
       pageDescription="إدارة ومتابعة مواعيد الأطباء"
     >
-      <div className="space-y-5" dir="rtl">
+      <div className="space-y-4 sm:space-y-5 px-3 sm:px-4 md:px-6 py-3 sm:py-4" dir="rtl">
         <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
 
         <AppointmentStatsCards stats={appointmentStats} />

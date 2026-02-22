@@ -257,9 +257,9 @@ export default function DoctorsManagement() {
     return (
       <div className="space-y-6">
         {/* Stats Skeleton */}
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 p-4">
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
                 <div className="h-8 w-8 bg-gray-100 rounded-lg animate-pulse" />
@@ -287,77 +287,77 @@ export default function DoctorsManagement() {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         {/* إجمالي الأطباء */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-gray-500">إجمالي الأطباء</span>
-            <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Users className="h-4 w-4 text-blue-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">إجمالي الأطباء</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-gray-900">{doctorStats.total}</div>
-          <p className="text-[11px] text-gray-400 mt-0.5">جميع الأطباء</p>
+          <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{doctorStats.total}</div>
+          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">جميع الأطباء</p>
         </div>
 
         {/* متاحون */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-gray-500">متاحون</span>
-            <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <UserCheck className="h-4 w-4 text-emerald-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">متاحون</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+              <UserCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-emerald-600">{doctorStats.available}</div>
-          <p className="text-[11px] text-gray-400 mt-0.5">متاحون للحجز</p>
+          <div className="text-lg sm:text-2xl font-bold text-emerald-600">{doctorStats.available}</div>
+          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">متاحون للحجز</p>
         </div>
 
         {/* غير متاحين */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-gray-500">غير متاحين</span>
-            <div className="h-8 w-8 rounded-lg bg-red-50 flex items-center justify-center">
-              <UserX className="h-4 w-4 text-red-500" />
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">غير متاحين</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center">
+              <UserX className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-red-500">{doctorStats.unavailable}</div>
-          <p className="text-[11px] text-gray-400 mt-0.5">غير متاحين حالياً</p>
+          <div className="text-lg sm:text-2xl font-bold text-red-500">{doctorStats.unavailable}</div>
+          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">غير متاحين حالياً</p>
         </div>
 
         {/* أطباء زائرون */}
-        <div className="bg-white rounded-xl border border-purple-100 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-purple-600">أطباء زائرون</span>
-            <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center">
-              <Plane className="h-4 w-4 text-purple-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-purple-100 dark:border-purple-800 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-xs font-medium text-purple-600">أطباء زائرون</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
+              <Plane className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-purple-700">{doctorStats.visiting}</div>
-          <p className="text-[11px] text-gray-400 mt-0.5">إجمالي الزائرين</p>
+          <div className="text-lg sm:text-2xl font-bold text-purple-700">{doctorStats.visiting}</div>
+          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">إجمالي الزائرين</p>
         </div>
 
         {/* زائرون متاحون */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-gray-500">زائرون متاحون</span>
-            <div className="h-8 w-8 rounded-lg bg-green-50 flex items-center justify-center">
-              <UserCheck className="h-4 w-4 text-green-500" />
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">زائرون متاحون</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
+              <UserCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-green-600">{doctorStats.visitingAvailable}</div>
-          <p className="text-[11px] text-gray-400 mt-0.5">زائرون للحجز</p>
+          <div className="text-lg sm:text-2xl font-bold text-green-600">{doctorStats.visitingAvailable}</div>
+          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">زائرون للحجز</p>
         </div>
 
         {/* زائرون غير متاحين */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-gray-500">زائرون غير متاحين</span>
-            <div className="h-8 w-8 rounded-lg bg-orange-50 flex items-center justify-center">
-              <UserX className="h-4 w-4 text-orange-500" />
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">زائرون غير متاحين</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center">
+              <UserX className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-orange-500">{doctorStats.visitingUnavailable}</div>
-          <p className="text-[11px] text-gray-400 mt-0.5">زائرون غير متاحين</p>
+          <div className="text-lg sm:text-2xl font-bold text-orange-500">{doctorStats.visitingUnavailable}</div>
+          <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">زائرون غير متاحين</p>
         </div>
       </div>
 

@@ -210,7 +210,7 @@ export default function DoctorDetailPage() {
             <div className="h-2 bg-gradient-to-r from-green-500 via-green-600 to-blue-500"></div>
 
             <div className="p-5 md:p-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-10">
                 {/* Doctor Image */}
                 <div className="flex justify-center md:justify-start">
                   <div className="relative">

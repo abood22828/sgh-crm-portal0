@@ -69,7 +69,7 @@ export default function DashboardLayout({
       <div className="flex-1 flex flex-col lg:pb-0 pb-14">
         {/* Top Header Bar */}
         <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
-          <div className="flex items-center justify-between px-4 py-2.5 md:px-6">
+          <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 md:px-6">
             {/* Page Title */}
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <img
@@ -78,7 +78,7 @@ export default function DashboardLayout({
                 className="h-9 md:h-10 w-auto object-contain flex-shrink-0 lg:hidden"
               />
               <div className="min-w-0 flex-1">
-                <h1 className="text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+                <h1 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
                   {pageTitle || "لوحة التحكم"}
                 </h1>
                 {pageDescription && (
@@ -146,7 +146,7 @@ export default function DashboardLayout({
         </header>
         
         {/* Page Content */}
-        <main className="flex-1">
+        <main className="flex-1 overflow-x-hidden">
           {children}
         </main>
       </div>

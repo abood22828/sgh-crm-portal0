@@ -187,7 +187,7 @@ export default function LeadsManagementPage() {
       pageTitle="تسجيلات العملاء"
       pageDescription="إدارة ومتابعة تسجيلات العملاء"
     >
-      <div className="space-y-5" dir="rtl">
+      <div className="space-y-4 sm:space-y-5 px-3 sm:px-4 md:px-6 py-3 sm:py-4" dir="rtl">
         {/* Stats Cards */}
         <LeadStatsCards stats={stats} />
 

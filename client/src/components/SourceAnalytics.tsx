@@ -167,7 +167,7 @@ export default function SourceAnalytics() {
           <div className="pt-4 border-t">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium">إجمالي الحجوزات</span>
-              <span className="text-2xl font-bold text-primary">{sourceStats.total}</span>
+              <span className="text-lg sm:text-2xl font-bold text-primary">{sourceStats.total}</span>
             </div>
             
             {/* Insights */}

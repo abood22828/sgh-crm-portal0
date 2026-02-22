@@ -428,7 +428,7 @@ export default function OfferLeadsManagement({
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {[
           { label: 'إجمالي الحجوزات', value: stats?.total || 0, icon: Users, color: 'text-slate-600', bg: 'bg-slate-50' },
           { label: 'جديد', value: stats?.new || 0, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -436,13 +436,13 @@ export default function OfferLeadsManagement({
           { label: 'تم الحجز', value: stats?.booked || 0, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
           { label: 'غير مهتم', value: stats?.not_interested || 0, icon: UserX, color: 'text-red-600', bg: 'bg-red-50' },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-lg border bg-card p-4 flex items-start gap-3">
-            <div className={`rounded-lg p-2 ${stat.bg}`}>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+          <div key={stat.label} className="rounded-lg border bg-card p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
+            <div className={`rounded-lg p-1.5 sm:p-2 ${stat.bg}`}>
+              <stat.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${stat.color}`} />
             </div>
-            <div>
-              <p className="text-2xl font-bold leading-none">{stat.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-2xl font-bold leading-none">{stat.value}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 truncate">{stat.label}</p>
             </div>
           </div>
         ))}
@@ -916,7 +916,7 @@ export default function OfferLeadsManagement({
           {selectedLead && (
             <div className="flex-1 overflow-hidden flex flex-col">
               <Tabs defaultValue="info" className="flex-1 overflow-hidden flex flex-col">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
                   <TabsTrigger value="info">معلومات الحجز</TabsTrigger>
                   <TabsTrigger value="comments">التعليقات</TabsTrigger>
                   <TabsTrigger value="tasks">المهام</TabsTrigger>

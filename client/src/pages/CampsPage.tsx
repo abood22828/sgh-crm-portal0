@@ -103,12 +103,12 @@ export default function CampsPage() {
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={APP_LOGO} alt={APP_TITLE} className="h-12 w-auto" />
+        <div className="container mx-auto px-5 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img src={APP_LOGO} alt={APP_TITLE} className="h-9 sm:h-12 w-auto" />
             <div>
-              <h1 className="text-lg font-bold text-green-900">{APP_TITLE}</h1>
-              <p className="text-sm text-gray-500">المخيمات الطبية</p>
+              <h1 className="text-sm sm:text-lg font-bold text-green-900 leading-tight">{APP_TITLE}</h1>
+              <p className="text-xs sm:text-sm text-gray-500">المخيمات الطبية</p>
             </div>
           </div>
           <a href="tel:8000018" className="flex items-center gap-2 text-green-600 hover:text-green-800">
@@ -119,23 +119,23 @@ export default function CampsPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-12 md:py-16">
-        <div className="container mx-auto px-4 text-center">
-          <Heart className="h-16 w-16 text-green-600 mx-auto mb-4" />
-          <h1 className="text-3xl md:text-4xl font-bold text-green-900 mb-4">
+      <section className="py-8 sm:py-12 md:py-16">
+        <div className="container mx-auto px-5 sm:px-6 text-center">
+          <Heart className="h-12 sm:h-16 w-12 sm:w-16 text-green-600 mx-auto mb-3 sm:mb-4" />
+          <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-green-900 mb-3 sm:mb-4">
             المخيمات الطبية المجانية
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto">
             خدمات طبية مجانية للمجتمع بإشراف أفضل الأطباء والاستشاريين
           </p>
         </div>
       </section>
 
       {/* Camps Grid */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
+      <section className="py-6 sm:py-8">
+        <div className="container mx-auto px-5 sm:px-6">
           {camps && camps.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {camps.map((camp) => (
                 <Card 
                   key={camp.id} 
@@ -145,7 +145,7 @@ export default function CampsPage() {
                   onClick={() => setSelectedCamp(camp.id)}
                 >
                   {camp.imageUrl && (
-                    <div className="relative h-48 overflow-hidden rounded-t-lg">
+                    <div className="relative h-40 sm:h-48 overflow-hidden rounded-t-lg">
                       <img 
                         src={camp.imageUrl} 
                         alt={camp.name}
@@ -154,7 +154,7 @@ export default function CampsPage() {
                     </div>
                   )}
                   <CardHeader>
-                    <CardTitle className="text-xl text-green-900">{camp.name}</CardTitle>
+                    <CardTitle className="text-base sm:text-xl text-green-900">{camp.name}</CardTitle>
                     {(camp.startDate || camp.endDate) && (
                       <CardDescription className="flex items-center gap-1 text-orange-600">
                         <Calendar className="h-4 w-4" />
@@ -190,10 +190,10 @@ export default function CampsPage() {
       {/* Registration Form */}
       {selectedCamp && (
         <section className="py-12 bg-white">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-5 sm:px-6">
             <Card className="max-w-lg mx-auto">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-green-900">سجل الآن</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl text-green-900">سجل الآن</CardTitle>
                 <CardDescription>
                   أكمل بياناتك وسنتواصل معك خلال 24 ساعة
                 </CardDescription>
@@ -276,8 +276,8 @@ export default function CampsPage() {
 
       {/* Footer */}
       <footer className="bg-green-900 text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <img src={APP_LOGO} alt={APP_TITLE} className="h-12 w-auto mx-auto mb-4 brightness-0 invert" />
+        <div className="container mx-auto px-5 sm:px-6 text-center">
+          <img src={APP_LOGO} alt={APP_TITLE} className="h-10 sm:h-12 w-auto mx-auto mb-3 sm:mb-4 brightness-0 invert" />
           <p className="text-green-200">{APP_TITLE}</p>
           <p className="text-sm text-green-300 mt-2">
             للاستفسارات: <a href="tel:8000018" className="hover:text-white">8000018</a>

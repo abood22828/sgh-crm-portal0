@@ -342,7 +342,7 @@ export default function UsersManagementPage() {
       pageTitle="إدارة المستخدمين"
       pageDescription="إدارة ومتابعة مستخدمي النظام"
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-3 sm:px-4 md:px-6 py-3 sm:py-4">
         {/* Section Tabs */}
         <div className="flex flex-wrap gap-2">
           <Button

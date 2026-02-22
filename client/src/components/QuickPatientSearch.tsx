@@ -303,16 +303,16 @@ function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-3 gap-2">
-          <Button variant="outline" onClick={handleCall} className="w-full text-xs md:text-sm">
-            <Phone className="h-4 w-4 mr-1 md:mr-2" />
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+          <Button variant="outline" onClick={handleCall} className="w-full text-[10px] sm:text-xs md:text-sm h-8 sm:h-9 px-1 sm:px-3">
+            <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 md:mr-2" />
             اتصال
           </Button>
-          <Button variant="outline" onClick={handleWhatsApp} className="w-full text-xs md:text-sm">
-            <MessageCircle className="h-4 w-4 mr-1 md:mr-2" />
+          <Button variant="outline" onClick={handleWhatsApp} className="w-full text-[10px] sm:text-xs md:text-sm h-8 sm:h-9 px-1 sm:px-3">
+            <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 md:mr-2" />
             واتساب
           </Button>
-          <Button variant="outline" onClick={handlePrint} className="w-full text-xs md:text-sm">
+          <Button variant="outline" onClick={handlePrint} className="w-full text-[10px] sm:text-xs md:text-sm h-8 sm:h-9 px-1 sm:px-3">
             <Printer className="h-4 w-4 mr-1 md:mr-2" />
             طباعة
           </Button>

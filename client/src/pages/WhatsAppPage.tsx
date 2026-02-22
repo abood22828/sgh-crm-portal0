@@ -150,18 +150,18 @@ export default function WhatsAppPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50" dir="rtl">
-      <div className="container mx-auto p-4 md:p-6 max-w-7xl">
+      <div className="container mx-auto p-3 sm:p-4 md:p-6 max-w-7xl">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-3 rounded-xl shadow-lg">
-              <MessageCircle className="h-8 w-8 text-white" />
+        <div className="mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-2 sm:p-3 rounded-xl shadow-lg">
+              <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">إدارة محادثات واتساب</h1>
-              <p className="text-gray-600 dark:text-gray-400">تواصل مع العملاء عبر واتساب بيزنس</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 truncate">إدارة محادثات واتساب</h1>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">تواصل مع العملاء عبر واتساب بيزنس</p>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-1 sm:gap-2 items-center flex-shrink-0">
               {/* Connection Status Badge */}
               {statusLoading ? (
                 <Badge variant="secondary" className="gap-1">
@@ -186,15 +186,15 @@ export default function WhatsAppPage() {
               )}
               
               <Link href="/dashboard/whatsapp/connection">
-                <Button variant="outline" className="gap-2">
-                  <Smartphone className="h-5 w-5" />
-                  الاتصال
+                <Button variant="outline" size="sm" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3">
+                  <Smartphone className="h-4 w-4" />
+                  <span className="hidden sm:inline">الاتصال</span>
                 </Button>
               </Link>
               <Link href="/dashboard/whatsapp/templates">
-                <Button variant="outline" className="gap-2">
-                  <FileText className="h-5 w-5" />
-                  القوالب
+                <Button variant="outline" size="sm" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3">
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">القوالب</span>
                 </Button>
               </Link>
             </div>
@@ -202,12 +202,12 @@ export default function WhatsAppPage() {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
           {/* Conversations List */}
           <Card className="lg:col-span-1 shadow-lg border-0">
             <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl">المحادثات</CardTitle>
+                <CardTitle className="text-base sm:text-xl">المحادثات</CardTitle>
                 <Dialog open={isNewMessageOpen} onOpenChange={setIsNewMessageOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm" variant="secondary" className="gap-2">

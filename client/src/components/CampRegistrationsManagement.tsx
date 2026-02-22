@@ -461,20 +461,20 @@ export default function CampRegistrationsManagement({
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-4">
         {[
           { label: 'إجمالي التسجيلات', value: stats?.total || 0, icon: Users, color: 'text-slate-600', bg: 'bg-slate-50' },
           { label: 'قيد الانتظار', value: stats?.pending || 0, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
           { label: 'مؤكد', value: stats?.confirmed || 0, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
           { label: 'حضر', value: stats?.attended || 0, icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-lg border bg-card p-4 flex items-start gap-3">
-            <div className={`rounded-lg p-2 ${stat.bg}`}>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+          <div key={stat.label} className="rounded-lg border bg-card p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
+            <div className={`rounded-lg p-1.5 sm:p-2 ${stat.bg}`}>
+              <stat.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${stat.color}`} />
             </div>
-            <div>
-              <p className="text-2xl font-bold leading-none">{stat.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-2xl font-bold leading-none">{stat.value}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 truncate">{stat.label}</p>
             </div>
           </div>
         ))}
@@ -937,7 +937,7 @@ export default function CampRegistrationsManagement({
           {selectedRegistration && (
             <div className="flex-1 overflow-hidden flex flex-col">
               <Tabs defaultValue="info" className="flex-1 overflow-hidden flex flex-col">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
                   <TabsTrigger value="info">معلومات التسجيل</TabsTrigger>
                   <TabsTrigger value="comments">التعليقات</TabsTrigger>
                   <TabsTrigger value="tasks">المهام</TabsTrigger>

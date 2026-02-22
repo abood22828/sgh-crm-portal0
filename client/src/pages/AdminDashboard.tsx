@@ -351,7 +351,7 @@ export default function AdminDashboard() {
       pageTitle="لوحة التحكم الإدارية"
       pageDescription="إدارة حملات التسويق والعملاء"
     >
-      <div className="container py-4 md:py-6">
+      <div className="container px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
         {/* Detailed Stats Cards */}
         <DetailedStatsCards />
 

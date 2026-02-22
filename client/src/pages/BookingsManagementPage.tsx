@@ -617,7 +617,7 @@ export default function BookingsManagementPage() {
       pageTitle="إدارة الحجوزات"
       pageDescription="إدارة ومتابعة جميع الحجوزات والمواعيد"
     >
-      <div className="container mx-auto py-6 space-y-6" dir="rtl">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 space-y-4 sm:space-y-6" dir="rtl">
         {/* Quick Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <DateRangePicker
@@ -1555,11 +1555,11 @@ export default function BookingsManagementPage() {
             {selectedAppointment && (
               <div className="flex-1 overflow-hidden flex flex-col">
                 <Tabs defaultValue="info" className="flex-1 overflow-hidden flex flex-col">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="info">معلومات الموعد</TabsTrigger>
-                    <TabsTrigger value="comments">التعليقات</TabsTrigger>
-                    <TabsTrigger value="tasks">المهام</TabsTrigger>
-                    <TabsTrigger value="history">سجل التغييرات</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+                    <TabsTrigger value="info" className="text-xs sm:text-sm">معلومات الموعد</TabsTrigger>
+                    <TabsTrigger value="comments" className="text-xs sm:text-sm">التعليقات</TabsTrigger>
+                    <TabsTrigger value="tasks" className="text-xs sm:text-sm">المهام</TabsTrigger>
+                    <TabsTrigger value="history" className="text-xs sm:text-sm">سجل التغييرات</TabsTrigger>
                   </TabsList>
                 
                 <div className="flex-1 overflow-y-auto mt-4">

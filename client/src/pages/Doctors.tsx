@@ -58,23 +58,23 @@ export default function Doctors() {
         <Navbar />
 
         {/* Hero Section */}
-        <section className="pt-24 pb-12 px-4">
+        <section className="pt-10 sm:pt-24 pb-8 sm:pb-12 px-5 sm:px-6">
           <div className="container mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full mb-6">
               <Stethoscope className="w-5 h-5" />
               <span className="text-sm font-medium">أطباء متخصصون</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+            <h1 className="text-xl sm:text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
               أطباؤنا المتميزون
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
+            <p className="text-sm sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               فريق طبي متكامل من أفضل الأطباء في مختلف التخصصات
             </p>
           </div>
         </section>
 
         {/* Search and Filter */}
-        <section className="pb-8 px-4">
+        <section className="pb-6 sm:pb-8 px-5 sm:px-6">
           <div className="container mx-auto max-w-4xl">
             <Card>
               <CardContent className="pt-6">
@@ -108,14 +108,14 @@ export default function Doctors() {
         </section>
 
         {/* Doctors Grid */}
-        <section className="pb-16 px-4">
+        <section className="pb-12 sm:pb-16 px-5 sm:px-6">
           <div className="container mx-auto">
             {isLoading ? (
               <div className="flex justify-center items-center py-20">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
               </div>
             ) : filteredDoctors && filteredDoctors.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {filteredDoctors.map((doctor) => (
                   <Card
                     key={doctor.id}

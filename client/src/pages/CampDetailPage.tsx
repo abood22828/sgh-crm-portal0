@@ -134,7 +134,7 @@ export default function CampDetailPage() {
         </div>
         <section className="bg-gradient-to-br from-green-600 to-blue-600 py-16 md:py-24">
           <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-center">
               <div className="space-y-4">
                 <Skeleton className="h-8 w-40 bg-white/20" />
                 <Skeleton className="h-14 w-full bg-white/20" />
@@ -223,7 +223,7 @@ export default function CampDetailPage() {
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-12 items-center">
             <div>
               {/* Badge + CTA */}
               <div className="flex flex-wrap items-center gap-3 mb-4">
