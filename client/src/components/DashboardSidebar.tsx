@@ -35,10 +35,13 @@ import {
   Check,
   Volume2,
   VolumeX,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   DndContext,
@@ -386,6 +389,9 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
 
   // Notification sound for new WhatsApp messages
   const { soundEnabled, toggleSound } = useNotificationSound();
+  
+  // Theme toggle
+  const { theme, toggleTheme } = useTheme();
 
   // Fetch sidebar badge counts (auto-refresh every 60 seconds)
   const { data: badgeCounts } = trpc.sidebarBadges.useQuery(undefined, {
@@ -581,9 +587,9 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   // الشريط الضيق الرئيسي (Desktop) - بأسلوب Meta
   // ============================================
   const renderDesktopSlimSidebar = () => (
-    <aside className="hidden lg:flex flex-col h-screen sticky top-0 w-[60px] bg-white border-l border-gray-200 z-30">
+    <aside className="hidden lg:flex flex-col h-screen sticky top-0 w-[60px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 z-30">
       {/* Logo */}
-      <div className="flex items-center justify-center py-2 border-b border-gray-100">
+      <div className="flex items-center justify-center py-2 border-b border-gray-100 dark:border-gray-700">
         <img
           src="/assets/new-logo.png"
           alt="المستشفى السعودي الألماني"
@@ -605,8 +611,8 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                     className={cn(
                       "relative w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150 group",
                       isActive
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                        ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
                     )}
                   >
                     <div className="relative">
@@ -638,7 +644,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
       </ScrollArea>
 
       {/* Bottom Actions */}
-      <div className="flex flex-col items-center gap-0 px-1 py-1 border-t border-gray-100">
+      <div className="flex flex-col items-center gap-0 px-1 py-1 border-t border-gray-100 dark:border-gray-700">
         {/* All Tools Button */}
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
@@ -647,8 +653,8 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
               className={cn(
                 "w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150",
                 allToolsOpen
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
               )}
             >
               <Menu className="h-[18px] w-[18px]" />
@@ -666,8 +672,8 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
               className={cn(
                 "w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150",
                 soundEnabled
-                  ? "text-green-600 hover:bg-green-50"
-                  : "text-gray-400 hover:bg-gray-50 hover:text-gray-500"
+                  ? "text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                  : "text-gray-400 hover:bg-gray-50 hover:text-gray-500 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-400"
               )}
             >
               {soundEnabled ? (
@@ -683,6 +689,31 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           </TooltipContent>
         </Tooltip>
 
+        {/* Dark Mode Toggle */}
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                "w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150",
+                theme === 'dark'
+                  ? "text-amber-400 hover:bg-amber-50/10"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:hover:bg-gray-800"
+              )}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-[18px] w-[18px]" />
+              ) : (
+                <Moon className="h-[18px] w-[18px]" />
+              )}
+              <span className="text-[8px] font-medium mt-0.5">{theme === 'dark' ? 'مضيء' : 'مظلم'}</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="left" className="text-xs">
+            {theme === 'dark' ? 'التبديل إلى الوضع المضيء' : 'التبديل إلى الوضع المظلم'}
+          </TooltipContent>
+        </Tooltip>
+
         {/* Settings */}
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
@@ -691,8 +722,8 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
               className={cn(
                 "w-full flex flex-col items-center gap-0 py-1.5 px-0.5 rounded-md transition-all duration-150",
                 isItemActive("/dashboard/settings")
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
               )}
             >
               <SettingsIcon className="h-[18px] w-[18px]" />
@@ -722,16 +753,16 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
       <div
         ref={allToolsRef}
         className={cn(
-          "hidden lg:flex fixed top-0 right-[60px] z-50 h-screen w-[320px] bg-white border-l border-gray-200 shadow-xl flex-col transition-transform duration-300 ease-out",
+          "hidden lg:flex fixed top-0 right-[60px] z-50 h-screen w-[320px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-xl flex-col transition-transform duration-300 ease-out",
           allToolsOpen ? "translate-x-0" : "translate-x-full opacity-0 pointer-events-none"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">كل الأدوات</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">كل الأدوات</h2>
           <button
             onClick={() => { setAllToolsOpen(false); setEditMode(false); }}
-            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -739,16 +770,16 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
 
         {/* Search (hidden in edit mode) */}
         {!editMode && (
-          <div className="px-4 py-3 border-b border-gray-100">
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
             <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <input
                 ref={searchInputRef}
                 type="text"
                 placeholder="ابحث في كل الأدوات..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pr-9 pl-3 rounded-full bg-gray-100 border-0 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white transition-all"
+                className="w-full h-9 pr-9 pl-3 rounded-full bg-gray-100 dark:bg-gray-800 border-0 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white dark:focus:bg-gray-700 transition-all"
               />
             </div>
           </div>
@@ -756,13 +787,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
 
         {/* Edit Mode Header */}
         {editMode && (
-          <div className="px-4 py-3 border-b border-gray-100 bg-blue-50/50">
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-blue-50/50 dark:bg-blue-900/20">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-gray-700">تعديل الشريط الجانبي</span>
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">تعديل الشريط الجانبي</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={cancelEditMode}
-                  className="text-xs px-3 py-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-colors"
+                  className="text-xs px-3 py-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   إلغاء
                 </button>
@@ -792,7 +823,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 {/* Checked items - sortable */}
                 {editingItemIds.length > 0 && (
                   <>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+                    <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
                       <GripVertical className="h-3 w-3" />
                       معروض في الشريط — اسحب لإعادة الترتيب
                     </div>
@@ -819,8 +850,8 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 {/* Unchecked items - not sortable */}
                 {allNavItems.filter(item => !editingItemIds.includes(item.id)).length > 0 && (
                   <>
-                    <div className="border-t border-gray-200 my-2" />
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+                    <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-2 py-1 mb-1">
                       عناصر مخفية — انقر لإضافتها
                     </div>
                     {allNavItems
@@ -831,7 +862,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                           <button
                             key={item.id}
                             onClick={() => toggleEditItem(item.id)}
-                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-all duration-150 mb-0.5"
+                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-150 mb-0.5"
                           >
                             <div className="w-5 flex-shrink-0" />
                             <div className="h-5 w-5 rounded border-2 border-gray-300 flex items-center justify-center flex-shrink-0" />
@@ -853,12 +884,12 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 
                 return (
                   <div key={group.label}>
-                    {index > 0 && <div className="border-t border-gray-100 my-2" />}
+                    {index > 0 && <div className="border-t border-gray-100 dark:border-gray-700 my-2" />}
                     
                     {/* Group Header */}
                     <button
                       onClick={() => toggleGroup(group.label)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors rounded-md"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-md"
                     >
                       <span className="flex-1 text-right">{group.label}</span>
                       <ChevronDown className={cn(
@@ -883,17 +914,17 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                               className={cn(
                                 "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150",
                                 isActive
-                                  ? "bg-blue-50 text-blue-600 font-semibold"
-                                  : "text-gray-700 hover:bg-gray-50"
+                                  ? "bg-blue-50 text-blue-600 font-semibold dark:bg-blue-900/30 dark:text-blue-400"
+                                  : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
                               )}
                             >
                               <div className="relative flex-shrink-0">
-                                <Icon className={cn("h-4.5 w-4.5", isActive ? "text-blue-600" : "text-gray-400")} />
+                                <Icon className={cn("h-4.5 w-4.5", isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500")} />
                                 <SidebarBadge count={getBadgeCount(item.id)} />
                               </div>
                               <span className="truncate flex-1">{item.title}</span>
                               {getBadgeCount(item.id) > 0 && (
-                                <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
+                                <span className="text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-900/30 dark:text-red-400 px-1.5 py-0.5 rounded-full">
                                   {getBadgeCount(item.id)}
                                 </span>
                               )}
@@ -911,10 +942,10 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
 
         {/* Bottom: Edit Button (like Meta Business Suite "تعديل") */}
         {!editMode && (
-          <div className="border-t border-gray-100 px-4 py-3">
+          <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-3">
             <button
               onClick={startEditMode}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors border border-gray-200"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border border-gray-200 dark:border-gray-700"
             >
               <Pencil className="h-3.5 w-3.5" />
               <span>تعديل</span>
@@ -923,10 +954,10 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         )}
 
         {/* Bottom Actions */}
-        <div className="border-t border-gray-100 px-4 py-2 flex items-center gap-3">
+        <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-2 flex items-center gap-3">
           <button
             onClick={() => handleNavClick("/dashboard/settings")}
-            className="flex items-center gap-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             <Search className="h-4 w-4" />
             <span>بحث</span>
@@ -935,7 +966,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
             onClick={toggleSound}
             className={cn(
               "flex items-center gap-2 py-1.5 text-sm transition-colors",
-              soundEnabled ? "text-green-600 hover:text-green-700" : "text-gray-400 hover:text-gray-500"
+              soundEnabled ? "text-green-600 dark:text-green-400 hover:text-green-700" : "text-gray-400 dark:text-gray-500 hover:text-gray-500"
             )}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
@@ -943,13 +974,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           </button>
           <button
             onClick={() => handleNavClick("/dashboard/settings")}
-            className="flex items-center gap-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             <SettingsIcon className="h-4 w-4" />
             <span>الإعدادات</span>
           </button>
           <button
-            className="flex items-center gap-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             <HelpCircle className="h-4 w-4" />
             <span>مساعدة</span>
@@ -963,13 +994,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   // Mobile Bottom Navigation Bar
   // ============================================
   const renderMobileBottomBar = () => (
-    <div className="lg:hidden fixed bottom-0 right-0 left-0 z-40 bg-white border-t border-gray-200 safe-bottom">
+    <div className="lg:hidden fixed bottom-0 right-0 left-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-bottom">
       <div className="flex items-center justify-around px-1 py-1.5">
         <button
           onClick={() => handleNavClick("/dashboard")}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] transition-colors min-w-[56px]",
-            currentPath === "/dashboard" ? "text-blue-600" : "text-gray-500"
+            currentPath === "/dashboard" ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"
           )}
         >
           <Home className={cn("h-5 w-5", currentPath === "/dashboard" && "stroke-[2.5]")} />
@@ -979,7 +1010,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           onClick={() => handleNavClick("/dashboard/bookings/leads")}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] transition-colors min-w-[56px]",
-            currentPath.includes("/bookings") ? "text-blue-600" : "text-gray-500"
+            currentPath.includes("/bookings") ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"
           )}
         >
           <div className="relative">
@@ -992,7 +1023,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
           onClick={() => handleNavClick("/dashboard/reports")}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] transition-colors min-w-[56px]",
-            currentPath.includes("/reports") || currentPath.includes("/analytics") ? "text-blue-600" : "text-gray-500"
+            currentPath.includes("/reports") || currentPath.includes("/analytics") ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"
           )}
         >
           <BarChart3 className={cn("h-5 w-5", (currentPath.includes("/reports") || currentPath.includes("/analytics")) && "stroke-[2.5]")} />
@@ -1000,7 +1031,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         </button>
         <button
           onClick={() => setMobileOpen(true)}
-          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] text-gray-500 min-w-[56px]"
+          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md text-[10px] text-gray-500 dark:text-gray-400 min-w-[56px]"
         >
           <div className="relative">
             <Menu className="h-5 w-5" />
@@ -1030,12 +1061,12 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
       {/* Sidebar */}
       <aside
         className={cn(
-          "lg:hidden fixed top-0 right-0 z-50 h-full w-[300px] bg-white shadow-xl flex flex-col transition-transform duration-300 ease-out",
+          "lg:hidden fixed top-0 right-0 z-50 h-full w-[300px] bg-white dark:bg-gray-900 shadow-xl flex flex-col transition-transform duration-300 ease-out",
           mobileOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <img
               src="/assets/new-logo.png"
@@ -1043,13 +1074,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
               className="h-9 w-9 object-contain"
             />
             <div>
-              <h2 className="text-sm font-bold text-gray-900">المستشفى السعودي الألماني</h2>
-              <p className="text-[10px] text-gray-400">لوحة التحكم</p>
+              <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">المستشفى السعودي الألماني</h2>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">لوحة التحكم</p>
             </div>
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 transition-colors"
             aria-label="إغلاق القائمة"
           >
             <X className="h-4 w-4" />
@@ -1059,13 +1090,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         {/* Search */}
         <div className="px-4 py-2.5">
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="بحث..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-9 pr-9 pl-3 rounded-full bg-gray-100 border-0 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white transition-all"
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <input
+                type="text"
+                placeholder="بحث..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 pr-9 pl-3 rounded-full bg-gray-100 dark:bg-gray-800 border-0 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white dark:focus:bg-gray-700 transition-all"
             />
           </div>
         </div>
@@ -1079,11 +1110,11 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 mb-1",
                 currentPath === "/dashboard"
-                  ? "bg-blue-50 text-blue-600 font-semibold"
-                  : "text-gray-700 hover:bg-gray-50"
+                  ? "bg-blue-50 text-blue-600 font-semibold dark:bg-blue-900/30 dark:text-blue-400"
+                  : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
               )}
             >
-              <Home className={cn("h-5 w-5 flex-shrink-0", currentPath === "/dashboard" ? "text-blue-600" : "text-gray-400")} />
+              <Home className={cn("h-5 w-5 flex-shrink-0", currentPath === "/dashboard" ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500")} />
               <span>الرئيسية</span>
             </button>
 
@@ -1094,13 +1125,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
 
               return (
                 <div key={group.label}>
-                  {<div className="border-t border-gray-100 my-1.5" />}
+                  {<div className="border-t border-gray-100 dark:border-gray-700 my-1.5" />}
                   
                   <button
                     onClick={() => toggleGroup(group.label)}
                     className={cn(
                       "w-full flex items-center gap-2 px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-colors rounded-md",
-                      hasActiveItem ? "text-blue-600" : "text-gray-400 hover:text-gray-600"
+                      hasActiveItem ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                     )}
                   >
                     <span className="flex-1 text-right">{group.label}</span>
@@ -1125,17 +1156,17 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                             className={cn(
                               "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150",
                               isActive
-                                ? "bg-blue-50 text-blue-600 font-semibold"
-                                : "text-gray-700 hover:bg-gray-50"
+                                ? "bg-blue-50 text-blue-600 font-semibold dark:bg-blue-900/30 dark:text-blue-400"
+                                : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
                             )}
                           >
                             <div className="relative flex-shrink-0">
-                              <Icon className={cn("h-4 w-4", isActive ? "text-blue-600" : "text-gray-400")} />
+                              <Icon className={cn("h-4 w-4", isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500")} />
                               <SidebarBadge count={getBadgeCount(item.id)} />
                             </div>
                             <span className="truncate flex-1">{item.title}</span>
                             {getBadgeCount(item.id) > 0 && (
-                              <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
+                              <span className="text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-900/30 dark:text-red-400 px-1.5 py-0.5 rounded-full">
                                 {getBadgeCount(item.id)}
                               </span>
                             )}
@@ -1151,22 +1182,34 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
         </ScrollArea>
 
         {/* Bottom Actions */}
-        <div className="border-t border-gray-100 p-3 flex items-center gap-2">
+        <div className="border-t border-gray-100 dark:border-gray-700 p-3 flex items-center gap-2">
           <button
             onClick={toggleSound}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm transition-colors",
               soundEnabled
-                ? "text-green-600 hover:bg-green-50"
-                : "text-gray-400 hover:bg-gray-50 hover:text-gray-500"
+                ? "text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
+                : "text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-500"
             )}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             <span>{soundEnabled ? "التنبيه" : "صامت"}</span>
           </button>
           <button
+            onClick={toggleTheme}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm transition-colors",
+              theme === 'dark'
+                ? "text-amber-400 hover:bg-amber-50/10"
+                : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700"
+            )}
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <span>{theme === 'dark' ? 'مضيء' : 'مظلم'}</span>
+          </button>
+          <button
             onClick={() => handleNavClick("/dashboard/settings")}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             <SettingsIcon className="h-4 w-4" />
             <span>الإعدادات</span>

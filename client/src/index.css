@@ -493,6 +493,25 @@ body {
   color: inherit;
 }
 
+.dark ::selection {
+  background-color: oklch(0.623 0.15 220 / 0.4);
+}
+
+/* ============================================
+   Dark Mode Transitions
+   ============================================ */
+
+/* Smooth transition when switching themes */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.3s ease,
+              color 0.2s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease !important;
+}
+
 /* ============================================
    Dashboard Sidebar Enhancements
    ============================================ */
@@ -519,10 +538,18 @@ body {
   background-color: oklch(0.623 0.15 220);
 }
 
+.dark .nav-item-active::before {
+  background-color: oklch(0.723 0.15 220);
+}
+
 /* Dashboard header subtle gradient */
 .dashboard-header {
   background: linear-gradient(to left, oklch(1 0 0 / 0.95), oklch(0.99 0.005 220 / 0.95));
   backdrop-filter: blur(12px);
+}
+
+.dark .dashboard-header {
+  background: linear-gradient(to left, oklch(0.21 0.006 285 / 0.95), oklch(0.18 0.01 220 / 0.95));
 }
 
 /* Stat card hover effect */
@@ -551,6 +578,11 @@ body {
               0 2px 8px oklch(0 0 0 / 0.04);
 }
 
+.dark .stat-card-animated:hover {
+  box-shadow: 0 8px 25px oklch(0 0 0 / 0.3),
+              0 2px 8px oklch(0.623 0.15 220 / 0.1);
+}
+
 .stat-card-animated:active {
   transform: translateY(-1px);
   transition-duration: 0.1s;
@@ -560,6 +592,15 @@ body {
 @keyframes flash-highlight {
   0% { background-color: oklch(0.85 0.08 220 / 0.3); }
   100% { background-color: transparent; }
+}
+
+@keyframes flash-highlight-dark {
+  0% { background-color: oklch(0.4 0.08 220 / 0.3); }
+  100% { background-color: transparent; }
+}
+
+.dark .flash-highlight {
+  animation: flash-highlight-dark 1.2s ease-out forwards;
 }
 
 .flash-highlight {
@@ -649,6 +690,16 @@ body {
   100% { color: inherit; }
 }
 
+@keyframes number-shimmer-dark {
+  0% { color: inherit; }
+  30% { color: oklch(0.75 0.15 220); }
+  100% { color: inherit; }
+}
+
+.dark .number-shimmer {
+  animation: number-shimmer-dark 0.8s ease-out;
+}
+
 .number-shimmer {
   animation: number-shimmer 0.8s ease-out;
 }
@@ -686,6 +737,15 @@ body {
 @keyframes counter-glow {
   0% { text-shadow: 0 0 8px oklch(0.623 0.15 220 / 0.4); }
   100% { text-shadow: none; }
+}
+
+@keyframes counter-glow-dark {
+  0% { text-shadow: 0 0 12px oklch(0.723 0.15 220 / 0.5); }
+  100% { text-shadow: none; }
+}
+
+.dark .counter-glow {
+  animation: counter-glow-dark 0.8s ease-out;
 }
 
 .counter-glow {

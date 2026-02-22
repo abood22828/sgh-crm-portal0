@@ -3025,3 +3025,16 @@
 - [x] تأثير dot-pulse على نقاط الحالة الحمراء
 - [x] 15 CSS @keyframes animation في index.css
 - [x] 372 اختبار vitest ناجح (17 ملف)
+
+### تنفيذ وضع مظلم (Dark Mode) كامل ✅ مكتمل
+- [x] تحليل نظام الألوان الحالي ومتغيرات CSS
+- [x] تحديث متغيرات .dark في index.css بألوان مظلمة متناسقة
+- [x] تفعيل switchable في ThemeProvider مع transition سلس
+- [x] إضافة زر تبديل (Sun/Moon) في الشريط الضيق + لوحة كل الأدوات + الجوال
+- [x] تحديث الألوان المكتوبة مباشرة (dark: variants) في جميع المكونات
+- [x] تحديث AdminDashboard لدعم الوضع المظلم
+- [x] تحديث صفحات الإدارة (Leads, Bookings, Appointments, Users)
+- [x] تحديث صفحة WhatsApp لدعم الوضع المظلم
+- [x] تحديث DashboardSidebar لدعم الوضع المظلم
+- [x] حفظ تفضيل المستخدم في localStorage
+- [x] 394 اختبار vitest ناجح (18 ملف)

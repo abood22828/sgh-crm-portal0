@@ -44,7 +44,12 @@ export function ThemeProvider({
 
   const toggleTheme = switchable
     ? () => {
+        // Add transition class for smooth theme switch
+        const root = document.documentElement;
+        root.classList.add('theme-transition');
         setTheme(prev => (prev === "light" ? "dark" : "light"));
+        // Remove transition class after animation completes
+        setTimeout(() => root.classList.remove('theme-transition'), 350);
       }
     : undefined;
 

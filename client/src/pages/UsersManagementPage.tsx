@@ -330,7 +330,7 @@ export default function UsersManagementPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-gray-600">جاري التحميل...</p>
+            <p className="text-gray-600 dark:text-gray-400">جاري التحميل...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -383,40 +383,40 @@ export default function UsersManagementPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     إجمالي المستخدمين
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">{totalUsers}</div>
-                  <p className="text-xs text-gray-500 mt-1">جميع المستخدمين المسجلين</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">جميع المستخدمين المسجلين</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
                     <UserCheck className="h-4 w-4" />
                     المستخدمون النشطون
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-green-600">{activeUsers}</div>
-                  <p className="text-xs text-gray-500 mt-1">مستخدمون نشطون حالياً</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">مستخدمون نشطون حالياً</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     المسؤولون
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-red-600">{adminUsers}</div>
-                  <p className="text-xs text-gray-500 mt-1">مستخدمون بصلاحيات كاملة</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">مستخدمون بصلاحيات كاملة</p>
                 </CardContent>
               </Card>
             </div>
