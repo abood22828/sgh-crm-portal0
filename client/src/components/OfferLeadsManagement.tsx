@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
 import MultiSelect from "@/components/MultiSelect";
-import { ColumnVisibility, type ColumnConfig } from "@/components/ColumnVisibility";
+import { ColumnVisibility, getDefaultTemplates, type ColumnConfig, type ColumnTemplate } from "@/components/ColumnVisibility";
 import TableSkeleton from "@/components/TableSkeleton";
 import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
@@ -196,11 +196,90 @@ export default function OfferLeadsManagement({
       defaultVisible[col.key] = col.defaultVisible;
     });
     setOfferLeadVisibleColumns(defaultVisible);
+    setActiveOfferTemplateId(null);
     localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(defaultVisible));
-    saveOfferPreferencesMutation.mutate({
-      key: 'offerLeadVisibleColumns',
-      value: defaultVisible,
-    });
+    localStorage.removeItem('activeOfferTemplateId');
+    saveOfferPreferencesMutation.mutate({ key: 'offerLeadVisibleColumns', value: defaultVisible });
+    saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: null });
+  };
+
+  // === Column Templates ===
+  const defaultOfferTemplates = getDefaultTemplates(offerLeadColumns, 'offerLeads');
+  
+  const { data: savedOfferTemplates } = trpc.preferences.get.useQuery(
+    { key: 'offerLeadColumnTemplates' },
+    { retry: false }
+  );
+  
+  const { data: savedOfferActiveTemplateId } = trpc.preferences.get.useQuery(
+    { key: 'activeOfferTemplateId' },
+    { retry: false }
+  );
+
+  const [customOfferTemplates, setCustomOfferTemplates] = useState<ColumnTemplate[]>(() => {
+    const saved = localStorage.getItem('offerLeadColumnTemplates');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [activeOfferTemplateId, setActiveOfferTemplateId] = useState<string | null>(() => {
+    return localStorage.getItem('activeOfferTemplateId') || null;
+  });
+
+  useEffect(() => {
+    if (savedOfferTemplates && Array.isArray(savedOfferTemplates)) {
+      setCustomOfferTemplates(savedOfferTemplates);
+      localStorage.setItem('offerLeadColumnTemplates', JSON.stringify(savedOfferTemplates));
+    }
+  }, [savedOfferTemplates]);
+
+  useEffect(() => {
+    if (savedOfferActiveTemplateId !== undefined) {
+      setActiveOfferTemplateId(savedOfferActiveTemplateId);
+      if (savedOfferActiveTemplateId) {
+        localStorage.setItem('activeOfferTemplateId', savedOfferActiveTemplateId);
+      } else {
+        localStorage.removeItem('activeOfferTemplateId');
+      }
+    }
+  }, [savedOfferActiveTemplateId]);
+
+  const allOfferTemplates = [...defaultOfferTemplates, ...customOfferTemplates];
+
+  const handleApplyOfferTemplate = (template: ColumnTemplate) => {
+    setOfferLeadVisibleColumns(template.columns);
+    setActiveOfferTemplateId(template.id);
+    localStorage.setItem('offerLeadVisibleColumns', JSON.stringify(template.columns));
+    localStorage.setItem('activeOfferTemplateId', template.id);
+    saveOfferPreferencesMutation.mutate({ key: 'offerLeadVisibleColumns', value: template.columns });
+    saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: template.id });
+  };
+
+  const handleSaveOfferTemplate = (name: string, columns: Record<string, boolean>) => {
+    const newTemplate: ColumnTemplate = {
+      id: `offerLeads_custom_${Date.now()}`,
+      name,
+      columns,
+      isDefault: false,
+    };
+    const updated = [...customOfferTemplates, newTemplate];
+    setCustomOfferTemplates(updated);
+    setActiveOfferTemplateId(newTemplate.id);
+    localStorage.setItem('offerLeadColumnTemplates', JSON.stringify(updated));
+    localStorage.setItem('activeOfferTemplateId', newTemplate.id);
+    saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnTemplates', value: updated });
+    saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: newTemplate.id });
+  };
+
+  const handleDeleteOfferTemplate = (templateId: string) => {
+    const updated = customOfferTemplates.filter(t => t.id !== templateId);
+    setCustomOfferTemplates(updated);
+    if (activeOfferTemplateId === templateId) {
+      setActiveOfferTemplateId(null);
+      localStorage.removeItem('activeOfferTemplateId');
+      saveOfferPreferencesMutation.mutate({ key: 'activeOfferTemplateId', value: null });
+    }
+    localStorage.setItem('offerLeadColumnTemplates', JSON.stringify(updated));
+    saveOfferPreferencesMutation.mutate({ key: 'offerLeadColumnTemplates', value: updated });
   };
   
   // Debounced search for better performance
@@ -656,6 +735,12 @@ export default function OfferLeadsManagement({
                 visibleColumns={offerLeadVisibleColumns}
                 onVisibilityChange={handleOfferLeadColumnVisibilityChange}
                 onReset={handleOfferLeadColumnsReset}
+                templates={allOfferTemplates}
+                activeTemplateId={activeOfferTemplateId}
+                onApplyTemplate={handleApplyOfferTemplate}
+                onSaveTemplate={handleSaveOfferTemplate}
+                onDeleteTemplate={handleDeleteOfferTemplate}
+                tableKey="offerLeads"
               />
               <Button
                 variant="outline"

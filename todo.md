@@ -2685,3 +2685,12 @@
 - [x] تحديث CampRegistrationsManagement لاستخدام قاعدة البيانات
 - [x] الاحتفاظ بـ localStorage كنسخة احتياطية
 - [x] اختبار المزامنة عبر الأجهزة
+
+### إضافة نظام قوالب عرض مخصصة للأعمدة ✅ مكتمل
+- [x] إنشاء مكون ColumnTemplateSelector مشترك (مدمج في ColumnVisibility)
+- [x] إضافة tRPC endpoints لحفظ/استرجاع/حذف القوالب (عبر preferences API)
+- [x] إضافة قوالب افتراضية (أساسي، تسويقي، كامل)
+- [x] دمج المكون في BookingsManagementPage
+- [x] دمج المكون في OfferLeadsManagement
+- [x] دمج المكون في CampRegistrationsManagement
+- [x] حفظ القوالب في قاعدة البيانات عبر userPreferences

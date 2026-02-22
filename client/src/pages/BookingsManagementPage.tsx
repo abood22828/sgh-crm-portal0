@@ -9,7 +9,7 @@ import AppointmentCard from "@/components/AppointmentCard";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
 import MultiSelect from "@/components/MultiSelect";
-import { ColumnVisibility, type ColumnConfig } from "@/components/ColumnVisibility";
+import { ColumnVisibility, getDefaultTemplates, type ColumnConfig, type ColumnTemplate } from "@/components/ColumnVisibility";
 import TableSkeleton from "@/components/TableSkeleton";
 import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
@@ -271,12 +271,97 @@ export default function BookingsManagementPage() {
       defaultVisible[col.key] = col.defaultVisible;
     });
     setAppointmentVisibleColumns(defaultVisible);
+    setActiveAppointmentTemplateId(null);
     // Save to both localStorage and database
     localStorage.setItem('appointmentVisibleColumns', JSON.stringify(defaultVisible));
+    localStorage.removeItem('activeAppointmentTemplateId');
     savePreferencesMutation.mutate({
       key: 'appointmentVisibleColumns',
       value: defaultVisible,
     });
+    savePreferencesMutation.mutate({
+      key: 'activeAppointmentTemplateId',
+      value: null,
+    });
+  };
+
+  // === Column Templates ===
+  const defaultAppointmentTemplates = getDefaultTemplates(appointmentColumns, 'appointments');
+  
+  const { data: savedTemplates } = trpc.preferences.get.useQuery(
+    { key: 'appointmentColumnTemplates' },
+    { retry: false }
+  );
+  
+  const { data: savedActiveTemplateId } = trpc.preferences.get.useQuery(
+    { key: 'activeAppointmentTemplateId' },
+    { retry: false }
+  );
+
+  const [customTemplates, setCustomTemplates] = useState<ColumnTemplate[]>(() => {
+    const saved = localStorage.getItem('appointmentColumnTemplates');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [activeAppointmentTemplateId, setActiveAppointmentTemplateId] = useState<string | null>(() => {
+    return localStorage.getItem('activeAppointmentTemplateId') || null;
+  });
+
+  useEffect(() => {
+    if (savedTemplates && Array.isArray(savedTemplates)) {
+      setCustomTemplates(savedTemplates);
+      localStorage.setItem('appointmentColumnTemplates', JSON.stringify(savedTemplates));
+    }
+  }, [savedTemplates]);
+
+  useEffect(() => {
+    if (savedActiveTemplateId !== undefined) {
+      setActiveAppointmentTemplateId(savedActiveTemplateId);
+      if (savedActiveTemplateId) {
+        localStorage.setItem('activeAppointmentTemplateId', savedActiveTemplateId);
+      } else {
+        localStorage.removeItem('activeAppointmentTemplateId');
+      }
+    }
+  }, [savedActiveTemplateId]);
+
+  const allAppointmentTemplates = [...defaultAppointmentTemplates, ...customTemplates];
+
+  const handleApplyAppointmentTemplate = (template: ColumnTemplate) => {
+    setAppointmentVisibleColumns(template.columns);
+    setActiveAppointmentTemplateId(template.id);
+    localStorage.setItem('appointmentVisibleColumns', JSON.stringify(template.columns));
+    localStorage.setItem('activeAppointmentTemplateId', template.id);
+    savePreferencesMutation.mutate({ key: 'appointmentVisibleColumns', value: template.columns });
+    savePreferencesMutation.mutate({ key: 'activeAppointmentTemplateId', value: template.id });
+  };
+
+  const handleSaveAppointmentTemplate = (name: string, columns: Record<string, boolean>) => {
+    const newTemplate: ColumnTemplate = {
+      id: `appointments_custom_${Date.now()}`,
+      name,
+      columns,
+      isDefault: false,
+    };
+    const updated = [...customTemplates, newTemplate];
+    setCustomTemplates(updated);
+    setActiveAppointmentTemplateId(newTemplate.id);
+    localStorage.setItem('appointmentColumnTemplates', JSON.stringify(updated));
+    localStorage.setItem('activeAppointmentTemplateId', newTemplate.id);
+    savePreferencesMutation.mutate({ key: 'appointmentColumnTemplates', value: updated });
+    savePreferencesMutation.mutate({ key: 'activeAppointmentTemplateId', value: newTemplate.id });
+  };
+
+  const handleDeleteAppointmentTemplate = (templateId: string) => {
+    const updated = customTemplates.filter(t => t.id !== templateId);
+    setCustomTemplates(updated);
+    if (activeAppointmentTemplateId === templateId) {
+      setActiveAppointmentTemplateId(null);
+      localStorage.removeItem('activeAppointmentTemplateId');
+      savePreferencesMutation.mutate({ key: 'activeAppointmentTemplateId', value: null });
+    }
+    localStorage.setItem('appointmentColumnTemplates', JSON.stringify(updated));
+    savePreferencesMutation.mutate({ key: 'appointmentColumnTemplates', value: updated });
   };
   
   // Debounced search terms for better performance
@@ -1227,6 +1312,12 @@ export default function BookingsManagementPage() {
                       visibleColumns={appointmentVisibleColumns}
                       onVisibilityChange={handleAppointmentColumnVisibilityChange}
                       onReset={handleAppointmentColumnsReset}
+                      templates={allAppointmentTemplates}
+                      activeTemplateId={activeAppointmentTemplateId}
+                      onApplyTemplate={handleApplyAppointmentTemplate}
+                      onSaveTemplate={handleSaveAppointmentTemplate}
+                      onDeleteTemplate={handleDeleteAppointmentTemplate}
+                      tableKey="appointments"
                     />
                   </div>
                 </div>

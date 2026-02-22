@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
 import MultiSelect from "@/components/MultiSelect";
-import { ColumnVisibility, type ColumnConfig } from "@/components/ColumnVisibility";
+import { ColumnVisibility, getDefaultTemplates, type ColumnConfig, type ColumnTemplate } from "@/components/ColumnVisibility";
 import TableSkeleton from "@/components/TableSkeleton";
 import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
@@ -203,11 +203,90 @@ export default function CampRegistrationsManagement({
       defaultVisible[col.key] = col.defaultVisible;
     });
     setCampRegVisibleColumns(defaultVisible);
+    setActiveCampTemplateId(null);
     localStorage.setItem('campRegVisibleColumns', JSON.stringify(defaultVisible));
-    saveCampPreferencesMutation.mutate({
-      key: 'campRegVisibleColumns',
-      value: defaultVisible,
-    });
+    localStorage.removeItem('activeCampTemplateId');
+    saveCampPreferencesMutation.mutate({ key: 'campRegVisibleColumns', value: defaultVisible });
+    saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: null });
+  };
+
+  // === Column Templates ===
+  const defaultCampTemplates = getDefaultTemplates(campRegColumns, 'campRegistrations');
+  
+  const { data: savedCampTemplates } = trpc.preferences.get.useQuery(
+    { key: 'campRegColumnTemplates' },
+    { retry: false }
+  );
+  
+  const { data: savedCampActiveTemplateId } = trpc.preferences.get.useQuery(
+    { key: 'activeCampTemplateId' },
+    { retry: false }
+  );
+
+  const [customCampTemplates, setCustomCampTemplates] = useState<ColumnTemplate[]>(() => {
+    const saved = localStorage.getItem('campRegColumnTemplates');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [activeCampTemplateId, setActiveCampTemplateId] = useState<string | null>(() => {
+    return localStorage.getItem('activeCampTemplateId') || null;
+  });
+
+  useEffect(() => {
+    if (savedCampTemplates && Array.isArray(savedCampTemplates)) {
+      setCustomCampTemplates(savedCampTemplates);
+      localStorage.setItem('campRegColumnTemplates', JSON.stringify(savedCampTemplates));
+    }
+  }, [savedCampTemplates]);
+
+  useEffect(() => {
+    if (savedCampActiveTemplateId !== undefined) {
+      setActiveCampTemplateId(savedCampActiveTemplateId);
+      if (savedCampActiveTemplateId) {
+        localStorage.setItem('activeCampTemplateId', savedCampActiveTemplateId);
+      } else {
+        localStorage.removeItem('activeCampTemplateId');
+      }
+    }
+  }, [savedCampActiveTemplateId]);
+
+  const allCampTemplates = [...defaultCampTemplates, ...customCampTemplates];
+
+  const handleApplyCampTemplate = (template: ColumnTemplate) => {
+    setCampRegVisibleColumns(template.columns);
+    setActiveCampTemplateId(template.id);
+    localStorage.setItem('campRegVisibleColumns', JSON.stringify(template.columns));
+    localStorage.setItem('activeCampTemplateId', template.id);
+    saveCampPreferencesMutation.mutate({ key: 'campRegVisibleColumns', value: template.columns });
+    saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: template.id });
+  };
+
+  const handleSaveCampTemplate = (name: string, columns: Record<string, boolean>) => {
+    const newTemplate: ColumnTemplate = {
+      id: `campRegistrations_custom_${Date.now()}`,
+      name,
+      columns,
+      isDefault: false,
+    };
+    const updated = [...customCampTemplates, newTemplate];
+    setCustomCampTemplates(updated);
+    setActiveCampTemplateId(newTemplate.id);
+    localStorage.setItem('campRegColumnTemplates', JSON.stringify(updated));
+    localStorage.setItem('activeCampTemplateId', newTemplate.id);
+    saveCampPreferencesMutation.mutate({ key: 'campRegColumnTemplates', value: updated });
+    saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: newTemplate.id });
+  };
+
+  const handleDeleteCampTemplate = (templateId: string) => {
+    const updated = customCampTemplates.filter(t => t.id !== templateId);
+    setCustomCampTemplates(updated);
+    if (activeCampTemplateId === templateId) {
+      setActiveCampTemplateId(null);
+      localStorage.removeItem('activeCampTemplateId');
+      saveCampPreferencesMutation.mutate({ key: 'activeCampTemplateId', value: null });
+    }
+    localStorage.setItem('campRegColumnTemplates', JSON.stringify(updated));
+    saveCampPreferencesMutation.mutate({ key: 'campRegColumnTemplates', value: updated });
   };
   
   // Debounced search for better performance
@@ -669,6 +748,12 @@ export default function CampRegistrationsManagement({
                 visibleColumns={campRegVisibleColumns}
                 onVisibilityChange={handleCampRegColumnVisibilityChange}
                 onReset={handleCampRegColumnsReset}
+                templates={allCampTemplates}
+                activeTemplateId={activeCampTemplateId}
+                onApplyTemplate={handleApplyCampTemplate}
+                onSaveTemplate={handleSaveCampTemplate}
+                onDeleteTemplate={handleDeleteCampTemplate}
+                tableKey="campRegistrations"
               />
               <Button
                 variant="outline"
