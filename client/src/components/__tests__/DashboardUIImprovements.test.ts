@@ -5,7 +5,7 @@ import path from 'path';
 describe('Dashboard UI Improvements', () => {
   const basePath = path.resolve(__dirname, '../../../..');
 
-  describe('DashboardSidebar', () => {
+  describe('DashboardSidebar (Meta Business Suite Style)', () => {
     const sidebarPath = path.join(basePath, 'client/src/components/DashboardSidebar.tsx');
     let sidebarContent: string;
 
@@ -16,15 +16,13 @@ describe('Dashboard UI Improvements', () => {
 
     it('should have nav groups with labels', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
-      expect(sidebarContent).toContain('navGroups');
+      // New Meta-style sidebar uses NavGroup interface with label
+      expect(sidebarContent).toContain('NavGroup');
       expect(sidebarContent).toContain('label:');
       expect(sidebarContent).toContain('الرئيسية');
       expect(sidebarContent).toContain('إدارة الحجوزات');
       expect(sidebarContent).toContain('إدارة المحتوى');
       expect(sidebarContent).toContain('التواصل');
-      expect(sidebarContent).toContain('الفرق');
-      expect(sidebarContent).toContain('التقارير والتحليلات');
-      expect(sidebarContent).toContain('الإدارة العامة');
     });
 
     it('should have collapsible groups with ChevronDown', () => {
@@ -42,26 +40,40 @@ describe('Dashboard UI Improvements', () => {
 
     it('should have mobile bottom navigation', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
-      expect(sidebarContent).toContain('lg:hidden fixed bottom-0');
+      expect(sidebarContent).toContain('lg:hidden');
       expect(sidebarContent).toContain('mobileOpen');
     });
 
-    it('should have collapse/expand toggle for desktop', () => {
+    it('should have Meta-style icon rail (narrow sidebar)', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
-      expect(sidebarContent).toContain('collapsed');
-      expect(sidebarContent).toContain('PanelLeftClose');
-      expect(sidebarContent).toContain('PanelLeftOpen');
+      // Meta Business Suite style: narrow icon rail + expanded panel
+      expect(sidebarContent).toContain('primaryNavItems');
+      expect(sidebarContent).toContain('allToolsOpen');
+      expect(sidebarContent).toContain('Tooltip');
     });
 
-    it('should have active item indicator class', () => {
+    it('should have active item highlighting with blue color', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
-      expect(sidebarContent).toContain('nav-item-active');
+      expect(sidebarContent).toContain('isItemActive');
+      expect(sidebarContent).toContain('bg-blue');
     });
 
     it('should auto-expand groups with active items', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
       expect(sidebarContent).toContain('hasActive');
       expect(sidebarContent).toContain('defaultOpen');
+    });
+
+    it('should have search functionality in expanded panel', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('Search');
+      expect(sidebarContent).toContain('searchQuery');
+    });
+
+    it('should have settings and help icons at bottom', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('SettingsIcon');
+      expect(sidebarContent).toContain('HelpCircle');
     });
   });
 
@@ -103,9 +115,9 @@ describe('Dashboard UI Improvements', () => {
       expect(layoutContent).toContain('pageDescription');
     });
 
-    it('should use dashboard-header class', () => {
+    it('should have header with border bottom', () => {
       layoutContent = fs.readFileSync(layoutPath, 'utf-8');
-      expect(layoutContent).toContain('dashboard-header');
+      expect(layoutContent).toContain('border-b');
     });
 
     it('should have mobile logo visible only on small screens', () => {

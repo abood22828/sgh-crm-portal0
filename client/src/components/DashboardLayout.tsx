@@ -61,14 +61,14 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/80 flex" dir="rtl">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+      {/* Sidebar - Meta Business Suite Style */}
       <DashboardSidebar currentPath={location} />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:pb-0 pb-14">
         {/* Top Header Bar */}
-        <header className="dashboard-header border-b border-border/40 sticky top-0 z-10">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
           <div className="flex items-center justify-between px-4 py-2.5 md:px-6">
             {/* Page Title */}
             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -78,11 +78,11 @@ export default function DashboardLayout({
                 className="h-9 md:h-10 w-auto object-contain flex-shrink-0 lg:hidden"
               />
               <div className="min-w-0 flex-1">
-                <h1 className="text-base md:text-lg font-bold text-foreground truncate">
+                <h1 className="text-base md:text-lg font-bold text-gray-900 truncate">
                   {pageTitle || "لوحة التحكم"}
                 </h1>
                 {pageDescription && (
-                  <p className="text-xs text-muted-foreground hidden sm:block truncate">
+                  <p className="text-xs text-gray-500 hidden sm:block truncate">
                     {pageDescription}
                   </p>
                 )}
@@ -95,11 +95,11 @@ export default function DashboardLayout({
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer focus:outline-none">
                     <div className="text-right hidden md:block">
-                      <p className="text-sm font-medium leading-tight">{user.name}</p>
-                      <p className="text-[11px] text-muted-foreground">{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</p>
+                      <p className="text-sm font-medium leading-tight text-gray-900">{user.name}</p>
+                      <p className="text-[11px] text-gray-500">{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</p>
                     </div>
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
-                      <span className="text-primary font-semibold text-sm">
+                    <div className="h-9 w-9 rounded-full bg-blue-50 flex items-center justify-center ring-2 ring-blue-100">
+                      <span className="text-blue-600 font-semibold text-sm">
                         {user.name?.charAt(0) || 'U'}
                       </span>
                     </div>
