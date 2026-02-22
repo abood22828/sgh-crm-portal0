@@ -2986,3 +2986,9 @@
 - [x] إضافة زر "تعديل" في لوحة "كل الأدوات" لتخصيص العناصر المعروضة في الشريط الضيق مع checkboxes
 - [x] حفظ تفضيلات المستخدم في localStorage (DEFAULT_VISIBLE_IDS + STORAGE_KEY)
 - [x] تحديث 40 اختبار vitest ناجح
+
+### إضافة السحب والإفلات لترتيب عناصر الشريط الجانبي ✅ مكتمل
+- [x] تثبيت مكتبة @dnd-kit/core + @dnd-kit/sortable + @dnd-kit/utilities
+- [x] تعديل وضع التعديل في DashboardSidebar لدعم إعادة ترتيب العناصر بالسحب (SortableEditItem + DndContext)
+- [x] حفظ ترتيب العناصر في localStorage عبر editingItemIds
+- [x] تحديث 48 اختبار vitest ناجح

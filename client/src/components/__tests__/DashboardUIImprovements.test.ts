@@ -127,6 +127,61 @@ describe('Dashboard UI Improvements', () => {
       expect(sidebarContent).toContain('(ثابت)');
     });
 
+    // Drag & Drop tests
+    it('should import @dnd-kit libraries for drag and drop', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('@dnd-kit/core');
+      expect(sidebarContent).toContain('@dnd-kit/sortable');
+      expect(sidebarContent).toContain('@dnd-kit/utilities');
+    });
+
+    it('should have DndContext and SortableContext for reordering', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('DndContext');
+      expect(sidebarContent).toContain('SortableContext');
+      expect(sidebarContent).toContain('verticalListSortingStrategy');
+    });
+
+    it('should have SortableEditItem component with drag handle', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('SortableEditItem');
+      expect(sidebarContent).toContain('useSortable');
+      expect(sidebarContent).toContain('GripVertical');
+      expect(sidebarContent).toContain('cursor-grab');
+    });
+
+    it('should have handleDragEnd with arrayMove for reordering', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('handleDragEnd');
+      expect(sidebarContent).toContain('arrayMove');
+    });
+
+    it('should have drag sensors configured', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('useSensors');
+      expect(sidebarContent).toContain('PointerSensor');
+      expect(sidebarContent).toContain('KeyboardSensor');
+    });
+
+    it('should separate checked and unchecked items in edit mode', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('معروض في الشريط');
+      expect(sidebarContent).toContain('عناصر مخفية');
+    });
+
+    it('should have visual feedback during drag (shadow, ring)', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('isDragging');
+      expect(sidebarContent).toContain('shadow-lg');
+      expect(sidebarContent).toContain('ring-2');
+    });
+
+    it('should keep home item fixed and not draggable', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      // Home drag handle should be invisible
+      expect(sidebarContent).toContain('isHome && "invisible"');
+    });
+
     it('should have save and cancel buttons in edit mode', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
       expect(sidebarContent).toContain('إلغاء');

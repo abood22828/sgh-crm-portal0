@@ -36,6 +36,23 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface NavItem {
   title: string;
@@ -228,6 +245,92 @@ const allToolsGroups: NavGroup[] = [
   },
 ];
 
+// ============================================
+// مكون عنصر قابل للسحب (Sortable Item)
+// ============================================
+function SortableEditItem({
+  item,
+  isChecked,
+  isHome,
+  onToggle,
+}: {
+  item: NavItem;
+  isChecked: boolean;
+  isHome: boolean;
+  onToggle: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.85 : 1,
+  };
+
+  const Icon = item.icon;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 select-none",
+        isChecked ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-50",
+        isHome && "opacity-60",
+        isDragging && "shadow-lg ring-2 ring-blue-300 bg-white"
+      )}
+    >
+      {/* Drag Handle */}
+      <button
+        {...attributes}
+        {...listeners}
+        className={cn(
+          "flex-shrink-0 cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-gray-200/60 text-gray-400 hover:text-gray-600 touch-none",
+          isHome && "invisible"
+        )}
+        tabIndex={-1}
+        aria-label="اسحب لإعادة الترتيب"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      {/* Checkbox */}
+      <button
+        onClick={() => !isHome && onToggle(item.id)}
+        className={cn(
+          "h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+          isChecked ? "bg-blue-600 border-blue-600" : "border-gray-300",
+          isHome ? "cursor-not-allowed" : "cursor-pointer"
+        )}
+      >
+        {isChecked && <Check className="h-3 w-3 text-white" />}
+      </button>
+
+      {/* Icon & Label */}
+      <button
+        onClick={() => !isHome && onToggle(item.id)}
+        className={cn(
+          "flex items-center gap-2 flex-1 min-w-0",
+          isHome ? "cursor-not-allowed" : "cursor-pointer"
+        )}
+      >
+        <Icon className={cn("h-4 w-4 flex-shrink-0", isChecked ? "text-blue-600" : "text-gray-400")} />
+        <span className="truncate">{item.title}</span>
+      </button>
+
+      {isHome && <span className="text-[10px] text-gray-400 flex-shrink-0">(ثابت)</span>}
+    </div>
+  );
+}
+
 interface DashboardSidebarProps {
   currentPath: string;
 }
@@ -333,6 +436,21 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
     setEditMode(false);
   }, [setLocation]);
 
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  // Edit mode: combined list of checked (ordered) + unchecked items
+  const editOrderedItems = useMemo(() => {
+    const checkedItems = editingItemIds
+      .map(id => allNavItems.find(item => item.id === id))
+      .filter(Boolean) as NavItem[];
+    const uncheckedItems = allNavItems.filter(item => !editingItemIds.includes(item.id));
+    return [...checkedItems, ...uncheckedItems];
+  }, [editingItemIds]);
+
   // Edit mode handlers
   const startEditMode = useCallback(() => {
     setEditingItemIds([...visibleItemIds]);
@@ -354,12 +472,40 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   const toggleEditItem = useCallback((id: string) => {
     setEditingItemIds(prev => {
       if (prev.includes(id)) {
-        // Don't allow removing "home"
         if (id === "home") return prev;
         return prev.filter(i => i !== id);
       } else {
         return [...prev, id];
       }
+    });
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setEditingItemIds(prev => {
+      // Only reorder within checked items
+      const activeId = active.id as string;
+      const overId = over.id as string;
+
+      // Both must be in editingItemIds (checked)
+      const oldIndex = prev.indexOf(activeId);
+      const newIndex = prev.indexOf(overId);
+
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      // Don't allow moving "home" from first position
+      if (activeId === "home" || (newIndex === 0 && prev[0] === "home")) {
+        // Allow moving home only within checked, but keep it first
+        if (activeId === "home") return prev;
+        // If trying to move something to index 0 where home is, put it at index 1
+        if (newIndex === 0) {
+          const withoutActive = prev.filter(id => id !== activeId);
+          withoutActive.splice(1, 0, activeId);
+          return withoutActive;
+        }
+      }
+      return arrayMove(prev, oldIndex, newIndex);
     });
   }, []);
 
@@ -543,42 +689,75 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                 </button>
               </div>
             </div>
-            <p className="text-[11px] text-gray-500">اختر العناصر التي تريد إظهارها في الشريط الجانبي</p>
+            <p className="text-[11px] text-gray-500">اختر العناصر واسحبها لإعادة ترتيبها في الشريط الجانبي</p>
           </div>
         )}
 
         {/* Tools List / Edit List */}
         <ScrollArea className="flex-1">
           {editMode ? (
-            // Edit mode: show all items with checkboxes
-            <div className="py-2 px-3">
-              {allNavItems.map((item) => {
-                const Icon = item.icon;
-                const isChecked = editingItemIds.includes(item.id);
-                const isHome = item.id === "home";
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => !isHome && toggleEditItem(item.id)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 mb-0.5",
-                      isChecked ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-50",
-                      isHome && "opacity-60 cursor-not-allowed"
-                    )}
-                  >
-                    <div className={cn(
-                      "h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors",
-                      isChecked ? "bg-blue-600 border-blue-600" : "border-gray-300"
-                    )}>
-                      {isChecked && <Check className="h-3 w-3 text-white" />}
+            // Edit mode: sortable items with drag & drop
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="py-2 px-3">
+                {/* Checked items - sortable */}
+                {editingItemIds.length > 0 && (
+                  <>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+                      <GripVertical className="h-3 w-3" />
+                      معروض في الشريط — اسحب لإعادة الترتيب
                     </div>
-                    <Icon className={cn("h-4 w-4 flex-shrink-0", isChecked ? "text-blue-600" : "text-gray-400")} />
-                    <span className="truncate">{item.title}</span>
-                    {isHome && <span className="text-[10px] text-gray-400 mr-auto">(ثابت)</span>}
-                  </button>
-                );
-              })}
-            </div>
+                    <SortableContext
+                      items={editingItemIds}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {editingItemIds
+                        .map(id => allNavItems.find(item => item.id === id))
+                        .filter(Boolean)
+                        .map((item) => (
+                          <SortableEditItem
+                            key={item!.id}
+                            item={item!}
+                            isChecked={true}
+                            isHome={item!.id === "home"}
+                            onToggle={toggleEditItem}
+                          />
+                        ))}
+                    </SortableContext>
+                  </>
+                )}
+
+                {/* Unchecked items - not sortable */}
+                {allNavItems.filter(item => !editingItemIds.includes(item.id)).length > 0 && (
+                  <>
+                    <div className="border-t border-gray-200 my-2" />
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
+                      عناصر مخفية — انقر لإضافتها
+                    </div>
+                    {allNavItems
+                      .filter(item => !editingItemIds.includes(item.id))
+                      .map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => toggleEditItem(item.id)}
+                            className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-all duration-150 mb-0.5"
+                          >
+                            <div className="w-5 flex-shrink-0" />
+                            <div className="h-5 w-5 rounded border-2 border-gray-300 flex items-center justify-center flex-shrink-0" />
+                            <Icon className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                            <span className="truncate">{item.title}</span>
+                          </button>
+                        );
+                      })}
+                  </>
+                )}
+              </div>
+            </DndContext>
           ) : (
             // Normal mode: grouped tools
             <div className="py-2 px-3">
