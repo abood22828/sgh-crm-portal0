@@ -16,7 +16,6 @@ describe('Dashboard UI Improvements', () => {
 
     it('should have nav groups with labels', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
-      // New Meta-style sidebar uses NavGroup interface with label
       expect(sidebarContent).toContain('NavGroup');
       expect(sidebarContent).toContain('label:');
       expect(sidebarContent).toContain('الرئيسية');
@@ -46,7 +45,6 @@ describe('Dashboard UI Improvements', () => {
 
     it('should have Meta-style icon rail (narrow sidebar)', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
-      // Meta Business Suite style: narrow icon rail + expanded panel
       expect(sidebarContent).toContain('primaryNavItems');
       expect(sidebarContent).toContain('allToolsOpen');
       expect(sidebarContent).toContain('Tooltip');
@@ -74,6 +72,76 @@ describe('Dashboard UI Improvements', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
       expect(sidebarContent).toContain('SettingsIcon');
       expect(sidebarContent).toContain('HelpCircle');
+    });
+
+    // New tests for compact design and edit mode
+    it('should have compact 60px width for slim sidebar', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('w-[60px]');
+    });
+
+    it('should have small icons (18px) for compact design', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('h-[18px] w-[18px]');
+    });
+
+    it('should have small text (8px) for compact design', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('text-[8px]');
+    });
+
+    it('should have edit mode functionality', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('editMode');
+      expect(sidebarContent).toContain('startEditMode');
+      expect(sidebarContent).toContain('cancelEditMode');
+      expect(sidebarContent).toContain('saveEditMode');
+    });
+
+    it('should have edit button (تعديل) in all tools panel', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('Pencil');
+      expect(sidebarContent).toContain('تعديل');
+    });
+
+    it('should have customizable visible items with localStorage', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('visibleItemIds');
+      expect(sidebarContent).toContain('STORAGE_KEY');
+      expect(sidebarContent).toContain('localStorage');
+      expect(sidebarContent).toContain('DEFAULT_VISIBLE_IDS');
+    });
+
+    it('should have edit mode with checkboxes for item selection', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('editingItemIds');
+      expect(sidebarContent).toContain('toggleEditItem');
+      expect(sidebarContent).toContain('isChecked');
+    });
+
+    it('should prevent removing home item in edit mode', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      // Home item should be non-removable
+      expect(sidebarContent).toContain('"home"');
+      expect(sidebarContent).toContain('cursor-not-allowed');
+      expect(sidebarContent).toContain('(ثابت)');
+    });
+
+    it('should have save and cancel buttons in edit mode', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('إلغاء');
+      expect(sidebarContent).toContain('حفظ');
+      expect(sidebarContent).toContain('تعديل الشريط الجانبي');
+    });
+
+    it('should have all nav items defined with unique ids', () => {
+      sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
+      expect(sidebarContent).toContain('allNavItems');
+      expect(sidebarContent).toContain('id: "home"');
+      expect(sidebarContent).toContain('id: "leads"');
+      expect(sidebarContent).toContain('id: "appointments"');
+      expect(sidebarContent).toContain('id: "customers"');
+      expect(sidebarContent).toContain('id: "tasks"');
     });
   });
 
