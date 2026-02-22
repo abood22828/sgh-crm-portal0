@@ -2714,3 +2714,13 @@
 - [x] تطبيق ترتيب الأعمدة المخصص في OfferLeadsManagement
 - [x] تطبيق ترتيب الأعمدة المخصص في CampRegistrationsManagement
 - [x] تحديث دوال الطباعة والتصدير لاحترام الترتيب المخصص
+
+### تطبيق ترتيب وعرض الأعمدة على الجدول الفعلي ✅ مكتمل
+- [x] فحص بنية الجداول الحالية (thead/tbody) في المكونات الثلاثة
+- [x] تطبيق ترتيب الأعمدة (columnOrder) على أعمدة الجدول الفعلي في BookingsManagementPage
+- [x] تطبيق إظهار/إخفاء الأعمدة (visibleColumns) على الجدول الفعلي في BookingsManagementPage
+- [x] تطبيق ترتيب الأعمدة على الجدول الفعلي في OfferLeadsManagement
+- [x] تطبيق إظهار/إخفاء الأعمدة على الجدول الفعلي في OfferLeadsManagement
+- [x] تطبيق ترتيب الأعمدة على الجدول الفعلي في CampRegistrationsManagement
+- [x] تطبيق إظهار/إخفاء الأعمدة على الجدول الفعلي في CampRegistrationsManagement
+- [x] اختبار التطبيق على جميع الجداول

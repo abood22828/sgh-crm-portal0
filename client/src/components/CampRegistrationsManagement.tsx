@@ -998,215 +998,55 @@ export default function CampRegistrationsManagement({
             <Table>
               <TableHeader>
                 <TableRow>
-                  {campRegVisibleColumns['checkbox'] && (
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={selectedIds.length === filteredRegistrations.length && filteredRegistrations.length > 0}
-                        onCheckedChange={handleSelectAll}
-                      />
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['receiptNumber'] && (
-                    <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'receiptNumber') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('receiptNumber');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        رقم السند
-                        {sortField === 'receiptNumber' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['name'] && (
-                    <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'name') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('name');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        الاسم الكامل
-                        {sortField === 'name' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['phone'] && (
-                    <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'phone') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('phone');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        رقم الهاتف
-                        {sortField === 'phone' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['email'] && (
-                    <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'email') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('email');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        البريد الإلكتروني
-                        {sortField === 'email' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['age'] && (
-                    <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'age') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('age');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        العمر
-                        {sortField === 'age' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['camp'] && (
-                    <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'camp') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('camp');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        المخيم
-                        {sortField === 'camp' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['source'] && (
-                    <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'source') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('source');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        المصدر
-                        {sortField === 'source' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['status'] && (
-                    <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'status') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('status');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        الحالة
-                        {sortField === 'status' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['date'] && (
-                    <TableHead 
-                    className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                    onClick={() => {
-                      if (sortField === 'date') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('date');
-                        setSortDirection('desc'); // Default to newest first
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        تاريخ التسجيل
-                        {sortField === 'date' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {campRegVisibleColumns['comments'] && (
-                    <TableHead className="text-right">التعليقات</TableHead>
-                  )}
-                  {campRegVisibleColumns['tasks'] && (
-                    <TableHead className="text-right">المهام</TableHead>
-                  )}
-                  {campRegVisibleColumns['actions'] && (
-                    <TableHead className="text-right">الإجراءات</TableHead>
-                  )}
+                  {campColumnOrder.filter(key => campRegVisibleColumns[key]).map(colKey => {
+                    const col = campRegColumns.find(c => c.key === colKey);
+                    if (!col) return null;
+                    const sortableFields = ['receiptNumber', 'name', 'phone', 'email', 'age', 'camp', 'source', 'status', 'date'];
+                    const isSortable = sortableFields.includes(colKey);
+                    if (colKey === 'checkbox') {
+                      return (
+                        <TableHead key={colKey} className="w-12">
+                          <Checkbox
+                            checked={selectedIds.length === filteredRegistrations.length && filteredRegistrations.length > 0}
+                            onCheckedChange={handleSelectAll}
+                          />
+                        </TableHead>
+                      );
+                    }
+                    return (
+                      <TableHead
+                        key={colKey}
+                        className={`text-right ${isSortable ? 'cursor-pointer hover:bg-muted/50 select-none' : ''}`}
+                        onClick={isSortable ? () => {
+                          if (sortField === colKey) {
+                            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                          } else {
+                            setSortField(colKey as any);
+                            setSortDirection(colKey === 'date' ? 'desc' : 'asc');
+                          }
+                        } : undefined}
+                      >
+                        <div className="flex items-center gap-1 justify-end">
+                          {col.label}
+                          {isSortable && sortField === colKey && (
+                            <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                          )}
+                        </div>
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={11} className="p-0">
-                      <TableSkeleton rows={5} columns={11} />
+                    <TableCell colSpan={campColumnOrder.filter(k => campRegVisibleColumns[k]).length || 1} className="p-0">
+                      <TableSkeleton rows={5} columns={campColumnOrder.filter(k => campRegVisibleColumns[k]).length || 11} />
                     </TableCell>
                   </TableRow>
                 ) : filteredRegistrations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={11} className="py-12">
+                    <TableCell colSpan={campColumnOrder.filter(k => campRegVisibleColumns[k]).length || 1} className="py-12">
                       <EmptyState
                         icon={TentTree}
                         title="لا توجد تسجيلات"
@@ -1217,186 +1057,161 @@ export default function CampRegistrationsManagement({
                 ) : (
                   filteredRegistrations.map((reg: any) => (
                     <TableRow key={reg.id} className={reg.status === 'pending' ? 'bg-red-50 hover:bg-red-100' : ''}>
-                      {campRegVisibleColumns['checkbox'] && (
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedIds.includes(reg.id)}
-                            onCheckedChange={() => handleSelectOne(reg.id)}
-                          />
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['receiptNumber'] && (
-                        <TableCell className="text-sm text-muted-foreground font-mono">
-                          {reg.receiptNumber || "-"}
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['name'] && (
-                        <TableCell className="font-medium">{reg.fullName}</TableCell>
-                      )}
-                      {campRegVisibleColumns['phone'] && (
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono">{reg.phone}</span>
-                            <ActionButtons
-                              phoneNumber={reg.phone}
-                              showWhatsApp={true}
-                              whatsAppMessage={`مرحباً ${reg.fullName}، شكراً لتسجيلك في مخيمنا الطبي. نتطلع لرؤيتك.`}
-                              size="sm"
-                              variant="ghost"
-                            />
-                          </div>
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['email'] && (
-                        <TableCell>
-                          {reg.email ? (
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-4 w-4 text-muted-foreground" />
-                              <a href={`mailto:${reg.email}`} className="hover:text-primary text-sm">
-                                {reg.email}
-                              </a>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['age'] && (
-                        <TableCell>
-                          {reg.age ? (
-                            <span className="text-sm">{reg.age} سنة</span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['camp'] && (
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Tent className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{reg.campName || "غير محدد"}</span>
-                          </div>
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['source'] && (
-                        <TableCell>
-                          {reg.source ? (
-                            <Badge 
-                              variant="outline" 
-                              className="text-xs font-medium"
-                              style={{
-                                backgroundColor: SOURCE_COLORS[reg.source] ? `${SOURCE_COLORS[reg.source]}15` : undefined,
-                                borderColor: SOURCE_COLORS[reg.source] || undefined,
-                                color: SOURCE_COLORS[reg.source] || undefined,
-                              }}
-                            >
-                              {SOURCE_LABELS[reg.source] || reg.source}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">غير محدد</Badge>
-                          )}
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['status'] && (
-                        <TableCell>
-                          <InlineStatusEditor
-                            currentStatus={reg.status}
-                            statusOptions={[
-                              { value: 'pending', label: 'قيد الانتظار', color: 'bg-yellow-500' },
-                              { value: 'confirmed', label: 'مؤكد', color: 'bg-green-500' },
-                              { value: 'attended', label: 'حضر', color: 'bg-blue-500' },
-                              { value: 'cancelled', label: 'ملغي', color: 'bg-red-500' },
-                            ]}
-                            onSave={async (newStatus) => {
-                              await updateStatusMutation.mutateAsync({
-                                id: reg.id,
-                                status: newStatus as any,
-                                notes: '',
-                              });
-                            }}
-                          />
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['date'] && (
-                        <TableCell className="text-sm text-muted-foreground">
-                          {new Date(reg.createdAt).toLocaleDateString("ar-SA")}
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['comments'] && (
-                        <TableCell>
-                          <CommentCount
-                            entityType="campRegistration"
-                            entityId={reg.id}
-                          />
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['tasks'] && (
-                        <TableCell>
-                          <TaskCount
-                            entityType="campRegistration"
-                            entityId={reg.id}
-                          />
-                        </TableCell>
-                      )}
-                      {campRegVisibleColumns['actions'] && (
-                        <TableCell>
-                        <div className="flex gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedRegistration(reg);
-                                  setNewStatus(reg.status);
-                                  setEditedName(reg.fullName);
-                                  setEditedPhone(reg.phone);
-                                  setAttendanceDate(reg.attendanceDate ? new Date(reg.attendanceDate).toISOString().slice(0, 16) : "");
-                                  setStatusDialogOpen(true);
-                                }}
-                              >
-                                <Settings className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>تحديث الحالة</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                onClick={async () => {
-                                  try {
-                                    const result = await generateReceiptNumberMutation.mutateAsync({ id: reg.id });
-                                    const campName = reg.campName || `مخيم #${reg.campId}`;
-                                    printReceipt({
-                                      fullName: reg.fullName,
-                                      phone: reg.phone,
-                                      age: reg.age ?? undefined,
-                                      registrationDate: new Date(reg.createdAt),
-                                      type: "camp",
-                                      typeName: campName,
-                                      receiptNumber: result.receiptNumber,
-                                    }, user?.name || "مستخدم");
-                                  } catch (error) {
-                                    console.error('Error generating receipt number:', error);
-                                    toast.error('فشل في توليد رقم السند');
-                                  }
-                                }}
-                              >
-                                <Printer className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>طباعة السند</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                        </TableCell>
-                      )}
+                      {campColumnOrder.filter(key => campRegVisibleColumns[key]).map(colKey => {
+                        switch(colKey) {
+                          case 'checkbox':
+                            return (
+                              <TableCell key={colKey}>
+                                <Checkbox checked={selectedIds.includes(reg.id)} onCheckedChange={() => handleSelectOne(reg.id)} />
+                              </TableCell>
+                            );
+                          case 'receiptNumber':
+                            return <TableCell key={colKey} className="text-sm text-muted-foreground font-mono">{reg.receiptNumber || "-"}</TableCell>;
+                          case 'name':
+                            return <TableCell key={colKey} className="font-medium">{reg.fullName}</TableCell>;
+                          case 'phone':
+                            return (
+                              <TableCell key={colKey}>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono">{reg.phone}</span>
+                                  <ActionButtons phoneNumber={reg.phone} showWhatsApp={true}
+                                    whatsAppMessage={`مرحباً ${reg.fullName}، شكراً لتسجيلك في مخيمنا الطبي. نتطلع لرؤيتك.`}
+                                    size="sm" variant="ghost" />
+                                </div>
+                              </TableCell>
+                            );
+                          case 'email':
+                            return (
+                              <TableCell key={colKey}>
+                                {reg.email ? (
+                                  <div className="flex items-center gap-2">
+                                    <Mail className="h-4 w-4 text-muted-foreground" />
+                                    <a href={`mailto:${reg.email}`} className="hover:text-primary text-sm">{reg.email}</a>
+                                  </div>
+                                ) : (<span className="text-muted-foreground">-</span>)}
+                              </TableCell>
+                            );
+                          case 'age':
+                            return <TableCell key={colKey}>{reg.age ? <span className="text-sm">{reg.age} سنة</span> : <span className="text-muted-foreground">-</span>}</TableCell>;
+                          case 'gender':
+                            return <TableCell key={colKey}>{reg.gender === 'male' ? 'ذكر' : reg.gender === 'female' ? 'أنثى' : '-'}</TableCell>;
+                          case 'camp':
+                            return (
+                              <TableCell key={colKey}>
+                                <div className="flex items-center gap-2">
+                                  <Tent className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-sm">{reg.campName || "غير محدد"}</span>
+                                </div>
+                              </TableCell>
+                            );
+                          case 'source':
+                            return (
+                              <TableCell key={colKey}>
+                                {reg.source ? (
+                                  <Badge variant="outline" className="text-xs font-medium" style={{
+                                    backgroundColor: SOURCE_COLORS[reg.source] ? `${SOURCE_COLORS[reg.source]}15` : undefined,
+                                    borderColor: SOURCE_COLORS[reg.source] || undefined,
+                                    color: SOURCE_COLORS[reg.source] || undefined,
+                                  }}>
+                                    {SOURCE_LABELS[reg.source] || reg.source}
+                                  </Badge>
+                                ) : (<Badge variant="outline" className="text-xs">غير محدد</Badge>)}
+                              </TableCell>
+                            );
+                          case 'status':
+                            return (
+                              <TableCell key={colKey}>
+                                <InlineStatusEditor
+                                  currentStatus={reg.status}
+                                  statusOptions={[
+                                    { value: 'pending', label: 'قيد الانتظار', color: 'bg-yellow-500' },
+                                    { value: 'confirmed', label: 'مؤكد', color: 'bg-green-500' },
+                                    { value: 'attended', label: 'حضر', color: 'bg-blue-500' },
+                                    { value: 'cancelled', label: 'ملغي', color: 'bg-red-500' },
+                                  ]}
+                                  onSave={async (newStatus) => {
+                                    await updateStatusMutation.mutateAsync({ id: reg.id, status: newStatus as any, notes: '' });
+                                  }}
+                                />
+                              </TableCell>
+                            );
+                          case 'statusNotes':
+                            return <TableCell key={colKey} className="max-w-[200px] truncate" title={reg.statusNotes}>{reg.statusNotes || '-'}</TableCell>;
+                          case 'procedures':
+                            return <TableCell key={colKey} className="text-sm">{reg.procedures || '-'}</TableCell>;
+                          case 'medicalCondition':
+                            return <TableCell key={colKey} className="text-sm">{reg.medicalCondition || '-'}</TableCell>;
+                          case 'attendanceDate':
+                            return <TableCell key={colKey} className="text-sm">{reg.attendanceDate ? new Date(reg.attendanceDate).toLocaleDateString('ar-SA') : '-'}</TableCell>;
+                          case 'date':
+                            return <TableCell key={colKey} className="text-sm text-muted-foreground">{new Date(reg.createdAt).toLocaleDateString("ar-SA")}</TableCell>;
+                          case 'utmSource':
+                            return <TableCell key={colKey} className="text-xs">{reg.utmSource || '-'}</TableCell>;
+                          case 'utmMedium':
+                            return <TableCell key={colKey} className="text-xs">{reg.utmMedium || '-'}</TableCell>;
+                          case 'utmCampaign':
+                            return <TableCell key={colKey} className="text-xs">{reg.utmCampaign || '-'}</TableCell>;
+                          case 'utmTerm':
+                            return <TableCell key={colKey} className="text-xs">{reg.utmTerm || '-'}</TableCell>;
+                          case 'utmContent':
+                            return <TableCell key={colKey} className="text-xs">{reg.utmContent || '-'}</TableCell>;
+                          case 'utmPlacement':
+                            return <TableCell key={colKey} className="text-xs">{reg.utmPlacement || '-'}</TableCell>;
+                          case 'referrer':
+                            return <TableCell key={colKey} className="text-xs">{reg.referrer || '-'}</TableCell>;
+                          case 'fbclid':
+                            return <TableCell key={colKey} className="text-xs font-mono">{reg.fbclid || '-'}</TableCell>;
+                          case 'gclid':
+                            return <TableCell key={colKey} className="text-xs font-mono">{reg.gclid || '-'}</TableCell>;
+                          case 'comments':
+                            return <TableCell key={colKey}><CommentCount entityType="campRegistration" entityId={reg.id} /></TableCell>;
+                          case 'tasks':
+                            return <TableCell key={colKey}><TaskCount entityType="campRegistration" entityId={reg.id} /></TableCell>;
+                          case 'actions':
+                            return (
+                              <TableCell key={colKey}>
+                                <div className="flex gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button variant="outline" size="sm" onClick={() => {
+                                        setSelectedRegistration(reg); setNewStatus(reg.status); setEditedName(reg.fullName); setEditedPhone(reg.phone);
+                                        setAttendanceDate(reg.attendanceDate ? new Date(reg.attendanceDate).toISOString().slice(0, 16) : ""); setStatusDialogOpen(true);
+                                      }}>
+                                        <Settings className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>تحديث الحالة</p></TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button variant="outline" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                        onClick={async () => {
+                                          try {
+                                            const result = await generateReceiptNumberMutation.mutateAsync({ id: reg.id });
+                                            const campName = reg.campName || `مخيم #${reg.campId}`;
+                                            printReceipt({
+                                              fullName: reg.fullName, phone: reg.phone, age: reg.age ?? undefined,
+                                              registrationDate: new Date(reg.createdAt), type: "camp", typeName: campName,
+                                              receiptNumber: result.receiptNumber,
+                                            }, user?.name || "مستخدم");
+                                          } catch (error) {
+                                            console.error('Error generating receipt number:', error);
+                                            toast.error('فشل في توليد رقم السند');
+                                          }
+                                        }}
+                                      >
+                                        <Printer className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>طباعة السند</p></TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </TableCell>
+                            );
+                          default:
+                            return <TableCell key={colKey}>-</TableCell>;
+                        }
+                      })}
                     </TableRow>
                   ))
                 )}

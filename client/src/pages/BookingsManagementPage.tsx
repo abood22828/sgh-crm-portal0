@@ -1445,181 +1445,45 @@ export default function BookingsManagementPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        {appointmentVisibleColumns['date'] && (
-                          <TableHead 
-                            className="cursor-pointer hover:bg-muted/50 select-none"
-                            onClick={() => {
-                              if (appointmentSortField === 'date') {
-                                setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
-                              } else {
-                                setAppointmentSortField('date');
-                                setAppointmentSortDirection('desc');
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              التاريخ
-                              {appointmentSortField === 'date' && (
-                                <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
-                              )}
-                            </div>
-                          </TableHead>
-                        )}
-                        {appointmentVisibleColumns['name'] && (
-                          <TableHead 
-                            className="cursor-pointer hover:bg-muted/50 select-none"
-                            onClick={() => {
-                              if (appointmentSortField === 'name') {
-                                setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
-                              } else {
-                                setAppointmentSortField('name');
-                                setAppointmentSortDirection('asc');
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              اسم المريض
-                              {appointmentSortField === 'name' && (
-                                <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
-                              )}
-                            </div>
-                          </TableHead>
-                        )}
-                        {appointmentVisibleColumns['phone'] && (
-                          <TableHead 
-                            className="cursor-pointer hover:bg-muted/50 select-none"
-                            onClick={() => {
-                              if (appointmentSortField === 'phone') {
-                                setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
-                              } else {
-                                setAppointmentSortField('phone');
-                                setAppointmentSortDirection('asc');
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              الهاتف
-                              {appointmentSortField === 'phone' && (
-                                <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
-                              )}
-                            </div>
-                          </TableHead>
-                        )}
-                        {appointmentVisibleColumns['doctor'] && (
-                          <TableHead 
-                            className="cursor-pointer hover:bg-muted/50 select-none"
-                            onClick={() => {
-                              if (appointmentSortField === 'doctor') {
-                                setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
-                              } else {
-                                setAppointmentSortField('doctor');
-                                setAppointmentSortDirection('asc');
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              الطبيب
-                              {appointmentSortField === 'doctor' && (
-                                <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
-                              )}
-                            </div>
-                          </TableHead>
-                        )}
-                        {appointmentVisibleColumns['specialty'] && (
-                          <TableHead 
-                            className="cursor-pointer hover:bg-muted/50 select-none"
-                            onClick={() => {
-                              if (appointmentSortField === 'specialty') {
-                                setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
-                              } else {
-                                setAppointmentSortField('specialty');
-                                setAppointmentSortDirection('asc');
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              التخصص
-                              {appointmentSortField === 'specialty' && (
-                                <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
-                              )}
-                            </div>
-                          </TableHead>
-                        )}
-                        {appointmentVisibleColumns['source'] && (
-                          <TableHead 
-                            className="cursor-pointer hover:bg-muted/50 select-none"
-                            onClick={() => {
-                              if (appointmentSortField === 'source') {
-                                setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
-                              } else {
-                                setAppointmentSortField('source');
-                                setAppointmentSortDirection('asc');
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              المصدر
-                              {appointmentSortField === 'source' && (
-                                <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
-                              )}
-                            </div>
-                          </TableHead>
-                        )}
-                        {appointmentVisibleColumns['receiptNumber'] && (
-                          <TableHead 
-                            className="cursor-pointer hover:bg-muted/50 select-none"
-                            onClick={() => {
-                              if (appointmentSortField === 'receiptNumber') {
-                                setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
-                              } else {
-                                setAppointmentSortField('receiptNumber');
-                                setAppointmentSortDirection('asc');
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              رقم السند
-                              {appointmentSortField === 'receiptNumber' && (
-                                <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
-                              )}
-                            </div>
-                          </TableHead>
-                        )}
-                        {appointmentVisibleColumns['status'] && (
-                          <TableHead 
-                            className="cursor-pointer hover:bg-muted/50 select-none"
-                            onClick={() => {
-                              if (appointmentSortField === 'status') {
-                                setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
-                              } else {
-                                setAppointmentSortField('status');
-                                setAppointmentSortDirection('asc');
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              الحالة
-                              {appointmentSortField === 'status' && (
-                                <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
-                              )}
-                            </div>
-                          </TableHead>
-                        )}
-                        {appointmentVisibleColumns['comments'] && <TableHead>التعليقات</TableHead>}
-                        {appointmentVisibleColumns['tasks'] && <TableHead>المهام</TableHead>}
-                        {appointmentVisibleColumns['actions'] && <TableHead>الإجراءات</TableHead>}
+                        {appointmentColumnOrder.filter(key => appointmentVisibleColumns[key]).map(colKey => {
+                          const col = appointmentColumns.find(c => c.key === colKey);
+                          if (!col) return null;
+                          const sortableFields = ['date', 'name', 'phone', 'doctor', 'specialty', 'source', 'receiptNumber', 'status'];
+                          const isSortable = sortableFields.includes(colKey);
+                          return (
+                            <TableHead
+                              key={colKey}
+                              className={isSortable ? 'cursor-pointer hover:bg-muted/50 select-none' : ''}
+                              onClick={isSortable ? () => {
+                                if (appointmentSortField === colKey) {
+                                  setAppointmentSortDirection(appointmentSortDirection === 'asc' ? 'desc' : 'asc');
+                                } else {
+                                  setAppointmentSortField(colKey as any);
+                                  setAppointmentSortDirection(colKey === 'date' ? 'desc' : 'asc');
+                                }
+                              } : undefined}
+                            >
+                              <div className="flex items-center gap-1">
+                                {col.label}
+                                {isSortable && appointmentSortField === colKey && (
+                                  <span className="text-xs">{appointmentSortDirection === 'asc' ? '↑' : '↓'}</span>
+                                )}
+                              </div>
+                            </TableHead>
+                          );
+                        })}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {appointmentsLoading ? (
                         <TableRow>
-                          <TableCell colSpan={11} className="p-0">
-                            <TableSkeleton rows={5} columns={11} />
+                          <TableCell colSpan={appointmentColumnOrder.filter(k => appointmentVisibleColumns[k]).length || 1} className="p-0">
+                            <TableSkeleton rows={5} columns={appointmentColumnOrder.filter(k => appointmentVisibleColumns[k]).length || 11} />
                           </TableCell>
                         </TableRow>
                       ) : filteredAppointments.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={11} className="py-12">
+                          <TableCell colSpan={appointmentColumnOrder.filter(k => appointmentVisibleColumns[k]).length || 1} className="py-12">
                             <EmptyState
                               icon={CalendarOff}
                               title="لا توجد مواعيد"
@@ -1633,152 +1497,169 @@ export default function BookingsManagementPage() {
                             key={`appointment-${appointment.id}`}
                             className={appointment.status === 'pending' ? 'bg-red-50 hover:bg-red-100' : ''}
                           >
-                            {/* التاريخ - تاريخ التسجيل */}
-                            {appointmentVisibleColumns['date'] && (
-                              <TableCell className="font-medium">
-                                {new Date(appointment.createdAt).toLocaleDateString("ar-EG")}
-                              </TableCell>
-                            )}
-                            {/* اسم المريض */}
-                            {appointmentVisibleColumns['name'] && (
-                              <TableCell className="font-medium">{appointment.fullName || appointment.patientName || '-'}</TableCell>
-                            )}
-                            {/* الهاتف */}
-                            {appointmentVisibleColumns['phone'] && (
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-mono">{appointment.phone}</span>
-                                  <ActionButtons
-                                    phoneNumber={appointment.phone}
-                                    showWhatsApp={true}
-                                    whatsAppMessage={`مرحباً ${appointment.fullName || appointment.patientName}، هذه رسالة من المستشفى السعودي الألماني - صنعاء بخصوص موعدك مع ${appointment.doctorName}.`}
-                                    size="sm"
-                                    variant="ghost"
-                                  />
-                                </div>
-                              </TableCell>
-                            )}
-                            {/* الطبيب */}
-                            {appointmentVisibleColumns['doctor'] && (
-                              <TableCell>{appointment.doctorName || '-'}</TableCell>
-                            )}
-                            {/* التخصص */}
-                            {appointmentVisibleColumns['specialty'] && (
-                              <TableCell>{appointment.doctorSpecialty || '-'}</TableCell>
-                            )}
-                            {/* المصدر */}
-                            {appointmentVisibleColumns['source'] && (
-                              <TableCell>
-                                {appointment.source ? (
-                                  <Badge 
-                                    variant="outline" 
-                                    className="text-xs font-medium"
-                                    style={{
-                                      backgroundColor: SOURCE_COLORS[appointment.source] ? `${SOURCE_COLORS[appointment.source]}15` : undefined,
-                                      borderColor: SOURCE_COLORS[appointment.source] || undefined,
-                                      color: SOURCE_COLORS[appointment.source] || undefined,
-                                    }}
-                                  >
-                                    {SOURCE_LABELS[appointment.source] || appointment.source}
-                                  </Badge>
-                                ) : (
-                                  <span className="text-muted-foreground">-</span>
-                                )}
-                              </TableCell>
-                            )}
-                            {/* رقم السند */}
-                            {appointmentVisibleColumns['receiptNumber'] && (
-                              <TableCell className="text-sm text-muted-foreground font-mono">
-                                {appointment.receiptNumber || "-"}
-                              </TableCell>
-                            )}
-                            {/* الحالة */}
-                            {appointmentVisibleColumns['status'] && (
-                              <TableCell>
-                                <InlineStatusEditor
-                                  currentStatus={appointment.status}
-                                  statusOptions={[
-                                    { value: 'pending', label: 'قيد الانتظار', color: 'bg-yellow-500' },
-                                    { value: 'confirmed', label: 'مؤكد', color: 'bg-green-500' },
-                                    { value: 'completed', label: 'مكتمل', color: 'bg-blue-500' },
-                                    { value: 'cancelled', label: 'ملغي', color: 'bg-red-500' },
-                                  ]}
-                                  onSave={async (newStatus) => {
-                                    await updateAppointmentStatusMutation.mutateAsync({
-                                      id: appointment.id,
-                                      status: newStatus,
-                                      staffNotes: '',
-                                    });
-                                  }}
-                                />
-                              </TableCell>
-                            )}
-                            {appointmentVisibleColumns['comments'] && (
-                              <TableCell>
-                                <CommentCount
-                                  entityType="appointment"
-                                  entityId={appointment.id}
-                                />
-                              </TableCell>
-                            )}
-                            {appointmentVisibleColumns['tasks'] && (
-                              <TableCell>
-                                <TaskCount
-                                  entityType="appointment"
-                                  entityId={appointment.id}
-                                />
-                              </TableCell>
-                            )}
-                            {appointmentVisibleColumns['actions'] && (
-                              <TableCell>
-                                <div className="flex gap-1">
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        setSelectedAppointment(appointment);
-                                        setNewAppointmentStatus(appointment.status);
-                                        setAppointmentDate(appointment.appointmentDate);
-                                        setAppointmentStatusDialogOpen(true);
-                                      }}
-                                    >
-                                      <Settings className="h-4 w-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>تحديث الحالة</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                      onClick={() => {
-                                        const doctorName = appointment.doctorName || `طبيب #${appointment.doctorId}`;
-                                        printReceipt({
-                                          fullName: appointment.fullName || appointment.patientName,
-                                          phone: appointment.phone,
-                                          age: appointment.age ?? undefined,
-                                          registrationDate: new Date(appointment.createdAt || appointment.appointmentDate),
-                                          type: "appointment",
-                                          typeName: doctorName
-                                        }, user?.name || "مستخدم");
-                                      }}
-                                    >
-                                      <Printer className="h-4 w-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>طباعة السند</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                              </TableCell>
-                            )}
+                            {appointmentColumnOrder.filter(key => appointmentVisibleColumns[key]).map(colKey => {
+                              switch(colKey) {
+                                case 'date':
+                                  return <TableCell key={colKey} className="font-medium">{new Date(appointment.createdAt).toLocaleDateString("ar-EG")}</TableCell>;
+                                case 'name':
+                                  return <TableCell key={colKey} className="font-medium">{appointment.fullName || appointment.patientName || '-'}</TableCell>;
+                                case 'phone':
+                                  return (
+                                    <TableCell key={colKey}>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-mono">{appointment.phone}</span>
+                                        <ActionButtons
+                                          phoneNumber={appointment.phone}
+                                          showWhatsApp={true}
+                                          whatsAppMessage={`مرحباً ${appointment.fullName || appointment.patientName}، هذه رسالة من المستشفى السعودي الألماني - صنعاء بخصوص موعدك مع ${appointment.doctorName}.`}
+                                          size="sm"
+                                          variant="ghost"
+                                        />
+                                      </div>
+                                    </TableCell>
+                                  );
+                                case 'email':
+                                  return <TableCell key={colKey}>{appointment.email || '-'}</TableCell>;
+                                case 'age':
+                                  return <TableCell key={colKey}>{appointment.age ? `${appointment.age} سنة` : '-'}</TableCell>;
+                                case 'doctor':
+                                  return <TableCell key={colKey}>{appointment.doctorName || '-'}</TableCell>;
+                                case 'specialty':
+                                  return <TableCell key={colKey}>{appointment.doctorSpecialty || '-'}</TableCell>;
+                                case 'procedure':
+                                  return <TableCell key={colKey}>{appointment.procedure || '-'}</TableCell>;
+                                case 'preferredDate':
+                                  return <TableCell key={colKey}>{appointment.preferredDate ? new Date(appointment.preferredDate).toLocaleDateString('ar-EG') : '-'}</TableCell>;
+                                case 'preferredTime':
+                                  return <TableCell key={colKey}>{appointment.preferredTime || '-'}</TableCell>;
+                                case 'appointmentDate':
+                                  return <TableCell key={colKey}>{appointment.appointmentDate ? new Date(appointment.appointmentDate).toLocaleDateString('ar-EG') : '-'}</TableCell>;
+                                case 'notes':
+                                  return <TableCell key={colKey} className="max-w-[200px] truncate" title={appointment.notes}>{appointment.notes || '-'}</TableCell>;
+                                case 'additionalNotes':
+                                  return <TableCell key={colKey} className="max-w-[200px] truncate" title={appointment.additionalNotes}>{appointment.additionalNotes || '-'}</TableCell>;
+                                case 'staffNotes':
+                                  return <TableCell key={colKey} className="max-w-[200px] truncate" title={appointment.staffNotes}>{appointment.staffNotes || '-'}</TableCell>;
+                                case 'source':
+                                  return (
+                                    <TableCell key={colKey}>
+                                      {appointment.source ? (
+                                        <Badge 
+                                          variant="outline" 
+                                          className="text-xs font-medium"
+                                          style={{
+                                            backgroundColor: SOURCE_COLORS[appointment.source] ? `${SOURCE_COLORS[appointment.source]}15` : undefined,
+                                            borderColor: SOURCE_COLORS[appointment.source] || undefined,
+                                            color: SOURCE_COLORS[appointment.source] || undefined,
+                                          }}
+                                        >
+                                          {SOURCE_LABELS[appointment.source] || appointment.source}
+                                        </Badge>
+                                      ) : (
+                                        <span className="text-muted-foreground">-</span>
+                                      )}
+                                    </TableCell>
+                                  );
+                                case 'receiptNumber':
+                                  return <TableCell key={colKey} className="text-sm text-muted-foreground font-mono">{appointment.receiptNumber || "-"}</TableCell>;
+                                case 'status':
+                                  return (
+                                    <TableCell key={colKey}>
+                                      <InlineStatusEditor
+                                        currentStatus={appointment.status}
+                                        statusOptions={[
+                                          { value: 'pending', label: 'قيد الانتظار', color: 'bg-yellow-500' },
+                                          { value: 'confirmed', label: 'مؤكد', color: 'bg-green-500' },
+                                          { value: 'completed', label: 'مكتمل', color: 'bg-blue-500' },
+                                          { value: 'cancelled', label: 'ملغي', color: 'bg-red-500' },
+                                        ]}
+                                        onSave={async (newStatus) => {
+                                          await updateAppointmentStatusMutation.mutateAsync({
+                                            id: appointment.id,
+                                            status: newStatus,
+                                            staffNotes: '',
+                                          });
+                                        }}
+                                      />
+                                    </TableCell>
+                                  );
+                                case 'utmSource':
+                                  return <TableCell key={colKey} className="text-xs">{appointment.utmSource || '-'}</TableCell>;
+                                case 'utmMedium':
+                                  return <TableCell key={colKey} className="text-xs">{appointment.utmMedium || '-'}</TableCell>;
+                                case 'utmCampaign':
+                                  return <TableCell key={colKey} className="text-xs">{appointment.utmCampaign || '-'}</TableCell>;
+                                case 'utmTerm':
+                                  return <TableCell key={colKey} className="text-xs">{appointment.utmTerm || '-'}</TableCell>;
+                                case 'utmContent':
+                                  return <TableCell key={colKey} className="text-xs">{appointment.utmContent || '-'}</TableCell>;
+                                case 'utmPlacement':
+                                  return <TableCell key={colKey} className="text-xs">{appointment.utmPlacement || '-'}</TableCell>;
+                                case 'referrer':
+                                  return <TableCell key={colKey} className="text-xs">{appointment.referrer || '-'}</TableCell>;
+                                case 'fbclid':
+                                  return <TableCell key={colKey} className="text-xs font-mono">{appointment.fbclid || '-'}</TableCell>;
+                                case 'gclid':
+                                  return <TableCell key={colKey} className="text-xs font-mono">{appointment.gclid || '-'}</TableCell>;
+                                case 'comments':
+                                  return <TableCell key={colKey}><CommentCount entityType="appointment" entityId={appointment.id} /></TableCell>;
+                                case 'tasks':
+                                  return <TableCell key={colKey}><TaskCount entityType="appointment" entityId={appointment.id} /></TableCell>;
+                                case 'actions':
+                                  return (
+                                    <TableCell key={colKey}>
+                                      <div className="flex gap-1">
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                setSelectedAppointment(appointment);
+                                                setNewAppointmentStatus(appointment.status);
+                                                setAppointmentDate(appointment.appointmentDate);
+                                                setAppointmentStatusDialogOpen(true);
+                                              }}
+                                            >
+                                              <Settings className="h-4 w-4" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>تحديث الحالة</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                              onClick={() => {
+                                                const doctorName = appointment.doctorName || `طبيب #${appointment.doctorId}`;
+                                                printReceipt({
+                                                  fullName: appointment.fullName || appointment.patientName,
+                                                  phone: appointment.phone,
+                                                  age: appointment.age ?? undefined,
+                                                  registrationDate: new Date(appointment.createdAt || appointment.appointmentDate),
+                                                  type: "appointment",
+                                                  typeName: doctorName
+                                                }, user?.name || "مستخدم");
+                                              }}
+                                            >
+                                              <Printer className="h-4 w-4" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>طباعة السند</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </div>
+                                    </TableCell>
+                                  );
+                                default:
+                                  return <TableCell key={colKey}>-</TableCell>;
+                              }
+                            })}
                           </TableRow>
                         ))
                       )}

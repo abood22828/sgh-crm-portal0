@@ -957,203 +957,63 @@ export default function OfferLeadsManagement({
             <Table>
               <TableHeader>
                 <TableRow>
-                  {offerLeadVisibleColumns['checkbox'] && (
-                    <TableHead className="w-12">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.length === filteredLeads.length && filteredLeads.length > 0}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedIds(filteredLeads.map(lead => lead.id));
+                  {offerColumnOrder.filter(key => offerLeadVisibleColumns[key]).map(colKey => {
+                    const col = offerLeadColumns.find(c => c.key === colKey);
+                    if (!col) return null;
+                    const sortableFields = ['receiptNumber', 'name', 'phone', 'email', 'offer', 'source', 'status', 'date'];
+                    const isSortable = sortableFields.includes(colKey);
+                    if (colKey === 'checkbox') {
+                      return (
+                        <TableHead key={colKey} className="w-12">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.length === filteredLeads.length && filteredLeads.length > 0}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedIds(filteredLeads.map(lead => lead.id));
+                              } else {
+                                setSelectedIds([]);
+                              }
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                        </TableHead>
+                      );
+                    }
+                    return (
+                      <TableHead
+                        key={colKey}
+                        className={`text-right ${isSortable ? 'cursor-pointer hover:bg-muted/50 select-none' : ''}`}
+                        onClick={isSortable ? () => {
+                          if (sortField === colKey) {
+                            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
                           } else {
-                            setSelectedIds([]);
+                            setSortField(colKey as any);
+                            setSortDirection(colKey === 'date' ? 'desc' : 'asc');
                           }
-                        }}
-                        className="rounded border-gray-300"
-                      />
-                    </TableHead>
-                  )}
-                  {offerLeadVisibleColumns['receiptNumber'] && (
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => {
-                      if (sortField === 'receiptNumber') {
-                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortField('receiptNumber');
-                        setSortDirection('asc');
-                      }
-                    }}
-                  >
-                      <div className="flex items-center gap-1 justify-end">
-                        رقم السند
-                        {sortField === 'receiptNumber' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {offerLeadVisibleColumns['name'] && (
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => {
-                        if (sortField === 'name') {
-                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                        } else {
-                          setSortField('name');
-                          setSortDirection('asc');
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-1 justify-end">
-                        الاسم الكامل
-                        {sortField === 'name' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {offerLeadVisibleColumns['phone'] && (
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => {
-                        if (sortField === 'phone') {
-                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                        } else {
-                          setSortField('phone');
-                          setSortDirection('asc');
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-1 justify-end">
-                        رقم الهاتف
-                        {sortField === 'phone' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {offerLeadVisibleColumns['email'] && (
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => {
-                        if (sortField === 'email') {
-                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                        } else {
-                          setSortField('email');
-                          setSortDirection('asc');
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-1 justify-end">
-                        البريد الإلكتروني
-                        {sortField === 'email' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {offerLeadVisibleColumns['offer'] && (
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => {
-                        if (sortField === 'offer') {
-                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                        } else {
-                          setSortField('offer');
-                          setSortDirection('asc');
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-1 justify-end">
-                        العرض
-                        {sortField === 'offer' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {offerLeadVisibleColumns['source'] && (
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => {
-                        if (sortField === 'source') {
-                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                        } else {
-                          setSortField('source');
-                          setSortDirection('asc');
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-1 justify-end">
-                        المصدر
-                        {sortField === 'source' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {offerLeadVisibleColumns['status'] && (
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => {
-                        if (sortField === 'status') {
-                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                        } else {
-                          setSortField('status');
-                          setSortDirection('asc');
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-1 justify-end">
-                        الحالة
-                        {sortField === 'status' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {offerLeadVisibleColumns['date'] && (
-                    <TableHead
-                      className="text-right cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => {
-                        if (sortField === 'date') {
-                          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                        } else {
-                          setSortField('date');
-                          setSortDirection('desc'); // Default to newest first
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-1 justify-end">
-                        تاريخ التسجيل
-                        {sortField === 'date' && (
-                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </TableHead>
-                  )}
-                  {offerLeadVisibleColumns['comments'] && (
-                    <TableHead className="text-right">التعليقات</TableHead>
-                  )}
-                  {offerLeadVisibleColumns['tasks'] && (
-                    <TableHead className="text-right">المهام</TableHead>
-                  )}
-                  {offerLeadVisibleColumns['actions'] && (
-                    <TableHead className="text-right">الإجراءات</TableHead>
-                  )}
+                        } : undefined}
+                      >
+                        <div className="flex items-center gap-1 justify-end">
+                          {col.label}
+                          {isSortable && sortField === colKey && (
+                            <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                          )}
+                        </div>
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="p-0">
-                      <TableSkeleton rows={5} columns={10} />
+                    <TableCell colSpan={offerColumnOrder.filter(k => offerLeadVisibleColumns[k]).length || 1} className="p-0">
+                      <TableSkeleton rows={5} columns={offerColumnOrder.filter(k => offerLeadVisibleColumns[k]).length || 10} />
                     </TableCell>
                   </TableRow>
                 ) : filteredLeads.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="py-12">
+                    <TableCell colSpan={offerColumnOrder.filter(k => offerLeadVisibleColumns[k]).length || 1} className="py-12">
                       <EmptyState
                         icon={ShoppingBag}
                         title="لا توجد حجوزات"
@@ -1164,183 +1024,170 @@ export default function OfferLeadsManagement({
                 ) : (
                   filteredLeads.map((lead: any) => (
                     <TableRow key={lead.id} className={lead.status === 'new' ? 'bg-red-50 hover:bg-red-100' : ''}>
-                      {offerLeadVisibleColumns['checkbox'] && (
-                        <TableCell>
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.includes(lead.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedIds([...selectedIds, lead.id]);
-                              } else {
-                                setSelectedIds(selectedIds.filter(id => id !== lead.id));
-                              }
-                            }}
-                            className="rounded border-gray-300"
-                          />
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['receiptNumber'] && (
-                        <TableCell className="text-sm text-muted-foreground font-mono">
-                          {lead.receiptNumber || "-"}
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['name'] && (
-                        <TableCell className="font-medium">{lead.fullName}</TableCell>
-                      )}
-                      {offerLeadVisibleColumns['phone'] && (
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono">{lead.phone}</span>
-                            <ActionButtons
-                              phoneNumber={lead.phone}
-                              showWhatsApp={true}
-                              whatsAppMessage={`مرحباً ${lead.fullName}، شكراً لاهتمامك بعرضنا الطبي. نود التواصل معك لتأكيد حجزك.`}
-                              size="sm"
-                              variant="ghost"
-                            />
-                          </div>
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['email'] && (
-                        <TableCell>
-                          {lead.email ? (
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-4 w-4 text-muted-foreground" />
-                              <a href={`mailto:${lead.email}`} className="hover:text-primary text-sm">
-                                {lead.email}
-                              </a>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['offer'] && (
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Tag className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{lead.offerTitle || "غير محدد"}</span>
-                          </div>
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['source'] && (
-                        <TableCell>
-                          {lead.source ? (
-                            <Badge 
-                              variant="outline" 
-                              className="text-xs font-medium"
-                              style={{
-                                backgroundColor: SOURCE_COLORS[lead.source] ? `${SOURCE_COLORS[lead.source]}15` : undefined,
-                                borderColor: SOURCE_COLORS[lead.source] || undefined,
-                                color: SOURCE_COLORS[lead.source] || undefined,
-                              }}
-                            >
-                              {SOURCE_LABELS[lead.source] || lead.source}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">غير محدد</Badge>
-                          )}
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['status'] && (
-                        <TableCell>
-                          <InlineStatusEditor
-                            currentStatus={lead.status}
-                            statusOptions={[
-                              { value: 'new', label: 'جديد', color: 'bg-blue-500' },
-                              { value: 'contacted', label: 'تم التواصل', color: 'bg-yellow-500' },
-                              { value: 'booked', label: 'تم الحجز', color: 'bg-green-500' },
-                              { value: 'not_interested', label: 'غير مهتم', color: 'bg-red-500' },
-                              { value: 'no_answer', label: 'لم يرد', color: 'bg-gray-500' },
-                            ]}
-                            onSave={async (newStatus) => {
-                              await updateStatusMutation.mutateAsync({
-                                id: lead.id,
-                                status: newStatus as any,
-                                notes: '',
-                              });
-                            }}
-                          />
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['date'] && (
-                        <TableCell className="text-sm text-muted-foreground">
-                          {new Date(lead.createdAt).toLocaleDateString("ar-SA")}
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['comments'] && (
-                        <TableCell>
-                          <CommentCount
-                            entityType="offerLead"
-                            entityId={lead.id}
-                          />
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['tasks'] && (
-                        <TableCell>
-                          <TaskCount
-                            entityType="offerLead"
-                            entityId={lead.id}
-                          />
-                        </TableCell>
-                      )}
-                      {offerLeadVisibleColumns['actions'] && (
-                        <TableCell>
-                        <div className="flex gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedLead(lead);
-                                  setNewStatus(lead.status);
-                                  setStatusDialogOpen(true);
-                                }}
-                              >
-                                <Settings className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>تحديث الحالة</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                onClick={async () => {
-                                  try {
-                                    const result = await generateReceiptNumberMutation.mutateAsync({ id: lead.id });
-                                    const offerName = lead.offerName || `عرض #${lead.offerId}`;
-                                    printReceipt({
-                                      fullName: lead.fullName,
-                                      phone: lead.phone,
-                                      age: lead.age ?? undefined,
-                                      registrationDate: new Date(lead.createdAt),
-                                      type: "offer",
-                                      typeName: offerName,
-                                      receiptNumber: result.receiptNumber,
-                                    }, user?.name || "مستخدم");
-                                  } catch (error) {
-                                    console.error('Error generating receipt number:', error);
-                                    toast.error('فشل في توليد رقم السند');
-                                  }
-                                }}
-                              >
-                                <Printer className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>طباعة السند</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                        </TableCell>
-                      )}
+                      {offerColumnOrder.filter(key => offerLeadVisibleColumns[key]).map(colKey => {
+                        switch(colKey) {
+                          case 'checkbox':
+                            return (
+                              <TableCell key={colKey}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedIds.includes(lead.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedIds([...selectedIds, lead.id]);
+                                    } else {
+                                      setSelectedIds(selectedIds.filter(id => id !== lead.id));
+                                    }
+                                  }}
+                                  className="rounded border-gray-300"
+                                />
+                              </TableCell>
+                            );
+                          case 'receiptNumber':
+                            return <TableCell key={colKey} className="text-sm text-muted-foreground font-mono">{lead.receiptNumber || "-"}</TableCell>;
+                          case 'name':
+                            return <TableCell key={colKey} className="font-medium">{lead.fullName}</TableCell>;
+                          case 'phone':
+                            return (
+                              <TableCell key={colKey}>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono">{lead.phone}</span>
+                                  <ActionButtons
+                                    phoneNumber={lead.phone}
+                                    showWhatsApp={true}
+                                    whatsAppMessage={`مرحباً ${lead.fullName}، شكراً لاهتمامك بعرضنا الطبي. نود التواصل معك لتأكيد حجزك.`}
+                                    size="sm"
+                                    variant="ghost"
+                                  />
+                                </div>
+                              </TableCell>
+                            );
+                          case 'email':
+                            return (
+                              <TableCell key={colKey}>
+                                {lead.email ? (
+                                  <div className="flex items-center gap-2">
+                                    <Mail className="h-4 w-4 text-muted-foreground" />
+                                    <a href={`mailto:${lead.email}`} className="hover:text-primary text-sm">{lead.email}</a>
+                                  </div>
+                                ) : (<span className="text-muted-foreground">-</span>)}
+                              </TableCell>
+                            );
+                          case 'age':
+                            return <TableCell key={colKey}>{lead.age ? `${lead.age} سنة` : '-'}</TableCell>;
+                          case 'offer':
+                            return (
+                              <TableCell key={colKey}>
+                                <div className="flex items-center gap-2">
+                                  <Tag className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-sm">{lead.offerTitle || "غير محدد"}</span>
+                                </div>
+                              </TableCell>
+                            );
+                          case 'source':
+                            return (
+                              <TableCell key={colKey}>
+                                {lead.source ? (
+                                  <Badge variant="outline" className="text-xs font-medium" style={{
+                                    backgroundColor: SOURCE_COLORS[lead.source] ? `${SOURCE_COLORS[lead.source]}15` : undefined,
+                                    borderColor: SOURCE_COLORS[lead.source] || undefined,
+                                    color: SOURCE_COLORS[lead.source] || undefined,
+                                  }}>
+                                    {SOURCE_LABELS[lead.source] || lead.source}
+                                  </Badge>
+                                ) : (<Badge variant="outline" className="text-xs">غير محدد</Badge>)}
+                              </TableCell>
+                            );
+                          case 'status':
+                            return (
+                              <TableCell key={colKey}>
+                                <InlineStatusEditor
+                                  currentStatus={lead.status}
+                                  statusOptions={[
+                                    { value: 'new', label: 'جديد', color: 'bg-blue-500' },
+                                    { value: 'contacted', label: 'تم التواصل', color: 'bg-yellow-500' },
+                                    { value: 'booked', label: 'تم الحجز', color: 'bg-green-500' },
+                                    { value: 'not_interested', label: 'غير مهتم', color: 'bg-red-500' },
+                                    { value: 'no_answer', label: 'لم يرد', color: 'bg-gray-500' },
+                                  ]}
+                                  onSave={async (newStatus) => {
+                                    await updateStatusMutation.mutateAsync({
+                                      id: lead.id,
+                                      status: newStatus as any,
+                                      notes: '',
+                                    });
+                                  }}
+                                />
+                              </TableCell>
+                            );
+                          case 'statusNotes':
+                            return <TableCell key={colKey} className="max-w-[200px] truncate" title={lead.statusNotes}>{lead.statusNotes || '-'}</TableCell>;
+                          case 'date':
+                            return <TableCell key={colKey} className="text-sm text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString("ar-SA")}</TableCell>;
+                          case 'utmSource':
+                            return <TableCell key={colKey} className="text-xs">{lead.utmSource || '-'}</TableCell>;
+                          case 'utmMedium':
+                            return <TableCell key={colKey} className="text-xs">{lead.utmMedium || '-'}</TableCell>;
+                          case 'utmCampaign':
+                            return <TableCell key={colKey} className="text-xs">{lead.utmCampaign || '-'}</TableCell>;
+                          case 'utmTerm':
+                            return <TableCell key={colKey} className="text-xs">{lead.utmTerm || '-'}</TableCell>;
+                          case 'utmContent':
+                            return <TableCell key={colKey} className="text-xs">{lead.utmContent || '-'}</TableCell>;
+                          case 'utmPlacement':
+                            return <TableCell key={colKey} className="text-xs">{lead.utmPlacement || '-'}</TableCell>;
+                          case 'referrer':
+                            return <TableCell key={colKey} className="text-xs">{lead.referrer || '-'}</TableCell>;
+                          case 'fbclid':
+                            return <TableCell key={colKey} className="text-xs font-mono">{lead.fbclid || '-'}</TableCell>;
+                          case 'gclid':
+                            return <TableCell key={colKey} className="text-xs font-mono">{lead.gclid || '-'}</TableCell>;
+                          case 'comments':
+                            return <TableCell key={colKey}><CommentCount entityType="offerLead" entityId={lead.id} /></TableCell>;
+                          case 'tasks':
+                            return <TableCell key={colKey}><TaskCount entityType="offerLead" entityId={lead.id} /></TableCell>;
+                          case 'actions':
+                            return (
+                              <TableCell key={colKey}>
+                                <div className="flex gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button variant="outline" size="sm" onClick={() => { setSelectedLead(lead); setNewStatus(lead.status); setStatusDialogOpen(true); }}>
+                                        <Settings className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>تحديث الحالة</p></TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button variant="outline" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                        onClick={async () => {
+                                          try {
+                                            const result = await generateReceiptNumberMutation.mutateAsync({ id: lead.id });
+                                            const offerName = lead.offerName || `عرض #${lead.offerId}`;
+                                            printReceipt({
+                                              fullName: lead.fullName, phone: lead.phone, age: lead.age ?? undefined,
+                                              registrationDate: new Date(lead.createdAt), type: "offer", typeName: offerName,
+                                              receiptNumber: result.receiptNumber,
+                                            }, user?.name || "مستخدم");
+                                          } catch (error) {
+                                            console.error('Error generating receipt number:', error);
+                                            toast.error('فشل في توليد رقم السند');
+                                          }
+                                        }}
+                                      >
+                                        <Printer className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>طباعة السند</p></TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </TableCell>
+                            );
+                          default:
+                            return <TableCell key={colKey}>-</TableCell>;
+                        }
+                      })}
                     </TableRow>
                   ))
                 )}
