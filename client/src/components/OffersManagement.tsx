@@ -1,19 +1,36 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search, Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { type ColumnConfig } from "@/components/ColumnVisibility";
+import { ColumnVisibility } from "@/components/ColumnVisibility";
+import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
+import { useTableFeatures } from "@/hooks/useTableFeatures";
+
+// === تعريف أعمدة جدول العروض ===
+const offerColumns: ColumnConfig[] = [
+  { key: "title", label: "العنوان", defaultVisible: true, defaultWidth: 220, minWidth: 150, maxWidth: 400 },
+  { key: "slug", label: "الرابط", defaultVisible: true, defaultWidth: 160, minWidth: 100, maxWidth: 300 },
+  { key: "status", label: "الحالة", defaultVisible: true, defaultWidth: 100, minWidth: 80, maxWidth: 200 },
+  { key: "startDate", label: "تاريخ البداية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250 },
+  { key: "endDate", label: "تاريخ النهاية", defaultVisible: true, defaultWidth: 140, minWidth: 100, maxWidth: 250 },
+  { key: "actions", label: "الإجراءات", defaultVisible: true, defaultWidth: 180, minWidth: 140, maxWidth: 300 },
+];
 
 export default function OffersManagement() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingOffer, setEditingOffer] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingOffer, setDeletingOffer] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -22,6 +39,13 @@ export default function OffersManagement() {
     isActive: true,
     startDate: "",
     endDate: "",
+  });
+
+  // === useTableFeatures hook ===
+  const offerTable = useTableFeatures({
+    tableKey: 'offers',
+    columns: offerColumns,
+    defaultFrozenColumns: ['title'],
   });
 
   const { data: offers, isLoading, refetch } = trpc.offers.getAll.useQuery();
@@ -43,6 +67,7 @@ export default function OffersManagement() {
       toast.success("تم تحديث العرض بنجاح");
       refetch();
       setEditingOffer(null);
+      setShowAddDialog(false);
       resetForm();
     },
     onError: () => {
@@ -54,6 +79,8 @@ export default function OffersManagement() {
     onSuccess: () => {
       toast.success("تم حذف العرض بنجاح");
       refetch();
+      setDeleteDialogOpen(false);
+      setDeletingOffer(null);
     },
     onError: () => {
       toast.error("حدث خطأ أثناء حذف العرض");
@@ -70,6 +97,7 @@ export default function OffersManagement() {
       startDate: "",
       endDate: "",
     });
+    setEditingOffer(null);
   };
 
   const handleSubmit = () => {
@@ -103,6 +131,17 @@ export default function OffersManagement() {
     setShowAddDialog(true);
   };
 
+  const filteredOffers = useMemo(() => {
+    if (!offers) return [];
+    if (!searchTerm) return offers;
+    const term = searchTerm.toLowerCase();
+    return offers.filter(
+      (o: any) =>
+        o.title.toLowerCase().includes(term) ||
+        o.slug.toLowerCase().includes(term)
+    );
+  }, [offers, searchTerm]);
+
   // Calculate stats
   const totalOffers = offers?.length || 0;
   const activeOffers = offers?.filter(o => o.isActive === true).length || 0;
@@ -116,7 +155,8 @@ export default function OffersManagement() {
             <CardTitle>إدارة العروض الطبية</CardTitle>
             <CardDescription>إضافة وتعديل وحذف العروض الطبية</CardDescription>
           </div>
-          <Button onClick={() => { resetForm(); setEditingOffer(null); setShowAddDialog(true); }} className="w-full sm:w-auto">
+          <Button onClick={() => { resetForm(); setShowAddDialog(true); }} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
             إضافة عرض جديد
           </Button>
         </div>
@@ -125,100 +165,139 @@ export default function OffersManagement() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
             <CardContent className="pt-4 pb-4 px-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs md:text-sm text-blue-700 mb-1">إجمالي العروض</div>
-                  <div className="text-lg md:text-xl font-bold text-blue-900">{totalOffers}</div>
-                </div>
-              </div>
+              <div className="text-xs md:text-sm text-blue-700 mb-1">إجمالي العروض</div>
+              <div className="text-lg md:text-xl font-bold text-blue-900">{totalOffers}</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
             <CardContent className="pt-4 pb-4 px-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs md:text-sm text-green-700 mb-1">عروض نشطة</div>
-                  <div className="text-lg md:text-xl font-bold text-green-900">{activeOffers}</div>
-                </div>
-              </div>
+              <div className="text-xs md:text-sm text-green-700 mb-1">عروض نشطة</div>
+              <div className="text-lg md:text-xl font-bold text-green-900">{activeOffers}</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
             <CardContent className="pt-4 pb-4 px-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs md:text-sm text-gray-700 mb-1">عروض غير نشطة</div>
-                  <div className="text-lg md:text-xl font-bold text-gray-900">{inactiveOffers}</div>
-                </div>
-              </div>
+              <div className="text-xs md:text-sm text-gray-700 mb-1">عروض غير نشطة</div>
+              <div className="text-lg md:text-xl font-bold text-gray-900">{inactiveOffers}</div>
             </CardContent>
           </Card>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* Search & Column Controls */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="البحث بالعنوان أو الرابط..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pr-10"
+            />
+          </div>
+          <ColumnVisibility {...offerTable.columnVisibilityProps} />
+        </div>
+
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : offers && offers.length > 0 ? (
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">العنوان</TableHead>
-                  <TableHead className="text-right hidden md:table-cell">الرابط</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right hidden sm:table-cell">تاريخ البداية</TableHead>
-                  <TableHead className="text-right hidden sm:table-cell">تاريخ النهاية</TableHead>
-                  <TableHead className="text-right">الإجراءات</TableHead>
+        ) : filteredOffers.length > 0 ? (
+          <ResizableTable {...offerTable.resizableTableProps}>
+            <TableHeader>
+              <TableRow>
+                {offerTable.visibleColumnOrder.map(colKey => {
+                  const col = offerColumns.find(c => c.key === colKey);
+                  if (!col || !offerTable.visibleColumns[colKey]) return null;
+                  return (
+                    <ResizableHeaderCell
+                      key={colKey}
+                      columnKey={colKey}
+                      width={offerTable.columnWidths.columnWidths[colKey] || col.defaultWidth || 150}
+                      minWidth={col.minWidth || 80}
+                      maxWidth={col.maxWidth || 500}
+                      onResize={offerTable.columnWidths.handleResize}
+                    >
+                      <TableHead className="text-right h-auto p-0 border-0">
+                        {col.label}
+                      </TableHead>
+                    </ResizableHeaderCell>
+                  );
+                })}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredOffers.map((offer: any) => (
+                <TableRow key={offer.id}>
+                  {offerTable.visibleColumnOrder.map(colKey => {
+                    if (!offerTable.visibleColumns[colKey]) return null;
+                    
+                    switch (colKey) {
+                      case 'title':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="font-medium">
+                            <span className="truncate">{offer.title}</span>
+                          </FrozenTableCell>
+                        );
+                      case 'slug':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey}>
+                            <a href={`/offers/${offer.slug}`} target="_blank" className="text-blue-600 hover:underline text-sm truncate">
+                              {offer.slug}
+                            </a>
+                          </FrozenTableCell>
+                        );
+                      case 'status':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey}>
+                            <Badge className={offer.isActive ? "bg-green-500" : "bg-gray-500"}>
+                              {offer.isActive ? "نشط" : "غير نشط"}
+                            </Badge>
+                          </FrozenTableCell>
+                        );
+                      case 'startDate':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm">
+                            {offer.startDate ? new Date(offer.startDate).toLocaleDateString('ar-YE') : "-"}
+                          </FrozenTableCell>
+                        );
+                      case 'endDate':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm">
+                            {offer.endDate ? new Date(offer.endDate).toLocaleDateString('ar-YE') : "-"}
+                          </FrozenTableCell>
+                        );
+                      case 'actions':
+                        return (
+                          <FrozenTableCell key={colKey} columnKey={colKey}>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="ghost" onClick={() => handleEdit(offer)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => {
+                                  setDeletingOffer(offer);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </FrozenTableCell>
+                        );
+                      default:
+                        return null;
+                    }
+                  })}
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {offers.map((offer) => (
-                  <TableRow key={offer.id}>
-                    <TableCell className="font-medium">{offer.title}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <a href={`/offers/${offer.slug}`} target="_blank" className="text-blue-600 hover:underline text-sm">
-                        {offer.slug}
-                      </a>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={offer.isActive ? "bg-green-500" : "bg-gray-500"}>
-                        {offer.isActive ? "نشط" : "غير نشط"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-sm">
-                      {offer.startDate ? new Date(offer.startDate).toLocaleDateString('ar-YE') : "-"}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-sm">
-                      {offer.endDate ? new Date(offer.endDate).toLocaleDateString('ar-YE') : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleEdit(offer)}>
-                          تعديل
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive" 
-                          onClick={() => {
-                            if (confirm("هل أنت متأكد من حذف هذا العرض؟")) {
-                              deleteMutation.mutate({ id: offer.id });
-                            }
-                          }}
-                        >
-                          حذف
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+            </TableBody>
+          </ResizableTable>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            لا توجد عروض حالياً. قم بإضافة عرض جديد.
+            {searchTerm ? "لا توجد نتائج مطابقة للبحث" : "لا توجد عروض حالياً. قم بإضافة عرض جديد."}
           </div>
         )}
       </CardContent>
@@ -302,23 +381,56 @@ export default function OffersManagement() {
               />
               <Label className="text-right block" htmlFor="isActive">العرض نشط</Label>
             </div>
-            <div className="flex gap-2 justify-end pt-4">
-              <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); setEditingOffer(null); }}>
-                إلغاء
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                disabled={!formData.title || !formData.slug || createMutation.isPending || updateMutation.isPending}
-              >
-                {(createMutation.isPending || updateMutation.isPending) ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    جاري الحفظ...
-                  </>
-                ) : editingOffer ? "حفظ التغييرات" : "إضافة العرض"}
-              </Button>
-            </div>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); }}>
+              إلغاء
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!formData.title || !formData.slug || createMutation.isPending || updateMutation.isPending}
+            >
+              {(createMutation.isPending || updateMutation.isPending) ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  جاري الحفظ...
+                </>
+              ) : editingOffer ? "حفظ التغييرات" : "إضافة العرض"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تأكيد الحذف</DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد من حذف العرض "{deletingOffer?.title}"؟ لا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deletingOffer) {
+                  deleteMutation.mutate({ id: deletingOffer.id });
+                }
+              }}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  جاري الحذف...
+                </>
+              ) : "حذف"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>
