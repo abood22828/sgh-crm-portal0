@@ -2694,3 +2694,13 @@
 - [x] دمج المكون في OfferLeadsManagement
 - [x] دمج المكون في CampRegistrationsManagement
 - [x] حفظ القوالب في قاعدة البيانات عبر userPreferences
+
+### مشاركة القوالب بين المستخدمين (قوالب عامة من المدير) ✅ مكتمل
+- [x] إضافة جدول sharedColumnTemplates في schema.ts
+- [x] تطبيق migration على قاعدة البيانات
+- [x] إضافة دوال قاعدة البيانات في db.ts
+- [x] إضافة tRPC endpoints (إنشاء/حذف للمدير + استرجاع للجميع)
+- [x] تحديث مكون ColumnVisibility لعرض القوالب المشتركة مع تمييزها بأيقونة Globe
+- [x] دمج القوالب المشتركة في BookingsManagementPage
+- [x] دمج القوالب المشتركة في OfferLeadsManagement
+- [x] دمج القوالب المشتركة في CampRegistrationsManagement

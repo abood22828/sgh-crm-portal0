@@ -122,6 +122,7 @@ const sanitizeLead = (lead: any) => {
 
 export default function BookingsManagementPage() {
   const { user } = useAuth();
+  const utils = trpc.useUtils();
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLead, setSelectedLead] = useState<any>(null);
@@ -325,6 +326,44 @@ export default function BookingsManagementPage() {
     }
   }, [savedActiveTemplateId]);
 
+  // Shared templates from admin
+  const { data: sharedAppointmentTemplatesData } = trpc.sharedTemplates.list.useQuery(
+    { tableKey: 'appointments' },
+    { retry: false }
+  );
+  const createSharedTemplateMutation = trpc.sharedTemplates.create.useMutation({
+    onSuccess: () => {
+      utils.sharedTemplates.list.invalidate({ tableKey: 'appointments' });
+    },
+  });
+  const deleteSharedTemplateMutation = trpc.sharedTemplates.delete.useMutation({
+    onSuccess: () => {
+      utils.sharedTemplates.list.invalidate({ tableKey: 'appointments' });
+    },
+  });
+
+  const sharedAppointmentTemplates: ColumnTemplate[] = (sharedAppointmentTemplatesData || []).map((t: any) => ({
+    id: `shared_appointments_${t.id}`,
+    name: t.name,
+    columns: t.columns,
+    isDefault: false,
+    isShared: true,
+    createdByName: t.createdByName,
+    dbId: t.id,
+  }));
+
+  const handleSaveSharedAppointmentTemplate = (name: string, columns: Record<string, boolean>) => {
+    createSharedTemplateMutation.mutate({
+      name,
+      tableKey: 'appointments',
+      columns,
+    });
+  };
+
+  const handleDeleteSharedAppointmentTemplate = (dbId: number) => {
+    deleteSharedTemplateMutation.mutate({ id: dbId });
+  };
+
   const allAppointmentTemplates = [...defaultAppointmentTemplates, ...customTemplates];
 
   const handleApplyAppointmentTemplate = (template: ColumnTemplate) => {
@@ -413,8 +452,6 @@ export default function BookingsManagementPage() {
     },
   });
 
-  const utils = trpc.useUtils();
-  
   const updateAppointmentStatusMutation = trpc.appointments.updateStatus.useMutation({
     onMutate: async (variables) => {
       // Cancel outgoing refetches to avoid overwriting optimistic update
@@ -1318,6 +1355,10 @@ export default function BookingsManagementPage() {
                       onSaveTemplate={handleSaveAppointmentTemplate}
                       onDeleteTemplate={handleDeleteAppointmentTemplate}
                       tableKey="appointments"
+                      isAdmin={user?.role === 'admin'}
+                      sharedTemplates={sharedAppointmentTemplates}
+                      onSaveSharedTemplate={handleSaveSharedAppointmentTemplate}
+                      onDeleteSharedTemplate={handleDeleteSharedAppointmentTemplate}
                     />
                   </div>
                 </div>

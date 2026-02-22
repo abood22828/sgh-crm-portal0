@@ -764,3 +764,27 @@ export const userPreferences = mysqlTable("userPreferences", {
 
 export type UserPreference = typeof userPreferences.$inferSelect;
 export type InsertUserPreference = typeof userPreferences.$inferInsert;
+
+/**
+ * جدول القوالب المشتركة للأعمدة - يخزن القوالب التي ينشئها المدير وتظهر لجميع المستخدمين
+ */
+export const sharedColumnTemplates = mysqlTable("sharedColumnTemplates", {
+  id: int("id").autoincrement().primaryKey(),
+  /** اسم القالب */
+  name: varchar("name", { length: 100 }).notNull(),
+  /** نوع الجدول: appointments, offerLeads, campRegistrations */
+  tableKey: varchar("tableKey", { length: 50 }).notNull(),
+  /** إعدادات الأعمدة المرئية (JSON) */
+  columns: text("columns").notNull(),
+  /** معرف المستخدم الذي أنشأ القالب (المدير) */
+  createdBy: int("createdBy").notNull(),
+  /** اسم المنشئ */
+  createdByName: varchar("createdByName", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tableKeyIdx: index("sharedColumnTemplates_tableKey_idx").on(table.tableKey),
+}));
+
+export type SharedColumnTemplate = typeof sharedColumnTemplates.$inferSelect;
+export type InsertSharedColumnTemplate = typeof sharedColumnTemplates.$inferInsert;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Save, Trash2, BookTemplate, ChevronDown, Check, Plus } from "lucide-react";
+import { Settings, Save, Trash2, BookTemplate, ChevronDown, Check, Plus, Globe, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -25,6 +25,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 export interface ColumnConfig {
   key: string;
@@ -37,6 +38,9 @@ export interface ColumnTemplate {
   name: string;
   columns: Record<string, boolean>;
   isDefault?: boolean;
+  isShared?: boolean;
+  createdByName?: string | null;
+  dbId?: number; // database ID for shared templates
 }
 
 interface ColumnVisibilityProps {
@@ -50,7 +54,12 @@ interface ColumnVisibilityProps {
   onApplyTemplate?: (template: ColumnTemplate) => void;
   onSaveTemplate?: (name: string, columns: Record<string, boolean>) => void;
   onDeleteTemplate?: (templateId: string) => void;
-  tableKey?: string; // unique key for the table (e.g., 'appointments', 'offerLeads', 'campRegistrations')
+  tableKey?: string;
+  // Shared template support (admin only)
+  isAdmin?: boolean;
+  sharedTemplates?: ColumnTemplate[];
+  onSaveSharedTemplate?: (name: string, columns: Record<string, boolean>) => void;
+  onDeleteSharedTemplate?: (dbId: number) => void;
 }
 
 // Built-in default templates generator
@@ -95,13 +104,21 @@ export function ColumnVisibility({
   onSaveTemplate,
   onDeleteTemplate,
   tableKey,
+  isAdmin = false,
+  sharedTemplates = [],
+  onSaveSharedTemplate,
+  onDeleteSharedTemplate,
 }: ColumnVisibilityProps) {
   const visibleCount = Object.values(visibleColumns).filter(Boolean).length;
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveSharedDialogOpen, setSaveSharedDialogOpen] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
+  const [newSharedTemplateName, setNewSharedTemplateName] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteSharedConfirmId, setDeleteSharedConfirmId] = useState<number | null>(null);
 
   const hasTemplateSupport = onApplyTemplate && onSaveTemplate && onDeleteTemplate;
+  const hasSharedTemplateSupport = isAdmin && onSaveSharedTemplate && onDeleteSharedTemplate;
 
   const handleSaveTemplate = () => {
     if (!newTemplateName.trim()) {
@@ -116,6 +133,19 @@ export function ColumnVisibility({
     }
   };
 
+  const handleSaveSharedTemplate = () => {
+    if (!newSharedTemplateName.trim()) {
+      toast.error('يرجى إدخال اسم القالب المشترك');
+      return;
+    }
+    if (onSaveSharedTemplate) {
+      onSaveSharedTemplate(newSharedTemplateName.trim(), { ...visibleColumns });
+      setNewSharedTemplateName('');
+      setSaveSharedDialogOpen(false);
+      toast.success(`تم حفظ القالب المشترك "${newSharedTemplateName.trim()}" بنجاح - سيظهر لجميع المستخدمين`);
+    }
+  };
+
   const handleDeleteTemplate = (templateId: string) => {
     if (onDeleteTemplate) {
       onDeleteTemplate(templateId);
@@ -124,54 +154,121 @@ export function ColumnVisibility({
     }
   };
 
-  const activeTemplate = templates.find(t => t.id === activeTemplateId);
+  const handleDeleteSharedTemplate = (dbId: number) => {
+    if (onDeleteSharedTemplate) {
+      onDeleteSharedTemplate(dbId);
+      setDeleteSharedConfirmId(null);
+      toast.success('تم حذف القالب المشترك بنجاح');
+    }
+  };
+
+  const activeTemplate = [...templates, ...sharedTemplates].find(t => t.id === activeTemplateId);
+
+  // Combine all templates for the dropdown
+  const defaultTemplates = templates.filter(t => t.isDefault);
+  const customTemplates = templates.filter(t => !t.isDefault);
 
   return (
     <>
       <div className="flex items-center gap-1">
         {/* Template Selector Dropdown */}
-        {hasTemplateSupport && templates.length > 0 && (
+        {hasTemplateSupport && (templates.length > 0 || sharedTemplates.length > 0) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                 <BookTemplate className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline max-w-[100px] truncate">
+                <span className="hidden sm:inline max-w-[120px] truncate">
                   {activeTemplate ? activeTemplate.name : 'القوالب'}
                 </span>
                 <ChevronDown className="h-3 w-3 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                القوالب الافتراضية
-              </div>
-              {templates.filter(t => t.isDefault).map((template) => (
-                <DropdownMenuItem
-                  key={template.id}
-                  onClick={() => onApplyTemplate(template)}
-                  className="flex items-center justify-between"
-                >
-                  <span>{template.name}</span>
-                  {activeTemplateId === template.id && (
-                    <Check className="h-4 w-4 text-primary" />
-                  )}
-                </DropdownMenuItem>
-              ))}
+            <DropdownMenuContent align="end" className="w-64">
+              {/* Default Templates */}
+              {defaultTemplates.length > 0 && (
+                <>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                    القوالب الافتراضية
+                  </div>
+                  {defaultTemplates.map((template) => (
+                    <DropdownMenuItem
+                      key={template.id}
+                      onClick={() => onApplyTemplate!(template)}
+                      className="flex items-center justify-between"
+                    >
+                      <span>{template.name}</span>
+                      {activeTemplateId === template.id && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
 
-              {templates.filter(t => !t.isDefault).length > 0 && (
+              {/* Shared Templates (from admin) */}
+              {sharedTemplates.length > 0 && (
                 <>
                   <DropdownMenuSeparator />
-                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                    القوالب المخصصة
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                    <Globe className="h-3 w-3" />
+                    قوالب مشتركة (من المدير)
                   </div>
-                  {templates.filter(t => !t.isDefault).map((template) => (
+                  {sharedTemplates.map((template) => (
+                    <DropdownMenuItem
+                      key={template.id}
+                      className="flex items-center justify-between group"
+                    >
+                      <span
+                        className="flex-1 cursor-pointer flex items-center gap-1.5"
+                        onClick={() => onApplyTemplate!(template)}
+                      >
+                        <Globe className="h-3 w-3 text-blue-500 shrink-0" />
+                        <span className="truncate">{template.name}</span>
+                        {template.createdByName && (
+                          <Badge variant="secondary" className="text-[10px] px-1 py-0 shrink-0">
+                            {template.createdByName}
+                          </Badge>
+                        )}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {activeTemplateId === template.id && (
+                          <Check className="h-4 w-4 text-primary" />
+                        )}
+                        {isAdmin && template.dbId && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteSharedConfirmId(template.dbId!);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
+
+              {/* Custom (personal) Templates */}
+              {customTemplates.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                    <User className="h-3 w-3" />
+                    قوالبي المخصصة
+                  </div>
+                  {customTemplates.map((template) => (
                     <DropdownMenuItem
                       key={template.id}
                       className="flex items-center justify-between group"
                     >
                       <span
                         className="flex-1 cursor-pointer"
-                        onClick={() => onApplyTemplate(template)}
+                        onClick={() => onApplyTemplate!(template)}
                       >
                         {template.name}
                       </span>
@@ -197,13 +294,25 @@ export function ColumnVisibility({
               )}
 
               <DropdownMenuSeparator />
+              {/* Save personal template */}
               <DropdownMenuItem
                 onClick={() => setSaveDialogOpen(true)}
                 className="text-primary"
               >
                 <Plus className="h-4 w-4 ml-2" />
-                حفظ كقالب جديد
+                حفظ كقالب شخصي
               </DropdownMenuItem>
+
+              {/* Save shared template (admin only) */}
+              {hasSharedTemplateSupport && (
+                <DropdownMenuItem
+                  onClick={() => setSaveSharedDialogOpen(true)}
+                  className="text-blue-600"
+                >
+                  <Globe className="h-4 w-4 ml-2" />
+                  حفظ كقالب مشترك (للجميع)
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -270,13 +379,16 @@ export function ColumnVisibility({
         </Popover>
       </div>
 
-      {/* Save Template Dialog */}
+      {/* Save Personal Template Dialog */}
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>حفظ قالب جديد</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              حفظ قالب شخصي
+            </DialogTitle>
             <DialogDescription>
-              سيتم حفظ إعدادات الأعمدة الحالية كقالب يمكنك استخدامه لاحقاً
+              سيتم حفظ إعدادات الأعمدة الحالية كقالب شخصي خاص بك فقط
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -310,7 +422,60 @@ export function ColumnVisibility({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Save Shared Template Dialog (Admin Only) */}
+      <Dialog open={saveSharedDialogOpen} onOpenChange={setSaveSharedDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5 text-blue-500" />
+              حفظ قالب مشترك
+            </DialogTitle>
+            <DialogDescription>
+              سيتم حفظ إعدادات الأعمدة الحالية كقالب مشترك يظهر لجميع المستخدمين
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="shared-template-name" className="text-sm font-medium">
+              اسم القالب المشترك
+            </Label>
+            <Input
+              id="shared-template-name"
+              value={newSharedTemplateName}
+              onChange={(e) => setNewSharedTemplateName(e.target.value)}
+              placeholder="مثال: عرض التقارير الأسبوعية"
+              className="mt-2"
+              dir="rtl"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveSharedTemplate();
+              }}
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              الأعمدة المرئية حالياً: {visibleCount} من {columns.length}
+            </p>
+            <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-950 rounded-md border border-blue-200 dark:border-blue-800">
+              <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                <Globe className="h-3 w-3" />
+                هذا القالب سيكون متاحاً لجميع المستخدمين في النظام
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setSaveSharedDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button 
+              onClick={handleSaveSharedTemplate} 
+              disabled={!newSharedTemplateName.trim()}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Globe className="h-4 w-4 ml-2" />
+              حفظ للجميع
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Personal Template Confirmation Dialog */}
       <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <DialogContent className="sm:max-w-[350px]">
           <DialogHeader>
@@ -329,6 +494,33 @@ export function ColumnVisibility({
             >
               <Trash2 className="h-4 w-4 ml-2" />
               حذف
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Shared Template Confirmation Dialog */}
+      <Dialog open={deleteSharedConfirmId !== null} onOpenChange={() => setDeleteSharedConfirmId(null)}>
+        <DialogContent className="sm:max-w-[350px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5 text-blue-500" />
+              حذف القالب المشترك
+            </DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد من حذف هذا القالب المشترك؟ سيتم إزالته من جميع المستخدمين. لا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDeleteSharedConfirmId(null)}>
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteSharedConfirmId !== null && handleDeleteSharedTemplate(deleteSharedConfirmId)}
+            >
+              <Trash2 className="h-4 w-4 ml-2" />
+              حذف للجميع
             </Button>
           </DialogFooter>
         </DialogContent>

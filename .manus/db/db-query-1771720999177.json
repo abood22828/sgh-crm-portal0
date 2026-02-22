@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `sharedColumnTemplates` (\n  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  `name` varchar(100) NOT NULL,\n  `tableKey` varchar(50) NOT NULL,\n  `columns` text NOT NULL,\n  `createdBy` int NOT NULL,\n  `createdByName` varchar(255),\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  INDEX `sharedColumnTemplates_tableKey_idx` (`tableKey`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute CREATE TABLE IF NOT EXISTS `sharedColumnTemplates` (\n  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  `name` varchar(100) NOT NULL,\n  `tableKey` varchar(50) NOT NULL,\n  `columns` text NOT NULL,\n  `createdBy` int NOT NULL,\n  `createdByName` varchar(255),\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  INDEX `sharedColumnTemplates_tableKey_idx` (`tableKey`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 534
+}

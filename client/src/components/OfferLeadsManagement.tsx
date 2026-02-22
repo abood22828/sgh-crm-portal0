@@ -243,6 +243,44 @@ export default function OfferLeadsManagement({
     }
   }, [savedOfferActiveTemplateId]);
 
+  // Shared templates from admin
+  const { data: sharedOfferTemplatesData } = trpc.sharedTemplates.list.useQuery(
+    { tableKey: 'offerLeads' },
+    { retry: false }
+  );
+  const createSharedOfferTemplateMutation = trpc.sharedTemplates.create.useMutation({
+    onSuccess: () => {
+      utils.sharedTemplates.list.invalidate({ tableKey: 'offerLeads' });
+    },
+  });
+  const deleteSharedOfferTemplateMutation = trpc.sharedTemplates.delete.useMutation({
+    onSuccess: () => {
+      utils.sharedTemplates.list.invalidate({ tableKey: 'offerLeads' });
+    },
+  });
+
+  const sharedOfferTemplates: ColumnTemplate[] = (sharedOfferTemplatesData || []).map((t: any) => ({
+    id: `shared_offerLeads_${t.id}`,
+    name: t.name,
+    columns: t.columns,
+    isDefault: false,
+    isShared: true,
+    createdByName: t.createdByName,
+    dbId: t.id,
+  }));
+
+  const handleSaveSharedOfferTemplate = (name: string, columns: Record<string, boolean>) => {
+    createSharedOfferTemplateMutation.mutate({
+      name,
+      tableKey: 'offerLeads',
+      columns,
+    });
+  };
+
+  const handleDeleteSharedOfferTemplate = (dbId: number) => {
+    deleteSharedOfferTemplateMutation.mutate({ id: dbId });
+  };
+
   const allOfferTemplates = [...defaultOfferTemplates, ...customOfferTemplates];
 
   const handleApplyOfferTemplate = (template: ColumnTemplate) => {
@@ -741,6 +779,10 @@ export default function OfferLeadsManagement({
                 onSaveTemplate={handleSaveOfferTemplate}
                 onDeleteTemplate={handleDeleteOfferTemplate}
                 tableKey="offerLeads"
+                isAdmin={user?.role === 'admin'}
+                sharedTemplates={sharedOfferTemplates}
+                onSaveSharedTemplate={handleSaveSharedOfferTemplate}
+                onDeleteSharedTemplate={handleDeleteSharedOfferTemplate}
               />
               <Button
                 variant="outline"
