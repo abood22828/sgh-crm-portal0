@@ -235,6 +235,14 @@ export default function MediaTeamPage() {
       toast.error('يرجى إدخال عنوان المهمة');
       return;
     }
+    if (formData.title.trim().length < 3) {
+      toast.error('يجب أن يكون عنوان المهمة 3 أحرف على الأقل');
+      return;
+    }
+    if (formData.description && formData.description.trim().length > 0 && formData.description.trim().length < 3) {
+      toast.error('يجب أن يكون وصف المهمة 3 أحرف على الأقل أو فارغاً');
+      return;
+    }
 
     createTaskMutation.mutate({
       title: formData.title,
@@ -252,6 +260,14 @@ export default function MediaTeamPage() {
   const handleEditTask = () => {
     if (!selectedTask || !formData.title.trim()) {
       toast.error('يرجى إدخال عنوان المهمة');
+      return;
+    }
+    if (formData.title.trim().length < 3) {
+      toast.error('يجب أن يكون عنوان المهمة 3 أحرف على الأقل');
+      return;
+    }
+    if (formData.description && formData.description.trim().length > 0 && formData.description.trim().length < 3) {
+      toast.error('يجب أن يكون وصف المهمة 3 أحرف على الأقل أو فارغاً');
       return;
     }
 

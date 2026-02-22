@@ -3131,3 +3131,10 @@
 ### تصغير حجم الشعار في Navbar - المرحلة الثالثة ✅ مكتمل
 - [x] تصغير الشعار بشكل كبير (h-4 sm:h-5 md:h-6 = 16px, 20px, 24px)
 - [x] اختبار وحفظ التغييرات
+
+### إصلاح أخطاء جدول المهام (tasks) ✅ مكتمل
+- [x] فحص schema جدول tasks وتحديد المشكلة
+- [x] فحص صفحة /dashboard/teams/media والنماذج
+- [x] إصلاح validation للحقول title و description (حد أدنى 3 أحرف)
+- [x] إضافة validation لدالتي handleCreateTask و handleEditTask
+- [x] حفظ التغييرات
