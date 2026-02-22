@@ -86,10 +86,10 @@ import {
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport } from "@/lib/exportToExcel";
 import { useExportUtils } from "@/hooks/useExportUtils";
+import { useFilterUtils, applyDefaultSort, DATE_FILTER_OPTIONS } from "@/hooks/useFilterUtils";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useDebounce } from "@/hooks/useDebounce";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
 
@@ -127,21 +127,20 @@ export default function BookingsManagementPage() {
   const { user } = useAuth();
   const utils = trpc.useUtils();
   const [location, setLocation] = useLocation();
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [statusNotes, setStatusNotes] = useState("");
-  const [leadsDateFilter, setLeadsDateFilter] = useState("all");
   const [activeTab, setActiveTab] = useState<"leads" | "appointments" | "offerLeads" | "campRegistrations" | "tasks">("leads");
   
-  // Date Range State - Default to last 7 days
-  const [dateRange, setDateRange] = useState(() => {
-    const to = new Date();
-    const from = new Date();
-    from.setDate(from.getDate() - 7);
-    return { from, to };
+  // === Unified filter state for Leads tab ===
+  const leadsFilter = useFilterUtils<any>({
+    data: undefined, // will be configured below after data loads
+    searchFields: [],
   });
+  
+  // Date Range State - managed by appointmentFilter
+  const appointmentFilter = useFilterUtils<any>();
   
   // Handle query parameters for direct navigation from notifications
   useEffect(() => {
@@ -175,23 +174,37 @@ export default function BookingsManagementPage() {
   const [manualRegistrationOpen, setManualRegistrationOpen] = useState(false);
 
   // State variables - define first
-  // Removed pagination - using date range instead
-  const [appointmentSearchTerm, setAppointmentSearchTerm] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
   const [newAppointmentStatus, setNewAppointmentStatus] = useState("");
   const [appointmentStatusNotes, setAppointmentStatusNotes] = useState("");
   const [appointmentDate, setAppointmentDate] = useState("");
-  const [selectedDoctor, setSelectedDoctor] = useState<string[]>([]);
-  const [dateFilter, setDateFilter] = useState("all");
-  const [appointmentStatusFilter, setAppointmentStatusFilter] = useState<string[]>([]);
-  const [appointmentSourceFilter, setAppointmentSourceFilter] = useState<string[]>([]);
-  const [leadsStatusFilter, setLeadsStatusFilter] = useState<string[]>([]);
-  const [leadsSourceFilter, setLeadsSourceFilter] = useState<string[]>([]);
   const [offerLeadsPendingCount, setOfferLeadsPendingCount] = useState(0);
   const [campRegistrationsPendingCount, setCampRegistrationsPendingCount] = useState(0);
   const [selectedAppointmentIds, setSelectedAppointmentIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
+  
+  // Aliases for backward compatibility
+  const dateRange = appointmentFilter.filters.dateRange;
+  const setDateRange = appointmentFilter.filters.setDateRange;
+  const appointmentSearchTerm = appointmentFilter.filters.searchTerm;
+  const setAppointmentSearchTerm = appointmentFilter.filters.setSearchTerm;
+  const selectedDoctor = appointmentFilter.filters.categoryFilter;
+  const setSelectedDoctor = appointmentFilter.filters.setCategoryFilter;
+  const appointmentStatusFilter = appointmentFilter.filters.statusFilter;
+  const setAppointmentStatusFilter = appointmentFilter.filters.setStatusFilter;
+  const appointmentSourceFilter = appointmentFilter.filters.sourceFilter;
+  const setAppointmentSourceFilter = appointmentFilter.filters.setSourceFilter;
+  const dateFilter = appointmentFilter.filters.dateFilter;
+  const setDateFilter = appointmentFilter.filters.setDateFilter;
+  const searchTerm = leadsFilter.filters.searchTerm;
+  const setSearchTerm = leadsFilter.filters.setSearchTerm;
+  const leadsDateFilter = leadsFilter.filters.dateFilter;
+  const setLeadsDateFilter = leadsFilter.filters.setDateFilter;
+  const leadsStatusFilter = leadsFilter.filters.statusFilter;
+  const setLeadsStatusFilter = leadsFilter.filters.setStatusFilter;
+  const leadsSourceFilter = leadsFilter.filters.sourceFilter;
+  const setLeadsSourceFilter = leadsFilter.filters.setSourceFilter;
   
   // Sorting state
   // Sort state is now managed by appointmentTable.sortState via useTableFeatures
@@ -236,9 +249,9 @@ export default function BookingsManagementPage() {
     columns: appointmentColumns,
   });
   
-  // Debounced search terms for better performance
-  const debouncedAppointmentSearch = useDebounce(appointmentSearchTerm, 500);
-  const debouncedLeadsSearch = useDebounce(searchTerm, 500);
+  // Debounced search terms - now managed by useFilterUtils
+  const debouncedAppointmentSearch = appointmentFilter.filters.debouncedSearch;
+  const debouncedLeadsSearch = leadsFilter.filters.debouncedSearch;
 
   // Data queries
   const { data: unifiedLeads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.list.useQuery();

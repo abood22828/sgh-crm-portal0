@@ -2829,3 +2829,12 @@
 - [x] كتابة اختبارات vitest للـ hook (14 اختبار - جميعها ناجحة)
 - [x] إضافة resolve aliases في vitest.config.ts
 - [x] التحقق من عمل التصدير والطباعة في جميع الصفحات
+
+### إنشاء useFilterUtils hook مشترك ✅ مكتمل
+- [x] فحص أنماط الفلاتر الحالية في الصفحات الثلاث (التاريخ، الحالة، المصدر، البحث)
+- [x] إنشاء useFilterUtils hook مع منطق الفلاتر الموحد (إدارة الحالة + التصفية + debounce + date presets + resetAll)
+- [x] استبدال الكود المتكرر في BookingsManagementPage
+- [x] استبدال الكود المتكرر في OfferLeadsManagement
+- [x] استبدال الكود المتكرر في CampRegistrationsManagement
+- [x] كتابة اختبارات vitest للـ hook (27 اختبار - جميعها ناجحة)
+- [x] التحقق من عمل الفلاتر في جميع الصفحات - لا أخطاء TypeScript

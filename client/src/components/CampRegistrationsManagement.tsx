@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useFilterUtils } from "@/hooks/useFilterUtils";
 import { Button } from "@/components/ui/button";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
@@ -106,8 +106,6 @@ export default function CampRegistrationsManagement({
 }) {
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.campRegistrations.generateReceiptNumber.useMutation();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCamp, setSelectedCamp] = useState<string[]>([]);
   const [selectedRegistration, setSelectedRegistration] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -115,13 +113,25 @@ export default function CampRegistrationsManagement({
   const [editedName, setEditedName] = useState("");
   const [editedPhone, setEditedPhone] = useState("");
   const [attendanceDate, setAttendanceDate] = useState("");
-  const [dateFilter, setDateFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
-  const [sourceFilter, setSourceFilter] = useState<string[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
-  // Removed pagination - using date range instead
-  const [campRegistrationsSearchTerm, setCampRegistrationsSearchTerm] = useState("");
+  
+  // === Unified filter state via useFilterUtils ===
+  const campFilter = useFilterUtils<any>();
+  
+  // Aliases for backward compatibility
+  const searchTerm = campFilter.filters.searchTerm;
+  const setSearchTerm = campFilter.filters.setSearchTerm;
+  const selectedCamp = campFilter.filters.categoryFilter;
+  const setSelectedCamp = campFilter.filters.setCategoryFilter;
+  const statusFilter = campFilter.filters.statusFilter;
+  const setStatusFilter = campFilter.filters.setStatusFilter;
+  const sourceFilter = campFilter.filters.sourceFilter;
+  const setSourceFilter = campFilter.filters.setSourceFilter;
+  const dateFilter = campFilter.filters.dateFilter;
+  const setDateFilter = campFilter.filters.setDateFilter;
+  const campRegistrationsSearchTerm = campFilter.filters.searchTerm;
+  const setCampRegistrationsSearchTerm = campFilter.filters.setSearchTerm;
   
   // Sorting state
   // Sort state is now managed by campTable.sortState via useTableFeatures
@@ -164,8 +174,8 @@ export default function CampRegistrationsManagement({
     columns: campRegColumns,
   });
   
-  // Debounced search for better performance
-  const debouncedSearch = useDebounce(campRegistrationsSearchTerm, 500);
+  // Debounced search - now managed by useFilterUtils
+  const debouncedSearch = campFilter.filters.debouncedSearch;
 
   const { data: registrationsData, isLoading, refetch } = trpc.campRegistrations.listPaginated.useQuery({
     page: 1,

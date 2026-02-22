@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useFilterUtils } from "@/hooks/useFilterUtils";
 import { Button } from "@/components/ui/button";
 import ActionButtons from "@/components/ActionButtons";
 import EmptyState from "@/components/EmptyState";
@@ -108,18 +108,28 @@ export default function OfferLeadsManagement({
 }) {
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.offerLeads.generateReceiptNumber.useMutation();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedOffer, setSelectedOffer] = useState<string[]>([]);
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
-  const [dateFilter, setDateFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
-  const [sourceFilter, setSourceFilter] = useState<string[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
-  // Removed pagination - using date range instead
-  const [offerLeadsSearchTerm, setOfferLeadsSearchTerm] = useState("");
+  
+  // === Unified filter state via useFilterUtils ===
+  const offerFilter = useFilterUtils<any>();
+  
+  // Aliases for backward compatibility
+  const searchTerm = offerFilter.filters.searchTerm;
+  const setSearchTerm = offerFilter.filters.setSearchTerm;
+  const selectedOffer = offerFilter.filters.categoryFilter;
+  const setSelectedOffer = offerFilter.filters.setCategoryFilter;
+  const statusFilter = offerFilter.filters.statusFilter;
+  const setStatusFilter = offerFilter.filters.setStatusFilter;
+  const sourceFilter = offerFilter.filters.sourceFilter;
+  const setSourceFilter = offerFilter.filters.setSourceFilter;
+  const dateFilter = offerFilter.filters.dateFilter;
+  const setDateFilter = offerFilter.filters.setDateFilter;
+  const offerLeadsSearchTerm = offerFilter.filters.searchTerm;
+  const setOfferLeadsSearchTerm = offerFilter.filters.setSearchTerm;
   
   // Sorting state
   // Sort state is now managed by offerTable.sortState via useTableFeatures
@@ -157,8 +167,8 @@ export default function OfferLeadsManagement({
     columns: offerLeadColumns,
   });
   
-  // Debounced search for better performance
-  const debouncedSearch = useDebounce(offerLeadsSearchTerm, 500);
+  // Debounced search - now managed by useFilterUtils
+  const debouncedSearch = offerFilter.filters.debouncedSearch;
 
   const { data: offerLeadsData, isLoading, refetch } = trpc.offerLeads.listPaginated.useQuery({
     page: 1,
