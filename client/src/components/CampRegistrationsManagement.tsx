@@ -920,7 +920,7 @@ export default function CampRegistrationsManagement({
                               </FrozenTableCell>
                             );
                           case 'statusNotes':
-                            return <FrozenTableCell key={colKey} columnKey={colKey} className="max-w-[200px] truncate" title={reg.statusNotes}>{reg.statusNotes || '-'}</FrozenTableCell>;
+                            return <FrozenTableCell key={colKey} columnKey={colKey} wrap title={reg.statusNotes}>{reg.statusNotes || '-'}</FrozenTableCell>;
                           case 'procedures':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm">{reg.procedures || '-'}</FrozenTableCell>;
                           case 'medicalCondition':

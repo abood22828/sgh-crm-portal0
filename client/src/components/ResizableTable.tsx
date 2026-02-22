@@ -30,11 +30,15 @@ interface ResizableTableProps {
 export function ResizableTable({ children, className, frozenColumns = [], columnWidths = {}, visibleColumnOrder = [] }: ResizableTableProps) {
   return (
     <FrozenColumnsContext.Provider value={{ frozenColumns, columnWidths, visibleColumnOrder }}>
-      <div className="relative w-full overflow-x-auto border border-border rounded-md" data-slot="table-container">
+      <div 
+        className="relative w-full overflow-x-auto border border-border rounded-md" 
+        data-slot="table-container"
+        dir="rtl"
+      >
         <table
           data-slot="table"
           className={cn("caption-bottom text-sm border-collapse table-fixed w-full", className)}
-          style={{ minWidth: 'max-content' }}
+          style={{ minWidth: 'max-content', direction: 'rtl' }}
         >
           {children}
         </table>
@@ -43,7 +47,7 @@ export function ResizableTable({ children, className, frozenColumns = [], column
   );
 }
 
-/** Calculate the right offset for a frozen column based on all frozen columns to its left (RTL) */
+/** Calculate the right offset for a frozen column (RTL: frozen columns stick to the right) */
 function useFrozenStyle(columnKey: string) {
   const { frozenColumns, columnWidths, visibleColumnOrder } = useContext(FrozenColumnsContext);
   
@@ -60,20 +64,21 @@ function useFrozenStyle(columnKey: string) {
       return { isFrozen: false, style: {} as React.CSSProperties };
     }
 
-    // Calculate right offset: sum of widths of all frozen columns to the right of this one (RTL)
-    let rightOffset = 0;
-    for (let i = frozenIndex + 1; i < frozenInOrder.length; i++) {
+    // RTL: frozen columns stick to the right side
+    // Calculate insetInlineStart (right in RTL) offset: sum of widths of frozen columns before this one
+    let inlineStartOffset = 0;
+    for (let i = 0; i < frozenIndex; i++) {
       const key = frozenInOrder[i];
       const preset = getColumnWidth(key);
-      rightOffset += columnWidths[key] || preset.width;
+      inlineStartOffset += columnWidths[key] || preset.width;
     }
 
     return {
       isFrozen: true,
       style: {
         position: 'sticky' as const,
-        right: `${rightOffset}px`,
-        zIndex: 20 + (frozenInOrder.length - frozenIndex), // Higher z-index for earlier frozen columns
+        insetInlineStart: `${inlineStartOffset}px`,
+        zIndex: 20 + (frozenInOrder.length - frozenIndex),
       } as React.CSSProperties,
     };
   }, [columnKey, frozenColumns, columnWidths, visibleColumnOrder]);
@@ -131,7 +136,7 @@ export function ResizableHeaderCell({
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      // RTL: moving left increases width
+      // RTL: moving mouse to the left (negative diff) increases width
       const diff = startXRef.current - e.clientX;
       const newWidth = Math.min(maxWidth, Math.max(minWidth, startWidthRef.current + diff));
       onResize(columnKey, newWidth);
@@ -154,23 +159,24 @@ export function ResizableHeaderCell({
     <th
       data-slot="table-head"
       className={cn(
-        "text-foreground h-10 px-3 text-right align-middle font-medium whitespace-nowrap relative group select-none",
+        "text-foreground h-10 px-3 text-right align-middle font-medium relative group select-none",
         "border-b border-l border-border bg-muted/30",
         isResizing && "bg-muted/70",
-        isFrozen && "bg-muted/60 shadow-[inset_2px_0_4px_-2px_rgba(0,0,0,0.1)] after:content-[''] after:absolute after:top-0 after:left-0 after:h-full after:w-[2px] after:bg-border/50",
+        isFrozen && "bg-muted/60 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] after:content-[''] after:absolute after:top-0 after:right-0 after:h-full after:w-[2px] after:bg-border/50",
         className
       )}
       style={{ 
         width: `${width}px`, 
         minWidth: `${minWidth}px`, 
-        maxWidth: `${maxWidth}px`, 
+        maxWidth: `${maxWidth}px`,
+        direction: 'rtl',
         ...frozenStyle,
         ...style 
       }}
       onClick={!isResizing ? onClick : undefined}
     >
-      <div className="flex items-center gap-1 w-full">
-        <span className="flex-1 truncate">{children}</span>
+      <div className="flex items-center gap-1 w-full overflow-hidden" style={{ direction: 'rtl' }}>
+        <span className="flex-1 truncate text-right">{children}</span>
         {sortable && (
           <button
             type="button"
@@ -194,7 +200,7 @@ export function ResizableHeaderCell({
           </button>
         )}
       </div>
-      {/* Resize handle */}
+      {/* Resize handle - on the LEFT side in RTL (which is the logical end) */}
       <div
         className={cn(
           "absolute top-0 left-0 h-full w-1.5 cursor-col-resize z-10",
@@ -209,7 +215,7 @@ export function ResizableHeaderCell({
   );
 }
 
-/** Frozen-aware TableCell wrapper */
+/** Frozen-aware TableCell wrapper with RTL support and text containment */
 interface FrozenTableCellProps {
   children: React.ReactNode;
   columnKey: string;
@@ -217,20 +223,33 @@ interface FrozenTableCellProps {
   title?: string;
   colSpan?: number;
   style?: React.CSSProperties;
+  /** Allow text wrapping instead of truncating - useful for long text columns */
+  wrap?: boolean;
 }
 
-export function FrozenTableCell({ children, columnKey, className, title, colSpan, style: propStyle }: FrozenTableCellProps) {
+export function FrozenTableCell({ children, columnKey, className, title, colSpan, style: propStyle, wrap = false }: FrozenTableCellProps) {
   const { isFrozen, style: frozenStyle } = useFrozenStyle(columnKey);
 
   return (
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 px-3 align-middle whitespace-nowrap text-right border-l border-border [tr:last-child>&]:border-b-0",
-        isFrozen && "bg-background shadow-[inset_2px_0_4px_-2px_rgba(0,0,0,0.08)]",
+        "p-2 px-3 align-middle text-right border-l border-border [tr:last-child>&]:border-b-0",
+        wrap 
+          ? "break-words leading-relaxed" 
+          : "truncate",
+        isFrozen && "bg-background shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]",
         className
       )}
-      style={{ ...frozenStyle, ...propStyle }}
+      style={{ 
+        direction: 'rtl',
+        maxWidth: 'inherit',
+        overflow: wrap ? 'visible' : 'hidden',
+        textOverflow: wrap ? 'unset' : 'ellipsis',
+        whiteSpace: wrap ? 'normal' : 'nowrap',
+        ...frozenStyle, 
+        ...propStyle 
+      }}
       title={title}
       colSpan={colSpan}
     >

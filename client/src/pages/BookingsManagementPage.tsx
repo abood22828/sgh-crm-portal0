@@ -1307,11 +1307,11 @@ export default function BookingsManagementPage() {
                                 case 'appointmentDate':
                                   return <FrozenTableCell key={colKey} columnKey={colKey}>{appointment.appointmentDate ? new Date(appointment.appointmentDate).toLocaleDateString('ar-EG') : '-'}</FrozenTableCell>;
                                 case 'notes':
-                                  return <FrozenTableCell key={colKey} columnKey={colKey} className="max-w-[200px] truncate" title={appointment.notes}>{appointment.notes || '-'}</FrozenTableCell>;
+                                  return <FrozenTableCell key={colKey} columnKey={colKey} wrap title={appointment.notes}>{appointment.notes || '-'}</FrozenTableCell>;
                                 case 'additionalNotes':
-                                  return <FrozenTableCell key={colKey} columnKey={colKey} className="max-w-[200px] truncate" title={appointment.additionalNotes}>{appointment.additionalNotes || '-'}</FrozenTableCell>;
+                                  return <FrozenTableCell key={colKey} columnKey={colKey} wrap title={appointment.additionalNotes}>{appointment.additionalNotes || '-'}</FrozenTableCell>;
                                 case 'staffNotes':
-                                  return <FrozenTableCell key={colKey} columnKey={colKey} className="max-w-[200px] truncate" title={appointment.staffNotes}>{appointment.staffNotes || '-'}</FrozenTableCell>;
+                                  return <FrozenTableCell key={colKey} columnKey={colKey} wrap title={appointment.staffNotes}>{appointment.staffNotes || '-'}</FrozenTableCell>;
                                 case 'source':
                                   return (
                                     <FrozenTableCell key={colKey} columnKey={colKey}>

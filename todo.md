@@ -2782,3 +2782,16 @@
 - [x] تطبيق الفرز على OffersManagement
 - [x] تطبيق الفرز على CampsManagement
 - [x] كتابة اختبارات vitest (17 اختبار ناجح)
+
+### تنسيق الجداول بالعربي RTL واحتواء النصوص ✅ مكتمل
+- [x] تحديث ResizableTable لدعم dir="rtl" وترتيب الأعمدة من اليمين لليسار
+- [x] تحديث table.tsx (shadcn) لدعم RTL ومحاذاة النصوص
+- [x] إضافة text-overflow و word-wrap لاحتواء النصوص داخل الأعمدة
+- [x] إضافة خاصية wrap في FrozenTableCell للتحكم باحتواء النصوص
+- [x] تحديث resize handle ليكون على اليسار (RTL)
+- [x] تحديث اتجاه الظلال للأعمدة المجمدة (RTL)
+- [x] تطبيق التنسيق على BookingsManagementPage (wrap للملاحظات)
+- [x] تطبيق التنسيق على OfferLeadsManagement (wrap للملاحظات)
+- [x] تطبيق التنسيق على CampRegistrationsManagement (wrap للملاحظات)
+- [x] الجداول البسيطة (Doctors, Offers, Camps) تستفيد تلقائياً من التحديثات
+- [x] اختبارات vitest (19 اختبار ناجح) وحفظ checkpoint
