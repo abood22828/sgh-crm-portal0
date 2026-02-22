@@ -1,0 +1,9 @@
+{
+  "query": "SELECT tasks.id, tasks.projectId, tasks.teamId, tasks.campaignId, tasks.title FROM tasks LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute SELECT tasks.id, tasks.projectId, tasks.teamId, tasks.campaignId, tasks.title FROM tasks LIMIT 1;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 348
+}
