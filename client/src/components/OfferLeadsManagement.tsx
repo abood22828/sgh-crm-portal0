@@ -81,7 +81,8 @@ import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 import OfferLeadCard from "@/components/OfferLeadCard";
 import CardSkeleton from "@/components/CardSkeleton";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
-import Pagination from "@/components/Pagination";
+import Pagination, { type PageSizeValue } from "@/components/Pagination";
+import { RotateCcw } from "lucide-react";
 
 const statusLabels = {
   new: "جديد",
@@ -113,6 +114,10 @@ export default function OfferLeadsManagement({
   const [newStatus, setNewStatus] = useState("");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
+  
+  // Pagination state
+  const [offerPage, setOfferPage] = useState(1);
+  const [offerPageSize, setOfferPageSize] = useState<PageSizeValue>("100");
   
   // === Unified filter state via useFilterUtils ===
   const offerFilter = useFilterUtils<any>();
@@ -170,9 +175,15 @@ export default function OfferLeadsManagement({
   // Debounced search - now managed by useFilterUtils
   const debouncedSearch = offerFilter.filters.debouncedSearch;
 
+  // Reset page when filters change
+  useEffect(() => {
+    setOfferPage(1);
+  }, [debouncedSearch, dateRange.from, dateRange.to]);
+  
+  const offerLimit = offerPageSize === "all" ? 100000 : parseInt(offerPageSize);
   const { data: offerLeadsData, isLoading, refetch } = trpc.offerLeads.listPaginated.useQuery({
-    page: 1,
-    limit: 10000, // Get all records within date range
+    page: offerPageSize === "all" ? 1 : offerPage,
+    limit: offerLimit,
     searchTerm: debouncedSearch,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
@@ -602,6 +613,25 @@ export default function OfferLeadsManagement({
               className="w-full sm:w-[180px] h-9 md:h-10"
             />
           </div>
+          
+          {/* Reset Filters Button */}
+          {offerFilter.filters.activeFilterCount > 0 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  offerFilter.filters.resetAll();
+                  setOfferPage(1);
+                  setSelectedIds([]);
+                }}
+                className="gap-1 text-muted-foreground hover:text-foreground h-8"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                إعادة تعيين الفلاتر ({offerFilter.filters.activeFilterCount})
+              </Button>
+            </div>
+          )}
 
           {/* Mobile Cards View */}
           <div className="md:hidden">
@@ -891,6 +921,23 @@ export default function OfferLeadsManagement({
             </ResizableTable>
           </div>
 
+          {/* Pagination */}
+          <Pagination
+            currentPage={offerPage}
+            totalPages={offerLeadsData?.totalPages || 1}
+            onPageChange={(page) => {
+              setOfferPage(page);
+              setSelectedIds([]);
+            }}
+            totalItems={offerLeadsData?.total || 0}
+            itemsPerPage={offerLimit}
+            pageSize={offerPageSize}
+            onPageSizeChange={(size) => {
+              setOfferPageSize(size);
+              setOfferPage(1);
+              setSelectedIds([]);
+            }}
+          />
 
         </CardContent>
       </Card>

@@ -82,6 +82,7 @@ import {
   Printer,
   CalendarOff,
   CheckSquare,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport } from "@/lib/exportToExcel";
@@ -92,6 +93,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
+import Pagination, { type PageSizeValue } from "@/components/Pagination";
 
 const statusLabels = {
   new: "جديد",
@@ -184,6 +186,10 @@ export default function BookingsManagementPage() {
   const [selectedAppointmentIds, setSelectedAppointmentIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
   
+  // Pagination state
+  const [appointmentPage, setAppointmentPage] = useState(1);
+  const [appointmentPageSize, setAppointmentPageSize] = useState<PageSizeValue>("100");
+  
   // Aliases for backward compatibility
   const dateRange = appointmentFilter.filters.dateRange;
   const setDateRange = appointmentFilter.filters.setDateRange;
@@ -256,9 +262,15 @@ export default function BookingsManagementPage() {
   // Data queries
   const { data: unifiedLeads, isLoading: leadsLoading, refetch: refetchLeads } = trpc.leads.list.useQuery();
   const { data: stats } = trpc.leads.stats.useQuery();
+  // Reset page when filters change
+  useEffect(() => {
+    setAppointmentPage(1);
+  }, [debouncedAppointmentSearch, dateRange.from, dateRange.to]);
+  
+  const appointmentLimit = appointmentPageSize === "all" ? 100000 : parseInt(appointmentPageSize);
   const { data: appointmentsData, isLoading: appointmentsLoading, refetch: refetchAppointments } = trpc.appointments.listPaginated.useQuery({
-    page: 1,
-    limit: 10000, // Get all records within date range
+    page: appointmentPageSize === "all" ? 1 : appointmentPage,
+    limit: appointmentLimit,
     searchTerm: debouncedAppointmentSearch,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
@@ -309,8 +321,8 @@ export default function BookingsManagementPage() {
       // Optimistically update the cache
       utils.appointments.listPaginated.setData(
         {
-          page: 1,
-          limit: 10000,
+          page: appointmentPageSize === "all" ? 1 : appointmentPage,
+          limit: appointmentLimit,
           searchTerm: debouncedAppointmentSearch,
           dateFrom: dateRange.from.toISOString(),
           dateTo: dateRange.to.toISOString(),
@@ -342,8 +354,8 @@ export default function BookingsManagementPage() {
       if (context?.previousData) {
         utils.appointments.listPaginated.setData(
           {
-            page: 1,
-            limit: 10000,
+            page: appointmentPageSize === "all" ? 1 : appointmentPage,
+            limit: appointmentLimit,
             searchTerm: debouncedAppointmentSearch,
             dateFrom: dateRange.from.toISOString(),
             dateTo: dateRange.to.toISOString(),
@@ -1121,6 +1133,24 @@ export default function BookingsManagementPage() {
                         onDeleteSharedTemplate={appointmentTable.handleDeleteSharedTemplate}
                       />
                   </div>
+                  {/* Reset Filters Button */}
+                  {appointmentFilter.filters.activeFilterCount > 0 && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          appointmentFilter.filters.resetAll();
+                          setAppointmentPage(1);
+                          setSelectedAppointmentIds([]);
+                        }}
+                        className="gap-1 text-muted-foreground hover:text-foreground h-8"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        إعادة تعيين الفلاتر ({appointmentFilter.filters.activeFilterCount})
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Mobile Cards View */}
@@ -1416,6 +1446,24 @@ export default function BookingsManagementPage() {
                     </TableBody>
                   </ResizableTable>
                 </div>
+                
+                {/* Pagination */}
+                <Pagination
+                  currentPage={appointmentPage}
+                  totalPages={appointmentsData?.totalPages || 1}
+                  onPageChange={(page) => {
+                    setAppointmentPage(page);
+                    setSelectedAppointmentIds([]);
+                  }}
+                  totalItems={appointmentsData?.total || 0}
+                  itemsPerPage={appointmentLimit}
+                  pageSize={appointmentPageSize}
+                  onPageSizeChange={(size) => {
+                    setAppointmentPageSize(size);
+                    setAppointmentPage(1);
+                    setSelectedAppointmentIds([]);
+                  }}
+                />
               </CardContent>
             </Card>
           </div>

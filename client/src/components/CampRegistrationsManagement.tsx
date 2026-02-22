@@ -81,7 +81,8 @@ import CampRegistrationCard from "@/components/CampRegistrationCard";
 import CardSkeleton from "@/components/CardSkeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
-import Pagination from "@/components/Pagination";
+import Pagination, { type PageSizeValue } from "@/components/Pagination";
+import { RotateCcw } from "lucide-react";
 
 const statusLabels = {
   pending: "قيد الانتظار",
@@ -115,6 +116,10 @@ export default function CampRegistrationsManagement({
   const [attendanceDate, setAttendanceDate] = useState("");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
+  
+  // Pagination state
+  const [campPage, setCampPage] = useState(1);
+  const [campPageSize, setCampPageSize] = useState<PageSizeValue>("100");
   
   // === Unified filter state via useFilterUtils ===
   const campFilter = useFilterUtils<any>();
@@ -177,9 +182,15 @@ export default function CampRegistrationsManagement({
   // Debounced search - now managed by useFilterUtils
   const debouncedSearch = campFilter.filters.debouncedSearch;
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCampPage(1);
+  }, [debouncedSearch, dateRange.from, dateRange.to]);
+  
+  const campLimit = campPageSize === "all" ? 100000 : parseInt(campPageSize);
   const { data: registrationsData, isLoading, refetch } = trpc.campRegistrations.listPaginated.useQuery({
-    page: 1,
-    limit: 10000, // Get all records within date range
+    page: campPageSize === "all" ? 1 : campPage,
+    limit: campLimit,
     searchTerm: debouncedSearch,
     dateFrom: dateRange.from.toISOString(),
     dateTo: dateRange.to.toISOString(),
@@ -614,6 +625,25 @@ export default function CampRegistrationsManagement({
               className="w-full sm:w-[180px] h-9 md:h-10"
             />
           </div>
+          
+          {/* Reset Filters Button */}
+          {campFilter.filters.activeFilterCount > 0 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  campFilter.filters.resetAll();
+                  setCampPage(1);
+                  setSelectedIds([]);
+                }}
+                className="gap-1 text-muted-foreground hover:text-foreground h-8"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                إعادة تعيين الفلاتر ({campFilter.filters.activeFilterCount})
+              </Button>
+            </div>
+          )}
 
           {/* Mobile Cards View */}
           <div className="md:hidden">
@@ -915,6 +945,23 @@ export default function CampRegistrationsManagement({
             </ResizableTable>
           </div>
 
+          {/* Pagination */}
+          <Pagination
+            currentPage={campPage}
+            totalPages={registrationsData?.totalPages || 1}
+            onPageChange={(page) => {
+              setCampPage(page);
+              setSelectedIds([]);
+            }}
+            totalItems={registrationsData?.total || 0}
+            itemsPerPage={campLimit}
+            pageSize={campPageSize}
+            onPageSizeChange={(size) => {
+              setCampPageSize(size);
+              setCampPage(1);
+              setSelectedIds([]);
+            }}
+          />
 
         </CardContent>
       </Card>
