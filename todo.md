@@ -3138,3 +3138,10 @@
 - [x] إصلاح validation للحقول title و description (حد أدنى 3 أحرف)
 - [x] إضافة validation لدالتي handleCreateTask و handleEditTask
 - [x] حفظ التغييرات
+
+### إصلاح خطأ استعلام جدول tasks في /dashboard/bookings/leads ✅ مكتمل
+- [x] فحص الخطأ وتحديد السبب (عمودين ناقصين: projectId, teamId)
+- [x] التحقق من وجود جدول tasks في قاعدة البيانات
+- [x] إضافة العمودين الناقصين يدوياً
+- [x] اختبار الاستعلام بعد الإصلاح
+- [x] حفظ التغييرات
