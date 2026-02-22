@@ -126,7 +126,7 @@ export default function CampRegistrationsManagement({
   const [sortField, setSortField] = useState<'date' | 'name' | 'phone' | 'email' | 'age' | 'camp' | 'source' | 'receiptNumber' | 'status' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Column visibility state for CampRegistrations
+  // Column visibility state for CampRegistrations - جميع الأعمدة من قاعدة البيانات
   const campRegColumns: ColumnConfig[] = [
     { key: 'checkbox', label: 'تحديد', defaultVisible: true },
     { key: 'receiptNumber', label: 'رقم السند', defaultVisible: true },
@@ -134,9 +134,24 @@ export default function CampRegistrationsManagement({
     { key: 'phone', label: 'رقم الهاتف', defaultVisible: true },
     { key: 'email', label: 'البريد الإلكتروني', defaultVisible: true },
     { key: 'age', label: 'العمر', defaultVisible: true },
+    { key: 'gender', label: 'الجنس', defaultVisible: false },
     { key: 'camp', label: 'المخيم', defaultVisible: true },
-    { key: 'source', label: 'المصدر', defaultVisible: true },
+    { key: 'procedures', label: 'الإجراءات المختارة', defaultVisible: false },
+    { key: 'medicalCondition', label: 'الحالة الصحية', defaultVisible: false },
+    { key: 'notes', label: 'ملاحظات المسجل', defaultVisible: false },
     { key: 'status', label: 'الحالة', defaultVisible: true },
+    { key: 'statusNotes', label: 'ملاحظات الحالة', defaultVisible: false },
+    { key: 'attendanceDate', label: 'تاريخ الحضور', defaultVisible: false },
+    { key: 'source', label: 'المصدر', defaultVisible: true },
+    { key: 'utmSource', label: 'UTM Source', defaultVisible: false },
+    { key: 'utmMedium', label: 'UTM Medium', defaultVisible: false },
+    { key: 'utmCampaign', label: 'UTM Campaign', defaultVisible: false },
+    { key: 'utmTerm', label: 'UTM Term', defaultVisible: false },
+    { key: 'utmContent', label: 'UTM Content', defaultVisible: false },
+    { key: 'utmPlacement', label: 'UTM Placement', defaultVisible: false },
+    { key: 'referrer', label: 'المحيل', defaultVisible: false },
+    { key: 'fbclid', label: 'Facebook Click ID', defaultVisible: false },
+    { key: 'gclid', label: 'Google Click ID', defaultVisible: false },
     { key: 'date', label: 'تاريخ التسجيل', defaultVisible: true },
     { key: 'comments', label: 'التعليقات', defaultVisible: true },
     { key: 'tasks', label: 'المهام', defaultVisible: true },

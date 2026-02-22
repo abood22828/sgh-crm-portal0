@@ -124,7 +124,7 @@ export default function OfferLeadsManagement({
   const [sortField, setSortField] = useState<'date' | 'name' | 'phone' | 'email' | 'offer' | 'source' | 'receiptNumber' | 'status' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Column visibility state for OfferLeads
+  // Column visibility state for OfferLeads - جميع الأعمدة من قاعدة البيانات
   const offerLeadColumns: ColumnConfig[] = [
     { key: 'checkbox', label: 'تحديد', defaultVisible: true },
     { key: 'receiptNumber', label: 'رقم السند', defaultVisible: true },
@@ -132,8 +132,19 @@ export default function OfferLeadsManagement({
     { key: 'phone', label: 'رقم الهاتف', defaultVisible: true },
     { key: 'email', label: 'البريد الإلكتروني', defaultVisible: true },
     { key: 'offer', label: 'العرض', defaultVisible: true },
-    { key: 'source', label: 'المصدر', defaultVisible: true },
+    { key: 'notes', label: 'ملاحظات العميل', defaultVisible: false },
     { key: 'status', label: 'الحالة', defaultVisible: true },
+    { key: 'statusNotes', label: 'ملاحظات الحالة', defaultVisible: false },
+    { key: 'source', label: 'المصدر', defaultVisible: true },
+    { key: 'utmSource', label: 'UTM Source', defaultVisible: false },
+    { key: 'utmMedium', label: 'UTM Medium', defaultVisible: false },
+    { key: 'utmCampaign', label: 'UTM Campaign', defaultVisible: false },
+    { key: 'utmTerm', label: 'UTM Term', defaultVisible: false },
+    { key: 'utmContent', label: 'UTM Content', defaultVisible: false },
+    { key: 'utmPlacement', label: 'UTM Placement', defaultVisible: false },
+    { key: 'referrer', label: 'المحيل', defaultVisible: false },
+    { key: 'fbclid', label: 'Facebook Click ID', defaultVisible: false },
+    { key: 'gclid', label: 'Google Click ID', defaultVisible: false },
     { key: 'date', label: 'تاريخ التسجيل', defaultVisible: true },
     { key: 'comments', label: 'التعليقات', defaultVisible: true },
     { key: 'tasks', label: 'المهام', defaultVisible: true },
