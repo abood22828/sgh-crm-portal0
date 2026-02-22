@@ -211,6 +211,12 @@ export function printTable(options: ExportOptions): void {
     }
   }
 
+  // تحديد اتجاه الطباعة حسب عدد الأعمدة
+  const columnCount = columns.length;
+  const orientation = columnCount <= 5 ? 'portrait' : 'landscape';
+  const fontSize = columnCount <= 5 ? '11pt' : columnCount <= 8 ? '10pt' : '9pt';
+  const tableFontSize = columnCount <= 5 ? '10pt' : columnCount <= 8 ? '9pt' : '8pt';
+
   // HTML للطباعة
   const htmlContent = `
     <!DOCTYPE html>
@@ -221,7 +227,7 @@ export function printTable(options: ExportOptions): void {
       <title>طباعة ${metadata.tableName}</title>
       <style>
         @page {
-          size: A4;
+          size: A4 ${orientation};
           margin: 20mm 15mm;
         }
 
@@ -235,7 +241,7 @@ export function printTable(options: ExportOptions): void {
           font-family: 'Arial', 'Tahoma', sans-serif;
           direction: rtl;
           text-align: right;
-          font-size: 11pt;
+          font-size: ${fontSize};
           line-height: 1.4;
           color: #000;
         }
@@ -293,7 +299,7 @@ export function printTable(options: ExportOptions): void {
           width: 100%;
           border-collapse: collapse;
           margin: 20px 0;
-          font-size: 10pt;
+          font-size: ${tableFontSize};
         }
 
         thead {
