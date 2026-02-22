@@ -64,7 +64,7 @@ export default function Navbar() {
             {/* Logo and Title */}
             <Link href="/">
               <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-                <img src="/assets/new-logo.png" alt={APP_TITLE} className="h-7 sm:h-8 md:h-10 w-auto" />
+                <img src="/assets/new-logo.png" alt={APP_TITLE} className="h-5 sm:h-6 md:h-8 w-auto" />
                 <div className="hidden xs:block sm:block">
                   <h1 className="text-[11px] sm:text-sm md:text-lg font-bold text-green-900 dark:text-green-400 leading-tight line-clamp-1">{APP_TITLE}</h1>
                   <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground dark:text-muted-foreground">نرعاكم كأهالينا</p>
