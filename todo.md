@@ -2838,3 +2838,15 @@
 - [x] استبدال الكود المتكرر في CampRegistrationsManagement
 - [x] كتابة اختبارات vitest للـ hook (27 اختبار - جميعها ناجحة)
 - [x] التحقق من عمل الفلاتر في جميع الصفحات - لا أخطاء TypeScript
+
+### تفعيل Server-Side Pagination + فصل leads router + زر إعادة تعيين الفلاتر ✅ مكتمل
+- [x] تفعيل Server-Side Pagination في BookingsManagementPage (المواعيد) مع خيار عدد الصفوف
+- [x] تحديث Pagination component لدعم خيار عدد الصفوف (50, 100, 500, 1000, الكل)
+- [x] إضافة Pagination في OfferLeadsManagement مع خيار عدد الصفوف
+- [x] إضافة Pagination في CampRegistrationsManagement مع خيار عدد الصفوف
+- [x] فصل leads router إلى ملف منفصل (server/routers/leads.ts - 235 سطر)
+- [x] تنظيف imports غير المستخدمة في routers.ts (تقليص من 558 إلى 311 سطر)
+- [x] إضافة زر إعادة تعيين الفلاتر في BookingsManagementPage
+- [x] إضافة زر إعادة تعيين الفلاتر في OfferLeadsManagement
+- [x] إضافة زر إعادة تعيين الفلاتر في CampRegistrationsManagement
+- [x] تشغيل 77 اختبار vitest - جميعها ناجحة
