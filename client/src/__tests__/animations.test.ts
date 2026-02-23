@@ -201,7 +201,8 @@ describe('Animation Integration in Components', () => {
     const path = await import('path');
     
     const pages = [
-      '../pages/LeadsManagementPage.tsx',
+      // LeadsManagementPage تم تقسيمه - stagger-rows انتقل إلى LeadTableDesktop
+      '../components/leads/LeadTableDesktop.tsx',
       '../pages/AppointmentsManagementPage.tsx',
       '../pages/UsersManagementPage.tsx',
       // AdminDashboard تم تقسيمه - الجداول انتقلت إلى مكونات فرعية

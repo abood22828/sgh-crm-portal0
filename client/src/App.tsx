@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useEffect, lazy, Suspense } from "react";
 import { initializeTracking } from "./lib/tracking";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
+const NotFound = lazy(() => import("@/pages/NotFound"));
 import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -55,8 +55,8 @@ const CampaignsPage = lazy(() => import("./pages/admin/CampaignsPage"));
 const DigitalMarketingTasksPage = lazy(() => import("./pages/admin/DigitalMarketingTasksPage"));
 const PatientPortalLogin = lazy(() => import("./pages/PatientPortalLogin"));
 const PatientDashboard = lazy(() => import("./pages/PatientDashboard"));
-import MessageSettingsPage from "./pages/MessageSettingsPage";
-import QueueDashboard from "./pages/QueueDashboard";
+const MessageSettingsPage = lazy(() => import("./pages/MessageSettingsPage"));
+const QueueDashboard = lazy(() => import("./pages/QueueDashboard"));
 
 
 function Router() {

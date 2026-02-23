@@ -3308,3 +3308,25 @@
 - [x] إضافة اختبارات Vitest لـ ConfirmDeleteDialog (11 اختبار)
 - [x] التحقق من عدم وجود أخطاء TypeScript - 620 اختبار ناجح في 30 ملف
 - [x] تحديث الاختبارات القديمة المتأثرة (animations, mobileResponsive, DashboardUI, ContentManagement)
+
+### تحسين إضافي للكود - الجولة 3 - 23 فبراير 2026
+- [ ] إنشاء مكون DataTable مشترك (فلترة، تصدير، pagination، فرز أعمدة، اختيار أعمدة)
+- [ ] تقسيم LeadsManagementPage إلى مكونات أصغر
+- [ ] إضافة lazy loading للصفحات الكبيرة في App.tsx
+- [ ] اختبار شامل والتحقق من عدم وجود أخطاء TypeScript
+
+### تقسيم LeadsManagementPage وإنشاء مكونات مشتركة ✅ مكتمل
+- [x] تقسيم LeadsManagementPage (615+ سطر) إلى مكونات أصغر:
+  - [x] LeadFilters - مكون الفلاتر والبحث (159 سطر)
+  - [x] LeadTableDesktop - جدول سطح المكتب (152 سطر)
+  - [x] LeadStatusDialog - حوار تحديث الحالة (221 سطر)
+  - [x] LeadMobileCards - عرض البطاقات للجوال (47 سطر)
+  - [x] LeadsManagementPage أصبح 238 سطر فقط (orchestrator)
+- [x] إنشاء مكون DataTableToolbar مشترك (تصدير، طباعة، إدارة أعمدة، فلاتر محفوظة)
+- [x] إنشاء مكون DataTableWrapper مشترك (toolbar + pagination + loading + empty states)
+- [x] إنشاء hook مشترك usePagination لإدارة حالة ترقيم الصفحات
+- [x] تحويل جميع الصفحات المتبقية إلى lazy loading (NotFound, MessageSettingsPage, QueueDashboard)
+- [x] 49 صفحة تستخدم lazy loading الآن (0 استيرادات مباشرة)
+- [x] كتابة اختبارات Vitest شاملة (43 اختبار جديد)
+- [x] تحديث الاختبارات القديمة لتتوافق مع البنية الجديدة
+- [x] 0 أخطاء TypeScript، 663 اختبار ناجح

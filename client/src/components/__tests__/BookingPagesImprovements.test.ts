@@ -171,30 +171,34 @@ describe('TableSkeleton Improvements', () => {
 });
 
 describe('LeadsManagementPage Improvements', () => {
-  const content = readFile(path.join(pagesDir, 'LeadsManagementPage.tsx'));
+  const pageContent = readFile(path.join(pagesDir, 'LeadsManagementPage.tsx'));
+  const leadsDir = path.join(componentsDir, 'leads');
+  const filtersContent = readFile(path.join(leadsDir, 'LeadFilters.tsx'));
+  const tableContent = readFile(path.join(leadsDir, 'LeadTableDesktop.tsx'));
+  const dialogContent = readFile(path.join(leadsDir, 'LeadStatusDialog.tsx'));
 
   it('should use DashboardLayout', () => {
-    expect(content).toContain('DashboardLayout');
+    expect(pageContent).toContain('DashboardLayout');
   });
 
   it('should have improved filter bar', () => {
-    expect(content).toContain('Search');
-    expect(content).toContain('Select');
+    expect(filtersContent).toContain('Search');
+    expect(filtersContent).toContain('Select');
   });
 
   it('should have status config with border property', () => {
-    expect(content).toContain('border:');
+    expect(tableContent).toContain('border-');
   });
 
   it('should have improved dialog with quick actions', () => {
-    expect(content).toContain('واتساب');
-    expect(content).toContain('اتصال');
+    expect(dialogContent).toContain('واتساب');
+    expect(dialogContent).toContain('اتصال');
   });
 
   it('should have status selection buttons in dialog', () => {
-    expect(content).toContain('جديد');
-    expect(content).toContain('تم التواصل');
-    expect(content).toContain('تم الحجز');
+    expect(dialogContent).toContain('جديد');
+    expect(dialogContent).toContain('تم التواصل');
+    expect(dialogContent).toContain('تم الحجز');
   });
 });
 
