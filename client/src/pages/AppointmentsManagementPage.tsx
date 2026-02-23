@@ -53,13 +53,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
 import Pagination, { type PageSizeValue } from "@/components/Pagination";
-
-const statusLabels: Record<string, string> = {
-  pending: "قيد الانتظار",
-  confirmed: "مؤكد",
-  cancelled: "ملغي",
-  completed: "مكتمل",
-};
+import { appointmentStatusLabels as statusLabels } from "@/hooks/useStatusLabels";
 
 export default function AppointmentsManagementPage() {
   const { user } = useAuth();

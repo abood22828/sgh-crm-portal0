@@ -49,7 +49,7 @@ export async function sendBookingConfirmationInteractive(data: {
   });
 
   // Try to send via WhatsApp Business API if configured
-  const { isWhatsAppBusinessAPIConfigured } = await import("./whatsappBusinessAPI");
+  const { isWhatsAppBusinessAPIConfigured } = await import("./whatsappCloudAPI");
   
   if (isWhatsAppBusinessAPIConfigured()) {
     console.log("[Messaging] Adding to WhatsApp Queue (interactive buttons)");
@@ -234,7 +234,7 @@ export async function sendOfferBookingConfirmationInteractive(data: {
     time: data.time,
   });
 
-  const { isWhatsAppBusinessAPIConfigured } = await import("./whatsappBusinessAPI");
+  const { isWhatsAppBusinessAPIConfigured } = await import("./whatsappCloudAPI");
   
   if (isWhatsAppBusinessAPIConfigured()) {
     console.log("[Messaging] Adding offer booking confirmation to WhatsApp Queue");
@@ -381,7 +381,7 @@ export async function sendCampRegistrationConfirmationInteractive(data: {
     location: data.location,
   });
 
-  const { isWhatsAppBusinessAPIConfigured } = await import("./whatsappBusinessAPI");
+  const { isWhatsAppBusinessAPIConfigured } = await import("./whatsappCloudAPI");
   
   if (isWhatsAppBusinessAPIConfigured()) {
     console.log("[Messaging] Adding camp registration confirmation to WhatsApp Queue");

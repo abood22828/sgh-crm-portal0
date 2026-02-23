@@ -1,6 +1,6 @@
 import { Queue, Worker, Job } from "bullmq";
 import { getRedisConnection } from "../redis";
-import { sendWhatsAppTemplateMessage } from "../whatsappBusinessAPI";
+import { sendWhatsAppTemplateMessage } from "../whatsappCloudAPI";
 
 // Check if Redis is available
 let isRedisAvailable = false;

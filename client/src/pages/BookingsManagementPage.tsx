@@ -99,22 +99,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
 import Pagination, { type PageSizeValue } from "@/components/Pagination";
-
-const statusLabels = {
-  new: "جديد",
-  contacted: "تم التواصل",
-  booked: "تم الحجز",
-  not_interested: "غير مهتم",
-  no_answer: "لم يرد",
-};
-
-const statusColors = {
-  new: "bg-blue-500",
-  contacted: "bg-yellow-500",
-  booked: "bg-green-500",
-  not_interested: "bg-red-500",
-  no_answer: "bg-gray-500",
-};
+import { leadStatusLabels as statusLabels, leadStatusColors as statusColors } from "@/hooks/useStatusLabels";
 
 // Sanitize lead data to prevent JSON parsing errors
 const sanitizeLead = (lead: any) => {

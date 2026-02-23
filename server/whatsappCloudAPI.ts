@@ -62,6 +62,56 @@ export function getWhatsAppAPIStatus(): {
 }
 
 /**
+ * Check if WhatsApp Business API is configured (backward compatible alias)
+ */
+export function isWhatsAppBusinessAPIConfigured(): boolean {
+  const { phoneNumberId, accessToken } = getCredentials();
+  return !!(phoneNumberId && accessToken);
+}
+
+export function getWhatsAppBusinessAPIStatus(): {
+  configured: boolean;
+  phoneNumberId?: string;
+} {
+  const { phoneNumberId } = getCredentials();
+  return {
+    configured: isWhatsAppBusinessAPIConfigured(),
+    phoneNumberId,
+  };
+}
+
+// ─── Error Handling ────────────────────────────────────────
+
+interface WhatsAppError {
+  code: number;
+  title: string;
+  message: string;
+  userFriendlyMessage: string;
+  shouldRetry: boolean;
+  category: 'rate_limit' | 'template' | 'user' | 'system' | 'policy';
+}
+
+const WHATSAPP_ERROR_CODES: Record<number, WhatsAppError> = {
+  131049: { code: 131049, title: 'Marketing messages to US users blocked', message: 'Cannot send marketing messages to WhatsApp users in the United States', userFriendlyMessage: 'لا يمكن إرسال رسائل تسويقية للمستخدمين في الولايات المتحدة', shouldRetry: false, category: 'policy' },
+  131026: { code: 131026, title: 'Template not approved or paused', message: 'The template is not approved, paused, or disabled', userFriendlyMessage: 'القالب غير معتمد أو متوقف مؤقتاً', shouldRetry: false, category: 'template' },
+  131047: { code: 131047, title: 'Messaging limit reached', message: 'You have reached your messaging limit', userFriendlyMessage: 'تم الوصول إلى حد الرسائل المسموح به', shouldRetry: true, category: 'rate_limit' },
+  131051: { code: 131051, title: 'Invalid phone number', message: 'The phone number is blocked, invalid, or not registered on WhatsApp', userFriendlyMessage: 'رقم الهاتف محظور أو غير صحيح أو غير مسجل في واتساب', shouldRetry: false, category: 'user' },
+  130472: { code: 130472, title: 'User number is part of an experiment', message: 'The user number is part of an experiment', userFriendlyMessage: 'رقم المستخدم جزء من تجربة', shouldRetry: false, category: 'user' },
+  133016: { code: 133016, title: 'Service temporarily unavailable', message: 'WhatsApp service is temporarily unavailable', userFriendlyMessage: 'خدمة واتساب غير متاحة مؤقتاً', shouldRetry: true, category: 'system' },
+};
+
+export function parseWhatsAppError(errorData: any): {
+  code: number; title: string; message: string; userFriendlyMessage: string; shouldRetry: boolean; category: string;
+} {
+  const errorCode = errorData?.error?.code || errorData?.code || 0;
+  const knownError = WHATSAPP_ERROR_CODES[errorCode];
+  if (knownError) return knownError;
+  return { code: errorCode, title: 'Unknown error', message: errorData?.error?.message || errorData?.message || 'Unknown error occurred', userFriendlyMessage: 'حدث خطأ غير معروف', shouldRetry: false, category: 'system' };
+}
+
+// ─── Send Messages ─────────────────────────────────────────
+
+/**
  * Send a text message via WhatsApp Cloud API
  */
 export async function sendWhatsAppTextMessage(
