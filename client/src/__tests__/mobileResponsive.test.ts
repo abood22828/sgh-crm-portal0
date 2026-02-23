@@ -61,9 +61,11 @@ describe("Mobile Responsive - Admin Dashboard", () => {
     expect(content).toMatch(/p-[23]\s+sm:p-|px-[23]\s+sm:px-/);
   });
 
-  it("should have responsive grid for stats", () => {
+  it("should use responsive layout with DetailedStatsCards", () => {
     const content = readFile(dashboardPath);
-    expect(content).toMatch(/grid-cols-[12]\s+.*md:grid-cols-|grid-cols-[12]\s+.*lg:grid-cols-/);
+    // AdminDashboard تم تقسيمه - الشبكة المتجاوبة انتقلت إلى DetailedStatsCards
+    expect(content).toContain('DetailedStatsCards');
+    expect(content).toMatch(/flex-col\s+.*md:flex-row/);
   });
 });
 

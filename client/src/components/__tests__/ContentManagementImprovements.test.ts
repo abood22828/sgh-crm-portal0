@@ -33,9 +33,9 @@ describe('DoctorsManagement التحسينات', () => {
     expect(code).toContain('rounded-lg');
   });
 
-  it('يجب أن يحتوي على حوار حذف محسن مع أيقونة تحذير', () => {
-    expect(code).toContain('AlertTriangle');
-    expect(code).toContain('destructive');
+  it('يجب أن يستخدم ConfirmDeleteDialog للحذف', () => {
+    expect(code).toContain('ConfirmDeleteDialog');
+    expect(code).toContain('useConfirmDialog');
   });
 
   it('يجب أن يحتوي على toolbar مع بحث وأزرار', () => {
@@ -76,9 +76,9 @@ describe('OffersManagement التحسينات', () => {
     expect(code).toContain('المعلومات الأساسية');
   });
 
-  it('يجب أن يحتوي على حوار حذف محسن', () => {
-    expect(code).toContain('AlertTriangle');
-    expect(code).toContain('destructive');
+  it('يجب أن يستخدم ConfirmDeleteDialog للحذف', () => {
+    expect(code).toContain('ConfirmDeleteDialog');
+    expect(code).toContain('useConfirmDialog');
   });
 
   it('يجب أن يحتوي على badges محسنة للحالة', () => {
@@ -116,9 +116,9 @@ describe('CampsManagement التحسينات', () => {
     expect(code).toContain('الإعدادات والتواريخ');
   });
 
-  it('يجب أن يحتوي على حوار حذف محسن', () => {
-    expect(code).toContain('AlertTriangle');
-    expect(code).toContain('destructive');
+  it('يجب أن يستخدم ConfirmDeleteDialog للحذف', () => {
+    expect(code).toContain('ConfirmDeleteDialog');
+    expect(code).toContain('useConfirmDialog');
   });
 
   it('يجب أن يحتوي على badges محسنة للحالة مع مؤشر لوني', () => {
@@ -149,10 +149,10 @@ describe('التناسق بين الصفحات الثلاث', () => {
     expect(camps).toContain('animate-pulse');
   });
 
-  it('جميع الصفحات تحتوي على حوار حذف مع AlertTriangle', () => {
-    expect(doctors).toContain('AlertTriangle');
-    expect(offers).toContain('AlertTriangle');
-    expect(camps).toContain('AlertTriangle');
+  it('جميع الصفحات تستخدم ConfirmDeleteDialog الموحد', () => {
+    expect(doctors).toContain('ConfirmDeleteDialog');
+    expect(offers).toContain('ConfirmDeleteDialog');
+    expect(camps).toContain('ConfirmDeleteDialog');
   });
 
   it('جميع الصفحات تستخدم hover:shadow-md في بطاقات الإحصائيات', () => {

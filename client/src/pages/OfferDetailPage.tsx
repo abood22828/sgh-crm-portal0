@@ -18,8 +18,10 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function OfferDetailPage() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const params = useParams();
   const [, setLocation] = useLocation();
@@ -372,7 +374,7 @@ export default function OfferDetailPage() {
                     <Input
                       id="phone"
                       type="tel"
-                      value={formData.phone}
+                      value={formatPhoneDisplay(formData.phone)}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       placeholder="مثال: 771234567"
                       required

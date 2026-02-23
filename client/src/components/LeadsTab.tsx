@@ -35,6 +35,7 @@ import {
 import { toast } from "sonner";
 import { exportToExcel, formatLeadsForExport } from "@/lib/exportToExcel";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 interface LeadsTabProps {
   leadsFilter: any;
@@ -56,6 +57,7 @@ const sanitizeLead = (lead: any) => {
 };
 
 export default function LeadsTab({ leadsFilter, onOpenStatusDialog, pendingCount }: LeadsTabProps) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate } = useFormatDate();
   const { data: unifiedLeads, isLoading: leadsLoading } = trpc.leads.list.useQuery();
   const { data: stats } = trpc.leads.stats.useQuery();
@@ -267,8 +269,8 @@ export default function LeadsTab({ leadsFilter, onOpenStatusDialog, pendingCount
                       <TableCell className="font-medium">{lead.fullName}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono">{lead.phone}</span>
-                          <a href={`tel:${lead.phone}`} className="text-primary hover:underline">
+                          <span className="font-mono">{formatPhoneDisplay(lead.phone)}</span>
+                          <a href={`tel:${formatPhoneDisplay(lead.phone)}`} className="text-primary hover:underline">
                             <Phone className="h-4 w-4" />
                           </a>
                         </div>

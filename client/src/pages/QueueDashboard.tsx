@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function QueueDashboard() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const [autoRefresh, setAutoRefresh] = useState(true);
   
@@ -177,7 +179,7 @@ export default function QueueDashboard() {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {job.phone} • {job.templateName}
+                      {formatPhoneDisplay(job.phone)} • {job.templateName}
                     </p>
                     {job.error && (
                       <div className="flex items-center gap-1 mt-2 text-xs text-red-600">

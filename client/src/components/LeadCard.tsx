@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Phone, Mail, Calendar, Eye, MessageSquare, User } from "lucide-react";
 import { SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 const statusLabels: Record<string, string> = {
   new: "جديد",
@@ -28,6 +29,7 @@ interface LeadCardProps {
 }
 
 export default function LeadCard({ lead, onUpdateStatus, onWhatsApp }: LeadCardProps) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const status = statusConfig[lead.status] || statusConfig.new;
   const isUrgent = lead.status === 'new' || lead.status === 'pending';
@@ -71,7 +73,7 @@ export default function LeadCard({ lead, onUpdateStatus, onWhatsApp }: LeadCardP
         <div className="space-y-1.5 mb-3">
           <div className="flex items-center gap-2 text-sm">
             <Phone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-            <span dir="ltr" className="font-mono text-xs">{lead.phone}</span>
+            <span dir="ltr" className="font-mono text-xs">{formatPhoneDisplay(lead.phone)}</span>
           </div>
 
           {lead.email && (
@@ -95,7 +97,7 @@ export default function LeadCard({ lead, onUpdateStatus, onWhatsApp }: LeadCardP
             size="sm"
             variant="outline"
             className="h-8 text-xs gap-1"
-            onClick={() => window.location.href = `tel:${lead.phone}`}
+            onClick={() => window.location.href = `tel:${formatPhoneDisplay(lead.phone)}`}
           >
             <Phone className="w-3.5 h-3.5" />
             اتصال

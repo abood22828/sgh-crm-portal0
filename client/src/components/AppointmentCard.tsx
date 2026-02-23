@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Phone, User, Calendar, Eye, Stethoscope, MessageCircle, Printer } from "lucide-react";
 import { SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 interface AppointmentCardProps {
   appointment: any;
@@ -19,6 +20,7 @@ const statusConfig: Record<string, { bg: string; text: string; dot: string; bord
 };
 
 export default function AppointmentCard({ appointment, onViewDetails, onPrint }: AppointmentCardProps) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const status = statusConfig[appointment.status] || statusConfig.pending;
   const isUrgent = appointment.status === 'pending';
@@ -62,7 +64,7 @@ export default function AppointmentCard({ appointment, onViewDetails, onPrint }:
         <div className="space-y-1.5 mb-3">
           <div className="flex items-center gap-2 text-sm">
             <Phone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-            <span dir="ltr" className="font-mono text-xs">{appointment.phone}</span>
+            <span dir="ltr" className="font-mono text-xs">{formatPhoneDisplay(appointment.phone)}</span>
           </div>
 
           <div className="flex items-center gap-2 text-sm">
@@ -109,7 +111,7 @@ export default function AppointmentCard({ appointment, onViewDetails, onPrint }:
             size="sm"
             variant="outline"
             className="h-8 text-xs gap-1"
-            onClick={() => window.location.href = `tel:${appointment.phone}`}
+            onClick={() => window.location.href = `tel:${formatPhoneDisplay(appointment.phone)}`}
           >
             <Phone className="w-3.5 h-3.5" />
             اتصال

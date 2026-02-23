@@ -16,8 +16,10 @@ import {
 import { trpc } from "@/lib/trpc";
 import { Loader2, CheckCircle2, Phone, Mail, MapPin, Calendar, Clock, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function DoctorAppointments() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const [, setLocation] = useLocation();
   const [formData, setFormData] = useState({
     fullName: "",
@@ -228,7 +230,7 @@ export default function DoctorAppointments() {
                         id="phone"
                         type="tel"
                         placeholder="مثال: 777123456"
-                        value={formData.phone}
+                        value={formatPhoneDisplay(formData.phone)}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         required
                       />

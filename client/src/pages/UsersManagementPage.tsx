@@ -55,6 +55,7 @@ import { type ColumnConfig } from "@/components/ColumnVisibility";
 import { ColumnVisibility } from "@/components/ColumnVisibility";
 import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
 import { useTableFeatures } from "@/hooks/useTableFeatures";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 const roleLabels: Record<string, string> = {
   admin: "مسؤول",
@@ -128,6 +129,7 @@ const userColumns: ColumnConfig[] = [
 ];
 
 export default function UsersManagementPage() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [activeSection, setActiveSection] = useState<"users" | "requests" | "activity">("users");
@@ -856,7 +858,7 @@ export default function UsersManagementPage() {
                                     {request.phone ? (
                                       <div className="flex items-center gap-2">
                                         <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                                        <span dir="ltr">{request.phone}</span>
+                                        <span dir="ltr">{formatPhoneDisplay(request.phone)}</span>
                                       </div>
                                     ) : (
                                       <span className="text-muted-foreground text-sm">-</span>

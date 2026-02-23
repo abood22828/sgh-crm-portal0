@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Phone, MessageCircle, Edit, Printer, Tag, User, Mail } from "lucide-react";
 import { SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 interface OfferLead {
   id: number;
@@ -33,12 +34,13 @@ const statusConfig: Record<string, { bg: string; text: string; dot: string; bord
 };
 
 export default function OfferLeadCard({ lead, onEdit, onPrint }: OfferLeadCardProps) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const status = statusConfig[lead.status] || { bg: "bg-muted/50", text: "text-foreground", dot: "bg-gray-500", border: "border-border", label: lead.status };
   const isUrgent = lead.status === 'new' || lead.status === 'pending';
 
   const handleCall = () => {
-    window.location.href = `tel:${lead.phone}`;
+    window.location.href = `tel:${formatPhoneDisplay(lead.phone)}`;
   };
 
   const handleWhatsApp = () => {
@@ -87,7 +89,7 @@ export default function OfferLeadCard({ lead, onEdit, onPrint }: OfferLeadCardPr
         <div className="space-y-1.5 mb-3">
           <div className="flex items-center gap-2 text-sm">
             <Phone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-            <span dir="ltr" className="font-mono text-xs">{lead.phone}</span>
+            <span dir="ltr" className="font-mono text-xs">{formatPhoneDisplay(lead.phone)}</span>
           </div>
           
           {lead.email && (

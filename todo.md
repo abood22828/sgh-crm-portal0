@@ -3297,3 +3297,14 @@
 - [x] إضافة اختبارات Vitest لـ usePhoneFormat (24 اختبار)
 - [x] إضافة اختبارات Vitest لـ useStatusLabels (34 اختبار)
 - [x] التحقق من عدم وجود أخطاء TypeScript - 81 اختبار ناجح
+
+### تحسين إضافي للكود - الجولة 2 - 23 فبراير 2026
+- [x] تقسيم AppointmentsTab (799 سطر) إلى مكونات أصغر (AppointmentFilters 140 + AppointmentTableDesktop 280 + AppointmentsTab 350)
+- [x] تطبيق usePhoneFormat في LeadsManagementPage
+- [x] تطبيق usePhoneFormat في AppointmentsManagementPage
+- [x] تطبيق usePhoneFormat في بقية الصفحات التي تعرض أرقام هواتف (15+ ملف)
+- [x] إضافة اختبارات Vitest لـ LeadsTab (16 اختبار)
+- [x] إضافة اختبارات Vitest لـ AppointmentsTab (12 اختبار)
+- [x] إضافة اختبارات Vitest لـ ConfirmDeleteDialog (11 اختبار)
+- [x] التحقق من عدم وجود أخطاء TypeScript - 620 اختبار ناجح في 30 ملف
+- [x] تحديث الاختبارات القديمة المتأثرة (animations, mobileResponsive, DashboardUI, ContentManagement)

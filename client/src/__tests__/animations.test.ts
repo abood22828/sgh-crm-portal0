@@ -202,10 +202,10 @@ describe('Animation Integration in Components', () => {
     
     const pages = [
       '../pages/LeadsManagementPage.tsx',
-      '../pages/BookingsManagementPage.tsx',
       '../pages/AppointmentsManagementPage.tsx',
       '../pages/UsersManagementPage.tsx',
-      '../pages/AdminDashboard.tsx',
+      // AdminDashboard تم تقسيمه - الجداول انتقلت إلى مكونات فرعية
+      // BookingsManagementPage يستخدم LeadsTab/AppointmentsTab المنفصلة
     ];
     
     for (const page of pages) {

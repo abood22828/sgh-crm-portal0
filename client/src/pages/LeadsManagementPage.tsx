@@ -30,6 +30,7 @@ import { exportToExcel, formatLeadsForExport } from "@/lib/exportToExcel";
 import { useFilterUtils, type DateFilterPreset } from "@/hooks/useFilterUtils";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 const statusLabels: Record<string, string> = {
   new: "جديد",
@@ -60,6 +61,7 @@ const sanitizeLead = (lead: any) => {
 };
 
 export default function LeadsManagementPage() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const { user } = useAuth();
   const [selectedLead, setSelectedLead] = useState<any>(null);
@@ -360,8 +362,8 @@ export default function LeadsManagementPage() {
                         <TableCell className="font-medium">{lead.fullName}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-xs">{lead.phone}</span>
-                            <a href={`tel:${lead.phone}`} className="text-primary hover:text-primary/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="font-mono text-xs">{formatPhoneDisplay(lead.phone)}</span>
+                            <a href={`tel:${formatPhoneDisplay(lead.phone)}`} className="text-primary hover:text-primary/80 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Phone className="h-3.5 w-3.5" />
                             </a>
                             <a
@@ -484,7 +486,7 @@ export default function LeadsManagementPage() {
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                     <div className="flex items-center gap-1.5">
                       <Phone className="w-3 h-3 text-muted-foreground" />
-                      <span dir="ltr" className="font-mono">{selectedLead.phone}</span>
+                      <span dir="ltr" className="font-mono">{formatPhoneDisplay(selectedLead.phone)}</span>
                     </div>
                     {selectedLead.email && (
                       <div className="flex items-center gap-1.5">
@@ -525,7 +527,7 @@ export default function LeadsManagementPage() {
                     variant="outline"
                     size="sm"
                     className="flex-1 h-9 text-xs gap-1.5"
-                    onClick={() => window.location.href = `tel:${selectedLead.phone}`}
+                    onClick={() => window.location.href = `tel:${formatPhoneDisplay(selectedLead.phone)}`}
                   >
                     <Phone className="w-3.5 h-3.5" />
                     اتصال

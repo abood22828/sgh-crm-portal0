@@ -67,6 +67,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 const statusLabels: Record<string, string> = {
   new: "جديد",
@@ -131,6 +132,7 @@ const customerColumns: ColumnConfig[] = [
 ];
 
 export default function CustomerProfilesTab() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const { user } = useAuth();
   const [page, setPage] = useState(1);
@@ -427,7 +429,7 @@ export default function CustomerProfilesTab() {
                 <TableBody>
                   {sortedCustomers.map((customer: any, index: number) => (
                     <TableRow
-                      key={customer.phone}
+                      key={formatPhoneDisplay(customer.phone)}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => {
                         setSelectedPhone(customer.phone);
@@ -454,10 +456,10 @@ export default function CustomerProfilesTab() {
                               return (
                                 <FrozenTableCell key={colKey} columnKey={colKey}>
                                   <div className="flex items-center gap-2">
-                                    <span dir="ltr" className="font-mono">{customer.phone}</span>
+                                    <span dir="ltr" className="font-mono">{formatPhoneDisplay(customer.phone)}</span>
                                     <span onClick={(e) => e.stopPropagation()}>
                                       <ActionButtons
-                                        phoneNumber={customer.phone}
+                                        phoneNumber={formatPhoneDisplay(customer.phone)}
                                         size="sm"
                                       />
                                     </span>
@@ -562,7 +564,7 @@ export default function CustomerProfilesTab() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm" dir="ltr">{customerProfile.phone}</span>
+                    <span className="text-sm" dir="ltr">{formatPhoneDisplay(customerProfile.phone)}</span>
                   </div>
                   {customerProfile.email && (
                     <div className="flex items-center gap-2">
@@ -586,7 +588,7 @@ export default function CustomerProfilesTab() {
                   </span>
                 </div>
                 <div className="mt-2">
-                  <ActionButtons phoneNumber={customerProfile.phone} size="sm" />
+                  <ActionButtons phoneNumber={formatPhoneDisplay(customerProfile.phone)} size="sm" />
                 </div>
               </div>
 

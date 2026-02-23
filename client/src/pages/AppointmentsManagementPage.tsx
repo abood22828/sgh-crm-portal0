@@ -55,8 +55,10 @@ import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
 import Pagination, { type PageSizeValue } from "@/components/Pagination";
 import { appointmentStatusLabels as statusLabels } from "@/hooks/useStatusLabels";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function AppointmentsManagementPage() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const { user } = useAuth();
   const utils = trpc.useUtils();
@@ -609,7 +611,7 @@ export default function AppointmentsManagementPage() {
                             case 'phone':
                               return (
                                 <FrozenTableCell key={colKey} columnKey={colKey}>
-                                  <ActionButtons phoneNumber={appointment.phone} size="sm" />
+                                  <ActionButtons phoneNumber={formatPhoneDisplay(appointment.phone)} size="sm" />
                                 </FrozenTableCell>
                               );
                             case 'email':
@@ -777,7 +779,7 @@ export default function AppointmentsManagementPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <p className="text-sm"><span className="font-medium">المريض:</span> {selectedAppointment.patientName}</p>
-                          <p className="text-sm"><span className="font-medium">الهاتف:</span> {selectedAppointment.phone}</p>
+                          <p className="text-sm"><span className="font-medium">الهاتف:</span> {formatPhoneDisplay(selectedAppointment.phone)}</p>
                           {selectedAppointment.email && <p className="text-sm"><span className="font-medium">البريد:</span> {selectedAppointment.email}</p>}
                         </div>
                         <div className="space-y-2">

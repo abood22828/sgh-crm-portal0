@@ -86,6 +86,7 @@ import CardSkeleton from "@/components/CardSkeleton";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
 import Pagination, { type PageSizeValue } from "@/components/Pagination";
 import { RotateCcw } from "lucide-react";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 const statusLabels = {
   new: "جديد",
@@ -110,6 +111,7 @@ export default function OfferLeadsManagement({
   onPendingCountChange?: (count: number) => void,
   dateRange: { from: Date, to: Date }
 }) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.offerLeads.generateReceiptNumber.useMutation();
@@ -411,8 +413,8 @@ export default function OfferLeadsManagement({
   const handlePrintOfferLeads = useCallback(() => {
     offerExport.handlePrint(getOfferExportOptions());
   }, [offerExport, getOfferExportOptions]);
-
   const handleStatusUpdate = () => {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
     if (!selectedLead || !newStatus) return;
     
     updateStatusMutation.mutate({
@@ -739,9 +741,9 @@ export default function OfferLeadsManagement({
                             return (
                               <FrozenTableCell key={colKey} columnKey={colKey}>
                                 <div className="flex items-center gap-2">
-                                  <span className="font-mono">{lead.phone}</span>
+                                  <span className="font-mono">{formatPhoneDisplay(lead.phone)}</span>
                                   <ActionButtons
-                                    phoneNumber={lead.phone}
+                                    phoneNumber={formatPhoneDisplay(lead.phone)}
                                     showWhatsApp={true}
                                     whatsAppMessage={`مرحباً ${lead.fullName}، شكراً لاهتمامك بعرضنا الطبي. نود التواصل معك لتأكيد حجزك.`}
                                     size="sm"
@@ -936,7 +938,7 @@ export default function OfferLeadsManagement({
                       <div className="bg-muted p-3 rounded-lg space-y-2 text-sm">
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{selectedLead.phone}</span>
+                          <span>{formatPhoneDisplay(selectedLead.phone)}</span>
                         </div>
                         {selectedLead.email && (
                           <div className="flex items-center gap-2">

@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 /**
  * Reports Page - Mobile Optimized
@@ -42,8 +43,9 @@ const STATUS_COLORS: Record<string, string> = {
 
 // Booking Card Component for Mobile
 function BookingCard({ booking }: { booking: any }) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const handleCall = () => {
-    window.location.href = `tel:${booking.phone}`;
+    window.location.href = `tel:${formatPhoneDisplay(booking.phone)}`;
   };
 
   const handleWhatsApp = () => {
@@ -75,7 +77,7 @@ function BookingCard({ booking }: { booking: any }) {
 
           {/* Contact Info */}
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-mono text-foreground">{booking.phone}</span>
+            <span className="font-mono text-foreground">{formatPhoneDisplay(booking.phone)}</span>
           </div>
 
           {/* Source and Date */}
@@ -155,6 +157,7 @@ const datePresets: { label: string; value: DatePreset }[] = [
 ];
 
 export default function ReportsPage() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [selectedPreset, setSelectedPreset] = useState<DatePreset | null>(null);
 
@@ -710,7 +713,7 @@ export default function ReportsPage() {
                           <tr key={`${booking.type}-${booking.id}`} className="border-b hover:bg-muted/50">
                             <td className="p-2">{booking.type}</td>
                             <td className="p-2">{booking.fullName}</td>
-                            <td className="p-2 font-mono">{booking.phone}</td>
+                            <td className="p-2 font-mono">{formatPhoneDisplay(booking.phone)}</td>
                             <td className="p-2">{booking.service || "غير محدد"}</td>
                             <td className="p-2">
                               <span

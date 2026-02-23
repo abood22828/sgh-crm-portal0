@@ -9,6 +9,7 @@ import { Search, Phone, MessageCircle, Edit, X, Calendar, Mail, User, MapPin, Pr
 import { toast } from "sonner";
 import { printReceipt } from "./PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 interface PatientCardProps {
   patient: any;
@@ -18,6 +19,7 @@ interface PatientCardProps {
 
 function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
   const { formatDate, formatDateTime } = useFormatDate();
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const [selectedStatus, setSelectedStatus] = useState(patient.status);
   const { user } = useAuth();
   const [isPrinting, setIsPrinting] = useState(false);
@@ -28,7 +30,7 @@ function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
 
   const handleCall = () => {
     if (patient.phone) {
-      window.location.href = `tel:${patient.phone}`;
+      window.location.href = `tel:${formatPhoneDisplay(patient.phone)}`;
     } else {
       toast.error("رقم الهاتف غير متوفر");
     }
@@ -325,6 +327,7 @@ function PatientCard({ patient, onClose, onUpdateStatus }: PatientCardProps) {
 }
 
 export default function QuickPatientSearch() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -435,7 +438,7 @@ export default function QuickPatientSearch() {
                       <p className="font-medium text-sm group-hover:text-primary transition-colors truncate">
                         {result.fullName}
                       </p>
-                      <p className="text-xs text-muted-foreground" dir="ltr">{result.phone}</p>
+                      <p className="text-xs text-muted-foreground" dir="ltr">{formatPhoneDisplay(result.phone)}</p>
                     </div>
                     <Badge variant="outline" className="shrink-0 ml-2 text-xs">
                       {getTypeLabel(result.type)}

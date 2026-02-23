@@ -86,6 +86,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import BulkUpdateDialog from "@/components/BulkUpdateDialog";
 import Pagination, { type PageSizeValue } from "@/components/Pagination";
 import { RotateCcw } from "lucide-react";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 const statusLabels = {
   pending: "قيد الانتظار",
@@ -108,6 +109,7 @@ export default function CampRegistrationsManagement({
   onPendingCountChange?: (count: number) => void,
   dateRange: { from: Date, to: Date }
 }) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.campRegistrations.generateReceiptNumber.useMutation();
@@ -419,8 +421,8 @@ export default function CampRegistrationsManagement({
   const handlePrintCampRegistrations = useCallback(() => {
     campExport.handlePrint(getCampExportOptions());
   }, [campExport, getCampExportOptions]);
-
   const handleSelectAll = () => {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
     if (selectedIds.length === filteredRegistrations.length) {
       setSelectedIds([]);
     } else {
@@ -773,8 +775,8 @@ export default function CampRegistrationsManagement({
                             return (
                               <FrozenTableCell key={colKey} columnKey={colKey}>
                                 <div className="flex items-center gap-2">
-                                  <span className="font-mono">{reg.phone}</span>
-                                  <ActionButtons phoneNumber={reg.phone} showWhatsApp={true}
+                                  <span className="font-mono">{formatPhoneDisplay(reg.phone)}</span>
+                                  <ActionButtons phoneNumber={formatPhoneDisplay(reg.phone)} showWhatsApp={true}
                                     whatsAppMessage={`مرحباً ${reg.fullName}، شكراً لتسجيلك في مخيمنا الطبي. نتطلع لرؤيتك.`}
                                     size="sm" variant="ghost" />
                                 </div>
@@ -957,7 +959,7 @@ export default function CampRegistrationsManagement({
                       <div className="bg-muted p-3 rounded-lg space-y-2 text-sm">
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{selectedRegistration.phone}</span>
+                          <span>{formatPhoneDisplay(selectedRegistration.phone)}</span>
                         </div>
                         {selectedRegistration.email && (
                           <div className="flex items-center gap-2">
@@ -1105,7 +1107,7 @@ export default function CampRegistrationsManagement({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">رقم الهاتف</p>
-                  <p className="text-base font-semibold" dir="ltr">{selectedRegistration.phone}</p>
+                  <p className="text-base font-semibold" dir="ltr">{formatPhoneDisplay(selectedRegistration.phone)}</p>
                 </div>
                 {selectedRegistration.email && (
                   <div>

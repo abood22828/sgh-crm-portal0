@@ -19,8 +19,10 @@ import {
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function PatientDashboard() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
@@ -104,7 +106,7 @@ export default function PatientDashboard() {
                 <h1 className="text-base sm:text-lg md:text-xl font-bold text-foreground">مرحباً، {patient.fullName}</h1>
                 <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                   <Phone className="h-3 w-3" />
-                  <span dir="ltr">{patient.phone}</span>
+                  <span dir="ltr">{formatPhoneDisplay(patient.phone)}</span>
                 </p>
               </div>
             </div>
@@ -509,7 +511,7 @@ export default function PatientDashboard() {
                   </div>
                   <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                     <p className="text-[10px] sm:text-xs text-muted-foreground">رقم الهاتف</p>
-                    <p className="text-sm font-medium mt-0.5" dir="ltr">{patient.phone}</p>
+                    <p className="text-sm font-medium mt-0.5" dir="ltr">{formatPhoneDisplay(patient.phone)}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                     <p className="text-[10px] sm:text-xs text-muted-foreground">الجنس</p>

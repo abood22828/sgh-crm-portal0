@@ -6,12 +6,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, X, Users, Calendar, TrendingUp, UserCheck, Phone, Mail } from "lucide-react";
 import { useLocation } from "wouter";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 interface GlobalSearchProps {
   onClose?: () => void;
 }
 
 export default function GlobalSearch({ onClose }: GlobalSearchProps) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [, setLocation] = useLocation();
@@ -204,7 +206,7 @@ export default function GlobalSearch({ onClose }: GlobalSearchProps) {
                                 <p className="font-medium text-sm">{lead.fullName}</p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <Phone className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-xs text-muted-foreground" dir="ltr">{lead.phone}</span>
+                                  <span className="text-xs text-muted-foreground" dir="ltr">{formatPhoneDisplay(lead.phone)}</span>
                                 </div>
                                 {lead.email && (
                                   <div className="flex items-center gap-2 mt-1">
@@ -246,7 +248,7 @@ export default function GlobalSearch({ onClose }: GlobalSearchProps) {
                                 <p className="font-medium text-sm">{apt.fullName}</p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <Phone className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-xs text-muted-foreground" dir="ltr">{apt.phone}</span>
+                                  <span className="text-xs text-muted-foreground" dir="ltr">{formatPhoneDisplay(apt.phone)}</span>
                                 </div>
                                 {apt.doctorName && (
                                   <p className="text-xs text-muted-foreground mt-1">الطبيب: {apt.doctorName}</p>
@@ -289,7 +291,7 @@ export default function GlobalSearch({ onClose }: GlobalSearchProps) {
                                 <p className="font-medium text-sm">{offer.fullName}</p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <Phone className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-xs text-muted-foreground" dir="ltr">{offer.phone}</span>
+                                  <span className="text-xs text-muted-foreground" dir="ltr">{formatPhoneDisplay(offer.phone)}</span>
                                 </div>
                                 {offer.offerTitle && (
                                   <p className="text-xs text-muted-foreground mt-1">العرض: {offer.offerTitle}</p>
@@ -323,7 +325,7 @@ export default function GlobalSearch({ onClose }: GlobalSearchProps) {
                                 <p className="font-medium text-sm">{camp.fullName}</p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <Phone className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-xs text-muted-foreground" dir="ltr">{camp.phone}</span>
+                                  <span className="text-xs text-muted-foreground" dir="ltr">{formatPhoneDisplay(camp.phone)}</span>
                                 </div>
                                 {camp.campName && (
                                   <p className="text-xs text-muted-foreground mt-1">المخيم: {camp.campName}</p>

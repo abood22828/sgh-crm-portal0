@@ -52,8 +52,10 @@ import { useFilterUtils } from "@/hooks/useFilterUtils";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_LABELS } from "@shared/sources";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function BookingsManagementPage() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const { user } = useAuth();
   const utils = trpc.useUtils();
@@ -366,7 +368,7 @@ export default function BookingsManagementPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <p className="text-sm"><span className="font-medium">الاسم:</span> {selectedLead.fullName}</p>
-                  <p className="text-sm"><span className="font-medium">الهاتف:</span> {selectedLead.phone}</p>
+                  <p className="text-sm"><span className="font-medium">الهاتف:</span> {formatPhoneDisplay(selectedLead.phone)}</p>
                   {selectedLead.email && (
                     <p className="text-sm"><span className="font-medium">البريد:</span> {selectedLead.email}</p>
                   )}
@@ -454,7 +456,7 @@ export default function BookingsManagementPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <p className="text-sm"><span className="font-medium">المريض:</span> {selectedAppointment.patientName}</p>
-                          <p className="text-sm"><span className="font-medium">الهاتف:</span> {selectedAppointment.phone}</p>
+                          <p className="text-sm"><span className="font-medium">الهاتف:</span> {formatPhoneDisplay(selectedAppointment.phone)}</p>
                           {selectedAppointment.email && (
                             <p className="text-sm"><span className="font-medium">البريد:</span> {selectedAppointment.email}</p>
                           )}

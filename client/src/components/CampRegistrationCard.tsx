@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Phone, MessageCircle, Edit, User, Eye, Printer, Tent, Mail } from "lucide-react";
 import { SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 interface CampRegistration {
   id: number;
@@ -34,12 +35,13 @@ const statusConfig: Record<string, { bg: string; text: string; dot: string; bord
 };
 
 export default function CampRegistrationCard({ registration, onEdit, onViewDetails, onPrint }: CampRegistrationCardProps) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const status = statusConfig[registration.status] || { bg: "bg-muted/50", text: "text-foreground", dot: "bg-gray-500", border: "border-border", label: registration.status };
   const isUrgent = registration.status === 'pending' || registration.status === 'new';
 
   const handleCall = () => {
-    window.location.href = `tel:${registration.phone}`;
+    window.location.href = `tel:${formatPhoneDisplay(registration.phone)}`;
   };
 
   const handleWhatsApp = () => {
@@ -88,7 +90,7 @@ export default function CampRegistrationCard({ registration, onEdit, onViewDetai
         <div className="space-y-1.5 mb-3">
           <div className="flex items-center gap-2 text-sm">
             <Phone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-            <span dir="ltr" className="font-mono text-xs">{registration.phone}</span>
+            <span dir="ltr" className="font-mono text-xs">{formatPhoneDisplay(registration.phone)}</span>
           </div>
           
           {registration.email && (

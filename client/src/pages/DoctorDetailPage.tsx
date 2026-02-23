@@ -18,8 +18,10 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function DoctorDetailPage() {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const [, params] = useRoute("/doctors/:slug");
   const slug = params?.slug || "";
 
@@ -452,7 +454,7 @@ export default function DoctorDetailPage() {
                       <Input
                         id="phone"
                         type="tel"
-                        value={formData.phone}
+                        value={formatPhoneDisplay(formData.phone)}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         required
                         placeholder="مثال: 771234567"

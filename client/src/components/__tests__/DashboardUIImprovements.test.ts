@@ -33,7 +33,7 @@ describe('Dashboard UI Improvements', () => {
 
     it('should have hospital logo', () => {
       sidebarContent = fs.readFileSync(sidebarPath, 'utf-8');
-      expect(sidebarContent).toContain('new-logo.png');
+      expect(sidebarContent).toContain('icon-72x72.png');
       expect(sidebarContent).toContain('المستشفى السعودي الألماني');
     });
 
@@ -378,7 +378,7 @@ describe('Dashboard UI Improvements', () => {
     it('should have mobile logo visible only on small screens', () => {
       layoutContent = fs.readFileSync(layoutPath, 'utf-8');
       expect(layoutContent).toContain('lg:hidden');
-      expect(layoutContent).toContain('new-logo.png');
+      expect(layoutContent).toContain('APP_LOGO');
     });
   });
 
