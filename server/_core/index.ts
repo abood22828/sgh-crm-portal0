@@ -5,6 +5,7 @@ import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { createUploadRouter } from "../uploadRoute";
+import { createWebhookRouter } from "../webhookRoutes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -39,6 +40,8 @@ async function startServer() {
   registerOAuthRoutes(app);
   // File upload route
   app.use(createUploadRouter());
+  // WhatsApp Webhook routes (direct Express, not tRPC - Meta requirement)
+  app.use(createWebhookRouter());
   // tRPC API
   app.use(
     "/api/trpc",

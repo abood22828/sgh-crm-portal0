@@ -3227,3 +3227,15 @@
 - [x] إنشاء اختبارات useImageUpload (11 اختبار)
 - [x] إنشاء اختبارات CampaignLinksFeature (11 اختبار)
 - [x] جميع الاختبارات الـ 35 نجحت
+
+### إعداد WhatsApp Business API - 23 فبراير 2026
+- [x] تسجيل رقم الهاتف +967 734 000 018 في Cloud API
+- [x] الحصول على رمز وصول طويل الأمد (Long-lived Token)
+- [x] تحديث META_ACCESS_TOKEN في إعدادات المشروع
+- [x] تحديث WHATSAPP_PHONE_NUMBER_ID في إعدادات المشروع
+- [x] اشتراك التطبيق في حساب واتساب (subscribed_apps)
+- [x] إنشاء Express webhook routes مباشرة (بدلاً من tRPC) لتوافق Meta
+- [x] اختبار webhook verification endpoint محلياً
+- [ ] نشر المشروع على sghsanaa.net
+- [ ] إعداد Webhook URL في Meta Developer Portal
+- [ ] اختبار استقبال الرسائل عبر Webhook
