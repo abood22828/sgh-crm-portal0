@@ -1,5 +1,7 @@
 import { useFormatDate, formatDateUtil } from "@/hooks/useFormatDate";
 import { useState, useMemo } from "react";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -263,11 +265,7 @@ export default function UsersManagementPage() {
     setShowAddDialog(true);
   };
 
-  const handleDelete = (userId: number) => {
-    if (confirm("هل أنت متأكد من حذف هذا المستخدم؟")) {
-      deleteMutation.mutate({ id: userId });
-    }
-  };
+  const deleteConfirm = useConfirmDialog<{ id: number; name: string }>();
 
   const handleToggleActive = (userId: number) => {
     toggleActiveMutation.mutate({ id: userId });
@@ -701,7 +699,7 @@ export default function UsersManagementPage() {
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        onClick={() => handleDelete(user.id)}
+                                        onClick={() => deleteConfirm.openConfirm({ id: user.id, name: user.name || user.username })}
                                         className="text-red-600 hover:text-red-700"
                                         title="حذف"
                                       >
@@ -936,6 +934,14 @@ export default function UsersManagementPage() {
           </Card>
         )}
       </div>
+      <ConfirmDeleteDialog
+        open={deleteConfirm.isOpen}
+        onOpenChange={deleteConfirm.closeConfirm}
+        itemName={deleteConfirm.item?.name}
+        itemType="المستخدم"
+        onConfirm={() => deleteConfirm.confirm(() => deleteMutation.mutate({ id: deleteConfirm.item!.id }))}
+        isLoading={deleteMutation.isPending}
+      />
     </DashboardLayout>
   );
 }

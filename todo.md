@@ -3289,3 +3289,11 @@
 - [x] استبدال حوار الحذف في OffersManagement بـ ConfirmDeleteDialog
 - [x] تقسيم AdminDashboard.tsx من 1789 سطر إلى 46 سطر (حذف كود ميت ومكرر)
 - [x] اختبار شامل والتحقق من عدم وجود أخطاء TypeScript (0 أخطاء)
+
+### تحسين إضافي للكود - 23 فبراير 2026
+- [x] استبدال confirm() في UsersManagementPage بـ ConfirmDeleteDialog
+- [x] تقسيم BookingsManagementPage إلى مكونات أصغر (من 1693 إلى 576 سطر + LeadsTab 329 + AppointmentsTab 799)
+- [x] إضافة اختبارات Vitest لـ useFormatDate (23 اختبار)
+- [x] إضافة اختبارات Vitest لـ usePhoneFormat (24 اختبار)
+- [x] إضافة اختبارات Vitest لـ useStatusLabels (34 اختبار)
+- [x] التحقق من عدم وجود أخطاء TypeScript - 81 اختبار ناجح
