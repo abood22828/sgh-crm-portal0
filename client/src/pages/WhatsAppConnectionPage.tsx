@@ -1,70 +1,19 @@
-import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { QrCode, Smartphone, CheckCircle2, XCircle, Loader2, RefreshCw, Power, PowerOff } from "lucide-react";
-import { toast } from "sonner";
+import { CheckCircle2, XCircle, RefreshCw, Cloud, Phone, Shield, MessageCircle, Zap, Info } from "lucide-react";
+import { Link } from "wouter";
 
 export default function WhatsAppConnectionPage() {
-  const [isInitializing, setIsInitializing] = useState(false);
-
-  // Queries
   const { data: statusData, isLoading: statusLoading, refetch: refetchStatus } = 
     trpc.whatsapp.connection.status.useQuery(undefined, {
-      refetchInterval: 3000,
+      refetchInterval: 30000,
     });
-
-  const { data: qrData, refetch: refetchQR } = 
-    trpc.whatsapp.connection.getQR.useQuery(undefined, {
-      enabled: statusData?.hasQRCode || false,
-      refetchInterval: statusData?.hasQRCode ? 2000 : false,
-    });
-
-  // Mutations
-  const initializeMutation = trpc.whatsapp.connection.initialize.useMutation({
-    onSuccess: () => {
-      toast.success("جاري تهيئة WhatsApp...");
-      setIsInitializing(true);
-      refetchStatus();
-      refetchQR();
-    },
-    onError: (error) => {
-      toast.error(`فشل تهيئة WhatsApp: ${error.message}`);
-      setIsInitializing(false);
-    },
-  });
-
-  const disconnectMutation = trpc.whatsapp.connection.disconnect.useMutation({
-    onSuccess: () => {
-      toast.success("تم قطع الاتصال بنجاح");
-      refetchStatus();
-    },
-    onError: (error) => {
-      toast.error(`فشل قطع الاتصال: ${error.message}`);
-    },
-  });
-
-  useEffect(() => {
-    if (statusData?.isReady || statusData?.hasQRCode) {
-      setIsInitializing(false);
-    }
-  }, [statusData]);
-
-  const handleInitialize = () => {
-    initializeMutation.mutate();
-  };
-
-  const handleDisconnect = () => {
-    if (confirm("هل أنت متأكد من قطع اتصال WhatsApp؟")) {
-      disconnectMutation.mutate();
-    }
-  };
 
   const handleRefresh = () => {
     refetchStatus();
-    refetchQR();
   };
 
   const getStatusBadge = () => {
@@ -75,22 +24,14 @@ export default function WhatsAppConnectionPage() {
       return (
         <Badge className="bg-green-500 hover:bg-green-600 text-xs sm:text-sm">
           <CheckCircle2 className="h-3 w-3 ml-1" />
-          متصل
-        </Badge>
-      );
-    }
-    if (statusData?.isConnecting) {
-      return (
-        <Badge variant="secondary" className="text-xs sm:text-sm">
-          <Loader2 className="h-3 w-3 ml-1 animate-spin" />
-          جاري الاتصال...
+          متصل - Cloud API
         </Badge>
       );
     }
     return (
       <Badge variant="destructive" className="text-xs sm:text-sm">
         <XCircle className="h-3 w-3 ml-1" />
-        غير متصل
+        غير مُعد
       </Badge>
     );
   };
@@ -103,192 +44,158 @@ export default function WhatsAppConnectionPage() {
           <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-2 sm:p-3 rounded-xl shadow-lg flex-shrink-0">
-                <Smartphone className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                <Cloud className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground truncate">اتصال WhatsApp Web</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground">امسح رمز QR للاتصال بحسابك</p>
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground truncate">اتصال WhatsApp Cloud API</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">حالة الاتصال بـ WhatsApp Business Cloud API</p>
               </div>
             </div>
             {getStatusBadge()}
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="space-y-4 sm:space-y-6">
           {/* Status Card */}
           <Card className="shadow-lg border-0">
             <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg p-3 sm:p-6">
               <CardTitle className="text-base sm:text-xl">حالة الاتصال</CardTitle>
               <CardDescription className="text-white/80 text-xs sm:text-sm">
-                معلومات الاتصال الحالي بـ WhatsApp Web
+                معلومات الاتصال بـ WhatsApp Business Cloud API
               </CardDescription>
             </CardHeader>
             <CardContent className="p-3 sm:p-6">
-              <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-3 p-2.5 sm:p-4 bg-muted/50 rounded-lg text-center sm:text-right">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                <div className="flex flex-col items-center gap-1.5 p-2.5 sm:p-4 bg-muted/50 rounded-lg text-center">
+                  <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${statusData?.apiConfigured ? 'bg-green-100' : 'bg-red-100'}`}>
+                    <Shield className={`h-4 w-4 sm:h-5 sm:w-5 ${statusData?.apiConfigured ? 'text-green-600' : 'text-red-600'}`} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] sm:text-sm text-muted-foreground">API</p>
+                    <p className="font-semibold text-xs sm:text-base">{statusData?.apiConfigured ? "مُعد" : "غير مُعد"}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-1.5 p-2.5 sm:p-4 bg-muted/50 rounded-lg text-center">
                   <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${statusData?.isReady ? 'bg-green-100' : 'bg-muted'}`}>
-                    <Power className={`h-4 w-4 sm:h-5 sm:w-5 ${statusData?.isReady ? 'text-green-600' : 'text-muted-foreground'}`} />
+                    <Cloud className={`h-4 w-4 sm:h-5 sm:w-5 ${statusData?.isReady ? 'text-green-600' : 'text-muted-foreground'}`} />
                   </div>
                   <div>
                     <p className="text-[10px] sm:text-sm text-muted-foreground">الحالة</p>
-                    <p className="font-semibold text-xs sm:text-base">{statusData?.isReady ? "متصل" : "غير متصل"}</p>
+                    <p className="font-semibold text-xs sm:text-base">{statusData?.isReady ? "جاهز" : "غير جاهز"}</p>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-3 p-2.5 sm:p-4 bg-muted/50 rounded-lg text-center sm:text-right">
-                  <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${statusData?.isConnecting ? 'bg-blue-100' : 'bg-muted'}`}>
-                    <Loader2 className={`h-4 w-4 sm:h-5 sm:w-5 ${statusData?.isConnecting ? 'text-blue-600 animate-spin' : 'text-muted-foreground'}`} />
+                <div className="flex flex-col items-center gap-1.5 p-2.5 sm:p-4 bg-muted/50 rounded-lg text-center">
+                  <div className="p-1.5 sm:p-2 rounded-full flex-shrink-0 bg-blue-100">
+                    <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] sm:text-sm text-muted-foreground">الاتصال</p>
-                    <p className="font-semibold text-xs sm:text-base">{statusData?.isConnecting ? "جاري..." : "غير نشط"}</p>
+                    <p className="text-[10px] sm:text-sm text-muted-foreground">الإصدار</p>
+                    <p className="font-semibold text-xs sm:text-base">{statusData?.apiVersion || "v21.0"}</p>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-3 p-2.5 sm:p-4 bg-muted/50 rounded-lg text-center sm:text-right">
-                  <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${statusData?.hasQRCode ? 'bg-purple-100' : 'bg-muted'}`}>
-                    <QrCode className={`h-4 w-4 sm:h-5 sm:w-5 ${statusData?.hasQRCode ? 'text-purple-600' : 'text-muted-foreground'}`} />
+                <div className="flex flex-col items-center gap-1.5 p-2.5 sm:p-4 bg-muted/50 rounded-lg text-center">
+                  <div className="p-1.5 sm:p-2 rounded-full flex-shrink-0 bg-purple-100">
+                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] sm:text-sm text-muted-foreground">QR Code</p>
-                    <p className="font-semibold text-xs sm:text-base">{statusData?.hasQRCode ? "متوفر" : "غير متوفر"}</p>
+                    <p className="text-[10px] sm:text-sm text-muted-foreground">الوضع</p>
+                    <p className="font-semibold text-xs sm:text-base">Cloud API</p>
                   </div>
                 </div>
               </div>
 
+              {statusData?.phoneNumberId && (
+                <div className="bg-muted/30 rounded-lg p-3 sm:p-4 mb-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">معرف رقم الهاتف (Phone Number ID)</p>
+                  <p className="font-mono text-sm sm:text-base font-semibold" dir="ltr">{statusData.phoneNumberId}</p>
+                </div>
+              )}
+
               <div className="flex gap-2 sm:gap-3">
-                {!statusData?.isReady && !statusData?.isConnecting && (
-                  <Button
-                    onClick={handleInitialize}
-                    disabled={initializeMutation.isPending || isInitializing}
-                    className="flex-1 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-xs sm:text-sm h-9 sm:h-10"
-                  >
-                    {initializeMutation.isPending || isInitializing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5 sm:ml-2 animate-spin" />
-                        جاري التهيئة...
-                      </>
-                    ) : (
-                      <>
-                        <Power className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5 sm:ml-2" />
-                        بدء الاتصال
-                      </>
-                    )}
-                  </Button>
-                )}
-                {statusData?.isReady && (
-                  <Button
-                    onClick={handleDisconnect}
-                    disabled={disconnectMutation.isPending}
-                    variant="destructive"
-                    className="flex-1 text-xs sm:text-sm h-9 sm:h-10"
-                  >
-                    {disconnectMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5 sm:ml-2 animate-spin" />
-                        جاري قطع الاتصال...
-                      </>
-                    ) : (
-                      <>
-                        <PowerOff className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5 sm:ml-2" />
-                        قطع الاتصال
-                      </>
-                    )}
-                  </Button>
-                )}
-                <Button onClick={handleRefresh} variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0">
-                  <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Button onClick={handleRefresh} variant="outline" className="gap-2 text-xs sm:text-sm h-9 sm:h-10">
+                  <RefreshCw className="h-4 w-4" />
+                  تحديث الحالة
                 </Button>
+                <Link href="/dashboard/whatsapp">
+                  <Button className="gap-2 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-xs sm:text-sm h-9 sm:h-10">
+                    <MessageCircle className="h-4 w-4" />
+                    فتح المحادثات
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
-
-          {/* QR Code Card */}
-          {statusData?.hasQRCode && qrData?.qrCode && (
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-t-lg p-3 sm:p-6">
-                <CardTitle className="text-base sm:text-xl">امسح رمز QR</CardTitle>
-                <CardDescription className="text-white/80 text-xs sm:text-sm">
-                  استخدم تطبيق WhatsApp على هاتفك لمسح الرمز
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex flex-col items-center">
-                  <div className="bg-white dark:bg-card p-3 sm:p-4 rounded-lg shadow-md mb-4">
-                    <img
-                      src={qrData.qrCode}
-                      alt="WhatsApp QR Code"
-                      className="w-48 h-48 sm:w-64 sm:h-64"
-                    />
-                  </div>
-                  <Alert className="bg-blue-50 border-blue-200">
-                    <QrCode className="h-4 w-4 text-blue-600" />
-                    <AlertTitle className="text-blue-900 text-sm sm:text-base">كيفية المسح</AlertTitle>
-                    <AlertDescription className="text-blue-800 text-xs sm:text-sm">
-                      <ol className="list-decimal list-inside space-y-1 mt-2">
-                        <li>افتح تطبيق WhatsApp على هاتفك</li>
-                        <li>اضغط على القائمة (⋮) أو الإعدادات</li>
-                        <li>اختر "الأجهزة المرتبطة"</li>
-                        <li>اضغط على "ربط جهاز"</li>
-                        <li>وجّه كاميرا هاتفك نحو هذا الرمز</li>
-                      </ol>
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Connected Success Card */}
           {statusData?.isReady && (
             <Alert className="bg-green-50 border-green-200 shadow-lg">
               <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-              <AlertTitle className="text-green-900 text-sm sm:text-lg">تم الاتصال بنجاح!</AlertTitle>
+              <AlertTitle className="text-green-900 text-sm sm:text-lg">WhatsApp Cloud API جاهز!</AlertTitle>
               <AlertDescription className="text-green-800 text-xs sm:text-sm">
-                حسابك على WhatsApp متصل الآن. يمكنك البدء في إرسال واستقبال الرسائل من خلال المنصة.
+                تم تكوين WhatsApp Business Cloud API بنجاح. يمكنك الآن إرسال واستقبال الرسائل عبر المنصة.
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Instructions Card */}
-          {!statusData?.isReady && !statusData?.isConnecting && !statusData?.hasQRCode && (
-            <Card className="shadow-lg border-0">
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-base sm:text-xl">تعليمات الاتصال</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">اتبع الخطوات التالية للاتصال بـ WhatsApp Web</CardDescription>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
-                <div className="space-y-3 sm:space-y-4">
-                  <div className="flex items-start gap-2.5 sm:gap-3">
-                    <div className="bg-green-100 text-green-700 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center font-bold flex-shrink-0 text-sm sm:text-base">
-                      1
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-0.5 text-sm sm:text-base">اضغط على "بدء الاتصال"</h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground">سيتم تهيئة الاتصال وإنشاء رمز QR</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5 sm:gap-3">
-                    <div className="bg-green-100 text-green-700 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center font-bold flex-shrink-0 text-sm sm:text-base">
-                      2
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-0.5 text-sm sm:text-base">امسح رمز QR</h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground">استخدم تطبيق WhatsApp على هاتفك لمسح الرمز</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5 sm:gap-3">
-                    <div className="bg-green-100 text-green-700 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center font-bold flex-shrink-0 text-sm sm:text-base">
-                      3
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-0.5 text-sm sm:text-base">ابدأ المراسلة</h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground">بعد الاتصال، يمكنك إرسال واستقبال الرسائل مباشرة</p>
-                    </div>
+          {/* Not Configured Warning */}
+          {!statusData?.isReady && !statusLoading && (
+            <Alert className="bg-amber-50 border-amber-200 shadow-lg">
+              <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+              <AlertTitle className="text-amber-900 text-sm sm:text-lg">Cloud API غير مُعد</AlertTitle>
+              <AlertDescription className="text-amber-800 text-xs sm:text-sm">
+                يرجى التأكد من تعيين المتغيرات البيئية التالية:
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li><code className="bg-amber-100 px-1 rounded">WHATSAPP_PHONE_NUMBER_ID</code> - معرف رقم الهاتف</li>
+                  <li><code className="bg-amber-100 px-1 rounded">META_ACCESS_TOKEN</code> - رمز الوصول من Meta</li>
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Info Card */}
+          <Card className="shadow-lg border-0">
+            <CardHeader className="p-3 sm:p-6">
+              <CardTitle className="text-base sm:text-xl flex items-center gap-2">
+                <Info className="h-5 w-5 text-blue-500" />
+                مميزات Cloud API
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                WhatsApp Business Cloud API يوفر ميزات متقدمة
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">إرسال رسائل نصية</p>
+                    <p className="text-xs text-muted-foreground">إرسال رسائل مباشرة للعملاء</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">قوالب معتمدة</p>
+                    <p className="text-xs text-muted-foreground">إرسال قوالب رسائل معتمدة من Meta</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">Webhook تلقائي</p>
+                    <p className="text-xs text-muted-foreground">استقبال الرسائل الواردة تلقائياً</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">تتبع حالة الرسائل</p>
+                    <p className="text-xs text-muted-foreground">معرفة حالة كل رسالة (مرسلة، مستلمة، مقروءة)</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

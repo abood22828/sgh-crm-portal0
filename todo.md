@@ -3241,3 +3241,16 @@
 - [x] إعداد Webhook subscriptions (messages, template_status, account_update)
 - [x] ربط WABA بالتطبيق عبر subscribed_apps
 - [ ] اختبار استقبال الرسائل عبر Webhook
+
+### فحص وتحسين خدمة واتساب - 23 فبراير 2026
+- [x] فحص شامل لكود واتساب (webhook, routes, UI)
+- [x] إنشاء whatsappCloudAPI.ts موحد بدلاً من الملفات المتعددة
+- [x] تحديث whatsapp router ليستخدم Cloud API
+- [x] تحديث whatsapp.ts القديم ليستخدم Cloud API
+- [x] تحديث صفحة WhatsApp Connection لتعرض حالة Cloud API
+- [x] إصلاح صفحة WhatsApp Chat لإرسال رسائل مباشرة عبر sendDirect
+- [x] إضافة endpoint sendDirect لإرسال رسائل لأرقام جديدة
+- [x] إضافة endpoint sendTemplate لإرسال قوالب رسائل
+- [x] إضافة endpoint testSend لاختبار الإرسال
+- [x] اختبار إرسال رسالة فعلية إلى رقم 967773171477 (نجاح)
+- [x] التحقق من أن الخادم يعمل بدون أخطاء TypeScript

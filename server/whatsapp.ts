@@ -1,9 +1,12 @@
 /**
  * WhatsApp API integration
- * Sends WhatsApp messages to customers using WhatsApp Business API
+ * Sends WhatsApp messages to customers using WhatsApp Business Cloud API
+ * 
+ * This file provides backward-compatible functions used by other modules
+ * (appointments, leads, etc.) while using the new Cloud API module internally.
  */
 
-import { WHATSAPP_CONFIG, getWhatsAppEndpoint } from './whatsappConfig';
+import { sendWhatsAppTextMessage, formatPhoneNumber } from './whatsappCloudAPI';
 
 interface WhatsAppMessage {
   to: string;
@@ -11,51 +14,20 @@ interface WhatsAppMessage {
 }
 
 /**
- * Send WhatsApp message using WhatsApp Business API
+ * Send WhatsApp message using WhatsApp Business Cloud API
  */
 export async function sendWhatsAppMessage(params: WhatsAppMessage): Promise<boolean> {
   try {
-    // If phone number ID is not configured, log and return
-    if (!WHATSAPP_CONFIG.phoneNumberId) {
-      console.log('[WhatsApp] Phone Number ID not configured. Would send message:', {
-        to: params.to,
-        message: params.message.substring(0, 100),
-      });
-      return true; // Return true for testing purposes
-    }
-
-    // Format phone number (remove + and spaces)
-    const phoneNumber = params.to.replace(/[^0-9]/g, '');
-
-    // Send message via WhatsApp Business API
-    const response = await fetch(
-      getWhatsAppEndpoint(`${WHATSAPP_CONFIG.phoneNumberId}/messages`),
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${WHATSAPP_CONFIG.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: phoneNumber,
-          type: 'text',
-          text: {
-            body: params.message,
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('[WhatsApp] API error:', error);
+    const formattedPhone = formatPhoneNumber(params.to);
+    const result = await sendWhatsAppTextMessage(formattedPhone, params.message);
+    
+    if (result.success) {
+      console.log(`[WhatsApp] Message sent successfully to ${formattedPhone}. ID: ${result.messageId}`);
+      return true;
+    } else {
+      console.error(`[WhatsApp] Failed to send to ${formattedPhone}: ${result.error}`);
       return false;
     }
-
-    const result = await response.json();
-    console.log('[WhatsApp] Message sent successfully:', result);
-    return true;
   } catch (error) {
     console.error('[WhatsApp] Failed to send message:', error);
     return false;

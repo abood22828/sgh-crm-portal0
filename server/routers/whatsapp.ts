@@ -1,36 +1,18 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
-import whatsappWebService from "../whatsappWebService";
+import { 
+  sendWhatsAppTextMessage, 
+  sendWhatsAppTemplateMessage, 
+  getWhatsAppAPIStatus,
+  formatPhoneNumber 
+} from "../whatsappCloudAPI";
 
 export const whatsappRouter = router({
-  // WhatsApp Web Connection Management
+  // WhatsApp Cloud API Status
   connection: router({
     status: protectedProcedure.query(async () => {
-      return whatsappWebService.getStatus();
-    }),
-    
-    getQR: protectedProcedure.query(async () => {
-      const qrCode = whatsappWebService.getQRCode();
-      return { qrCode };
-    }),
-    
-    initialize: protectedProcedure.mutation(async () => {
-      try {
-        await whatsappWebService.initialize();
-        return { success: true, message: "WhatsApp initialization started" };
-      } catch (error: any) {
-        throw new Error(`Failed to initialize WhatsApp: ${error.message}`);
-      }
-    }),
-    
-    disconnect: protectedProcedure.mutation(async () => {
-      try {
-        await whatsappWebService.disconnect();
-        return { success: true, message: "WhatsApp disconnected" };
-      } catch (error: any) {
-        throw new Error(`Failed to disconnect WhatsApp: ${error.message}`);
-      }
+      return getWhatsAppAPIStatus();
     }),
   }),
 
@@ -69,9 +51,16 @@ export const whatsappRouter = router({
       )
       .mutation(async ({ input }) => {
         return await db.createWhatsAppConversation({
-          ...input,
+          phoneNumber: input.customerPhone,
+          customerName: input.customerName,
           lastMessageAt: new Date(),
           unreadCount: 0,
+          isImportant: 0,
+          isArchived: 0,
+          leadId: input.leadId,
+          appointmentId: input.appointmentId,
+          offerLeadId: input.offerLeadId,
+          campRegistrationId: input.campRegistrationId,
         });
       }),
 
@@ -112,24 +101,42 @@ export const whatsappRouter = router({
         // Get conversation details
         const conversation = await db.getWhatsAppConversationById(input.conversationId);
         if (!conversation) {
-          throw new Error("Conversation not found");
+          throw new Error("المحادثة غير موجودة");
         }
 
-        // Send via WhatsApp Web if connected
-        if (whatsappWebService.isClientReady()) {
-          try {
-            await whatsappWebService.sendMessage(conversation.phoneNumber, input.content);
-          } catch (error: any) {
-            console.error("Failed to send WhatsApp message:", error);
-            // Continue to save in database even if sending fails
+        // Send via WhatsApp Cloud API
+        let whatsappMessageId: string | undefined;
+        let sendStatus: "sent" | "failed" = "sent";
+        let errorMsg: string | undefined;
+
+        try {
+          const result = await sendWhatsAppTextMessage(
+            conversation.phoneNumber,
+            input.content
+          );
+          
+          if (result.success) {
+            whatsappMessageId = result.messageId;
+          } else {
+            sendStatus = "failed";
+            errorMsg = result.error;
+            console.error("[WhatsApp] Failed to send:", result.error);
           }
+        } catch (error: any) {
+          sendStatus = "failed";
+          errorMsg = error.message;
+          console.error("[WhatsApp] Exception sending message:", error);
         }
 
         // Save to database
         const message = await db.createWhatsAppMessage({
-          ...input,
+          conversationId: input.conversationId,
           direction: "outbound",
-          status: "sent",
+          content: input.content,
+          messageType: input.messageType,
+          status: sendStatus,
+          whatsappMessageId: whatsappMessageId || null,
+          sentBy: ctx.user.id,
           sentAt: new Date(),
         });
 
@@ -139,7 +146,137 @@ export const whatsappRouter = router({
           lastMessageAt: new Date(),
         });
 
+        if (sendStatus === "failed") {
+          throw new Error(errorMsg || "فشل إرسال الرسالة عبر واتساب");
+        }
+
         return message;
+      }),
+
+    // Send a new message to a phone number (creates conversation if needed)
+    sendDirect: protectedProcedure
+      .input(
+        z.object({
+          phone: z.string(),
+          content: z.string(),
+          customerName: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const formattedPhone = formatPhoneNumber(input.phone);
+        
+        // Find or create conversation
+        let conversation = await db.getWhatsAppConversationByPhone(formattedPhone);
+        
+        if (!conversation) {
+          await db.createWhatsAppConversation({
+            phoneNumber: formattedPhone,
+            customerName: input.customerName || null,
+            lastMessageAt: new Date(),
+            unreadCount: 0,
+            isImportant: 0,
+            isArchived: 0,
+          });
+          conversation = await db.getWhatsAppConversationByPhone(formattedPhone);
+          if (!conversation) {
+            throw new Error("فشل إنشاء المحادثة");
+          }
+        }
+
+        // Send via WhatsApp Cloud API
+        const result = await sendWhatsAppTextMessage(formattedPhone, input.content);
+        
+        if (!result.success) {
+          throw new Error(result.error || "فشل إرسال الرسالة");
+        }
+
+        // Save to database
+        const message = await db.createWhatsAppMessage({
+          conversationId: conversation.id,
+          direction: "outbound",
+          content: input.content,
+          messageType: "text",
+          status: "sent",
+          whatsappMessageId: result.messageId || null,
+          sentBy: ctx.user.id,
+          sentAt: new Date(),
+        });
+
+        // Update conversation
+        await db.updateWhatsAppConversation(conversation.id, {
+          lastMessage: input.content.substring(0, 100),
+          lastMessageAt: new Date(),
+          customerName: input.customerName || conversation.customerName,
+        });
+
+        return { 
+          success: true, 
+          messageId: result.messageId,
+          conversationId: conversation.id 
+        };
+      }),
+
+    // Send template message
+    sendTemplate: protectedProcedure
+      .input(
+        z.object({
+          phone: z.string(),
+          templateName: z.string(),
+          languageCode: z.string().default("ar"),
+          components: z.array(z.any()).optional(),
+          customerName: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const formattedPhone = formatPhoneNumber(input.phone);
+        
+        const result = await sendWhatsAppTemplateMessage(
+          formattedPhone,
+          {
+            templateName: input.templateName,
+            languageCode: input.languageCode,
+            components: input.components || [],
+          }
+        );
+
+        if (!result.success) {
+          throw new Error(result.error || "فشل إرسال قالب الرسالة");
+        }
+
+        // Find or create conversation and save message
+        let conversation = await db.getWhatsAppConversationByPhone(formattedPhone);
+        if (!conversation) {
+          await db.createWhatsAppConversation({
+            phoneNumber: formattedPhone,
+            customerName: input.customerName || null,
+            lastMessageAt: new Date(),
+            unreadCount: 0,
+            isImportant: 0,
+            isArchived: 0,
+          });
+          conversation = await db.getWhatsAppConversationByPhone(formattedPhone);
+        }
+
+        if (conversation) {
+          await db.createWhatsAppMessage({
+            conversationId: conversation.id,
+            direction: "outbound",
+            content: `[قالب: ${input.templateName}]`,
+            messageType: "text",
+            status: "sent",
+            whatsappMessageId: result.messageId || null,
+            sentBy: ctx.user.id,
+            isAutomated: 1,
+            sentAt: new Date(),
+          });
+
+          await db.updateWhatsAppConversation(conversation.id, {
+            lastMessage: `[قالب: ${input.templateName}]`,
+            lastMessageAt: new Date(),
+          });
+        }
+
+        return { success: true, messageId: result.messageId };
       }),
 
     markAsRead: protectedProcedure
@@ -151,7 +288,7 @@ export const whatsappRouter = router({
       }),
   }),
 
-  // Templates
+  // Templates (local templates in database)
   templates: router({
     list: protectedProcedure.query(async () => {
       return await db.getAllWhatsAppTemplates();
@@ -211,7 +348,7 @@ export const whatsappRouter = router({
       )
       .query(async ({ input }) => {
         const template = await db.getWhatsAppTemplateById(input.templateId);
-        if (!template) throw new Error("Template not found");
+        if (!template) throw new Error("القالب غير موجود");
 
         let content = template.content;
         for (const [key, value] of Object.entries(input.variables)) {
@@ -221,4 +358,26 @@ export const whatsappRouter = router({
         return { content };
       }),
   }),
+
+  // Quick test endpoint
+  testSend: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string(),
+        message: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const formattedPhone = formatPhoneNumber(input.phone);
+      
+      if (input.message) {
+        return await sendWhatsAppTextMessage(formattedPhone, input.message);
+      } else {
+        return await sendWhatsAppTemplateMessage(formattedPhone, {
+          templateName: "hello_world",
+          languageCode: "en_US",
+          components: [],
+        });
+      }
+    }),
 });

@@ -56,7 +56,7 @@ export default function WhatsAppPage() {
     },
   });
 
-  const sendNewMessageMutation = trpc.whatsapp.messages.send.useMutation({
+  const sendNewMessageMutation = trpc.whatsapp.messages.sendDirect.useMutation({
     onSuccess: () => {
       toast.success("تم إرسال الرسالة بنجاح");
       setNewMessagePhone("");
@@ -105,7 +105,10 @@ export default function WhatsAppPage() {
       toast.error("يرجى إدخال رقم الهاتف ونص الرسالة");
       return;
     }
-    toast.error("يرجى اختيار محادثة موجودة أو إنشاء محادثة جديدة أولاً");
+    sendNewMessageMutation.mutate({
+      phone: newMessagePhone.trim(),
+      content: newMessageText.trim(),
+    });
   };
 
   const handleUseTemplate = (templateContent: string) => {
