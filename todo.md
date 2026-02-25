@@ -3342,3 +3342,12 @@
 - [x] إنشاء مكونات فرعية لـ OfferLeadsManagement (OfferLeadsFilters, OfferLeadsTable, OfferLeadsCards)
 - [x] إنشاء مكونات فرعية لـ CampRegistrationsManagement (CampRegistrationsFilters, CampRegistrationsTable, CampRegistrationsCards)
 - [x] إنشاء نسخ محسّنة من OfferLeadsManagement و CampRegistrationsManagement باستخدام DataTableWrapper
+
+### تحسين قابلية الصيانة والأداء - مرحلة 2 ✅ مكتمل
+- [x] تقسيم LeadsManagementPage (615 سطر → 5 مكونات منفصلة)
+- [x] إنشاء DataTableWrapper مشترك يجمع الأنماط المتكررة
+- [x] إضافة lazy loading لجميع الصفحات (49 صفحة)
+- [x] تطبيق DataTableWrapper على OfferLeadsManagement و CampRegistrationsManagement
+- [x] إنشاء usePagination hook مشترك
+- [x] إنشاء DataTableToolbar مشترك
+- [x] 0 أخطاء TypeScript و 663 اختبار ناجح
