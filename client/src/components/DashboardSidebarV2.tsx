@@ -461,7 +461,71 @@ export default function DashboardSidebarV2({ currentPath }: { currentPath: strin
     </aside>
   );
 
-  // TODO: إضافة renderAllToolsPanel و renderMobileViews في المراحل القادمة
+  // ============================================
+  // الشريط السفلي للهاتف (Mobile Bottom Navigation)
+  // ============================================
+  
+  // أهم 5 أقسام للشريط السفلي
+  const bottomNavItems: NavItem[] = useMemo(() => [
+    { id: "home", title: "الرئيسية", href: "/dashboard", icon: Home },
+    { id: "leads", title: "العملاء", href: "/dashboard/bookings/leads", icon: UserCheck, hasDot: true },
+    { id: "appointments", title: "المواعيد", href: "/dashboard/bookings/appointments", icon: Calendar },
+    { id: "reports", title: "التقارير", href: "/dashboard/reports", icon: FileText },
+  ], []);
+
+  const renderMobileBottomNav = () => (
+    <>
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-t border-border dark:border-gray-700 z-40 safe-area-inset-bottom" dir="rtl">
+        <div className="h-full flex items-center justify-around px-2">
+          {bottomNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = isItemActive(item.href);
+            const badgeCount = getBadgeCount(item.id);
+
+            return (
+              <button
+                key={item.href}
+                onClick={() => handleNavClick(item.href)}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 min-w-[60px]",
+                  isActive
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-muted-foreground dark:text-gray-400"
+                )}
+              >
+                <div className="relative">
+                  <Icon className={cn(
+                    "h-6 w-6",
+                    isActive && "stroke-[2.5]"
+                  )} />
+                  <SidebarBadge count={badgeCount} />
+                  {!badgeCount && item.hasDot && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+                  )}
+                </div>
+                <span className={cn(
+                  "text-[10px] truncate max-w-[60px]",
+                  isActive ? "font-semibold" : "font-medium"
+                )}>
+                  {item.title}
+                </span>
+              </button>
+            );
+          })}
+
+          {/* زر المزيد */}
+          <button
+            onClick={() => setAllToolsOpen(true)}
+            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 text-muted-foreground dark:text-gray-400 min-w-[60px]"
+          >
+            <MoreHorizontal className="h-6 w-6" />
+            <span className="text-[10px] font-medium">المزيد</span>
+          </button>
+        </div>
+      </nav>
+    </>
+  );
 
   // معالج حفظ تعديلات الشريط
   const handleSaveVisibleItems = useCallback((newVisibleIds: string[]) => {
@@ -471,6 +535,7 @@ export default function DashboardSidebarV2({ currentPath }: { currentPath: strin
   return (
     <>
       {renderDesktopSidebar()}
+      {renderMobileBottomNav()}
       <AllToolsDrawer
         isOpen={allToolsOpen}
         onClose={() => setAllToolsOpen(false)}
@@ -484,7 +549,6 @@ export default function DashboardSidebarV2({ currentPath }: { currentPath: strin
         visibleItemIds={visibleItemIds}
         onSave={handleSaveVisibleItems}
       />
-      {/* TODO: Mobile Views */}
     </>
   );
 }

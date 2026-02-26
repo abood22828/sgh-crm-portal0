@@ -68,7 +68,7 @@ export default function DashboardLayout({
       <DashboardSidebarV2 currentPath={location} />
       
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:pb-0 pb-14">
+      <div className="flex-1 flex flex-col lg:pb-0 pb-16">
         {/* Top Navbar with Notifications + Theme + User */}
         <TopNavbar pageTitle={pageTitle} pageDescription={pageDescription} />
         
