@@ -122,6 +122,7 @@ function Router() {
       <Route path={"/patient-portal/dashboard"} component={PatientDashboard} />
       <Route path={"/offline"} component={OfflinePage} />
       <Route path={"/settings"} component={SettingsPage} />
+      <Route path={"/dashboard/settings"} component={SettingsPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

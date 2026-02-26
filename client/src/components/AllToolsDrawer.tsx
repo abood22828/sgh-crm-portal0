@@ -1,10 +1,11 @@
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocation } from "wouter";
-import { Clock, X } from "lucide-react";
+import { Clock, X, Search } from "lucide-react";
 import { useRecentlyUsed } from "@/hooks/useRecentlyUsed";
 import type { NavItem, NavGroup } from "./DashboardSidebarV2";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface AllToolsDrawerProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export default function AllToolsDrawer({
 }: AllToolsDrawerProps) {
   const [location, setLocation] = useLocation();
   const { recentlyUsed } = useRecentlyUsed();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleNavigate = (href: string) => {
     setLocation(href);
@@ -32,33 +34,56 @@ export default function AllToolsDrawer({
     .map(tool => allNavItems.find(item => item.id === tool.id))
     .filter(Boolean) as NavItem[];
 
+  // Filter items based on search
+  const filteredGroups = searchQuery.trim()
+    ? allToolsGroups.map(group => ({
+        ...group,
+        items: group.items.filter(item =>
+          item.title.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      })).filter(group => group.items.length > 0)
+    : allToolsGroups;
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full sm:w-[700px] p-0 bg-background">
+      <SheetContent side="right" className="w-full sm:max-w-[900px] p-0 bg-white dark:bg-gray-900" dir="rtl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
+        <div className="flex items-center justify-between px-8 py-5 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={onClose}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             aria-label="إغلاق"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <h2 className="text-xl font-bold text-foreground">كل الأدوات</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">كل الأدوات</h2>
           <div className="w-9" /> {/* Spacer for centering */}
         </div>
 
-        <ScrollArea className="h-[calc(100vh-80px)]">
-          <div className="p-6 space-y-8">
+        {/* Search Bar */}
+        <div className="px-8 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="relative">
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="ابحث في كل الأدوات عن كلمات أساسية..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pr-12 pl-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <ScrollArea className="h-[calc(100vh-160px)]">
+          <div className="px-8 py-6 space-y-10">
             {/* Recently Used Section - Top Icons Style */}
-            {recentItems.length > 0 && (
+            {!searchQuery && recentItems.length > 0 && (
               <div>
                 <div className="flex items-center justify-center gap-2 mb-6">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
-                  <h3 className="text-base font-semibold text-foreground">المستخدمة مؤخراً</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">المستخدمة مؤخراً</h3>
                 </div>
-                <div className="flex items-center justify-center gap-4 flex-wrap">
-                  {recentItems.map((item) => {
+                <div className="flex items-center justify-center gap-6 flex-wrap">
+                  {recentItems.slice(0, 7).map((item) => {
                     const Icon = item.icon;
                     const isActive = location === item.href;
                     return (
@@ -66,19 +91,23 @@ export default function AllToolsDrawer({
                         key={item.id}
                         onClick={() => handleNavigate(item.href)}
                         className={cn(
-                          "flex flex-col items-center gap-2 p-4 rounded-xl transition-all min-w-[80px]",
+                          "flex flex-col items-center gap-3 p-4 rounded-xl transition-all min-w-[100px]",
                           isActive
-                            ? "bg-primary/10 text-primary"
-                            : "hover:bg-muted text-foreground"
+                            ? "bg-blue-50 dark:bg-blue-900/20"
+                            : "hover:bg-gray-100 dark:hover:bg-gray-800"
                         )}
                       >
                         <div className={cn(
-                          "p-3 rounded-xl transition-colors",
-                          isActive ? "bg-primary/20" : "bg-muted"
+                          "p-4 rounded-xl transition-colors",
+                          isActive 
+                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" 
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                         )}>
-                          <Icon className="h-6 w-6" />
+                          <Icon className="h-7 w-7" />
                         </div>
-                        <span className="text-xs font-medium text-center">{item.title}</span>
+                        <span className="text-sm font-medium text-center text-gray-900 dark:text-gray-100">
+                          {item.title}
+                        </span>
                       </button>
                     );
                   })}
@@ -87,44 +116,52 @@ export default function AllToolsDrawer({
             )}
 
             {/* All Tools Groups - Text Lists Style */}
-            {allToolsGroups.map((group) => {
-              const GroupIcon = group.icon;
-              return (
-                <div key={group.label} className="space-y-3">
-                  {/* Group Header */}
-                  <div className="flex items-center gap-2 px-2">
-                    <GroupIcon className="h-5 w-5 text-muted-foreground" />
-                    <h3 className="text-sm font-semibold text-foreground">{group.label}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+              {filteredGroups.map((group) => {
+                const GroupIcon = group.icon;
+                return (
+                  <div key={group.label} className="space-y-4">
+                    {/* Group Header - أكبر وأوضح */}
+                    <div className="flex items-center gap-3 pb-2">
+                      <GroupIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
+                        {group.label}
+                      </h3>
+                    </div>
+                    
+                    {/* Group Items - Simple List with smaller text */}
+                    <div className="space-y-1">
+                      {group.items.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = location === item.href;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => handleNavigate(item.href)}
+                            className={cn(
+                              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-right",
+                              isActive
+                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                            )}
+                          >
+                            <Icon className="h-4 w-4 flex-shrink-0" />
+                            <span className="text-sm font-normal">{item.title}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  
-                  {/* Group Items - Simple List */}
-                  <div className="space-y-1">
-                    {group.items.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = location === item.href;
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => handleNavigate(item.href)}
-                          className={cn(
-                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-right",
-                            isActive
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "hover:bg-muted text-foreground"
-                          )}
-                        >
-                          <Icon className="h-5 w-5 flex-shrink-0" />
-                          <span className="text-sm flex-1">{item.title}</span>
-                          {item.hasDot && !isActive && (
-                            <span className="h-2 w-2 bg-red-500 rounded-full flex-shrink-0" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            {/* No Results */}
+            {searchQuery && filteredGroups.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 dark:text-gray-400">لا توجد نتائج لـ "{searchQuery}"</p>
+              </div>
+            )}
           </div>
         </ScrollArea>
       </SheetContent>

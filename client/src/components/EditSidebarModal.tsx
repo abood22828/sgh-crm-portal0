@@ -1,19 +1,16 @@
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Check } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { X, GripVertical } from "lucide-react";
 import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
 import type { NavItem, NavGroup } from "./DashboardSidebarV2";
+import { cn } from "@/lib/utils";
 
 interface EditSidebarModalProps {
   isOpen: boolean;
   onClose: () => void;
   allToolsGroups: NavGroup[];
-  allNavItems: NavItem[];
   visibleItemIds: string[];
   onSave: (newVisibleIds: string[]) => void;
 }
@@ -24,130 +21,159 @@ export default function EditSidebarModal({
   isOpen,
   onClose,
   allToolsGroups,
-  allNavItems,
   visibleItemIds,
-  onSave,
+  onSave
 }: EditSidebarModalProps) {
-  const [localVisibleIds, setLocalVisibleIds] = useState<string[]>(visibleItemIds);
+  const [selectedIds, setSelectedIds] = useState<string[]>(visibleItemIds);
 
-  // تحديث القائمة المحلية عند فتح الـ modal
+  // Reset when modal opens
   useEffect(() => {
     if (isOpen) {
-      setLocalVisibleIds(visibleItemIds);
+      setSelectedIds(visibleItemIds);
     }
   }, [isOpen, visibleItemIds]);
 
-  // تبديل حالة العنصر
-  const toggleItem = (itemId: string) => {
-    // لا يمكن إزالة "الرئيسية"
-    if (itemId === "home") return;
+  // Get all items from all groups
+  const allItems = allToolsGroups.flatMap(group => group.items);
 
-    setLocalVisibleIds(prev => {
-      if (prev.includes(itemId)) {
-        // إزالة العنصر
-        return prev.filter(id => id !== itemId);
-      } else {
-        // إضافة العنصر إذا لم نصل للحد الأقصى
-        if (prev.length >= MAX_VISIBLE_ITEMS) return prev;
-        return [...prev, itemId];
+  // Get selected items in order
+  const selectedItems = selectedIds
+    .map(id => allItems.find(item => item.id === id))
+    .filter(Boolean) as NavItem[];
+
+  // Toggle selection
+  const toggleItem = (itemId: string) => {
+    if (itemId === "home") return; // Cannot remove home
+
+    if (selectedIds.includes(itemId)) {
+      setSelectedIds(selectedIds.filter(id => id !== itemId));
+    } else {
+      if (selectedIds.length < MAX_VISIBLE_ITEMS) {
+        setSelectedIds([...selectedIds, itemId]);
       }
-    });
+    }
   };
 
-  // حفظ التغييرات
+  // Remove item from selected
+  const removeItem = (itemId: string) => {
+    if (itemId === "home") return;
+    setSelectedIds(selectedIds.filter(id => id !== itemId));
+  };
+
+  // Move item up/down
+  const moveItem = (itemId: string, direction: "up" | "down") => {
+    const index = selectedIds.indexOf(itemId);
+    if (index === -1) return;
+    
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= selectedIds.length) return;
+
+    const newIds = [...selectedIds];
+    [newIds[index], newIds[newIndex]] = [newIds[newIndex], newIds[index]];
+    setSelectedIds(newIds);
+  };
+
   const handleSave = () => {
-    onSave(localVisibleIds);
+    onSave(selectedIds);
     onClose();
   };
 
-  // إعادة تعيين إلى الافتراضي
-  const handleReset = () => {
-    const defaultIds = ["home", "leads", "appointments", "offer-leads", "camp-registrations", "customers", "tasks", "reports", "whatsapp"];
-    setLocalVisibleIds(defaultIds);
+  const handleCancel = () => {
+    setSelectedIds(visibleItemIds);
+    onClose();
   };
-
-  // الحصول على العناصر المرئية
-  const visibleItems = localVisibleIds
-    .map(id => allNavItems.find(item => item.id === id))
-    .filter(Boolean) as NavItem[];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-4xl p-0 gap-0 bg-white dark:bg-gray-900" dir="rtl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={onClose}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
-            aria-label="إغلاق"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <div className="flex flex-col items-center gap-1">
-            <h2 className="text-lg font-bold text-foreground">تخصيص الأدوات مع الجمهور</h2>
-            <p className="text-sm text-muted-foreground">
-              يمكنك تحديد ما يصل إلى {MAX_VISIBLE_ITEMS} عناصر ({localVisibleIds.length}/{MAX_VISIBLE_ITEMS} محددة)
-            </p>
+          <div className="flex items-center gap-3">
+            <img src="/icon-72x72.png" alt="Logo" className="h-8 w-8" />
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              تخصيص الأدوات التي تظهر في لـSaudi German Hospital Sana'a
+            </h2>
           </div>
-          <div className="w-9" /> {/* Spacer */}
+          <div className="w-9" />
         </div>
 
-        {/* Content - Two Columns */}
-        <div className="flex h-[calc(90vh-140px)]">
-          {/* Left Column - "التفاعل مع الجمهور" (Selected Items) */}
-          <div className="flex-1 border-l">
-            <div className="px-4 py-3 border-b bg-muted/30">
-              <h3 className="text-sm font-semibold text-foreground">التفاعل مع الجمهور</h3>
+        {/* Subtitle */}
+        <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+            يمكنك تحديد 10 أدوات بحد أقصى
+          </p>
+        </div>
+
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-700 divide-x-reverse">
+          {/* Right Column - "التفاعل مع الجمهور" (Selected Items) */}
+          <div className="flex flex-col h-[500px]">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
+                التفاعل مع الجمهور
+              </h3>
             </div>
-            <ScrollArea className="h-full">
-              <div className="p-4 space-y-3">
-                {allToolsGroups.map((group) => {
-                  // فلترة العناصر المحددة فقط
-                  const selectedItems = group.items.filter(item => 
-                    localVisibleIds.includes(item.id)
-                  );
-
-                  if (selectedItems.length === 0) return null;
-
-                  const GroupIcon = group.icon;
+            <ScrollArea className="flex-1 px-6 py-4">
+              <div className="space-y-2">
+                {selectedItems.map((item, index) => {
+                  const Icon = item.icon;
+                  const isHome = item.id === "home";
                   return (
-                    <div key={group.label} className="space-y-2">
-                      {/* Group Header */}
-                      <div className="flex items-center gap-2 px-2">
-                        <GroupIcon className="h-4 w-4 text-muted-foreground" />
-                        <h4 className="text-xs font-medium text-muted-foreground">{group.label}</h4>
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 group"
+                    >
+                      {/* Drag Handle */}
+                      {!isHome && (
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            onClick={() => moveItem(item.id, "up")}
+                            disabled={index === 0}
+                            className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded disabled:opacity-30"
+                          >
+                            <GripVertical className="h-3 w-3 text-gray-400" />
+                          </button>
+                          <button
+                            onClick={() => moveItem(item.id, "down")}
+                            disabled={index === selectedItems.length - 1}
+                            className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded disabled:opacity-30"
+                          >
+                            <GripVertical className="h-3 w-3 text-gray-400" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Checkbox */}
+                      <Checkbox
+                        checked={true}
+                        onCheckedChange={() => toggleItem(item.id)}
+                        disabled={isHome}
+                        className="flex-shrink-0"
+                      />
+
+                      {/* Item Info */}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <Icon className="h-4 w-4 text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {item.title}
+                        </span>
                       </div>
-                      
-                      {/* Selected Items */}
-                      <div className="space-y-1">
-                        {selectedItems.map((item) => {
-                          const Icon = item.icon;
-                          const isHome = item.id === "home";
-                          return (
-                            <button
-                              key={item.id}
-                              onClick={() => toggleItem(item.id)}
-                              disabled={isHome}
-                              className={cn(
-                                "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-right",
-                                isHome 
-                                  ? "bg-muted/50 cursor-not-allowed opacity-60"
-                                  : "hover:bg-muted/70 cursor-pointer"
-                              )}
-                            >
-                              <div className={cn(
-                                "h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0",
-                                "bg-primary border-primary"
-                              )}>
-                                <Check className="h-3 w-3 text-white" />
-                              </div>
-                              <Icon className="h-4 w-4 flex-shrink-0" />
-                              <span className="text-sm flex-1">{item.title}</span>
-                              {isHome && <span className="text-xs text-muted-foreground">(ثابت)</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
+
+                      {/* Remove Button */}
+                      {!isHome && (
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -155,56 +181,58 @@ export default function EditSidebarModal({
             </ScrollArea>
           </div>
 
-          {/* Right Column - "كل الأدوات" (All Items) */}
-          <div className="flex-1">
-            <div className="px-4 py-3 border-b bg-muted/30">
-              <h3 className="text-sm font-semibold text-foreground">كل الأدوات</h3>
+          {/* Left Column - "تم تحديد X من الأدوات" (All Available Items) */}
+          <div className="flex flex-col h-[500px]">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
+                تم تحديد {selectedIds.length} من الأدوات
+              </h3>
             </div>
-            <ScrollArea className="h-full">
-              <div className="p-4 space-y-3">
+            <ScrollArea className="flex-1 px-6 py-4">
+              <div className="space-y-6">
                 {allToolsGroups.map((group) => {
                   const GroupIcon = group.icon;
                   return (
                     <div key={group.label} className="space-y-2">
                       {/* Group Header */}
                       <div className="flex items-center gap-2 px-2">
-                        <GroupIcon className="h-4 w-4 text-muted-foreground" />
-                        <h4 className="text-xs font-medium text-muted-foreground">{group.label}</h4>
+                        <GroupIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          {group.label}
+                        </h4>
                       </div>
-                      
-                      {/* All Items */}
+
+                      {/* Group Items */}
                       <div className="space-y-1">
                         {group.items.map((item) => {
                           const Icon = item.icon;
-                          const isSelected = localVisibleIds.includes(item.id);
+                          const isSelected = selectedIds.includes(item.id);
                           const isHome = item.id === "home";
-                          const canSelect = localVisibleIds.length < MAX_VISIBLE_ITEMS || isSelected;
-                          
+                          const canSelect = !isSelected && selectedIds.length < MAX_VISIBLE_ITEMS;
+
                           return (
                             <button
                               key={item.id}
                               onClick={() => toggleItem(item.id)}
-                              disabled={isHome || (!canSelect && !isSelected)}
+                              disabled={isHome || (!isSelected && !canSelect)}
                               className={cn(
-                                "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-right",
-                                isHome 
-                                  ? "bg-muted/50 cursor-not-allowed opacity-60"
-                                  : !canSelect && !isSelected
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : "hover:bg-muted/70 cursor-pointer"
+                                "w-full flex items-center gap-3 p-2.5 rounded-lg transition-all text-right",
+                                isSelected
+                                  ? "bg-blue-50 dark:bg-blue-900/20"
+                                  : canSelect
+                                  ? "hover:bg-gray-100 dark:hover:bg-gray-800"
+                                  : "opacity-50 cursor-not-allowed"
                               )}
                             >
-                              <div className={cn(
-                                "h-5 w-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors",
-                                isSelected 
-                                  ? "bg-primary border-primary" 
-                                  : "border-border"
-                              )}>
-                                {isSelected && <Check className="h-3 w-3 text-white" />}
-                              </div>
-                              <Icon className="h-4 w-4 flex-shrink-0" />
-                              <span className="text-sm flex-1">{item.title}</span>
-                              {isHome && <span className="text-xs text-muted-foreground">(ثابت)</span>}
+                              <Checkbox
+                                checked={isSelected}
+                                disabled={isHome || (!isSelected && !canSelect)}
+                                className="flex-shrink-0"
+                              />
+                              <Icon className="h-4 w-4 text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                              <span className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                                {item.title}
+                              </span>
                             </button>
                           );
                         })}
@@ -217,19 +245,21 @@ export default function EditSidebarModal({
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex items-center justify-between px-6 py-4 border-t">
-          <Button variant="ghost" onClick={handleReset} className="text-sm">
-            إعادة تعيين
+        {/* Footer */}
+        <div className="flex items-center justify-center gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <Button
+            onClick={handleCancel}
+            variant="outline"
+            className="min-w-[120px]"
+          >
+            إلغاء
           </Button>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={onClose}>
-              إلغاء
-            </Button>
-            <Button onClick={handleSave}>
-              حفظ
-            </Button>
-          </div>
+          <Button
+            onClick={handleSave}
+            className="min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            حفظ
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -406,11 +406,11 @@ export default function DashboardSidebarV2({ currentPath }: { currentPath: strin
         <Tooltip delayDuration={shouldShowText ? 999999 : 300}>
           <TooltipTrigger asChild>
             <button
-              onClick={() => handleNavClick("/dashboard/management")}
+              onClick={() => handleNavClick("/dashboard/settings")}
               className={cn(
                 "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200",
                 shouldShowText ? "px-3" : "px-0 justify-center",
-                isItemActive("/dashboard/management")
+                isItemActive("/dashboard/settings")
                   ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                   : "text-foreground hover:bg-muted/50 dark:text-gray-300 dark:hover:bg-gray-800"
               )}
@@ -481,7 +481,6 @@ export default function DashboardSidebarV2({ currentPath }: { currentPath: strin
         isOpen={editSidebarOpen}
         onClose={() => setEditSidebarOpen(false)}
         allToolsGroups={allToolsGroups}
-        allNavItems={allNavItems}
         visibleItemIds={visibleItemIds}
         onSave={handleSaveVisibleItems}
       />
