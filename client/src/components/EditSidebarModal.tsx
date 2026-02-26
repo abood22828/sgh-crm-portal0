@@ -85,36 +85,33 @@ export default function EditSidebarModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 gap-0 bg-white dark:bg-gray-900" dir="rtl">
+      <DialogContent className="max-w-5xl p-0 gap-0 bg-white dark:bg-gray-900" dir="rtl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <div className="flex items-center gap-3">
-            <img src="/icon-72x72.png" alt="Logo" className="h-8 w-8" />
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              تخصيص الأدوات التي تظهر في لـSaudi German Hospital Sana'a
+          <div className="text-center flex-1">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              تخصيص الأدوات التي تظهر في لـ Saudi German Hospital Sana'a
             </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              يمكنك تحديد 10 أدوات بحد أقصى
+            </p>
           </div>
           <div className="w-9" />
         </div>
 
-        {/* Subtitle */}
-        <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-            يمكنك تحديد 10 أدوات بحد أقصى
-          </p>
-        </div>
+
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-700 divide-x-reverse">
+        <div className="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-700 divide-x-reverse h-[600px]">
           {/* Right Column - "التفاعل مع الجمهور" (Selected Items) */}
-          <div className="flex flex-col h-[500px]">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col h-full">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30">
               <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 التفاعل مع الجمهور
               </h3>
@@ -182,8 +179,8 @@ export default function EditSidebarModal({
           </div>
 
           {/* Left Column - "تم تحديد X من الأدوات" (All Available Items) */}
-          <div className="flex flex-col h-[500px]">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col h-full">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30">
               <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
                 تم تحديد {selectedIds.length} من الأدوات
               </h3>
