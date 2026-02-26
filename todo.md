@@ -3515,3 +3515,12 @@
 - [x] إنشاء ملف pages-inventory.md للتوثيق
 - [ ] تطبيق DashboardLayout على 35 صفحة من لوحة التحكم (حالياً 3 فقط تستخدمه)
 - [ ] التأكد من توحيد تجربة المستخدم عبر جميع الصفحات
+
+### إصلاح فعلي للوحة كل الأدوات ونافذة التعديل ✅ مكتمل
+- [x] إصلاح AllToolsDrawer: إضافة جميع العناصر (22 عنصر في 6 أقسام)
+- [x] إصلاح AllToolsDrawer: تغيير من Sheet إلى Dialog ليظهر الشريط بجانبه
+- [x] إصلاح AllToolsDrawer: تحسين التنسيق والألوان (backdrop-blur + gradient)
+- [x] إصلاح EditSidebarModal: تصحيح حجم العنوان (text-lg font-semibold)
+- [x] EditSidebarModal: جميع العناصر موجودة (22 عنصر في 6 أقسام)
+- [x] EditSidebarModal: التداخل محلول (قائمتين منفصلتين)
+- [x] فحص TypeScript (0 أخطاء)

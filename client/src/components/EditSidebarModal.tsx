@@ -95,10 +95,10 @@ export default function EditSidebarModal({
             <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
           <div className="text-center flex-1">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               تخصيص الأدوات التي تظهر في لـ Saudi German Hospital Sana'a
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               يمكنك تحديد 10 أدوات بحد أقصى
             </p>
           </div>
