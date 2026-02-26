@@ -5,17 +5,24 @@
  */
 import { useState, useMemo } from "react";
 import { Link } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Search, Stethoscope, Calendar, Award, Loader2, Users, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import SEO from "@/components/SEO";
+
 import { trpc } from "@/lib/trpc";
 
 export default function VisitingDoctors() {
+  return (
+    <DashboardLayout pageTitle="الأطباء الزائرين" pageDescription="قائمة الأطباء الزائرين والمواعيد">
+      <VisitingDoctorsContent />
+    </DashboardLayout>
+  );
+}
+
+function VisitingDoctorsContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("all");
 
@@ -62,14 +69,7 @@ export default function VisitingDoctors() {
   }, [visitingDoctors, selectedSpecialty, searchTerm]);
 
   return (
-    <>
-      <SEO
-        title="الأطباء الزائرين | المستشفى السعودي الألماني"
-        description="تعرف على الأطباء الزائرين في المستشفى السعودي الألماني - صنعاء. استشاريون متخصصون من مختلف التخصصات الطبية. احجز موعدك الآن: 8000018"
-        keywords="أطباء زائرين, استشاريين, تخصصات طبية, المستشفى السعودي الألماني, صنعاء"
-      />
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-green-50 to-white" dir="rtl">
-        <Navbar />
+    <div className="space-y-6" dir="rtl">
 
         {/* Hero Section */}
         <section className="py-8 sm:py-10 md:py-12 bg-gradient-to-r from-green-600 to-blue-600 text-white">
@@ -235,9 +235,6 @@ export default function VisitingDoctors() {
             )}
           </div>
         </section>
-
-        <Footer />
-      </div>
-    </>
+    </div>
   );
 }

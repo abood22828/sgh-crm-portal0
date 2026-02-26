@@ -6,6 +6,7 @@
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useLocation, Link } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,17 +16,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Phone, Calendar, MapPin, Loader2, Heart, Users, CheckCircle2, Clock, Star, MessageSquare, Tag, ChevronDown, ChevronUp } from "lucide-react";
 import { getCompleteTrackingData } from "@/lib/tracking";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import SEO from "@/components/SEO";
+
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function CampDetailPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+
+  return (
+    <DashboardLayout pageTitle="تفاصيل المخيم" pageDescription="عرض تفاصيل المخيم والتسجيلات">
+      <CampDetailContent slug={slug} />
+    </DashboardLayout>
+  );
+}
+
+function CampDetailContent({ slug }: { slug: string }) {
   const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
-  const params = useParams();
   const [, setLocation] = useLocation();
-  const slug = params.slug as string;
 
   const { data: camp, isLoading } = trpc.camps.getBySlug.useQuery(
     { slug },
@@ -129,8 +137,7 @@ export default function CampDetailPage() {
   // Loading Skeleton
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-muted/50" dir="rtl">
-        <Navbar />
+      <div className="space-y-6" dir="rtl">
         <div className="bg-white dark:bg-card border-b">
           <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3">
             <Skeleton className="h-4 sm:h-5 w-48 sm:w-60" />
@@ -159,7 +166,6 @@ export default function CampDetailPage() {
             {[1,2,3,4].map(i => <Skeleton key={i} className="h-16 sm:h-20 rounded-xl" />)}
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -167,8 +173,7 @@ export default function CampDetailPage() {
   // Not Found State
   if (!camp) {
     return (
-      <div className="min-h-screen flex flex-col bg-muted/50" dir="rtl">
-        <Navbar />
+      <div className="space-y-6" dir="rtl">
         <div className="flex-1 flex items-center justify-center py-20 px-4">
           <div className="text-center max-w-md">
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
@@ -186,22 +191,12 @@ export default function CampDetailPage() {
             </Link>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div dir="rtl">
-      <SEO 
-        title={seoTitle}
-        description={seoDescription}
-        image={camp.imageUrl || "/assets/new-logo.png"}
-        type="article"
-        keywords={`${camp.name}, مخيم طبي, مجاني, صنعاء, المستشفى السعودي الألماني`}
-      />
-      <div className="min-h-screen flex flex-col bg-muted/50">
-      <Navbar />
+    <div className="space-y-6" dir="rtl">
 
       {/* Breadcrumb */}
       <div className="bg-white dark:bg-card border-b">
@@ -669,9 +664,6 @@ export default function CampDetailPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
-      </div>
     </div>
   );
 }

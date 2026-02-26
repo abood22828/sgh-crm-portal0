@@ -1,5 +1,6 @@
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useState, useRef, useEffect } from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,14 @@ import { ar } from "date-fns/locale";
 import { Link } from "wouter";
 
 export default function WhatsAppPage() {
+  return (
+    <DashboardLayout pageTitle="واتساب" pageDescription="إدارة رسائل واتساب">
+      <WhatsAppContent />
+    </DashboardLayout>
+  );
+}
+
+function WhatsAppContent() {
   const { formatDate, formatDateTime } = useFormatDate();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [messageText, setMessageText] = useState("");

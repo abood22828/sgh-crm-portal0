@@ -5,6 +5,7 @@
  */
 import { useState } from "react";
 import { useRoute, Link, useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 import { ArrowRight, Calendar, Phone, Award, Loader2, CheckCircle, Star, Users, Clock, CheckCircle2, TrendingUp, Stethoscope, Globe, CreditCard, MessageSquare } from "lucide-react";
 import { getCompleteTrackingData } from "@/lib/tracking";
 import { Button } from "@/components/ui/button";
@@ -13,17 +14,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import SEO from "@/components/SEO";
+
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function DoctorDetailPage() {
-  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const [, params] = useRoute("/doctors/:slug");
   const slug = params?.slug || "";
+
+  return (
+    <DashboardLayout pageTitle="تفاصيل الطبيب" pageDescription="معلومات الطبيب والتخصصات">
+      <DoctorDetailContent slug={slug} />
+    </DashboardLayout>
+  );
+}
+
+function DoctorDetailContent({ slug }: { slug: string }) {
+  const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
 
   const { data: doctor, isLoading } = trpc.doctors.getBySlug.useQuery(
     { slug },
@@ -116,8 +124,7 @@ export default function DoctorDetailPage() {
   // Loading Skeleton
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white" dir="rtl">
-        <Navbar />
+      <div className="space-y-6" dir="rtl">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <Skeleton className="h-8 sm:h-9 w-32 sm:w-40" />
         </div>
@@ -147,7 +154,6 @@ export default function DoctorDetailPage() {
             {[1,2,3,4].map(i => <Skeleton key={i} className="h-20 sm:h-28 rounded-xl" />)}
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -155,8 +161,7 @@ export default function DoctorDetailPage() {
   // Not Found State
   if (!doctor) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white" dir="rtl">
-        <Navbar />
+      <div className="space-y-6" dir="rtl">
         <div className="flex-1 flex items-center justify-center py-20 px-4">
           <div className="text-center max-w-md">
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
@@ -174,22 +179,12 @@ export default function DoctorDetailPage() {
             </Link>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div dir="rtl">
-      <SEO 
-        title={seoTitle}
-        description={seoDescription}
-        image={doctor.image || "/assets/new-logo.png"}
-        type="profile"
-        keywords={`${doctor.name}, ${doctor.specialty}, طبيب, استشاري, صنعاء, حجز موعد`}
-      />
-      <div className="min-h-screen flex flex-col bg-muted/50">
-      <Navbar />
+    <div className="space-y-6" dir="rtl">
 
       {/* Breadcrumb Navigation */}
       <div className="bg-white dark:bg-card border-b">
@@ -563,9 +558,6 @@ export default function DoctorDetailPage() {
           </Card>
         </div>
       </section>
-
-      <Footer />
-      </div>
     </div>
   );
 }

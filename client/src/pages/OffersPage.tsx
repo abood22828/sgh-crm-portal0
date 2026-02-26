@@ -5,6 +5,7 @@
  */
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useState } from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,14 @@ interface OfferFormData {
 }
 
 export default function OffersPage() {
+  return (
+    <DashboardLayout pageTitle="إدارة العروض" pageDescription="إدارة العروض الطبية والخصومات">
+      <OffersPageContent />
+    </DashboardLayout>
+  );
+}
+
+function OffersPageContent() {
   const { formatDate, formatDateTime } = useFormatDate();
   const [selectedOffer, setSelectedOffer] = useState<number | null>(null);
   const [formData, setFormData] = useState<OfferFormData>({

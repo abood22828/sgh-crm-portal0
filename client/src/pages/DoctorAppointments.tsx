@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 import { MetaPixel, trackMetaLead, trackMetaCompleteRegistration } from "@/components/MetaPixel";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,14 @@ import { toast } from "sonner";
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function DoctorAppointments() {
+  return (
+    <DashboardLayout pageTitle="حجز موعد" pageDescription="حجز موعد مع الطبيب">
+      <DoctorAppointmentsContent />
+    </DashboardLayout>
+  );
+}
+
+function DoctorAppointmentsContent() {
   const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const [, setLocation] = useLocation();
   const [formData, setFormData] = useState({

@@ -1,18 +1,24 @@
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Search, Heart, Calendar, ArrowLeft, Clock, CheckCircle2 } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import InstallPWAButton from "@/components/InstallPWAButton";
-import SEO from "@/components/SEO";
 
 export default function CampsListPage() {
+  return (
+    <DashboardLayout pageTitle="المخيمات" pageDescription="قائمة جميع المخيمات الطبية">
+      <CampsListContent />
+    </DashboardLayout>
+  );
+}
+
+function CampsListContent() {
   const { formatDate, formatDateTime } = useFormatDate();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,13 +136,7 @@ export default function CampsListPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50" dir="rtl">
-      <SEO 
-        title="المخيمات الطبية الخيرية | المستشفى السعودي الألماني"
-        description="مبادراتنا الإنسانية في إطار المسؤولية المجتمعية لخدمة المحتاجين. مخيمات طبية مجانية بإشراف أفضل الأطباء والجراحين المتخصصين"
-        keywords="مخيمات طبية, مخيمات خيرية, خدمات مجانية, صنعاء, المستشفى السعودي الألماني"
-      />
-      <Navbar />
+    <div className="space-y-6" dir="rtl">
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-green-600 to-blue-600 text-white py-8 sm:py-12 md:py-16">
@@ -251,7 +251,6 @@ export default function CampsListPage() {
       </section>
 
       <InstallPWAButton />
-      <Footer />
     </div>
   );
 }

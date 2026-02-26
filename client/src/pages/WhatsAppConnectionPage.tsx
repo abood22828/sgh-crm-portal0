@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -7,6 +8,14 @@ import { CheckCircle2, XCircle, RefreshCw, Cloud, Phone, Shield, MessageCircle, 
 import { Link } from "wouter";
 
 export default function WhatsAppConnectionPage() {
+  return (
+    <DashboardLayout pageTitle="اتصال واتساب" pageDescription="إعداد وإدارة اتصال واتساب">
+      <WhatsAppConnectionContent />
+    </DashboardLayout>
+  );
+}
+
+function WhatsAppConnectionContent() {
   const { data: statusData, isLoading: statusLoading, refetch: refetchStatus } = 
     trpc.whatsapp.connection.status.useQuery(undefined, {
       refetchInterval: 30000,

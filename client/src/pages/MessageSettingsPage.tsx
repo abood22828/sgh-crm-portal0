@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -37,6 +38,14 @@ const deliveryChannelLabels = {
 };
 
 export default function MessageSettingsPage() {
+  return (
+    <DashboardLayout pageTitle="إعدادات الرسائل" pageDescription="تكوين إعدادات الرسائل والإشعارات">
+      <MessageSettingsContent />
+    </DashboardLayout>
+  );
+}
+
+function MessageSettingsContent() {
   const [selectedCategory, setSelectedCategory] = useState<string>("patient_journey");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);

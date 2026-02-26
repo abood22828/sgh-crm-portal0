@@ -6,6 +6,7 @@
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useEffect, useState } from "react";
 import { useParams, useLocation, Link } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,17 +16,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Phone, Mail, Calendar, CheckCircle2, Loader2, Tag, Clock, Sparkles, Stethoscope, Shield, HeartPulse, MessageSquare } from "lucide-react";
 import { getCompleteTrackingData } from "@/lib/tracking";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import SEO from "@/components/SEO";
+
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function OfferDetailPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+
+  return (
+    <DashboardLayout pageTitle="تفاصيل العرض" pageDescription="عرض تفاصيل العرض والحجوزات">
+      <OfferDetailContent slug={slug} />
+    </DashboardLayout>
+  );
+}
+
+function OfferDetailContent({ slug }: { slug: string }) {
   const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
-  const params = useParams();
   const [, setLocation] = useLocation();
-  const slug = params.slug as string;
 
   const { data: offer, isLoading } = trpc.offers.getBySlug.useQuery(
     { slug },
@@ -105,8 +113,7 @@ export default function OfferDetailPage() {
   // Loading Skeleton
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-muted/50" dir="rtl">
-        <Navbar />
+      <div className="space-y-6" dir="rtl">
         <div className="bg-white dark:bg-card border-b">
           <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3">
             <Skeleton className="h-4 sm:h-5 w-48 sm:w-60" />
@@ -131,7 +138,6 @@ export default function OfferDetailPage() {
             {[1,2,3,4].map(i => <Skeleton key={i} className="h-20 sm:h-28 rounded-xl" />)}
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -139,8 +145,7 @@ export default function OfferDetailPage() {
   // Not Found State
   if (!offer) {
     return (
-      <div className="min-h-screen flex flex-col bg-muted/50" dir="rtl">
-        <Navbar />
+      <div className="space-y-6" dir="rtl">
         <div className="flex-1 flex items-center justify-center py-20 px-4">
           <div className="text-center max-w-md">
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
@@ -158,7 +163,6 @@ export default function OfferDetailPage() {
             </Link>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -169,16 +173,7 @@ export default function OfferDetailPage() {
     : null;
 
   return (
-    <div dir="rtl">
-      <SEO 
-        title={seoTitle}
-        description={seoDescription}
-        image={offer.imageUrl || "/assets/new-logo.png"}
-        type="article"
-        keywords={`${offer.title}, عرض طبي, صنعاء, المستشفى السعودي الألماني`}
-      />
-      <div className="min-h-screen flex flex-col bg-muted/50">
-      <Navbar />
+    <div className="space-y-6" dir="rtl">
 
       {/* Breadcrumb */}
       <div className="bg-white dark:bg-card border-b">
@@ -498,9 +493,6 @@ export default function OfferDetailPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
-      </div>
     </div>
   );
 }

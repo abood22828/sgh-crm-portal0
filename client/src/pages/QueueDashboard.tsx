@@ -1,5 +1,6 @@
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useEffect, useState } from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,39 @@ export default function QueueDashboard() {
   const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
   const { formatDate, formatDateTime } = useFormatDate();
   const [autoRefresh, setAutoRefresh] = useState(true);
+
+  return (
+    <DashboardLayout pageTitle="لوحة الطوابير" pageDescription="إدارة طوابير الرسائل والإشعارات">
+      <QueueDashboardContent
+        formatPhoneDisplay={formatPhoneDisplay}
+        getWhatsAppLink={getWhatsAppLink}
+        getCallLink={getCallLink}
+        formatDate={formatDate}
+        formatDateTime={formatDateTime}
+        autoRefresh={autoRefresh}
+        setAutoRefresh={setAutoRefresh}
+      />
+    </DashboardLayout>
+  );
+}
+
+function QueueDashboardContent({
+  formatPhoneDisplay,
+  getWhatsAppLink,
+  getCallLink,
+  formatDate,
+  formatDateTime,
+  autoRefresh,
+  setAutoRefresh,
+}: {
+  formatPhoneDisplay: any;
+  getWhatsAppLink: any;
+  getCallLink: any;
+  formatDate: any;
+  formatDateTime: any;
+  autoRefresh: boolean;
+  setAutoRefresh: (value: boolean) => void;
+}) {
   
   const { data: queueStats, isLoading, refetch, error: statsError } = trpc.queue.getStats.useQuery(undefined, {
     refetchInterval: autoRefresh ? 5000 : false, // Auto-refresh every 5 seconds
@@ -232,3 +266,4 @@ export default function QueueDashboard() {
     </div>
   );
 }
+

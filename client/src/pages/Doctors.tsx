@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import Navbar from "@/components/Navbar";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,14 @@ import SEO from "@/components/SEO";
 import InstallPWAButton from "@/components/InstallPWAButton";
 
 export default function Doctors() {
+  return (
+    <DashboardLayout pageTitle="الأطباء" pageDescription="قائمة جميع الأطباء المتاحين">
+      <DoctorsContent />
+    </DashboardLayout>
+  );
+}
+
+function DoctorsContent() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState<string>("all");
@@ -48,14 +56,7 @@ export default function Doctors() {
   );
 
   return (
-    <>
-      <SEO
-        title="أطباؤنا - المستشفى السعودي الألماني"
-        description="تعرف على أطبائنا المتميزين في مختلف التخصصات. احجز موعدك الآن مع أفضل الأطباء في صنعاء."
-        image={APP_LOGO}
-      />
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900" dir="rtl">
-        <Navbar />
+    <div className="space-y-6" dir="rtl">
 
         {/* Hero Section */}
         <section className="pt-6 sm:pt-10 md:pt-24 pb-4 sm:pb-8 md:pb-12 px-4 sm:px-5 md:px-6">
@@ -185,7 +186,6 @@ export default function Doctors() {
           </div>
         </section>
         <InstallPWAButton />
-      </div>
-    </>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +15,14 @@ import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
 export default function WhatsAppTemplatesPage() {
+  return (
+    <DashboardLayout pageTitle="قوالب واتساب" pageDescription="إدارة قوالب رسائل واتساب">
+      <WhatsAppTemplatesContent />
+    </DashboardLayout>
+  );
+}
+
+function WhatsAppTemplatesContent() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);

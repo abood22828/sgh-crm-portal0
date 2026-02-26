@@ -1,17 +1,25 @@
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Search, Gift, Calendar, ArrowLeft, CheckCircle2 } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+
 import InstallPWAButton from "@/components/InstallPWAButton";
 
 export default function OffersListPage() {
+  return (
+    <DashboardLayout pageTitle="العروض" pageDescription="قائمة جميع العروض الطبية">
+      <OffersListContent />
+    </DashboardLayout>
+  );
+}
+
+function OffersListContent() {
   const { formatDate, formatDateTime } = useFormatDate();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -125,8 +133,7 @@ export default function OffersListPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50" dir="rtl">
-      <Navbar />
+    <div className="space-y-6" dir="rtl">
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-green-600 to-blue-600 text-white py-8 sm:py-12 md:py-16">
@@ -222,7 +229,6 @@ export default function OffersListPage() {
       </section>
 
       <InstallPWAButton />
-      <Footer />
     </div>
   );
 }
