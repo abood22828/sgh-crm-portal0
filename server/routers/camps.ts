@@ -130,12 +130,15 @@ export const campsRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
       
-      // Generate slug if not provided
-      let slug = (input.slug && input.slug.trim()) ? input.slug.trim() : generateSlug(input.name);
+      // Generate slug if not provided (normalize to lowercase)
+      let slug = (input.slug && input.slug.trim())
+        ? input.slug.trim().toLowerCase().replace(/\s+/g, '-')
+        : generateSlug(input.name);
       
-      // Validate slug format
+      // Clean up slug if invalid
       if (!isValidSlug(slug)) {
-        slug = generateSlug(input.name);
+        const cleaned = slug.replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        slug = cleaned.length > 0 ? cleaned : generateSlug(input.name);
       }
       
       // Check for duplicate slug, add suffix if needed
@@ -188,12 +191,25 @@ export const campsRouter = router({
       
       const { id, ...data } = input;
 
-      // Use provided slug or generate from name
-      let slug = (data.slug && data.slug.trim()) ? data.slug.trim() : generateSlug(data.name);
+      // Use provided slug (convert to lowercase) or keep existing from DB
+      let slug: string;
+      if (data.slug && data.slug.trim()) {
+        // Normalize: lowercase and replace spaces with hyphens
+        slug = data.slug.trim().toLowerCase().replace(/\s+/g, '-');
+      } else {
+        // Fallback: get current slug from DB to avoid overwriting with empty
+        const currentCamp = await db.select().from(camps).where(eq(camps.id, id)).limit(1);
+        slug = currentCamp[0]?.slug || generateSlug(data.name);
+      }
 
-      // Validate slug format
-      if (!isValidSlug(slug)) {
-        slug = generateSlug(data.name);
+      // Only validate if slug doesn't look valid (allow existing slugs)
+      if (slug && !isValidSlug(slug)) {
+        // Try to clean it up instead of replacing entirely
+        const cleaned = slug.replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        if (cleaned.length > 0) {
+          slug = cleaned;
+        }
+        // If still invalid, keep the original (don't overwrite with broken value)
       }
       
       // Check for duplicate slug (exclude current camp)

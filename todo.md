@@ -3585,3 +3585,9 @@
 - [x] تحديث منطق create و update لمعالجة imageUrl و slug بشكل صحيح
 - [x] إضافة رسائل خطأ واضحة في الواجهة
 - [x] 0 أخطاء TypeScript
+
+## إصلاح مشكلة اختفاء الرابط (slug) عند تعديل المخيم ✅ مكتمل
+- [x] اكتشاف سبب المشكلة: isValidSlug يرفض slugs بأحرف كبيرة (CVD, Epilepsy) فيولد slug فارغ
+- [x] إصلاح camps.ts: تحويل slug إلى lowercase + جلب slug الحالي من DB إذا كان فارغاً
+- [x] إصلاح offers.ts: نفس المنطق - تحويل lowercase + حفظ slug الحالي عند التعديل
+- [x] 0 أخطاء TypeScript

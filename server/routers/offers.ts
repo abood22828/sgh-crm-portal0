@@ -127,12 +127,13 @@ export const offersRouter = router({
         const dbInstance = await getDb();
         if (!dbInstance) throw new Error('Database not available');
         
-        // Use provided slug or generate from title
-        let slug = (input.slug && input.slug.trim()) ? input.slug.trim() : generateSlug(input.title);
+        // Use provided slug (normalize to lowercase) or generate from title
+        let slug = (input.slug && input.slug.trim())
+          ? input.slug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '')
+          : generateSlug(input.title);
 
-        // Validate slug
-        if (!isValidSlug(slug)) {
-          // Fallback: generate from title
+        // Fallback if slug is empty after normalization
+        if (!slug || slug.length === 0) {
           slug = generateSlug(input.title);
         }
 
@@ -193,11 +194,18 @@ export const offersRouter = router({
         const dbInstance = await getDb();
         if (!dbInstance) throw new Error('Database not available');
         
-        // Use provided slug or generate from title
-        let slug = (input.slug && input.slug.trim()) ? input.slug.trim() : generateSlug(input.title);
+        // Use provided slug (normalize to lowercase) or keep existing from DB
+        let slug: string;
+        if (input.slug && input.slug.trim()) {
+          slug = input.slug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        } else {
+          // Fallback: get current slug from DB to avoid overwriting with empty
+          const currentOffer = await dbInstance.select().from(offers).where(eq(offers.id, input.id)).limit(1);
+          slug = currentOffer[0]?.slug || generateSlug(input.title);
+        }
 
-        // Validate slug
-        if (!isValidSlug(slug)) {
+        // Fallback if slug is empty after normalization
+        if (!slug || slug.length === 0) {
           slug = generateSlug(input.title);
         }
 
