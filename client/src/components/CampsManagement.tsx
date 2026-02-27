@@ -76,7 +76,7 @@ export default function CampsManagement() {
     defaultFrozenColumns: ['name'],
   });
 
-  const { data: camps, isLoading, refetch } = trpc.camps.getAll.useQuery();
+  const { data: camps, isLoading, refetch } = trpc.camps.getAllAdmin.useQuery();
   
   const createMutation = trpc.camps.create.useMutation({
     onSuccess: () => {
@@ -85,8 +85,9 @@ export default function CampsManagement() {
       setShowAddDialog(false);
       resetForm();
     },
-    onError: () => {
-      toast.error("حدث خطأ أثناء إنشاء المخيم");
+    onError: (error: any) => {
+      const msg = error?.message || "حدث خطأ أثناء إنشاء المخيم";
+      toast.error(msg);
     },
   });
 
@@ -98,8 +99,9 @@ export default function CampsManagement() {
       setShowAddDialog(false);
       resetForm();
     },
-    onError: () => {
-      toast.error("حدث خطأ أثناء تحديث المخيم");
+    onError: (error: any) => {
+      const msg = error?.message || "حدث خطأ أثناء تحديث المخيم";
+      toast.error(msg);
     },
   });
 
@@ -109,8 +111,9 @@ export default function CampsManagement() {
       refetch();
       deleteConfirm.closeConfirm();
     },
-    onError: () => {
-      toast.error("حدث خطأ أثناء حذف المخيم");
+    onError: (error: any) => {
+      const msg = error?.message || "حدث خطأ أثناء حذف المخيم";
+      toast.error(msg);
     },
   });
 

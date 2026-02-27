@@ -22,10 +22,10 @@ const campInputSchema = z.object({
   name: z.string().min(1, "اسم المخيم مطلوب"),
   slug: z.string().optional(),
   description: z.string().optional(),
-  imageUrl: z.string().optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')), // Allow empty string
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean().optional().default(true),
   // New fields for advanced camp management
   freeOffers: z.string().optional(), // Free offers (one per line)
   discountedOffers: z.string().optional(), // Discounted offers (one per line)
@@ -131,14 +131,14 @@ export const campsRouter = router({
       if (!db) throw new Error("Database not available");
       
       // Generate slug if not provided
-      const slug = input.slug || generateSlug(input.name);
+      let slug = (input.slug && input.slug.trim()) ? input.slug.trim() : generateSlug(input.name);
       
       // Validate slug format
       if (!isValidSlug(slug)) {
-        throw new Error("صيغة الرابط غير صالحة");
+        slug = generateSlug(input.name);
       }
       
-      // Check for duplicate slug
+      // Check for duplicate slug, add suffix if needed
       const existing = await db
         .select()
         .from(camps)
@@ -146,17 +146,20 @@ export const campsRouter = router({
         .limit(1);
       
       if (existing.length > 0) {
-        throw new Error("هذا الرابط مستخدم بالفعل");
+        slug = `${slug}-${Date.now()}`;
       }
+
+      // Normalize imageUrl: treat empty string as undefined
+      const imageUrl = input.imageUrl && input.imageUrl.trim() !== '' ? input.imageUrl : undefined;
       
       await db.insert(camps).values({
         name: input.name,
         slug,
         description: input.description,
-        imageUrl: input.imageUrl,
+        imageUrl,
         startDate: input.startDate,
         endDate: input.endDate,
-        isActive: input.isActive,
+        isActive: input.isActive ?? true,
         freeOffers: input.freeOffers,
         discountedOffers: input.discountedOffers,
         availableProcedures: input.availableProcedures,
@@ -184,37 +187,39 @@ export const campsRouter = router({
       if (!db) throw new Error("Database not available");
       
       const { id, ...data } = input;
-      
-      // If slug is being changed, validate and check for duplicates
-      if (data.slug) {
-        if (!isValidSlug(data.slug)) {
-          throw new Error("صيغة الرابط غير صالحة");
-        }
-        
-        const existing = await db
-          .select()
-          .from(camps)
-          .where(and(
-            eq(camps.slug, data.slug),
-            // Exclude current camp from duplicate check
-          ))
-          .limit(1);
-        
-        if (existing.length > 0 && existing[0].id !== id) {
-          throw new Error("هذا الرابط مستخدم بالفعل");
-        }
+
+      // Use provided slug or generate from name
+      let slug = (data.slug && data.slug.trim()) ? data.slug.trim() : generateSlug(data.name);
+
+      // Validate slug format
+      if (!isValidSlug(slug)) {
+        slug = generateSlug(data.name);
       }
+      
+      // Check for duplicate slug (exclude current camp)
+      const existing = await db
+        .select()
+        .from(camps)
+        .where(eq(camps.slug, slug))
+        .limit(1);
+      
+      if (existing.length > 0 && existing[0].id !== id) {
+        throw new Error("هذا الرابط مستخدم بالفعل");
+      }
+
+      // Normalize imageUrl: treat empty string as undefined
+      const imageUrl = data.imageUrl && data.imageUrl.trim() !== '' ? data.imageUrl : undefined;
       
       await db
         .update(camps)
         .set({
           name: data.name,
-          slug: data.slug,
+          slug,
           description: data.description,
-          imageUrl: data.imageUrl,
+          imageUrl,
           startDate: data.startDate,
           endDate: data.endDate,
-          isActive: data.isActive,
+          isActive: data.isActive ?? true,
           freeOffers: data.freeOffers,
           discountedOffers: data.discountedOffers,
           availableProcedures: data.availableProcedures,

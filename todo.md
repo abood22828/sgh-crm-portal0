@@ -3575,3 +3575,13 @@
 - [x] إضافة slug و isActive و معالجة imageUrl الفارغ في offerInputSchema
 - [x] تحديث منطق create و update لاستخدام slug المقدم أو توليده تلقائياً
 - [x] 0 أخطاء TypeScript
+
+## إصلاح مشكلة إضافة وتعديل المخيمات ✅ مكتمل
+- [x] فحص كود إضافة المخيمات في الواجهة (CampsManagement.tsx)
+- [x] فحص كود إضافة المخيمات في الخادم (routers/camps.ts)
+- [x] تحديد المشاكل: استخدام getAll بدلاً من getAllAdmin + imageUrl الفارغ
+- [x] تصحيح CampsManagement.tsx لاستخدام getAllAdmin
+- [x] تحديث campInputSchema لقبول imageUrl الفارغ
+- [x] تحديث منطق create و update لمعالجة imageUrl و slug بشكل صحيح
+- [x] إضافة رسائل خطأ واضحة في الواجهة
+- [x] 0 أخطاء TypeScript
