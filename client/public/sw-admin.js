@@ -1,30 +1,30 @@
-// Service Worker for SGH Public App (Patients & Visitors)
-// مستقل تماماً عن Service Worker لوحة التحكم الإدارية (sw-admin.js)
-const CACHE_NAME = 'sgh-public-v1';
-const RUNTIME_CACHE = 'sgh-public-runtime-v1';
-const OFFLINE_URL = '/offline';
+// Service Worker for SGH Admin Dashboard PWA
+// مستقل تماماً عن Service Worker التطبيق العام
+const CACHE_NAME = 'sgh-admin-v1';
+const RUNTIME_CACHE = 'sgh-admin-runtime-v1';
+const OFFLINE_URL = '/dashboard/offline';
 
-// الملفات الأساسية للتطبيق العام
+// الملفات الأساسية لتطبيق الإدارة
 const PRECACHE_URLS = [
-  '/',
-  '/offline',
-  '/manifest.json',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
+  '/dashboard',
+  '/manifest-admin.json',
+  '/icon-admin-192x192.png',
+  '/icon-admin-512x512.png',
   '/apple-touch-icon.png',
   '/favicon.ico',
 ];
 
 // ===== Install Event =====
 self.addEventListener('install', (event) => {
-  console.log('[SW-Public] Installing public service worker...');
+  console.log('[SW-Admin] Installing admin service worker...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('[SW-Public] Precaching public app shell');
+        console.log('[SW-Admin] Precaching admin app shell');
+        // Try to cache each URL individually to avoid failing on missing files
         return Promise.allSettled(
           PRECACHE_URLS.map(url => cache.add(url).catch(err => {
-            console.warn('[SW-Public] Could not cache:', url, err.message);
+            console.warn('[SW-Admin] Could not cache:', url, err.message);
           }))
         );
       })
@@ -34,17 +34,17 @@ self.addEventListener('install', (event) => {
 
 // ===== Activate Event =====
 self.addEventListener('activate', (event) => {
-  console.log('[SW-Public] Activating public service worker...');
+  console.log('[SW-Admin] Activating admin service worker...');
   const currentCaches = [CACHE_NAME, RUNTIME_CACHE];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
-      // Only delete caches that belong to public app (sgh-public-*)
+      // Only delete caches that belong to admin (sgh-admin-*)
       return cacheNames.filter((cacheName) =>
-        cacheName.startsWith('sgh-public-') && !currentCaches.includes(cacheName)
+        cacheName.startsWith('sgh-admin-') && !currentCaches.includes(cacheName)
       );
     }).then((cachesToDelete) => {
       return Promise.all(cachesToDelete.map((cacheToDelete) => {
-        console.log('[SW-Public] Deleting old cache:', cacheToDelete);
+        console.log('[SW-Admin] Deleting old cache:', cacheToDelete);
         return caches.delete(cacheToDelete);
       }));
     }).then(() => self.clients.claim())
@@ -58,16 +58,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip admin dashboard requests - handled by sw-admin.js
-  if (event.request.url.includes('/dashboard')) {
-    return;
-  }
-
-  // Skip API requests (always fetch fresh)
+  // Skip API requests (always fetch fresh for admin)
   if (event.request.url.includes('/api/')) {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return new Response(JSON.stringify({ error: 'Offline' }), {
+        return new Response(JSON.stringify({ error: 'Offline - Admin' }), {
           headers: { 'Content-Type': 'application/json' }
         });
       })
@@ -75,7 +70,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-first for navigation
+  // Network-first for admin navigation (always fresh data)
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -90,7 +85,7 @@ self.addEventListener('fetch', (event) => {
           return caches.match(event.request)
             .then((cachedResponse) => {
               if (cachedResponse) return cachedResponse;
-              return caches.match(OFFLINE_URL);
+              return caches.match('/dashboard');
             });
         })
     );
@@ -116,11 +111,11 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// ===== Push Notifications (Public App) =====
+// ===== Push Notifications (Admin-specific) =====
 self.addEventListener('push', (event) => {
-  console.log('[SW-Public] Push notification received');
+  console.log('[SW-Admin] Admin push notification received');
 
-  let data = { title: 'المستشفى السعودي الألماني', body: 'إشعار جديد', url: '/', type: 'general' };
+  let data = { title: 'لوحة تحكم SGH', body: 'إشعار جديد', url: '/dashboard', type: 'general' };
   try {
     if (event.data) {
       data = { ...data, ...JSON.parse(event.data.text()) };
@@ -131,84 +126,87 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: '/icon-192x192.png',
-    badge: '/icon-72x72.png',
-    vibrate: [200, 100, 200],
-    tag: `sgh-public-${data.type || 'notification'}`,
-    requireInteraction: false,
-    data: { url: data.url || '/' },
+    icon: '/icon-admin-192x192.png',
+    badge: '/icon-admin-72x72.png',
+    vibrate: [200, 100, 200, 100, 200],
+    tag: `sgh-admin-${data.type || 'notification'}`,
+    requireInteraction: true,
+    data: { url: data.url || '/dashboard' },
     actions: [
-      { action: 'open', title: 'فتح', icon: '/icon-72x72.png' },
+      { action: 'open', title: 'فتح', icon: '/icon-admin-72x72.png' },
       { action: 'close', title: 'إغلاق' }
     ]
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'المستشفى السعودي الألماني', options)
+    self.registration.showNotification(data.title || 'لوحة تحكم SGH', options)
   );
 });
 
 // ===== Notification Click =====
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW-Public] Notification clicked:', event.action);
+  console.log('[SW-Admin] Admin notification clicked:', event.action);
   event.notification.close();
 
   if (event.action === 'open' || !event.action) {
-    const targetUrl = event.notification.data?.url || '/';
+    const targetUrl = event.notification.data?.url || '/dashboard';
     event.waitUntil(
       clients.matchAll({ type: 'window', includeUncontrolled: true })
         .then((clientList) => {
+          // Focus existing admin window if open
           for (const client of clientList) {
-            if (!client.url.includes('/dashboard') && 'focus' in client) {
+            if (client.url.includes('/dashboard') && 'focus' in client) {
               client.navigate(targetUrl);
               return client.focus();
             }
           }
+          // Open new window
           return clients.openWindow(targetUrl);
         })
     );
   }
 });
 
-// ===== Background Sync =====
-self.addEventListener('sync', (event) => {
-  console.log('[SW-Public] Background sync triggered:', event.tag);
-  if (event.tag === 'sync-appointments') {
-    event.waitUntil(syncAppointments());
-  }
-});
-
-async function syncAppointments() {
-  try {
-    console.log('[SW-Public] Syncing appointments...');
-    const clientList = await clients.matchAll({ type: 'window' });
-    clientList.forEach(client => {
-      if (!client.url.includes('/dashboard')) {
-        client.postMessage({ type: 'SYNC_COMPLETE' });
-      }
-    });
-  } catch (error) {
-    console.error('[SW-Public] Sync failed:', error);
-  }
-}
-
 // ===== Message Event =====
 self.addEventListener('message', (event) => {
-  console.log('[SW-Public] Message received:', event.data);
+  console.log('[SW-Admin] Message received:', event.data);
 
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 
   if (event.data?.type === 'GET_VERSION') {
-    event.ports[0]?.postMessage({ version: CACHE_NAME, app: 'public' });
+    event.ports[0]?.postMessage({ version: CACHE_NAME, app: 'admin' });
   }
 
   if (event.data?.type === 'CLEAR_CACHE') {
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k.startsWith('sgh-public-')).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k.startsWith('sgh-admin-')).map(k => caches.delete(k)))
     ).then(() => {
       event.ports[0]?.postMessage({ success: true });
     });
   }
 });
+
+// ===== Background Sync =====
+self.addEventListener('sync', (event) => {
+  console.log('[SW-Admin] Background sync triggered:', event.tag);
+  if (event.tag === 'sync-admin-data') {
+    event.waitUntil(syncAdminData());
+  }
+});
+
+async function syncAdminData() {
+  try {
+    console.log('[SW-Admin] Syncing admin data...');
+    // Notify all admin clients that sync is complete
+    const clientList = await clients.matchAll({ type: 'window' });
+    clientList.forEach(client => {
+      if (client.url.includes('/dashboard')) {
+        client.postMessage({ type: 'SYNC_COMPLETE' });
+      }
+    });
+  } catch (error) {
+    console.error('[SW-Admin] Sync failed:', error);
+  }
+}

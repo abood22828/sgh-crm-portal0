@@ -11,14 +11,27 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>%VITE_APP_TITLE%</title>
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
+    <!-- PWA Manifest - Dynamic based on path -->
+    <!-- Default: Public App manifest -->
+    <link rel="manifest" href="/manifest.json" id="pwa-manifest" />
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#10b981" />
+    <meta name="theme-color" content="#10b981" id="pwa-theme-color" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="SGH صنعاء" />
+    <meta name="apple-mobile-web-app-title" content="SGH صنعاء" id="pwa-app-title" />
+    
+    <!-- PWA Isolation Script: Load correct manifest based on path -->
+    <script>
+      (function() {
+        var isAdmin = window.location.pathname.startsWith('/dashboard');
+        if (isAdmin) {
+          document.getElementById('pwa-manifest').setAttribute('href', '/manifest-admin.json');
+          document.getElementById('pwa-theme-color').setAttribute('content', '#1e40af');
+          document.getElementById('pwa-app-title').setAttribute('content', 'لوحة تحكم SGH');
+        }
+      })();
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     
     <!-- SEO Meta Tags -->

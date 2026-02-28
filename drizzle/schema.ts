@@ -985,3 +985,26 @@ export const campaignDoctors = mysqlTable("campaignDoctors", {
 
 export type CampaignDoctor = typeof campaignDoctors.$inferSelect;
 export type InsertCampaignDoctor = typeof campaignDoctors.$inferInsert;
+
+/**
+ * PWA Installs Tracking Table
+ * يتتبع عمليات تثبيت التطبيق لكل تطبيق (عام / إدارة)
+ * يُستخدم لإحصائيات التثبيت ومعرفة عدد المرضى والموظفين الذين ثبتوا التطبيق
+ */
+export const pwaInstalls = mysqlTable("pwaInstalls", {
+  id: int("id").autoincrement().primaryKey(),
+  /** نوع التطبيق: public = للمرضى، admin = للموظفين */
+  appType: mysqlEnum("appType", ["public", "admin"]).notNull(),
+  /** معرف المستخدم (إن كان مسجلاً) */
+  userId: int("userId"),
+  /** معلومات الجهاز والمتصفح */
+  userAgent: text("userAgent"),
+  platform: varchar("platform", { length: 100 }),
+  /** عنوان IP للتحليلات */
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  /** تاريخ التثبيت */
+  installedAt: timestamp("installedAt").defaultNow().notNull(),
+});
+
+export type PwaInstall = typeof pwaInstalls.$inferSelect;
+export type InsertPwaInstall = typeof pwaInstalls.$inferInsert;

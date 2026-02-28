@@ -1,0 +1,97 @@
+{
+  "name": "لوحة تحكم SGH",
+  "short_name": "SGH Admin",
+  "description": "لوحة تحكم إدارة المستشفى السعودي الألماني - صنعاء. إدارة الحجوزات والمواعيد والعملاء",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "scope": "/dashboard",
+  "lang": "ar",
+  "dir": "rtl",
+  "id": "sgh-admin-app",
+  "icons": [
+    {
+      "src": "/icon-admin-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-admin-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-admin-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-admin-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-admin-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-admin-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-admin-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-admin-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "medical"],
+  "shortcuts": [
+    {
+      "name": "العملاء",
+      "short_name": "عملاء",
+      "description": "عرض قائمة العملاء المسجلين",
+      "url": "/dashboard/customers",
+      "icons": [{ "src": "/icon-admin-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "المواعيد",
+      "short_name": "مواعيد",
+      "description": "إدارة مواعيد الأطباء",
+      "url": "/dashboard/appointments",
+      "icons": [{ "src": "/icon-admin-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "الحجوزات",
+      "short_name": "حجوزات",
+      "description": "إدارة حجوزات العروض والمخيمات",
+      "url": "/dashboard/bookings",
+      "icons": [{ "src": "/icon-admin-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "المهام",
+      "short_name": "مهام",
+      "description": "إدارة مهام الفريق",
+      "url": "/dashboard/tasks",
+      "icons": [{ "src": "/icon-admin-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

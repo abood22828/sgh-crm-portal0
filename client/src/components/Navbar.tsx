@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from "react";
 import { Phone, Menu, X, ChevronLeft } from "lucide-react";
 import { APP_LOGO, APP_TITLE } from "@/const";
 import { Link } from "wouter";
+import InstallPWAButton from "@/components/InstallPWAButton";
 
 export default function Navbar() {
   const location = window.location.pathname;
@@ -97,6 +98,9 @@ export default function Navbar() {
                   بوابة المريض
                 </span>
               </Link>
+              {/* PWA Install Button - Public App */}
+              <InstallPWAButton appType="public" variant="compact" />
+
               {/* Contact Button */}
               <a
                 href="tel:8000018"

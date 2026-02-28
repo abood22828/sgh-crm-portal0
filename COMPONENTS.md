@@ -590,18 +590,31 @@
 ---
 
 ### InstallPWAButton
-**الوصف**: زر تثبيت PWA للواجهة العامة
+**الوصف**: زر تثبيت PWA موحد يدعم كلا التطبيقين (العام والإدارة)
 
 **المحتوى**:
-- beforeinstallprompt handling
-- زر عائم مع أيقونة
-- إخفاء بعد التثبيت
+- دعم `appType: 'public' | 'admin'` لتحديد التطبيق
+- ثلاثة أوضاع: `compact` (Navbar) | `sidebar` (شريط جانبي) | `banner` (بانر كامل)
+- دعم iOS بتعليمات يدوية
+- تتبع عمليات التثبيت في قاعدة البيانات
+- إخفاء ذكي بعد التثبيت أو الرفض
+
+**الاستخدام**:
+```tsx
+// في Navbar الواجهة العامة
+<InstallPWAButton appType="public" variant="compact" />
+
+// في TopNavbar لوحة التحكم
+<InstallPWAButton appType="admin" variant="compact" />
+
+// في الشريط الجانبي
+<InstallPWAButton appType="admin" variant="sidebar" />
+```
 
 **أماكن التطبيق**:
-- `HomePage`
-- `Doctors`
-- `Offers`
-- `Camps`
+- `Navbar` (الواجهة العامة) - `appType="public"`
+- `TopNavbar` (لوحة التحكم) - `appType="admin"`
+- `DashboardSidebarV2` (شريط جانبي) - `appType="admin"`
 
 **المسار**: `client/src/components/InstallPWAButton.tsx`
 
@@ -1156,6 +1169,39 @@ const persistedFn = usePersistFn(fn);
 - الدوال التي تُمرر كـ props
 
 **المسار**: `client/src/hooks/usePersistFn.ts`
+
+---
+
+### usePWAInstall
+**الوصف**: Hook موحد لإدارة تثبيت PWA لكلا التطبيقين (العام والإدارة)
+
+**المحتوى**:
+```typescript
+export type PWAAppType = 'public' | 'admin';
+
+const {
+  canInstall,      // هل يمكن تثبيت التطبيق
+  isInstalled,     // هل التطبيق مثبت بالفعل (standalone mode)
+  isIOS,           // هل الجهاز iOS (يحتاج تعليمات يدوية)
+  isPWASupported,  // هل يدعم المتصفح PWA
+  isInstalling,    // هل عملية التثبيت جارية
+  isDismissed,     // هل تم رفض الطلب من قبل
+  installApp,      // دالة: تشغيل عملية التثبيت
+  dismissPrompt,   // دالة: إخفاء زر التثبيت مؤقتاً (7 أيام)
+} = usePWAInstall('public'); // أو 'admin'
+```
+
+**الميزات**:
+- تسجيل Service Worker المناسب (`/sw.js` للعام، `/sw-admin.js` للإدارة)
+- تتبع عمليات التثبيت في قاعدة البيانات عبر `trpc.pwa.trackInstall`
+- دعم iOS بتعليمات يدوية
+- إعادة عرض الزر بعد 7 أيام من الرفض
+- مفتاح تخزين مستقل لكل تطبيق
+
+**أماكن الاستخدام**:
+- `InstallPWAButton` - مكون زر التثبيت
+
+**المسار**: `client/src/hooks/usePWAInstall.ts`
 
 ---
 

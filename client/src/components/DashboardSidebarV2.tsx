@@ -38,6 +38,7 @@ import { useSidebarState } from "@/hooks/useSidebarState";
 import { useRecentlyUsed } from "@/hooks/useRecentlyUsed";
 import AllToolsDrawer from "./AllToolsDrawer";
 import EditSidebarModal from "./EditSidebarModal";
+import InstallPWAButton from "./InstallPWAButton";
 
 export interface NavItem {
   title: string;
@@ -430,6 +431,11 @@ export default function DashboardSidebarV2({ currentPath }: { currentPath: strin
             <TooltipContent side="left">الإعدادات</TooltipContent>
           )}
         </Tooltip>
+
+        {/* زر تثبيت التطبيق */}
+        {shouldShowText && (
+          <InstallPWAButton appType="admin" variant="sidebar" />
+        )}
 
         {/* المساعدة */}
         <Tooltip delayDuration={shouldShowText ? 999999 : 300}>

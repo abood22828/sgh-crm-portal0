@@ -3591,3 +3591,20 @@
 - [x] إصلاح camps.ts: تحويل slug إلى lowercase + جلب slug الحالي من DB إذا كان فارغاً
 - [x] إصلاح offers.ts: نفس المنطق - تحويل lowercase + حفظ slug الحالي عند التعديل
 - [x] 0 أخطاء TypeScript
+
+## PWA Isolation - فصل المنصة إلى تطبيقين مستقلين ✅ مكتمل
+- [x] فحص البنية الحالية وقراءة COMPONENTS.md
+- [x] إنشاء manifest.json محدث للتطبيق العام (Public) - اسم المستشفى السعودي الألماني
+- [x] إنشاء manifest-admin.json منفصل لتطبيق الإدارة - اسم "لوحة تحكم SGH"
+- [x] إنشاء sw.js محدث للتطبيق العام (scope: /)
+- [x] إنشاء sw-admin.js مستقل لتطبيق الإدارة (scope: /dashboard/)
+- [x] إنشاء usePWAInstall hook موحد لكلا التطبيقين مع دعم iOS
+- [x] تحديث InstallPWAButton ليدعم appType + 3 أوضاع (compact/sidebar/banner)
+- [x] إضافة جدول pwa_installs في قاعدة البيانات لتتبع الإحصائيات
+- [x] إضافة pwa router مع trackInstall و getStats procedures
+- [x] تكامل زر التثبيت في Navbar (الواجهة العامة) - appType="public"
+- [x] تكامل زر التثبيت في TopNavbar (لوحة التحكم) - appType="admin"
+- [x] تكامل زر التثبيت في DashboardSidebarV2 (شريط جانبي) - variant="sidebar"
+- [x] تحديث index.html لتحميل manifest الصحيح ديناميكياً حسب المسار
+- [x] تحديث COMPONENTS.md بتوثيق usePWAInstall و InstallPWAButton
+- [x] 0 أخطاء TypeScript
