@@ -92,17 +92,27 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
     }
 
     // تسجيل Service Worker المناسب
+    // CRITICAL: Admin SW must be registered from /dashboard/sw-admin.js
+    // because browsers require SW files to be within or above their scope
+    // The server serves /dashboard/sw-admin.js with Service-Worker-Allowed: /dashboard/ header
     if (supported && !isStandalone) {
-      const swPath = appType === 'admin' ? '/sw-admin.js' : '/sw.js';
+      const swPath = appType === 'admin' ? '/dashboard/sw-admin.js' : '/sw.js';
       const swScope = appType === 'admin' ? '/dashboard/' : '/';
 
       navigator.serviceWorker
         .register(swPath, { scope: swScope })
         .then((registration) => {
-          console.log(`[PWA-${appType}] Service Worker registered:`, registration.scope);
+          console.log(`[PWA-${appType}] Service Worker registered at scope:`, registration.scope);
         })
         .catch((error) => {
           console.warn(`[PWA-${appType}] Service Worker registration failed:`, error);
+          // Fallback: try without explicit scope
+          if (appType === 'admin') {
+            navigator.serviceWorker
+              .register('/dashboard/sw-admin.js')
+              .then(reg => console.log('[PWA-admin] Fallback SW registered:', reg.scope))
+              .catch(err => console.error('[PWA-admin] Fallback SW failed:', err));
+          }
         });
     }
 

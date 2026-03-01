@@ -3608,3 +3608,12 @@
 - [x] تحديث index.html لتحميل manifest الصحيح ديناميكياً حسب المسار
 - [x] تحديث COMPONENTS.md بتوثيق usePWAInstall و InstallPWAButton
 - [x] 0 أخطاء TypeScript
+
+## إصلاح Bug حرج: تطبيق الإدارة يفتح الواجهة العامة بدلاً من /dashboard ✅ مكتمل
+- [x] إصلاح manifest-admin.json: start_url=/dashboard/ و scope=/dashboard/
+- [x] إضافة route في الخادم لتقديم sw-admin.js من /dashboard/sw-admin.js مع Service-Worker-Allowed header
+- [x] تحديث index.html لاستخدام /dashboard/manifest-admin.json
+- [x] تحديث usePWAInstall hook لتسجيل SW من /dashboard/sw-admin.js
+- [x] إنشاء صفحة إحصائيات PWA على /dashboard/pwa-stats
+- [x] إضافة Route في App.tsx لصفحة PWAStatsPage
+- [x] 0 أخطاء TypeScript

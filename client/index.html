@@ -22,11 +22,13 @@
     <meta name="apple-mobile-web-app-title" content="SGH صنعاء" id="pwa-app-title" />
     
     <!-- PWA Isolation Script: Load correct manifest based on path -->
+    <!-- CRITICAL: Admin manifest must be served from /dashboard/ scope for PWA isolation -->
     <script>
       (function() {
         var isAdmin = window.location.pathname.startsWith('/dashboard');
         if (isAdmin) {
-          document.getElementById('pwa-manifest').setAttribute('href', '/manifest-admin.json');
+          // Use /dashboard/manifest-admin.json so it's within the admin PWA scope
+          document.getElementById('pwa-manifest').setAttribute('href', '/dashboard/manifest-admin.json');
           document.getElementById('pwa-theme-color').setAttribute('content', '#1e40af');
           document.getElementById('pwa-app-title').setAttribute('content', 'لوحة تحكم SGH');
         }

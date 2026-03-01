@@ -2,15 +2,15 @@
   "name": "لوحة تحكم SGH",
   "short_name": "SGH Admin",
   "description": "لوحة تحكم إدارة المستشفى السعودي الألماني - صنعاء. إدارة الحجوزات والمواعيد والعملاء",
-  "start_url": "/dashboard",
+  "start_url": "/dashboard/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#1e40af",
   "orientation": "portrait-primary",
-  "scope": "/dashboard",
+  "scope": "/dashboard/",
   "lang": "ar",
   "dir": "rtl",
-  "id": "sgh-admin-app",
+  "id": "sgh-admin-app-v2",
   "icons": [
     {
       "src": "/icon-admin-72x72.png",

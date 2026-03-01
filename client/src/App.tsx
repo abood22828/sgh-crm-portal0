@@ -57,6 +57,7 @@ const PatientPortalLogin = lazy(() => import("./pages/PatientPortalLogin"));
 const PatientDashboard = lazy(() => import("./pages/PatientDashboard"));
 const MessageSettingsPage = lazy(() => import("./pages/MessageSettingsPage"));
 const QueueDashboard = lazy(() => import("./pages/QueueDashboard"));
+const PWAStatsPage = lazy(() => import("./pages/PWAStatsPage"));
 
 
 function Router() {
@@ -116,6 +117,7 @@ function Router() {
       <Route path={"/dashboard/teams/customer-service"} component={CustomerServiceTeamPage} />
       <Route path={"/dashboard/projects"} component={CampaignsPage} />
       <Route path={"/dashboard/review-approval"} component={ReviewApprovalPage} />
+      <Route path={"/dashboard/pwa-stats"} component={PWAStatsPage} />
       <Route path={"/admin"} component={AdminDashboard} />
 
       <Route path={"/patient-portal"} component={PatientPortalLogin} />
