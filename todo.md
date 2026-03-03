@@ -3666,3 +3666,8 @@
 - [x] إعادة كتابة usePWAInstall: إلغاء SW العام في صفحات الإدارة قبل تسجيل SW-admin
 - [x] إعادة كتابة PWAManager: الزر يظهر دائماً في لوحة التحكم (بغض النظر عن canInstall)
 - [x] 0 أخطاء TypeScript
+
+## إصلاح serveStatic للإنتاج - /admin/* و /dashboard/* ✅ مكتمل
+- [x] إضافة index-admin.html كـ rollupOptions.input في vite.config.ts
+- [x] التحقق من بناء index-admin.html في dist/public بشكل صحيح
+- [x] index-admin.html يحمل manifest-admin.json و index.html يحمل manifest.json
