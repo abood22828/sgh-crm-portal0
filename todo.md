@@ -3623,3 +3623,10 @@
 - [x] إصلاح سبب الخطأ: استخدام ASC داخل sql template بدلاً من asc() wrapper
 - [x] إصلاح تمرير Date object في sql template باستخدام gte() من drizzle-orm
 - [x] 0 أخطاء TypeScript
+
+## إصلاح PWA start_url وعناوين الصفحات الديناميكية ✅ مكتمل
+- [x] إنشاء client/index-admin.html يحمّل manifest-admin.json مباشرةً في <head>
+- [x] تحديث server/_core/vite.ts لتقديم index-admin.html لمسارات /dashboard/*
+- [x] تحديث serveStatic لدعم index-admin.html في بيئة الإنتاج
+- [x] إضافة useEffect في DashboardLayout لتحديث document.title ديناميكياً
+- [x] إضافة pageTitle لـ DigitalMarketingTasksPage

@@ -813,7 +813,7 @@ export default function DigitalMarketingTasksPage() {
   const statuses: TaskStatus[] = ["todo", "in_progress", "review", "completed"];
 
   return (
-    <DashboardLayout>
+    <DashboardLayout pageTitle="مهام التسويق الرقمي" pageDescription="إدارة مهام فريق التسويق الرقمي">
       <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
         <div className="flex flex-col gap-3 md:gap-4 md:flex-row md:items-center md:justify-between">

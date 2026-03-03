@@ -16,6 +16,7 @@ import {
 import { User, Settings, LogOut, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 
 export default function DashboardLayout({
   children,
@@ -28,6 +29,20 @@ export default function DashboardLayout({
 }) {
   const { loading, user, logout } = useAuth();
   const [location, setLocation] = useLocation();
+
+  // Update document title dynamically based on pageTitle prop
+  useEffect(() => {
+    const baseTitle = 'لوحة تحكم SGH';
+    if (pageTitle) {
+      document.title = `${pageTitle} | ${baseTitle}`;
+    } else {
+      document.title = baseTitle;
+    }
+    // Restore on unmount
+    return () => {
+      document.title = baseTitle;
+    };
+  }, [pageTitle]);
 
   if (loading) {
     return <DashboardLayoutSkeleton />

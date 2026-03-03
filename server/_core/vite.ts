@@ -25,15 +25,26 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
+      // Use admin HTML template for /dashboard/* routes
+      // This ensures manifest-admin.json is loaded directly in <head> without JS
+      // which is required for correct PWA scope isolation
+      const isAdminRoute = url.startsWith('/dashboard');
+      const templateFile = isAdminRoute ? 'index-admin.html' : 'index.html';
+      
       const clientTemplate = path.resolve(
         import.meta.dirname,
         "../..",
         "client",
-        "index.html"
+        templateFile
       );
 
+      // Fallback to index.html if index-admin.html doesn't exist
+      const templatePath = fs.existsSync(clientTemplate)
+        ? clientTemplate
+        : path.resolve(import.meta.dirname, "../..", "client", "index.html");
+
       // always reload the index.html file from disk incase it changes
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      let template = await fs.promises.readFile(templatePath, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
@@ -60,8 +71,12 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // fall through to index.html or index-admin.html based on route
+  app.use("*", (req, res) => {
+    const isAdminRoute = req.originalUrl.startsWith('/dashboard');
+    const htmlFile = isAdminRoute && fs.existsSync(path.resolve(distPath, 'index-admin.html'))
+      ? 'index-admin.html'
+      : 'index.html';
+    res.sendFile(path.resolve(distPath, htmlFile));
   });
 }
