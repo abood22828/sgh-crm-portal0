@@ -16,7 +16,6 @@ import { useLocation } from "wouter";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import InstallPWAButton from "@/components/InstallPWAButton";
 
 interface TopNavbarProps {
   pageTitle?: string;
@@ -53,9 +52,6 @@ export default function TopNavbar({ pageTitle, pageDescription }: TopNavbarProps
         
         {/* Left Actions: Notifications + Theme + User */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {/* PWA Install Button - Admin App */}
-          <InstallPWAButton appType="admin" variant="compact" />
-
           {/* Sound Control */}
           <Tooltip>
             <TooltipTrigger asChild>
