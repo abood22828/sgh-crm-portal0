@@ -28,7 +28,7 @@ export async function setupVite(app: Express, server: Server) {
       // Use admin HTML template for /dashboard/* routes
       // This ensures manifest-admin.json is loaded directly in <head> without JS
       // which is required for correct PWA scope isolation
-      const isAdminRoute = url.startsWith('/dashboard');
+      const isAdminRoute = url.startsWith('/dashboard') || url.startsWith('/admin');
       const templateFile = isAdminRoute ? 'index-admin.html' : 'index.html';
       
       const clientTemplate = path.resolve(
@@ -73,7 +73,7 @@ export function serveStatic(app: Express) {
 
   // fall through to index.html or index-admin.html based on route
   app.use("*", (req, res) => {
-    const isAdminRoute = req.originalUrl.startsWith('/dashboard');
+    const isAdminRoute = req.originalUrl.startsWith('/dashboard') || req.originalUrl.startsWith('/admin');
     const htmlFile = isAdminRoute && fs.existsSync(path.resolve(distPath, 'index-admin.html'))
       ? 'index-admin.html'
       : 'index.html';

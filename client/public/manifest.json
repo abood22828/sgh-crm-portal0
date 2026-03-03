@@ -77,10 +77,10 @@
   "categories": ["health", "medical", "lifestyle"],
   "shortcuts": [
     {
-      "name": "العملاء",
-      "short_name": "عملاء",
-      "description": "عرض قائمة العملاء المسجلين",
-      "url": "/dashboard?tab=leads",
+      "name": "حجز موعد",
+      "short_name": "حجز",
+      "description": "احجز موعدك مع أفضل الأطباء",
+      "url": "/doctors",
       "icons": [
         {
           "src": "/icon-192x192.png",
@@ -90,10 +90,10 @@
       ]
     },
     {
-      "name": "المواعيد",
-      "short_name": "مواعيد",
-      "description": "عرض مواعيد الأطباء",
-      "url": "/dashboard?tab=appointments",
+      "name": "العروض الطبية",
+      "short_name": "عروض",
+      "description": "عرض العروض الطبية المتاحة",
+      "url": "/offers",
       "icons": [
         {
           "src": "/icon-192x192.png",
@@ -103,10 +103,10 @@
       ]
     },
     {
-      "name": "الحجوزات",
-      "short_name": "حجوزات",
-      "description": "عرض حجوزات العروض والمخيمات",
-      "url": "/dashboard?tab=offers",
+      "name": "المخيمات الصحية",
+      "short_name": "مخيمات",
+      "description": "عرض المخيمات الصحية المتاحة",
+      "url": "/camps",
       "icons": [
         {
           "src": "/icon-192x192.png",

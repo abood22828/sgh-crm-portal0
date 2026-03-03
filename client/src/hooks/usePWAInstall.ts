@@ -1,13 +1,15 @@
 /**
- * usePWAInstall Hook - النسخة المُحسَّنة
+ * usePWAInstall Hook - النسخة الجذرية المُصلَحة
  *
- * إصلاحات جوهرية:
- * 1. كل نطاق (admin/public) يسجّل Service Worker الخاص به فقط
- *    - صفحات /dashboard/* تسجّل /dashboard/sw-admin.js فقط
- *    - صفحات / تسجّل /sw.js فقط
- *    - لا تعارض بين الـ Service Workers
+ * الإصلاحات الجوهرية:
+ * 1. فصل تام بين تطبيقي الإدارة والواجهة العامة:
+ *    - في صفحات /dashboard/* و /admin/*:
+ *      * يُلغي تسجيل sw.js العام (scope: /) إذا كان مسجلاً
+ *      * يُسجّل sw-admin.js فقط (scope: /dashboard/)
+ *    - في الصفحات العامة:
+ *      * يُسجّل sw.js فقط (scope: /)
+ *      * لا يتدخل في sw-admin.js
  * 2. canInstall يبقى true حتى بعد إلغاء المستخدم للـ prompt
- *    (يختفي الزر في الجلسة الحالية لكن يعود عند تحديث الصفحة)
  * 3. isDismissed يُستخدم فقط عند الضغط على "لاحقاً" (7 أيام)
  */
 
@@ -38,6 +40,27 @@ export interface PWAInstallState {
 const DISMISS_STORAGE_KEY = (appType: PWAAppType) => `sgh-pwa-dismissed-${appType}`;
 const INSTALL_COUNT_KEY = (appType: PWAAppType) => `sgh-pwa-install-count-${appType}`;
 
+/**
+ * إلغاء تسجيل Service Worker العام (scope: /) في صفحات الإدارة
+ * هذا ضروري لأن SW العام يغطي /dashboard/ وهذا يمنع beforeinstallprompt للتطبيق الإداري
+ */
+async function unregisterPublicSWInAdminPages(): Promise<void> {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const registration of registrations) {
+      const scope = registration.scope;
+      // إلغاء تسجيل SW العام (scope: /) فقط - ليس sw-admin.js
+      if (scope.endsWith('/') && !scope.includes('/dashboard')) {
+        console.log('[PWA-admin] Unregistering conflicting public SW at scope:', scope);
+        await registration.unregister();
+      }
+    }
+  } catch (error) {
+    console.warn('[PWA-admin] Failed to unregister public SW:', error);
+  }
+}
+
 export function usePWAInstall(appType: PWAAppType): PWAInstallState {
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -47,7 +70,7 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
   const [isDismissed, setIsDismissed] = useState(false);
 
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
-  const promptUsedRef = useRef(false); // هل تم استخدام الـ prompt في هذه الجلسة
+  const promptUsedRef = useRef(false);
 
   // tRPC mutation لتسجيل التثبيت في قاعدة البيانات
   const trackInstallMutation = trpc.pwa.trackInstall.useMutation();
@@ -79,32 +102,32 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
       }
     }
 
-    // تسجيل Service Worker المناسب للنطاق الحالي فقط
-    // CRITICAL: كل نطاق يسجّل SW الخاص به فقط لتجنب التعارض
     if (supported && !isStandalone) {
       const currentPath = window.location.pathname;
       const isAdminPath = currentPath.startsWith('/dashboard') || currentPath.startsWith('/admin');
-      
-      // سجّل SW المناسب للمسار الحالي فقط
+
       if (appType === 'admin' && isAdminPath) {
-        // تسجيل SW الإدارة فقط في صفحات الإدارة
-        navigator.serviceWorker
-          .register('/dashboard/sw-admin.js', { scope: '/dashboard/' })
-          .then((registration) => {
-            console.log('[PWA-admin] Service Worker registered at scope:', registration.scope);
-          })
-          .catch((error) => {
-            console.warn('[PWA-admin] Service Worker registration failed:', error);
-          });
+        // CRITICAL: إلغاء تسجيل SW العام أولاً لتحرير النطاق
+        // ثم تسجيل SW الإدارة
+        unregisterPublicSWInAdminPages().then(() => {
+          navigator.serviceWorker
+            .register('/dashboard/sw-admin.js', { scope: '/dashboard/' })
+            .then((registration) => {
+              console.log('[PWA-admin] SW registered at scope:', registration.scope);
+            })
+            .catch((error) => {
+              console.warn('[PWA-admin] SW registration failed:', error);
+            });
+        });
       } else if (appType === 'public' && !isAdminPath) {
         // تسجيل SW العام فقط في الصفحات العامة
         navigator.serviceWorker
           .register('/sw.js', { scope: '/' })
           .then((registration) => {
-            console.log('[PWA-public] Service Worker registered at scope:', registration.scope);
+            console.log('[PWA-public] SW registered at scope:', registration.scope);
           })
           .catch((error) => {
-            console.warn('[PWA-public] Service Worker registration failed:', error);
+            console.warn('[PWA-public] SW registration failed:', error);
           });
       }
     }
@@ -113,7 +136,7 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       deferredPromptRef.current = e as BeforeInstallPromptEvent;
-      promptUsedRef.current = false; // إعادة تعيين عند وصول prompt جديد
+      promptUsedRef.current = false;
       setCanInstall(true);
       console.log(`[PWA-${appType}] Install prompt available`);
     };
@@ -145,7 +168,7 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
     }
 
     setIsInstalling(true);
-    promptUsedRef.current = true; // تحديد أن الـ prompt تم استخدامه
+    promptUsedRef.current = true;
 
     try {
       const prompt = deferredPromptRef.current;
@@ -154,7 +177,6 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
 
       console.log(`[PWA-${appType}] Install outcome:`, outcome);
 
-      // بعد استخدام الـ prompt، المتصفح لن يُطلق beforeinstallprompt مرة أخرى في نفس الجلسة
       deferredPromptRef.current = null;
 
       if (outcome === 'accepted') {
@@ -172,9 +194,7 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
         setCanInstall(false);
         return 'accepted';
       } else {
-        // المستخدم ألغى من نافذة المتصفح
-        // نُخفي الزر في هذه الجلسة فقط (canInstall=false)
-        // عند تحديث الصفحة سيظهر مجدداً إذا أطلق المتصفح beforeinstallprompt
+        // المستخدم ألغى - نُخفي الزر في هذه الجلسة فقط
         setCanInstall(false);
         return 'dismissed';
       }

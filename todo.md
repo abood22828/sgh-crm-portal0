@@ -3655,3 +3655,14 @@
 - [x] إصلاح usePWAInstall: كل نطاق يسجّل SW الخاص به فقط (admin → sw-admin.js, public → sw.js)
 - [x] 0 أخطاء TypeScript
 - [x] أيقونات admin تُقدّم بشكل صحيح (HTTP 200)rd/* و /admin/*
+
+## إصلاح جذري لنظام PWA - الدورة الرابعة
+- [x] فحص شامل: App.tsx + PWAManager + usePWAInstall + manifests
+- [x] إصلاح عدم ظهور زر التثبيت في لوحة التحكم
+- [x] إصلاح تثبيت تطبيق الواجهة العامة من صفحة admin
+- [x] فصل تام بين التطبيقين (admin/public)
+- [x] حذف سكريبت manifest الديناميكي من index.html (كان يتعارض مع index-admin.html)
+- [x] تحديث vite.ts لتقديم index-admin.html لمسارات /admin/* أيضاً
+- [x] إعادة كتابة usePWAInstall: إلغاء SW العام في صفحات الإدارة قبل تسجيل SW-admin
+- [x] إعادة كتابة PWAManager: الزر يظهر دائماً في لوحة التحكم (بغض النظر عن canInstall)
+- [x] 0 أخطاء TypeScript
