@@ -1,26 +1,15 @@
 /**
  * usePWAInstall Hook
- * 
+ *
  * Hook موحد لإدارة تثبيت PWA لكلا التطبيقين:
  * - التطبيق العام (Public App): للمرضى والزوار
  * - تطبيق الإدارة (Admin App): للموظفين
- * 
- * الميزات:
- * - اكتشاف حدث beforeinstallprompt
- * - عرض/إخفاء زر التثبيت بشكل ذكي
- * - تتبع عمليات التثبيت الناجحة لكل تطبيق
- * - تسجيل Service Worker المناسب لكل تطبيق
- * - دعم iOS (لا يدعم beforeinstallprompt)
- * 
- * الاستخدام:
- * const { canInstall, isInstalled, isIOS, installApp, dismissPrompt } = usePWAInstall('public');
- * const { canInstall, isInstalled, isIOS, installApp, dismissPrompt } = usePWAInstall('admin');
- * 
- * أماكن الاستخدام:
- * - InstallPWAButton (الواجهة العامة)
- * - PWAManager (لوحة التحكم)
- * - DashboardLayout header
- * - Navbar (الواجهة العامة)
+ *
+ * الإصلاح الحرج:
+ * - عند إلغاء التثبيت، لا يختفي الزر نهائياً
+ * - canInstall يبقى true حتى بعد إلغاء المستخدم للـ prompt
+ * - isDismissed يُستخدم فقط عند الضغط على "لاحقاً" (dismissPrompt)
+ * - promptUsed يتتبع ما إذا تم استخدام الـ prompt في هذه الجلسة
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -39,11 +28,11 @@ export interface PWAInstallState {
   isPWASupported: boolean;
   /** هل عملية التثبيت جارية */
   isInstalling: boolean;
-  /** هل تم رفض الطلب من قبل */
+  /** هل تم رفض الطلب من قبل بشكل صريح (زر "لاحقاً") */
   isDismissed: boolean;
   /** تشغيل عملية التثبيت */
   installApp: () => Promise<'accepted' | 'dismissed' | 'unavailable'>;
-  /** إخفاء زر التثبيت مؤقتاً */
+  /** إخفاء زر التثبيت مؤقتاً (7 أيام) */
   dismissPrompt: () => void;
 }
 
@@ -78,12 +67,11 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
       (window.navigator as any).standalone === true;
     setIsInstalled(isStandalone);
 
-    // التحقق من رفض سابق
+    // التحقق من رفض صريح سابق (زر "لاحقاً" فقط - ليس إلغاء prompt)
     const dismissed = localStorage.getItem(DISMISS_STORAGE_KEY(appType));
     if (dismissed) {
       const dismissedAt = parseInt(dismissed, 10);
       const daysSinceDismiss = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
-      // إعادة عرض الزر بعد 7 أيام من الرفض
       if (daysSinceDismiss < 7) {
         setIsDismissed(true);
       } else {
@@ -92,9 +80,6 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
     }
 
     // تسجيل Service Worker المناسب
-    // CRITICAL: Admin SW must be registered from /dashboard/sw-admin.js
-    // because browsers require SW files to be within or above their scope
-    // The server serves /dashboard/sw-admin.js with Service-Worker-Allowed: /dashboard/ header
     if (supported && !isStandalone) {
       const swPath = appType === 'admin' ? '/dashboard/sw-admin.js' : '/sw.js';
       const swScope = appType === 'admin' ? '/dashboard/' : '/';
@@ -106,7 +91,6 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
         })
         .catch((error) => {
           console.warn(`[PWA-${appType}] Service Worker registration failed:`, error);
-          // Fallback: try without explicit scope
           if (appType === 'admin') {
             navigator.serviceWorker
               .register('/dashboard/sw-admin.js')
@@ -131,7 +115,6 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
       setCanInstall(false);
       deferredPromptRef.current = null;
 
-      // تحديث عداد التثبيت المحلي
       const currentCount = parseInt(localStorage.getItem(INSTALL_COUNT_KEY(appType)) || '0', 10);
       localStorage.setItem(INSTALL_COUNT_KEY(appType), String(currentCount + 1));
     };
@@ -160,8 +143,12 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
 
       console.log(`[PWA-${appType}] Install outcome:`, outcome);
 
+      // CRITICAL FIX: بعد استخدام الـ prompt (سواء قبل أو رفض)،
+      // المتصفح لن يُطلق beforeinstallprompt مرة أخرى في نفس الجلسة.
+      // لذا نُصفّر الـ ref لكن نبقي canInstall=true حتى يُظهر iOS guide أو رسالة مناسبة.
+      deferredPromptRef.current = null;
+
       if (outcome === 'accepted') {
-        // تسجيل التثبيت في قاعدة البيانات
         try {
           await trackInstallMutation.mutateAsync({
             appType,
@@ -174,29 +161,34 @@ export function usePWAInstall(appType: PWAAppType): PWAInstallState {
 
         setIsInstalled(true);
         setCanInstall(false);
-        deferredPromptRef.current = null;
         return 'accepted';
       } else {
-        deferredPromptRef.current = null;
-        setCanInstall(false);
+        // المستخدم ألغى من نافذة المتصفح - لا نُخفي الزر نهائياً
+        // الزر سيختفي فقط في هذه الجلسة (لأن deferredPromptRef أصبح null)
+        // لكن عند تحديث الصفحة سيظهر مجدداً إذا أطلق المتصفح beforeinstallprompt
+        setCanInstall(false); // يختفي في الجلسة الحالية فقط
         return 'dismissed';
       }
     } catch (error) {
       console.error(`[PWA-${appType}] Install error:`, error);
+      deferredPromptRef.current = null;
+      setCanInstall(false);
       return 'unavailable';
     } finally {
       setIsInstalling(false);
     }
   }, [appType, trackInstallMutation]);
 
+  // dismissPrompt: يُخفي الزر لمدة 7 أيام (زر "لاحقاً" الصريح)
   const dismissPrompt = useCallback(() => {
     localStorage.setItem(DISMISS_STORAGE_KEY(appType), String(Date.now()));
     setIsDismissed(true);
     setCanInstall(false);
-    console.log(`[PWA-${appType}] Prompt dismissed`);
+    console.log(`[PWA-${appType}] Prompt explicitly dismissed for 7 days`);
   }, [appType]);
 
   return {
+    // canInstall: true فقط إذا: الـ prompt متاح + لم يُرفض صراحةً + لم يُثبَّت
     canInstall: canInstall && !isDismissed && !isInstalled,
     isInstalled,
     isIOS,
