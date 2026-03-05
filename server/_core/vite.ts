@@ -75,6 +75,60 @@ export function serveStatic(app: Express) {
     console.log(`[serveStatic] HTML files found: ${files.join(', ')}`);
   }
 
+  // ===== Service Worker files need special headers =====
+  // MUST be registered BEFORE express.static to intercept these specific paths
+  // The Service-Worker-Allowed header allows the SW to control a broader scope than its URL
+  
+  // Admin SW: served from /admin/sw-admin.js, controls /admin/ scope
+  app.get('/admin/sw-admin.js', (req, res) => {
+    const swFile = path.resolve(distPath, 'admin', 'sw-admin.js');
+    console.log(`[SW] /admin/sw-admin.js → ${swFile} (exists: ${fs.existsSync(swFile)})`);
+    if (!fs.existsSync(swFile)) {
+      return res.status(404).send('Service Worker not found');
+    }
+    res.set({
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Service-Worker-Allowed': '/admin/',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    });
+    res.sendFile(swFile);
+  });
+
+  // Dashboard SW fallback (backward compat)
+  app.get('/dashboard/sw-admin.js', (req, res) => {
+    const swFile = path.resolve(distPath, 'admin', 'sw-admin.js');
+    if (!fs.existsSync(swFile)) {
+      return res.status(404).send('Service Worker not found');
+    }
+    res.set({
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Service-Worker-Allowed': '/dashboard/',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    });
+    res.sendFile(swFile);
+  });
+
+  // Public SW
+  app.get('/sw.js', (req, res) => {
+    const swFile = path.resolve(distPath, 'sw.js');
+    if (!fs.existsSync(swFile)) {
+      return res.status(404).send('Service Worker not found');
+    }
+    res.set({
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Service-Worker-Allowed': '/',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    });
+    res.sendFile(swFile);
+  });
+
+  // Serve static files (this handles all other assets)
   app.use(express.static(distPath));
 
   // fall through to index.html or index-admin.html based on route
@@ -89,7 +143,6 @@ export function serveStatic(app: Express) {
       return res.sendFile(path.resolve(distPath, 'index.html'));
     }
 
-    console.log(`[serveStatic] Serving ${htmlFile} for route: ${req.originalUrl}`);
     res.sendFile(htmlPath);
   });
 }
