@@ -1,9 +1,10 @@
+import { lazy, Suspense } from "react";
 import ManualRegistrationForm from "@/components/ManualRegistrationForm";
 import NotificationCenter from "@/components/NotificationCenter";
 import SourceAnalytics from "@/components/SourceAnalytics";
 import QuickPatientSearch from "@/components/QuickPatientSearch";
 import DetailedStatsCards from "@/components/DetailedStatsCards";
-import DashboardCharts from "@/components/DashboardCharts";
+const DashboardCharts = lazy(() => import("@/components/DashboardCharts"));
 import DashboardLayout from "@/components/DashboardLayout";
 
 export default function AdminDashboard() {
@@ -36,9 +37,15 @@ export default function AdminDashboard() {
           <SourceAnalytics />
         </div>
 
-        {/* Charts Dashboard */}
+        {/* Charts Dashboard - lazy loaded to reduce initial bundle */}
         <div className="mb-6 md:mb-8">
-          <DashboardCharts />
+          <Suspense fallback={
+            <div className="h-64 rounded-xl bg-muted/30 animate-pulse flex items-center justify-center">
+              <span className="text-sm text-muted-foreground">جاري تحميل الرسوم البيانية...</span>
+            </div>
+          }>
+            <DashboardCharts />
+          </Suspense>
         </div>
       </div>
     </DashboardLayout>
