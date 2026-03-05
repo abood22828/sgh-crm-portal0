@@ -58,8 +58,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip admin dashboard requests - handled by sw-admin.js
-  if (event.request.url.includes('/dashboard')) {
+  // Skip admin/dashboard requests - handled by sw-admin.js exclusively
+  // IMPORTANT: Do NOT cache or intercept any /admin or /dashboard routes
+  if (event.request.url.includes('/dashboard') || event.request.url.includes('/admin')) {
     return;
   }
 
@@ -159,7 +160,7 @@ self.addEventListener('notificationclick', (event) => {
       clients.matchAll({ type: 'window', includeUncontrolled: true })
         .then((clientList) => {
           for (const client of clientList) {
-            if (!client.url.includes('/dashboard') && 'focus' in client) {
+            if (!client.url.includes('/dashboard') && !client.url.includes('/admin') && 'focus' in client) {
               client.navigate(targetUrl);
               return client.focus();
             }
@@ -183,7 +184,7 @@ async function syncAppointments() {
     console.log('[SW-Public] Syncing appointments...');
     const clientList = await clients.matchAll({ type: 'window' });
     clientList.forEach(client => {
-      if (!client.url.includes('/dashboard')) {
+      if (!client.url.includes('/dashboard') && !client.url.includes('/admin')) {
         client.postMessage({ type: 'SYNC_COMPLETE' });
       }
     });

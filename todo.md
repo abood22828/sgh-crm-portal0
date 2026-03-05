@@ -3680,3 +3680,10 @@
 - [x] إضافة routes /admin/sw-admin.js و /manifest-admin.json في index.ts
 - [x] تحديث usePWAInstall ليسجل SW بـ scope /admin/ مع fallback لـ /dashboard/
 - [x] 0 أخطاء TypeScript
+
+## إصلاح تداخل نطاقات PWA - الدورة الخامسة ✅ مكتمل
+- [x] إضافة id فريد "sgh-public-app-v1" لـ manifest.json العام
+- [x] vite.ts صحيح بالفعل - يمنع index.html العام من /admin و /dashboard
+- [x] sw.js: تجاهل /admin و /dashboard في جميع أحداث fetch و notificationclick و sync
+- [x] usePWAInstall.ts: إلغاء إجباري لأي SW ليس خاصاً بالإدارة عند فتح /admin أو /dashboard
+- [x] بناء ناجح: index-admin.html و index.html في dist/ بمانيفست منفصلين تماماً
