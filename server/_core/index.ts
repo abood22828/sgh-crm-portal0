@@ -32,18 +32,36 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
+/**
+ * Resolve the path to a static file that works in both dev and production.
+ * - In development: files are in client/public/
+ * - In production: files are compiled to dist/public/ (same dir as dist/index.js + /public/)
+ */
+function resolveStaticFile(filename: string): string {
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev) {
+    // In dev: import.meta.dirname = server/_core/, so go up 2 levels to project root
+    return path.resolve(import.meta.dirname, '../../client/public', filename);
+  } else {
+    // In production: import.meta.dirname = dist/, so public/ is right next to it
+    return path.resolve(import.meta.dirname, 'public', filename);
+  }
+}
+
 async function startServer() {
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
   // ===== PWA Service Worker Routes =====
   // Serve sw-admin.js from /admin/sw-admin.js with correct scope header
   // This is required because browsers enforce that SW files must be within their scope
   // Also keep /dashboard/sw-admin.js for backward compatibility
   const serveAdminSW = (scopePath: string) => (req: any, res: any) => {
-    const swPath = path.resolve(import.meta.dirname, '../../client/public/sw-admin.js');
+    const swPath = resolveStaticFile('sw-admin.js');
+    console.log(`[SW] Serving sw-admin.js from: ${swPath} (exists: ${fs.existsSync(swPath)})`);
     if (fs.existsSync(swPath)) {
       res.set({
         'Content-Type': 'application/javascript',
@@ -54,15 +72,35 @@ async function startServer() {
       });
       res.sendFile(swPath);
     } else {
+      console.error(`[SW] sw-admin.js not found at: ${swPath}`);
       res.status(404).send('Service Worker not found');
     }
   };
   app.get('/admin/sw-admin.js', serveAdminSW('/admin/'));
   app.get('/dashboard/sw-admin.js', serveAdminSW('/dashboard/'));
 
+  // Also serve the public sw.js with correct headers
+  app.get('/sw.js', (req: any, res: any) => {
+    const swPath = resolveStaticFile('sw.js');
+    console.log(`[SW] Serving sw.js from: ${swPath} (exists: ${fs.existsSync(swPath)})`);
+    if (fs.existsSync(swPath)) {
+      res.set({
+        'Content-Type': 'application/javascript',
+        'Service-Worker-Allowed': '/',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      });
+      res.sendFile(swPath);
+    } else {
+      res.status(404).send('Service Worker not found');
+    }
+  });
+
   // Serve manifest-admin.json from /manifest-admin.json (root) and /dashboard/manifest-admin.json (legacy)
   const serveAdminManifest = (req: any, res: any) => {
-    const manifestPath = path.resolve(import.meta.dirname, '../../client/public/manifest-admin.json');
+    const manifestPath = resolveStaticFile('manifest-admin.json');
+    console.log(`[Manifest] Serving manifest-admin.json from: ${manifestPath} (exists: ${fs.existsSync(manifestPath)})`);
     if (fs.existsSync(manifestPath)) {
       res.set({
         'Content-Type': 'application/manifest+json',
@@ -70,6 +108,7 @@ async function startServer() {
       });
       res.sendFile(manifestPath);
     } else {
+      console.error(`[Manifest] manifest-admin.json not found at: ${manifestPath}`);
       res.status(404).send('Manifest not found');
     }
   };
