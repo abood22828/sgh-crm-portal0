@@ -119,6 +119,8 @@ function Router() {
       <Route path={"/dashboard/review-approval"} component={ReviewApprovalPage} />
       <Route path={"/dashboard/pwa-stats"} component={PWAStatsPage} />
       <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/admin/"} component={AdminDashboard} />
+      <Route path={"/admin/offline"} component={OfflinePage} />
 
       <Route path={"/patient-portal"} component={PatientPortalLogin} />
       <Route path={"/patient-portal/dashboard"} component={PatientDashboard} />

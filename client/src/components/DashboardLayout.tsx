@@ -1,20 +1,9 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
+import { APP_TITLE, getLoginUrl } from "@/const";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
-import DashboardSidebar from "./DashboardSidebar";
 import DashboardSidebarV2 from "./DashboardSidebarV2";
 import TopNavbar from "./TopNavbar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut, Bell } from "lucide-react";
-import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 

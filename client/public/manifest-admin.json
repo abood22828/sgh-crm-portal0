@@ -119,7 +119,7 @@
       "name": "العملاء",
       "short_name": "عملاء",
       "description": "عرض قائمة العملاء المسجلين",
-      "url": "/admin/customers",
+      "url": "/admin/",
       "icons": [
         {
           "src": "/icon-admin-192x192.png",
@@ -132,7 +132,7 @@
       "name": "المواعيد",
       "short_name": "مواعيد",
       "description": "إدارة مواعيد الأطباء",
-      "url": "/admin/appointments",
+      "url": "/admin/",
       "icons": [
         {
           "src": "/icon-admin-192x192.png",
@@ -145,7 +145,7 @@
       "name": "الحجوزات",
       "short_name": "حجوزات",
       "description": "إدارة حجوزات العروض والمخيمات",
-      "url": "/admin/bookings",
+      "url": "/admin/",
       "icons": [
         {
           "src": "/icon-admin-192x192.png",
@@ -158,7 +158,7 @@
       "name": "المهام",
       "short_name": "مهام",
       "description": "إدارة مهام الفريق",
-      "url": "/admin/tasks",
+      "url": "/admin/",
       "icons": [
         {
           "src": "/icon-admin-192x192.png",
