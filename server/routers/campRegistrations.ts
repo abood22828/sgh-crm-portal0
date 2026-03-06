@@ -27,7 +27,7 @@ export const campRegistrationsRouter = router({
         patientMessage: z.string().max(500).optional(),
         notes: z.string().optional(),
         source: z.string().optional(),
-        status: z.enum(["pending", "confirmed", "attended", "cancelled"]).optional(), // Manual registration status
+        status: z.enum(["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]).optional(), // Manual registration status
         utmSource: z.string().optional(),
         utmMedium: z.string().optional(),
         utmCampaign: z.string().optional(),
@@ -231,7 +231,7 @@ export const campRegistrationsRouter = router({
     .input(
       z.object({
         id: z.number(),
-        status: z.enum(["pending", "confirmed", "attended", "cancelled"]),
+        status: z.enum(["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]),
         notes: z.string().optional(),
         fullName: z.string().optional(),
         phone: z.string().optional(),
@@ -246,11 +246,19 @@ export const campRegistrationsRouter = router({
       const [old] = await db.select({ status: campRegistrations.status }).from(campRegistrations).where(eq(campRegistrations.id, input.id)).limit(1);
       const oldStatus = old?.status || '';
 
+      const now = new Date();
       const updateData: any = {
         status: input.status,
         statusNotes: input.notes,
-        updatedAt: new Date(),
+        updatedAt: now,
       };
+
+      // حفظ وقت كل حالة عند التغيير
+      if (input.status === 'contacted') updateData.contactedAt = now;
+      else if (input.status === 'confirmed') updateData.confirmedAt = now;
+      else if (input.status === 'attended') updateData.attendedAt = now;
+      else if (input.status === 'completed') updateData.completedAt = now;
+      else if (input.status === 'cancelled') updateData.cancelledAt = now;
 
       // إضافة البيانات المعدلة إذا تم توفيرها
       if (input.fullName) updateData.fullName = input.fullName;
@@ -302,7 +310,7 @@ export const campRegistrationsRouter = router({
     .input(
       z.object({
         ids: z.array(z.number()),
-        status: z.enum(["pending", "confirmed", "attended", "cancelled"]),
+        status: z.enum(["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]),
         notes: z.string().optional(),
       })
     )
@@ -310,11 +318,19 @@ export const campRegistrationsRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
+      const now = new Date();
       const updateData: any = {
         status: input.status,
         statusNotes: input.notes,
-        updatedAt: new Date(),
+        updatedAt: now,
       };
+
+      // حفظ وقت كل حالة عند التغيير
+      if (input.status === 'contacted') updateData.contactedAt = now;
+      else if (input.status === 'confirmed') updateData.confirmedAt = now;
+      else if (input.status === 'attended') updateData.attendedAt = now;
+      else if (input.status === 'completed') updateData.completedAt = now;
+      else if (input.status === 'cancelled') updateData.cancelledAt = now;
 
       // Update all selected registrations
       for (const id of input.ids) {

@@ -2,40 +2,58 @@ import { useMemo } from "react";
 
 /**
  * useStatusLabels - هوك لتوحيد تسميات وألوان الحالات عبر المنصة
- * يمنع تكرار تعريف الحالات في كل مكون
- * 
- * الاستخدام:
- * const { getLabel, getColor, getBadgeClass, getIcon } = useStatusLabels("lead");
- * 
- * // في الجدول:
- * <Badge className={getBadgeClass(lead.status)}>{getLabel(lead.status)}</Badge>
+ * الحالات الموحدة: قيد الانتظار - تم التواصل - لم يرد - مؤكد - حضر - مكتمل - ملغي
  */
 
-// === تعريفات الحالات لكل نوع ===
-
-export const leadStatusLabels: Record<string, string> = {
-  new: "جديد",
-  contacted: "تم التواصل",
-  booked: "تم الحجز",
-  not_interested: "غير مهتم",
-  no_answer: "لا يرد",
+// === الحالات الموحدة لجميع أنواع الحجوزات ===
+export const unifiedStatusLabels: Record<string, string> = {
   pending: "قيد الانتظار",
+  contacted: "تم التواصل",
+  no_answer: "لم يرد",
   confirmed: "مؤكد",
+  attended: "حضر",
   completed: "مكتمل",
   cancelled: "ملغي",
 };
 
-export const leadStatusColors: Record<string, string> = {
-  new: "bg-blue-100 text-blue-800 border-blue-200",
+export const unifiedStatusColors: Record<string, string> = {
+  pending: "bg-blue-100 text-blue-800 border-blue-200",
   contacted: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  booked: "bg-green-100 text-green-800 border-green-200",
-  not_interested: "bg-red-100 text-red-800 border-red-200",
   no_answer: "bg-gray-100 text-gray-800 border-gray-200",
-  pending: "bg-orange-100 text-orange-800 border-orange-200",
   confirmed: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  completed: "bg-purple-100 text-purple-800 border-purple-200",
+  attended: "bg-teal-100 text-teal-800 border-teal-200",
+  completed: "bg-green-100 text-green-800 border-green-200",
   cancelled: "bg-red-100 text-red-800 border-red-200",
 };
+
+export const unifiedStatusOptions = [
+  { value: 'pending', label: 'قيد الانتظار', color: 'bg-blue-500' },
+  { value: 'contacted', label: 'تم التواصل', color: 'bg-yellow-500' },
+  { value: 'no_answer', label: 'لم يرد', color: 'bg-gray-500' },
+  { value: 'confirmed', label: 'مؤكد', color: 'bg-emerald-500' },
+  { value: 'attended', label: 'حضر', color: 'bg-teal-500' },
+  { value: 'completed', label: 'مكتمل', color: 'bg-green-600' },
+  { value: 'cancelled', label: 'ملغي', color: 'bg-red-500' },
+];
+
+// تنسيق وقت الحالة: h:mm ص/م, dd-MM-yyyy
+export function formatStatusTime(date: Date | string | null | undefined): string {
+  if (!date) return '-';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '-';
+  const hours = d.getHours();
+  const minutes = d.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'م' : 'ص';
+  const h = hours % 12 || 12;
+  const day = d.getDate().toString().padStart(2, '0');
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const year = d.getFullYear();
+  return `${h}:${minutes} ${ampm}, ${day}-${month}-${year}`;
+}
+
+// للتوافق مع الكود القديم
+export const leadStatusLabels: Record<string, string> = unifiedStatusLabels;
+export const leadStatusColors: Record<string, string> = unifiedStatusColors;
 
 export const campaignStatusLabels: Record<string, string> = {
   draft: "مسودة",
@@ -60,44 +78,22 @@ export const campaignTypeLabels: Record<string, string> = {
   mixed: "مختلطة",
 };
 
-export const appointmentStatusLabels: Record<string, string> = {
-  pending: "قيد الانتظار",
-  confirmed: "مؤكد",
-  cancelled: "ملغي",
-  completed: "مكتمل",
-};
+export const appointmentStatusLabels: Record<string, string> = unifiedStatusLabels;
+export const appointmentStatusColors: Record<string, string> = unifiedStatusColors;
 
-export const appointmentStatusColors: Record<string, string> = {
-  pending: "bg-orange-100 text-orange-800 border-orange-200",
-  confirmed: "bg-green-100 text-green-800 border-green-200",
-  cancelled: "bg-red-100 text-red-800 border-red-200",
-  completed: "bg-blue-100 text-blue-800 border-blue-200",
-};
-
-export const campRegistrationStatusLabels: Record<string, string> = {
-  pending: "قيد الانتظار",
-  confirmed: "مؤكد",
-  attended: "حضر",
-  cancelled: "ملغي",
-};
-
-export const campRegistrationStatusColors: Record<string, string> = {
-  pending: "bg-orange-100 text-orange-800 border-orange-200",
-  confirmed: "bg-green-100 text-green-800 border-green-200",
-  attended: "bg-blue-100 text-blue-800 border-blue-200",
-  cancelled: "bg-red-100 text-red-800 border-red-200",
-};
+export const campRegistrationStatusLabels: Record<string, string> = unifiedStatusLabels;
+export const campRegistrationStatusColors: Record<string, string> = unifiedStatusColors;
 
 // === أنواع الحالات المدعومة ===
 type StatusType = "lead" | "offerLead" | "campaign" | "campaignType" | "appointment" | "campRegistration";
 
 const statusMaps: Record<StatusType, { labels: Record<string, string>; colors: Record<string, string> }> = {
-  lead: { labels: leadStatusLabels, colors: leadStatusColors },
-  offerLead: { labels: leadStatusLabels, colors: leadStatusColors },
+  lead: { labels: unifiedStatusLabels, colors: unifiedStatusColors },
+  offerLead: { labels: unifiedStatusLabels, colors: unifiedStatusColors },
   campaign: { labels: campaignStatusLabels, colors: campaignStatusColors },
   campaignType: { labels: campaignTypeLabels, colors: {} },
-  appointment: { labels: appointmentStatusLabels, colors: appointmentStatusColors },
-  campRegistration: { labels: campRegistrationStatusLabels, colors: campRegistrationStatusColors },
+  appointment: { labels: unifiedStatusLabels, colors: unifiedStatusColors },
+  campRegistration: { labels: unifiedStatusLabels, colors: unifiedStatusColors },
 };
 
 export function useStatusLabels(type: StatusType) {

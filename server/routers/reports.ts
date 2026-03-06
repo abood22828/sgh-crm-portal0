@@ -238,14 +238,14 @@ export const reportsRouter = router({
         .from(offerLeads)
         .where(dateFilter);
 
-      // Get booked offer leads
+      // Get confirmed offer leads
       const [bookedOfferLeadsResult] = await db
         .select({ count: count() })
         .from(offerLeads)
         .where(
           dateFilter
-            ? and(dateFilter, eq(offerLeads.status, "booked"))
-            : eq(offerLeads.status, "booked")
+            ? and(dateFilter, eq(offerLeads.status, "confirmed"))
+            : eq(offerLeads.status, "confirmed")
         );
 
       // Get total camp registrations

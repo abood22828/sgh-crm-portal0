@@ -25,7 +25,7 @@ export const offerLeadsRouter = router({
         patientMessage: z.string().max(500).optional(),
         notes: z.string().optional(),
         source: z.string().optional(),
-        status: z.enum(["new", "contacted", "booked", "not_interested", "no_answer", "pending", "confirmed", "completed", "cancelled"]).optional(), // Manual registration status
+        status: z.enum(["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]).optional(), // Manual registration status
         utmSource: z.string().optional(),
         utmMedium: z.string().optional(),
         utmCampaign: z.string().optional(),
@@ -81,7 +81,7 @@ export const offerLeadsRouter = router({
         referrer: input.referrer,
         fbclid: input.fbclid,
         gclid: input.gclid,
-        status: input.status || "new", // Use provided status or default to new
+        status: input.status || "pending", // Use provided status or default to pending
       });
 
       // Get offer details for notification
@@ -202,17 +202,19 @@ export const offerLeadsRouter = router({
       CacheTTL.STATS,
       async () => {
         const db = await getDb();
-        if (!db) return { total: 0, new: 0, contacted: 0, booked: 0, not_interested: 0, no_answer: 0 };
+        if (!db) return { total: 0, pending: 0, contacted: 0, no_answer: 0, confirmed: 0, attended: 0, completed: 0, cancelled: 0 };
 
         const all = await db.select().from(offerLeads);
 
         return {
           total: all.length,
-          new: all.filter((l) => l.status === "new").length,
+          pending: all.filter((l) => l.status === "pending").length,
           contacted: all.filter((l) => l.status === "contacted").length,
-          booked: all.filter((l) => l.status === "booked").length,
-          not_interested: all.filter((l) => l.status === "not_interested").length,
           no_answer: all.filter((l) => l.status === "no_answer").length,
+          confirmed: all.filter((l) => l.status === "confirmed").length,
+          attended: all.filter((l) => l.status === "attended").length,
+          completed: all.filter((l) => l.status === "completed").length,
+          cancelled: all.filter((l) => l.status === "cancelled").length,
         };
       }
     );
@@ -223,7 +225,7 @@ export const offerLeadsRouter = router({
     .input(
       z.object({
         id: z.number(),
-        status: z.enum(["new", "contacted", "booked", "not_interested", "no_answer"]),
+        status: z.enum(["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]),
         notes: z.string().optional(),
       })
     )
@@ -235,12 +237,22 @@ export const offerLeadsRouter = router({
       const [old] = await db.select({ status: offerLeads.status }).from(offerLeads).where(eq(offerLeads.id, input.id)).limit(1);
       const oldStatus = old?.status || '';
 
+      // حفظ وقت كل حالة
+      const now = new Date();
+      const timestampUpdate: Record<string, Date | null> = {};
+      if (input.status === 'contacted') timestampUpdate.contactedAt = now;
+      else if (input.status === 'confirmed') timestampUpdate.confirmedAt = now;
+      else if (input.status === 'attended') timestampUpdate.attendedAt = now;
+      else if (input.status === 'completed') timestampUpdate.completedAt = now;
+      else if (input.status === 'cancelled') timestampUpdate.cancelledAt = now;
+
       await db
         .update(offerLeads)
         .set({
           status: input.status,
           statusNotes: input.notes,
           updatedAt: new Date(),
+          ...timestampUpdate,
         })
         .where(eq(offerLeads.id, input.id));
 
@@ -256,8 +268,8 @@ export const offerLeadsRouter = router({
         notes: input.notes,
       });
 
-      // Send welcome message when status changes to "booked" (Patient Journey)
-      if (input.status === "booked") {
+      // Send welcome message when status changes to "confirmed" (Patient Journey)
+      if (input.status === "confirmed") {
         const [lead] = await db.select().from(offerLeads).where(eq(offerLeads.id, input.id)).limit(1);
         if (lead && lead.phone) {
           const { sendOfferPatientArrivalWelcome } = await import("../messaging");
@@ -284,13 +296,22 @@ export const offerLeadsRouter = router({
     .input(
       z.object({
         ids: z.array(z.number()),
-        status: z.enum(["new", "contacted", "booked", "not_interested", "no_answer"]),
+        status: z.enum(["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]),
         notes: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
+
+      // حفظ وقت كل حالة
+      const now = new Date();
+      const timestampUpdate: Record<string, Date | null> = {};
+      if (input.status === 'contacted') timestampUpdate.contactedAt = now;
+      else if (input.status === 'confirmed') timestampUpdate.confirmedAt = now;
+      else if (input.status === 'attended') timestampUpdate.attendedAt = now;
+      else if (input.status === 'completed') timestampUpdate.completedAt = now;
+      else if (input.status === 'cancelled') timestampUpdate.cancelledAt = now;
 
       // Update all selected offer leads
       for (const id of input.ids) {
@@ -300,6 +321,7 @@ export const offerLeadsRouter = router({
             status: input.status,
             statusNotes: input.notes,
             updatedAt: new Date(),
+            ...timestampUpdate,
           })
           .where(eq(offerLeads.id, id));
       }

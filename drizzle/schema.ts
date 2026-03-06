@@ -176,7 +176,12 @@ export const appointments = mysqlTable("appointments", {
   notes: text("notes"), // Patient notes
   additionalNotes: text("additionalNotes"), // Additional patient notes
   staffNotes: text("staffNotes"), // Staff notes (admin only)
-  status: mysqlEnum("status", ["pending", "confirmed", "cancelled", "completed"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]).default("pending").notNull(),
+  contactedAt: timestamp("contactedAt"),
+  confirmedAt: timestamp("confirmedAt"),
+  attendedAt: timestamp("attendedAt"),
+  completedAt: timestamp("completedAt"),
+  cancelledAt: timestamp("cancelledAt"),
   source: varchar("source", { length: 100 }), // Booking source (web, phone, manual)
   utmSource: varchar("utmSource", { length: 100 }),
   utmMedium: varchar("utmMedium", { length: 100 }),
@@ -280,8 +285,13 @@ export const offerLeads = mysqlTable("offerLeads", {
   gender: mysqlEnum("gender", ["male", "female"]).notNull(), // Patient gender (required)
   patientMessage: text("patientMessage"), // رسالة المريض الاختيارية
   notes: text("notes"),
-  status: mysqlEnum("status", ["new", "contacted", "booked", "not_interested", "no_answer", "pending", "confirmed", "completed", "cancelled"]).default("new").notNull(),
+  status: mysqlEnum("status", ["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]).default("pending").notNull(),
   statusNotes: text("statusNotes"),
+  contactedAt: timestamp("contactedAt"),
+  confirmedAt: timestamp("confirmedAt"),
+  attendedAt: timestamp("attendedAt"),
+  completedAt: timestamp("completedAt"),
+  cancelledAt: timestamp("cancelledAt"),
   source: varchar("source", { length: 100 }),
   utmSource: varchar("utmSource", { length: 100 }),
   utmMedium: varchar("utmMedium", { length: 100 }),
@@ -323,9 +333,14 @@ export const campRegistrations = mysqlTable("campRegistrations", {
   medicalCondition: text("medicalCondition"),
   patientMessage: text("patientMessage"), // رسالة المريض الاختيارية
   notes: text("notes"),
-  status: mysqlEnum("status", ["pending", "confirmed", "attended", "cancelled"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]).default("pending").notNull(),
   statusNotes: text("statusNotes"),
   attendanceDate: timestamp("attendanceDate"),
+  contactedAt: timestamp("contactedAt"),
+  confirmedAt: timestamp("confirmedAt"),
+  attendedAt: timestamp("attendedAt"),
+  completedAt: timestamp("completedAt"),
+  cancelledAt: timestamp("cancelledAt"),
   source: varchar("source", { length: 100 }),
   utmSource: varchar("utmSource", { length: 100 }),
   utmMedium: varchar("utmMedium", { length: 100 }),

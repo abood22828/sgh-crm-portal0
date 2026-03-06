@@ -89,19 +89,40 @@ import Pagination, { type PageSizeValue } from "@/components/Pagination";
 import { RotateCcw } from "lucide-react";
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   pending: "قيد الانتظار",
+  contacted: "تم التواصل",
+  no_answer: "لم يرد",
   confirmed: "مؤكد",
   attended: "حضر",
+  completed: "مكتمل",
   cancelled: "ملغي",
 };
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   pending: "bg-yellow-500",
+  contacted: "bg-orange-500",
+  no_answer: "bg-gray-500",
   confirmed: "bg-green-500",
   attended: "bg-blue-500",
+  completed: "bg-teal-500",
   cancelled: "bg-red-500",
 };
+
+function formatStatusTime(val: any): string {
+  if (!val) return '-';
+  try {
+    const d = new Date(val);
+    const h = d.getHours();
+    const m = d.getMinutes().toString().padStart(2, '0');
+    const ampm = h >= 12 ? 'م' : 'ص';
+    const h12 = h % 12 || 12;
+    const dd = d.getDate().toString().padStart(2, '0');
+    const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${h12}:${m} ${ampm}, ${dd}-${mm}-${yyyy}`;
+  } catch { return '-'; }
+}
 
 export default function CampRegistrationsManagement({ 
   onPendingCountChange,
@@ -163,6 +184,11 @@ export default function CampRegistrationsManagement({
     { key: 'notes', label: 'ملاحظات المسجل', defaultVisible: false, sortable: false },
     { key: 'status', label: 'الحالة', defaultVisible: true, sortType: 'string' },
     { key: 'statusNotes', label: 'ملاحظات الحالة', defaultVisible: false, sortable: false },
+    { key: 'contactedAt', label: 'وقت التواصل', defaultVisible: false, sortType: 'date' },
+    { key: 'confirmedAt', label: 'وقت التأكيد', defaultVisible: false, sortType: 'date' },
+    { key: 'attendedAt', label: 'وقت الحضور', defaultVisible: false, sortType: 'date' },
+    { key: 'completedAt', label: 'وقت الاكتمال', defaultVisible: false, sortType: 'date' },
+    { key: 'cancelledAt', label: 'وقت الإلغاء', defaultVisible: false, sortType: 'date' },
     { key: 'attendanceDate', label: 'تاريخ الحضور', defaultVisible: false, sortType: 'date' },
     { key: 'source', label: 'المصدر', defaultVisible: true, sortType: 'string' },
     { key: 'utmSource', label: 'UTM Source', defaultVisible: false, sortType: 'string' },
@@ -877,8 +903,11 @@ export default function CampRegistrationsManagement({
                                   currentStatus={reg.status}
                                   statusOptions={[
                                     { value: 'pending', label: 'قيد الانتظار', color: 'bg-yellow-500' },
+                                    { value: 'contacted', label: 'تم التواصل', color: 'bg-orange-500' },
+                                    { value: 'no_answer', label: 'لم يرد', color: 'bg-gray-500' },
                                     { value: 'confirmed', label: 'مؤكد', color: 'bg-green-500' },
                                     { value: 'attended', label: 'حضر', color: 'bg-blue-500' },
+                                    { value: 'completed', label: 'مكتمل', color: 'bg-teal-500' },
                                     { value: 'cancelled', label: 'ملغي', color: 'bg-red-500' },
                                   ]}
                                   onSave={async (newStatus) => {
@@ -893,6 +922,16 @@ export default function CampRegistrationsManagement({
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm">{reg.procedures || '-'}</FrozenTableCell>;
                           case 'medicalCondition':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm">{reg.medicalCondition || '-'}</FrozenTableCell>;
+                          case 'contactedAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(reg.contactedAt)}</FrozenTableCell>;
+                          case 'confirmedAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(reg.confirmedAt)}</FrozenTableCell>;
+                          case 'attendedAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(reg.attendedAt)}</FrozenTableCell>;
+                          case 'completedAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(reg.completedAt)}</FrozenTableCell>;
+                          case 'cancelledAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(reg.cancelledAt)}</FrozenTableCell>;
                           case 'attendanceDate':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm">{formatDate(reg.attendanceDate)}</FrozenTableCell>;
                           case 'date':
@@ -1050,8 +1089,11 @@ export default function CampRegistrationsManagement({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pending">قيد الانتظار</SelectItem>
+                          <SelectItem value="contacted">تم التواصل</SelectItem>
+                          <SelectItem value="no_answer">لم يرد</SelectItem>
                           <SelectItem value="confirmed">مؤكد</SelectItem>
                           <SelectItem value="attended">حضر</SelectItem>
+                          <SelectItem value="completed">مكتمل</SelectItem>
                           <SelectItem value="cancelled">ملغي</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1257,12 +1299,15 @@ export default function CampRegistrationsManagement({
         selectedCount={selectedIds.length}
         statusOptions={[
           { value: "pending", label: "قيد الانتظار" },
+          { value: "contacted", label: "تم التواصل" },
+          { value: "no_answer", label: "لم يرد" },
           { value: "confirmed", label: "مؤكد" },
           { value: "attended", label: "حضر" },
+          { value: "completed", label: "مكتمل" },
           { value: "cancelled", label: "ملغي" },
         ]}
         onConfirm={(newStatus) => {
-          bulkUpdateMutation.mutate({ ids: selectedIds, status: newStatus as "pending" | "confirmed" | "attended" | "cancelled" });
+          bulkUpdateMutation.mutate({ ids: selectedIds, status: newStatus as "pending" | "contacted" | "no_answer" | "confirmed" | "attended" | "completed" | "cancelled" });
         }}
         isLoading={bulkUpdateMutation.isPending}
       />

@@ -1,0 +1,13 @@
+{
+  "query": "\n-- تحديث القيم القديمة في offerLeads\nUPDATE offerLeads SET status = 'contacted' WHERE status IN ('contacted', 'booked');\nUPDATE offerLeads SET status = 'pending' WHERE status IN ('new', 'not_interested');\nUPDATE offerLeads SET status = 'no_answer' WHERE status = 'no_answer';\n\n-- التحقق من القيم المتبقية\nSELECT DISTINCT status FROM offerLeads;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute \n-- تحديث القيم القديمة في offerLeads\nUPDATE offerLeads SET status = 'contacted' WHERE status IN ('contacted', 'booked');\nUPDATE offerLeads SET status = 'pending' WHERE status IN ('new', 'not_interested');\nUPDATE offerLeads SET status = 'no_answer' WHERE status = 'no_answer';\n\n-- التحقق من القيم المتبقية\nSELECT DISTINCT status FROM offerLeads;\n",
+  "rows": [
+    {
+      "status": "contacted"
+    }
+  ],
+  "messages": [],
+  "stdout": "status\ncontacted\n",
+  "stderr": "",
+  "execution_time_ms": 569
+}

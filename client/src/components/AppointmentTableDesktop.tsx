@@ -1,5 +1,5 @@
 import { useFormatDate } from "@/hooks/useFormatDate";
-import { leadStatusLabels as statusLabels } from "@/hooks/useStatusLabels";
+import { unifiedStatusLabels as statusLabels, unifiedStatusOptions, formatStatusTime } from "@/hooks/useStatusLabels";
 import { ResizableTable, ResizableHeaderCell, FrozenTableCell } from "@/components/ResizableTable";
 import { getColumnWidth, type ColumnConfig } from "@/components/ColumnVisibility";
 import TableSkeleton from "@/components/TableSkeleton";
@@ -227,18 +227,23 @@ export default function AppointmentTableDesktop({
                         <FrozenTableCell key={colKey} columnKey={colKey}>
                           <InlineStatusEditor
                             currentStatus={appointment.status}
-                            statusOptions={[
-                              { value: 'pending', label: 'قيد الانتظار', color: 'bg-yellow-500' },
-                              { value: 'confirmed', label: 'مؤكد', color: 'bg-green-500' },
-                              { value: 'completed', label: 'مكتمل', color: 'bg-blue-500' },
-                              { value: 'cancelled', label: 'ملغي', color: 'bg-red-500' },
-                            ]}
+                            statusOptions={unifiedStatusOptions}
                             onSave={async (newStatus) => {
                               await onUpdateStatus(appointment.id, newStatus);
                             }}
                           />
                         </FrozenTableCell>
                       );
+                    case 'contactedAt':
+                      return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(appointment.contactedAt)}</FrozenTableCell>;
+                    case 'confirmedAt':
+                      return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(appointment.confirmedAt)}</FrozenTableCell>;
+                    case 'attendedAt':
+                      return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(appointment.attendedAt)}</FrozenTableCell>;
+                    case 'completedAt':
+                      return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(appointment.completedAt)}</FrozenTableCell>;
+                    case 'cancelledAt':
+                      return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(appointment.cancelledAt)}</FrozenTableCell>;
                     case 'utmSource':
                     case 'utmMedium':
                     case 'utmCampaign':

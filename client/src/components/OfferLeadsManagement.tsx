@@ -89,20 +89,24 @@ import Pagination, { type PageSizeValue } from "@/components/Pagination";
 import { RotateCcw } from "lucide-react";
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
-const statusLabels = {
-  new: "جديد",
+const statusLabels: Record<string, string> = {
+  pending: "قيد الانتظار",
   contacted: "تم التواصل",
-  booked: "تم الحجز",
-  not_interested: "غير مهتم",
   no_answer: "لم يرد",
+  confirmed: "مؤكد",
+  attended: "حضر",
+  completed: "مكتمل",
+  cancelled: "ملغي",
 };
 
-const statusColors = {
-  new: "bg-blue-500",
+const statusColors: Record<string, string> = {
+  pending: "bg-blue-500",
   contacted: "bg-yellow-500",
-  booked: "bg-green-500",
-  not_interested: "bg-red-500",
   no_answer: "bg-gray-500",
+  confirmed: "bg-emerald-500",
+  attended: "bg-teal-500",
+  completed: "bg-green-600",
+  cancelled: "bg-red-500",
 };
 
 export default function OfferLeadsManagement({ 
@@ -188,7 +192,7 @@ export default function OfferLeadsManagement({
     {
       id: "today-new",
       name: "حجوزات اليوم - جديدة",
-      filters: { dateFilter: "today", status: ["new"] },
+      filters: { dateFilter: "today", status: ["pending"] },
     },
     {
       id: "week-contacted",
@@ -245,9 +249,9 @@ export default function OfferLeadsManagement({
   
   // Removed pagination reset effect
   
-  // Count pending offerLeads (status = 'new')
+  // Count pending offerLeads (status = 'pending')
   const pendingCount = useMemo(() => {
-    return offerLeads?.filter(l => l.status === 'new').length || 0;
+    return offerLeads?.filter(l => l.status === 'pending').length || 0;
   }, [offerLeads]);
   
   // Notify parent of pending count changes
@@ -478,10 +482,10 @@ export default function OfferLeadsManagement({
       <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {[
           { label: 'إجمالي الحجوزات', value: stats?.total || 0, icon: Users, color: 'text-slate-600', bg: 'bg-slate-50' },
-          { label: 'جديد', value: stats?.new || 0, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'قيد الانتظار', value: stats?.pending || 0, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
           { label: 'تم التواصل', value: stats?.contacted || 0, icon: Phone, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'تم الحجز', value: stats?.booked || 0, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'غير مهتم', value: stats?.not_interested || 0, icon: UserX, color: 'text-red-600', bg: 'bg-red-50' },
+          { label: 'مؤكد', value: stats?.confirmed || 0, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'حضر', value: stats?.attended || 0, icon: UserX, color: 'text-purple-600', bg: 'bg-purple-50' },
         ].map((stat) => (
           <div key={stat.label} className="rounded-lg border bg-card p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
             <div className={`rounded-lg p-1.5 sm:p-2 ${stat.bg}`}>
@@ -606,11 +610,13 @@ export default function OfferLeadsManagement({
           </Select>
           <MultiSelect
             options={[
-              { value: 'new', label: 'جديد' },
+              { value: 'pending', label: 'قيد الانتظار' },
               { value: 'contacted', label: 'تم التواصل' },
-              { value: 'booked', label: 'تم الحجز' },
-              { value: 'not_interested', label: 'غير مهتم' },
               { value: 'no_answer', label: 'لم يرد' },
+              { value: 'confirmed', label: 'مؤكد' },
+              { value: 'attended', label: 'حضر' },
+              { value: 'completed', label: 'مكتمل' },
+              { value: 'cancelled', label: 'ملغي' },
             ]}
             selected={statusFilter}
             onChange={setStatusFilter}
@@ -763,7 +769,7 @@ export default function OfferLeadsManagement({
                   </TableRow>
                 ) : (
                   filteredLeads.map((lead: any) => (
-                    <TableRow key={lead.id} className={`group ${lead.status === 'new' ? 'bg-blue-50/40 hover:bg-blue-50/60' : 'hover:bg-muted/30'}`}>
+                    <TableRow key={lead.id} className={`group ${lead.status === 'pending' ? 'bg-blue-50/40 hover:bg-blue-50/60' : 'hover:bg-muted/30'}`}>
                       {offerTable.columnOrder.filter(key => offerTable.visibleColumns[key]).map(colKey => {
                         switch(colKey) {
                           case 'checkbox':
@@ -844,11 +850,13 @@ export default function OfferLeadsManagement({
                                 <InlineStatusEditor
                                   currentStatus={lead.status}
                                   statusOptions={[
-                                    { value: 'new', label: 'جديد', color: 'bg-blue-500' },
+                                    { value: 'pending', label: 'قيد الانتظار', color: 'bg-blue-500' },
                                     { value: 'contacted', label: 'تم التواصل', color: 'bg-yellow-500' },
-                                    { value: 'booked', label: 'تم الحجز', color: 'bg-green-500' },
-                                    { value: 'not_interested', label: 'غير مهتم', color: 'bg-red-500' },
                                     { value: 'no_answer', label: 'لم يرد', color: 'bg-gray-500' },
+                                    { value: 'confirmed', label: 'مؤكد', color: 'bg-emerald-500' },
+                                    { value: 'attended', label: 'حضر', color: 'bg-teal-500' },
+                                    { value: 'completed', label: 'مكتمل', color: 'bg-green-600' },
+                                    { value: 'cancelled', label: 'ملغي', color: 'bg-red-500' },
                                   ]}
                                   onSave={async (newStatus) => {
                                     await updateStatusMutation.mutateAsync({
@@ -1010,11 +1018,13 @@ export default function OfferLeadsManagement({
                           <SelectValue placeholder="اختر الحالة" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="new">جديد</SelectItem>
+                          <SelectItem value="pending">قيد الانتظار</SelectItem>
                           <SelectItem value="contacted">تم التواصل</SelectItem>
-                          <SelectItem value="booked">تم الحجز</SelectItem>
-                          <SelectItem value="not_interested">غير مهتم</SelectItem>
                           <SelectItem value="no_answer">لم يرد</SelectItem>
+                          <SelectItem value="confirmed">مؤكد</SelectItem>
+                          <SelectItem value="attended">حضر</SelectItem>
+                          <SelectItem value="completed">مكتمل</SelectItem>
+                          <SelectItem value="cancelled">ملغي</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1079,14 +1089,16 @@ export default function OfferLeadsManagement({
         onOpenChange={setBulkUpdateDialogOpen}
         selectedCount={selectedIds.length}
         statusOptions={[
-          { value: "new", label: "جديد" },
+          { value: "pending", label: "قيد الانتظار" },
           { value: "contacted", label: "تم التواصل" },
+          { value: "no_answer", label: "لم يرد" },
           { value: "confirmed", label: "مؤكد" },
-          { value: "cancelled", label: "ملغي" },
+          { value: "attended", label: "حضر" },
           { value: "completed", label: "مكتمل" },
+          { value: "cancelled", label: "ملغي" },
         ]}
         onConfirm={(newStatus) => {
-          bulkUpdateMutation.mutate({ ids: selectedIds, status: newStatus as "new" | "contacted" | "booked" | "not_interested" | "no_answer" });
+          bulkUpdateMutation.mutate({ ids: selectedIds, status: newStatus as "pending" | "contacted" | "no_answer" | "confirmed" | "attended" | "completed" | "cancelled" });
         }}
         isLoading={bulkUpdateMutation.isPending}
       />

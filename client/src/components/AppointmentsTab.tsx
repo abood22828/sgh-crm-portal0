@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { useFormatDate } from "@/hooks/useFormatDate";
-import { leadStatusLabels as statusLabels } from "@/hooks/useStatusLabels";
+import { unifiedStatusLabels as statusLabels } from "@/hooks/useStatusLabels";
 import AppointmentCard from "@/components/AppointmentCard";
 import AppointmentStatsCards from "@/components/AppointmentStatsCards";
 import AppointmentFilters from "@/components/AppointmentFilters";
@@ -72,6 +72,11 @@ export default function AppointmentsTab({ appointmentFilter, dateRange, onOpenAp
     { key: 'additionalNotes', label: 'ملاحظات إضافية', defaultVisible: false, sortable: false },
     { key: 'staffNotes', label: 'ملاحظات الموظفين', defaultVisible: false, sortable: false },
     { key: 'status', label: 'الحالة', defaultVisible: true, sortType: 'string' },
+    { key: 'contactedAt', label: 'وقت التواصل', defaultVisible: false, sortType: 'date' },
+    { key: 'confirmedAt', label: 'وقت التأكيد', defaultVisible: false, sortType: 'date' },
+    { key: 'attendedAt', label: 'وقت الحضور', defaultVisible: false, sortType: 'date' },
+    { key: 'completedAt', label: 'وقت الاكتمال', defaultVisible: false, sortType: 'date' },
+    { key: 'cancelledAt', label: 'وقت الإلغاء', defaultVisible: false, sortType: 'date' },
     { key: 'source', label: 'المصدر', defaultVisible: true, sortType: 'string' },
     { key: 'utmSource', label: 'UTM Source', defaultVisible: false, sortType: 'string' },
     { key: 'utmMedium', label: 'UTM Medium', defaultVisible: false, sortType: 'string' },
@@ -199,11 +204,15 @@ export default function AppointmentsTab({ appointmentFilter, dateRange, onOpenAp
   }, [appointments, appointmentTable.sortState, appointmentTable.sortData]);
 
   const appointmentStats = useMemo(() => {
-    if (!appointments) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
+    if (!appointments) return { total: 0, pending: 0, contacted: 0, no_answer: 0, confirmed: 0, attended: 0, completed: 0, cancelled: 0 };
     return {
       total: appointments.length,
       pending: appointments.filter((a: any) => a.status === "pending").length,
+      contacted: appointments.filter((a: any) => a.status === "contacted").length,
+      no_answer: appointments.filter((a: any) => a.status === "no_answer").length,
       confirmed: appointments.filter((a: any) => a.status === "confirmed").length,
+      attended: appointments.filter((a: any) => a.status === "attended").length,
+      completed: appointments.filter((a: any) => a.status === "completed").length,
       cancelled: appointments.filter((a: any) => a.status === "cancelled").length,
     };
   }, [appointments]);
@@ -455,12 +464,15 @@ export default function AppointmentsTab({ appointmentFilter, dateRange, onOpenAp
         selectedCount={selectedAppointmentIds.length}
         statusOptions={[
           { value: "pending", label: "قيد الانتظار" },
+          { value: "contacted", label: "تم التواصل" },
+          { value: "no_answer", label: "لم يرد" },
           { value: "confirmed", label: "مؤكد" },
-          { value: "cancelled", label: "ملغي" },
+          { value: "attended", label: "حضر" },
           { value: "completed", label: "مكتمل" },
+          { value: "cancelled", label: "ملغي" },
         ]}
         onConfirm={(newStatus) => {
-          bulkUpdateAppointmentsMutation.mutate({ ids: selectedAppointmentIds, status: newStatus as "pending" | "confirmed" | "cancelled" | "completed" });
+          bulkUpdateAppointmentsMutation.mutate({ ids: selectedAppointmentIds, status: newStatus as "pending" | "contacted" | "no_answer" | "confirmed" | "attended" | "completed" | "cancelled" });
         }}
         isLoading={bulkUpdateAppointmentsMutation.isPending}
       />

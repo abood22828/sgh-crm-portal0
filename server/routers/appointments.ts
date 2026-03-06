@@ -39,7 +39,7 @@ export const appointmentsRouter = router({
       patientMessage: z.string().max(500).optional(),
       campaignSlug: z.string(),
       source: z.string().optional(),
-      status: z.enum(["pending", "confirmed", "cancelled", "completed"]).optional(),
+      status: z.enum(["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]).optional(),
       utmSource: z.string().optional(),
       utmMedium: z.string().optional(),
       utmCampaign: z.string().optional(),
@@ -352,7 +352,7 @@ export const appointmentsRouter = router({
   bulkUpdateStatus: protectedProcedure
     .input(z.object({
       ids: z.array(z.number()),
-      status: z.enum(["pending", "confirmed", "cancelled", "completed"]),
+      status: z.enum(["pending", "contacted", "no_answer", "confirmed", "attended", "completed", "cancelled"]),
       staffNotes: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {

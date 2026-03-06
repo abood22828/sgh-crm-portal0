@@ -28,7 +28,7 @@ export default function NotificationCenter() {
       .slice(0, 5);
     
     const pendingOfferLeads = (offerLeads || [])
-      .filter(o => o.status === 'new')
+      .filter(o => o.status === 'pending')
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5);
     
@@ -47,7 +47,7 @@ export default function NotificationCenter() {
   // Count pending items
   const counts = useMemo(() => ({
     appointments: appointments?.filter(a => a.status === 'pending').length || 0,
-    offerLeads: offerLeads?.filter(o => o.status === 'new').length || 0,
+    offerLeads: offerLeads?.filter(o => o.status === 'pending').length || 0,
     campRegistrations: campRegistrations?.filter(c => c.status === 'pending').length || 0,
   }), [appointments, offerLeads, campRegistrations]);
 

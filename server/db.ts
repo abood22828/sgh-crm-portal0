@@ -385,6 +385,13 @@ export async function getAllAppointments() {
       staffNotes: appointments.staffNotes,
       notes: appointments.notes,
       status: appointments.status,
+      statusNotes: appointments.staffNotes,
+      contactedAt: appointments.contactedAt,
+      confirmedAt: appointments.confirmedAt,
+      attendedAt: appointments.attendedAt,
+      completedAt: appointments.completedAt,
+      cancelledAt: appointments.cancelledAt,
+      patientMessage: appointments.patientMessage,
       source: appointments.source,
       receiptNumber: appointments.receiptNumber,
       appointmentDate: appointments.appointmentDate,
@@ -511,6 +518,13 @@ export async function getAppointmentsPaginated(
       staffNotes: appointments.staffNotes,
       notes: appointments.notes,
       status: appointments.status,
+      statusNotes: appointments.staffNotes,
+      contactedAt: appointments.contactedAt,
+      confirmedAt: appointments.confirmedAt,
+      attendedAt: appointments.attendedAt,
+      completedAt: appointments.completedAt,
+      cancelledAt: appointments.cancelledAt,
+      patientMessage: appointments.patientMessage,
       source: appointments.source,
       receiptNumber: appointments.receiptNumber,
       appointmentDate: appointments.appointmentDate,
@@ -559,10 +573,15 @@ export async function updateAppointmentStatus(id: number, status: string, staffN
   }
 
   try {
+    const now = new Date();
     const updateData: any = { status: status as any };
-    if (staffNotes !== undefined) {
-      updateData.staffNotes = staffNotes;
-    }
+    if (staffNotes !== undefined) updateData.staffNotes = staffNotes;
+    // حفظ وقت كل حالة
+    if (status === 'contacted') updateData.contactedAt = now;
+    else if (status === 'confirmed') updateData.confirmedAt = now;
+    else if (status === 'attended') updateData.attendedAt = now;
+    else if (status === 'completed') updateData.completedAt = now;
+    else if (status === 'cancelled') updateData.cancelledAt = now;
     await db.update(appointments).set(updateData).where(eq(appointments.id, id));
   } catch (error) {
     console.error("[Database] Failed to update appointment:", error);
@@ -578,10 +597,15 @@ export async function bulkUpdateAppointmentStatus(ids: number[], status: string,
   }
 
   try {
+    const now = new Date();
     const updateData: any = { status: status as any };
-    if (staffNotes !== undefined) {
-      updateData.staffNotes = staffNotes;
-    }
+    if (staffNotes !== undefined) updateData.staffNotes = staffNotes;
+    // حفظ وقت كل حالة
+    if (status === 'contacted') updateData.contactedAt = now;
+    else if (status === 'confirmed') updateData.confirmedAt = now;
+    else if (status === 'attended') updateData.attendedAt = now;
+    else if (status === 'completed') updateData.completedAt = now;
+    else if (status === 'cancelled') updateData.cancelledAt = now;
     
     // Update all selected appointments
     for (const id of ids) {
@@ -985,6 +1009,11 @@ export async function getOfferLeadsPaginated(
       notes: offerLeads.notes,
       status: offerLeads.status,
       statusNotes: offerLeads.statusNotes,
+      contactedAt: offerLeads.contactedAt,
+      confirmedAt: offerLeads.confirmedAt,
+      attendedAt: offerLeads.attendedAt,
+      completedAt: offerLeads.completedAt,
+      cancelledAt: offerLeads.cancelledAt,
       source: offerLeads.source,
       utmSource: offerLeads.utmSource,
       utmMedium: offerLeads.utmMedium,
@@ -1131,6 +1160,11 @@ export async function getCampRegistrationsPaginated(
       notes: campRegistrations.notes,
       status: campRegistrations.status,
       statusNotes: campRegistrations.statusNotes,
+      contactedAt: campRegistrations.contactedAt,
+      confirmedAt: campRegistrations.confirmedAt,
+      attendedAt: campRegistrations.attendedAt,
+      completedAt: campRegistrations.completedAt,
+      cancelledAt: campRegistrations.cancelledAt,
       attendanceDate: campRegistrations.attendanceDate,
       source: campRegistrations.source,
       utmSource: campRegistrations.utmSource,

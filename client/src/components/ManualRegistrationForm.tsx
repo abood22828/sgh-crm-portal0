@@ -58,7 +58,7 @@ export default function ManualRegistrationForm() {
   // Camp specific
   const [campId, setCampId] = useState("");
   const [campAge, setCampAge] = useState("");
-  const [campProcedure, setCampProcedure] = useState("");
+  const [campProcedures, setCampProcedures] = useState<string[]>([]);
   const [medicalCondition, setMedicalCondition] = useState("");
   const [registrationStatus, setRegistrationStatus] = useState<"new" | "contacted" | "booked" | "not_interested" | "no_answer" | "pending" | "confirmed" | "completed" | "cancelled">("new");
 
@@ -72,7 +72,7 @@ export default function ManualRegistrationForm() {
 
   // Get selected camp's procedures
   const selectedCamp = camps?.find((c: any) => c.id.toString() === campId);
-  const campProcedures = selectedCamp?.availableProcedures ? selectedCamp.availableProcedures.split(',').map((p: string) => p.trim()).filter(Boolean) : [];
+  const availableCampProcedures = selectedCamp?.availableProcedures ? selectedCamp.availableProcedures.split(',').map((p: string) => p.trim()).filter(Boolean) : [];
 
   // Reset procedure when doctor/camp changes
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function ManualRegistrationForm() {
   }, [doctorId]);
 
   useEffect(() => {
-    setCampProcedure("");
+    setCampProcedures([]);
   }, [campId]);
 
   // Update registration status when registration type changes
@@ -241,7 +241,7 @@ export default function ManualRegistrationForm() {
     setOfferId("");
     setCampId("");
     setCampAge("");
-    setCampProcedure("");
+    setCampProcedures([]);
     setMedicalCondition("");
     setGender("");
     setRegistrationStatus("new");
@@ -252,6 +252,12 @@ export default function ManualRegistrationForm() {
 
     if (!fullName || !phone) {
       toast.error("الرجاء إدخال الاسم ورقم الهاتف");
+      return;
+    }
+
+    // التحقق من الجنس لأنواع الحجز غير العام
+    if (registrationType !== "lead" && !gender) {
+      toast.error("الرجاء تحديد الجنس");
       return;
     }
 
@@ -318,6 +324,10 @@ export default function ManualRegistrationForm() {
           toast.error("الرجاء اختيار المخيم");
           return;
         }
+        if (!campAge) {
+          toast.error("الرجاء إدخال العمر");
+          return;
+        }
         const parsedCampId = parseInt(campId);
         if (isNaN(parsedCampId)) {
           toast.error("معرف المخيم غير صالح");
@@ -330,7 +340,7 @@ export default function ManualRegistrationForm() {
           status: campStatus as any,
           campId: parsedCampId,
           age: campAge ? parseInt(campAge) : undefined,
-          procedures: campProcedure || undefined,
+          procedures: campProcedures.length > 0 ? JSON.stringify(campProcedures) : undefined,
           medicalCondition: medicalCondition || undefined,
         });
         break;
@@ -487,7 +497,7 @@ export default function ManualRegistrationForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="appointmentAge">العمر</Label>
+                <Label htmlFor="appointmentAge">العمر *</Label>
                 <Input
                   id="appointmentAge"
                   type="number"
@@ -495,6 +505,7 @@ export default function ManualRegistrationForm() {
                   onChange={(e) => setAppointmentAge(e.target.value)}
                   placeholder="أدخل العمر"
                   className="text-right"
+                  required
                 />
               </div>
 
@@ -580,21 +591,36 @@ export default function ManualRegistrationForm() {
                 />
               </div>
 
-              {campProcedures.length > 0 && (
+              {availableCampProcedures.length > 0 && (
                 <div className="space-y-2">
-                  <Label htmlFor="campProcedure">الإجراء المطلوب</Label>
-                  <Select value={campProcedure} onValueChange={setCampProcedure}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر الإجراء" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {campProcedures.map((proc: string, idx: number) => (
-                        <SelectItem key={idx} value={proc}>
-                          {proc}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>الإجراءات المطلوبة</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableCampProcedures.map((proc: string, idx: number) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setCampProcedures(prev =>
+                            prev.includes(proc)
+                              ? prev.filter(p => p !== proc)
+                              : [...prev, proc]
+                          );
+                        }}
+                        className={`px-3 py-1.5 rounded-lg border-2 text-sm font-medium transition-colors ${
+                          campProcedures.includes(proc)
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-background text-foreground hover:border-primary/50"
+                        }`}
+                      >
+                        {proc}
+                      </button>
+                    ))}
+                  </div>
+                  {campProcedures.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      المختار: {campProcedures.join("، ")}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -612,45 +638,39 @@ export default function ManualRegistrationForm() {
             </>
           )}
 
-          {/* Gender */}
-          <div className="space-y-2">
-            <Label>الجنس (اختياري)</Label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setGender("male")}
-                className={`h-10 rounded-lg border-2 text-sm font-medium transition-colors ${
-                  gender === "male"
-                    ? "border-blue-600 bg-blue-50 text-blue-700"
-                    : "border-border bg-background text-foreground hover:border-blue-400"
-                }`}
-              >
-                ذكر
-              </button>
-              <button
-                type="button"
-                onClick={() => setGender("female")}
-                className={`h-10 rounded-lg border-2 text-sm font-medium transition-colors ${
-                  gender === "female"
-                    ? "border-pink-500 bg-pink-50 text-pink-700"
-                    : "border-border bg-background text-foreground hover:border-pink-400"
-                }`}
-              >
-                أنثى
-              </button>
-              <button
-                type="button"
-                onClick={() => setGender("")}
-                className={`h-10 rounded-lg border-2 text-sm font-medium transition-colors ${
-                  gender === ""
-                    ? "border-gray-400 bg-gray-50 text-gray-600"
-                    : "border-border bg-background text-muted-foreground hover:border-gray-400"
-                }`}
-              >
-                غير محدد
-              </button>
+          {/* Gender - required for non-lead types */}
+          {registrationType !== "lead" && (
+            <div className="space-y-2">
+              <Label>
+                الجنس *
+                {!gender && <span className="text-destructive text-xs mr-1">(مطلوب)</span>}
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setGender("male")}
+                  className={`h-10 rounded-lg border-2 text-sm font-medium transition-colors ${
+                    gender === "male"
+                      ? "border-blue-600 bg-blue-50 text-blue-700"
+                      : "border-border bg-background text-foreground hover:border-blue-400"
+                  }`}
+                >
+                  ذكر
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGender("female")}
+                  className={`h-10 rounded-lg border-2 text-sm font-medium transition-colors ${
+                    gender === "female"
+                      ? "border-pink-500 bg-pink-50 text-pink-700"
+                      : "border-border bg-background text-foreground hover:border-pink-400"
+                  }`}
+                >
+                  أنثى
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Notes */}
           <div className="space-y-2">
