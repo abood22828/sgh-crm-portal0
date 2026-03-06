@@ -1,7 +1,3 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
-
 // Extend jsPDF type to include autoTable
 declare module 'jspdf' {
   interface jsPDF {
@@ -32,13 +28,19 @@ export interface ReportStats {
 
 /**
  * تصدير التقارير إلى PDF
- * ملاحظة: هذه الدالة بحاجة إلى تحسين (تأجيل للمستقبل)
+ * يستخدم dynamic import لتأجيل تحميل jspdf حتى الحاجة الفعلية
  */
-export const exportToPDF = (
+export const exportToPDF = async (
   bookings: BookingData[],
   stats: ReportStats,
   dateRange: { from: Date; to: Date }
 ) => {
+  // Dynamic import - يُحمَّل فقط عند الضغط على زر التصدير
+  const [{ default: jsPDF }, _] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
+
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -92,7 +94,7 @@ export const exportToPDF = (
     ['الإيرادات', `${stats.revenue.toLocaleString('ar-YE')} ريال`],
   ];
 
-  doc.autoTable({
+  (doc as any).autoTable({
     startY: yPos,
     head: [['المؤشر', 'القيمة']],
     body: statsData,
@@ -116,7 +118,7 @@ export const exportToPDF = (
   });
 
   // جدول الحجوزات التفصيلية
-  yPos = doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 10 : yPos + 50;
+  yPos = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 10 : yPos + 50;
   
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
@@ -133,7 +135,7 @@ export const exportToPDF = (
     new Date(booking.createdAt).toLocaleDateString('ar-YE'),
   ]);
 
-  doc.autoTable({
+  (doc as any).autoTable({
     startY: yPos,
     head: [['#', 'اسم المريض', 'الهاتف', 'التخصص', 'الحالة', 'التاريخ']],
     body: bookingsData,
@@ -191,12 +193,16 @@ export const exportToPDF = (
 
 /**
  * تصدير التقارير إلى Excel - محسّن
+ * يستخدم dynamic import لتأجيل تحميل xlsx حتى الحاجة الفعلية
  */
-export const exportToExcel = (
+export const exportToExcel = async (
   bookings: BookingData[],
   stats: ReportStats,
   dateRange: { from: Date; to: Date }
 ) => {
+  // Dynamic import - يُحمَّل فقط عند الضغط على زر التصدير
+  const XLSX = await import('xlsx');
+
   // إنشاء workbook جديد
   const wb = XLSX.utils.book_new();
 
@@ -277,22 +283,17 @@ export const exportToExcel = (
  */
 function getStatusLabel(status: string): string {
   const statusMap: Record<string, string> = {
-    // حالات المواعيد
     'pending': 'قيد الانتظار',
     'confirmed': 'مؤكد',
     'completed': 'مكتمل',
     'cancelled': 'ملغي',
     'attended': 'حضر',
     'no_show': 'لم يحضر',
-    
-    // حالات العملاء المحتملين
     'new': 'جديد',
     'contacted': 'تم التواصل',
     'booked': 'تم الحجز',
     'not_interested': 'غير مهتم',
     'no_answer': 'لم يرد',
-    
-    // حالات عامة
     'active': 'نشط',
     'inactive': 'غير نشط',
   };

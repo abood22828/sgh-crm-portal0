@@ -47,14 +47,6 @@ export default defineConfig({
           if (id.includes("node_modules/recharts") || id.includes("node_modules/d3-")) {
             return "vendor-charts";
           }
-          // PDF export - heavy, on-demand
-          if (id.includes("node_modules/jspdf")) {
-            return "vendor-pdf";
-          }
-          // Excel export - heavy, on-demand
-          if (id.includes("node_modules/xlsx")) {
-            return "vendor-xlsx";
-          }
           // Framer Motion - heavy animation
           if (id.includes("node_modules/framer-motion")) {
             return "vendor-motion";

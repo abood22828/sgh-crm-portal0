@@ -1,6 +1,11 @@
-import * as XLSX from 'xlsx';
+/**
+ * تصدير البيانات إلى Excel
+ * يستخدم dynamic import لتأجيل تحميل xlsx (277KB) حتى الحاجة الفعلية
+ */
+export async function exportToExcel(data: any[], filename: string, sheetName: string = 'Sheet1') {
+  // Dynamic import - يُحمَّل فقط عند الضغط على زر التصدير
+  const XLSX = await import('xlsx');
 
-export function exportToExcel(data: any[], filename: string, sheetName: string = 'Sheet1') {
   // Create a new workbook
   const wb = XLSX.utils.book_new();
   

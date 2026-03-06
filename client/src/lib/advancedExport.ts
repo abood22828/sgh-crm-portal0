@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import { trpc } from './trpc';
 
@@ -41,9 +40,13 @@ function formatDateTime(date: Date): string {
 
 /**
  * تصدير إلى Excel مع metadata
+ * يستخدم dynamic import لتأجيل تحميل xlsx (277KB) حتى الحاجة الفعلية
  */
-function exportToExcel(options: ExportOptions): void {
+async function exportToExcel(options: ExportOptions): Promise<void> {
   const { metadata, columns, data, filename } = options;
+
+  // Dynamic import - يُحمَّل فقط عند الضغط على زر التصدير
+  const XLSX = await import('xlsx');
 
   // إنشاء workbook
   const wb = XLSX.utils.book_new();
@@ -51,15 +54,13 @@ function exportToExcel(options: ExportOptions): void {
   // إنشاء ورقة البيانات
   const wsData: any[][] = [];
 
-  // بناء العنوان: "تسجيلات [اسم الجدول] - [كل/محدد] خلال الفترة من [نطاق التاريخ] - [فلاتر]"
+  // بناء العنوان
   let titleParts: string[] = [`تسجيلات ${metadata.tableName}`];
   
-  // إضافة نطاق التاريخ إن وجد
   if (metadata.dateRange) {
     titleParts.push(`خلال الفترة من ${metadata.dateRange}`);
   }
   
-  // إضافة الفلاتر إن وجدت
   if (metadata.filters && Object.keys(metadata.filters).length > 0) {
     const filtersText = Object.entries(metadata.filters)
       .map(([key, value]) => `${key}: ${value}`)
@@ -67,7 +68,6 @@ function exportToExcel(options: ExportOptions): void {
     titleParts.push(filtersText);
   }
   
-  // دمج العنوان في صف واحد
   wsData.push([titleParts.join(' - ')]);
   wsData.push([]);
 
@@ -93,12 +93,11 @@ function exportToExcel(options: ExportOptions): void {
 }
 
 /**
- * تصدير إلى CSV مع metadata
+ * تصدير إلى CSV مع metadata (لا يحتاج مكتبات خارجية)
  */
 function exportToCSV(options: ExportOptions): void {
   const { metadata, columns, data, filename } = options;
 
-  // إنشاء محتوى CSV (الجدول فقط بدون بيانات علوية)
   let csvContent = '';
 
   // إضافة رؤوس الأعمدة
@@ -108,7 +107,6 @@ function exportToCSV(options: ExportOptions): void {
   data.forEach((row) => {
     csvContent += columns.map((col) => {
       const value = row[col.key] || '';
-      // تنظيف القيمة من الفواصل والأسطر الجديدة
       return `"${value.toString().replace(/"/g, '""')}"`;
     }).join(',') + '\n';
   });
@@ -128,7 +126,7 @@ function exportToCSV(options: ExportOptions): void {
 }
 
 /**
- * تصدير إلى PDF باستخدام خدمة الخادم
+ * تصدير إلى PDF باستخدام خدمة الخادم (لا يحتاج jspdf على الواجهة)
  */
 async function exportToPDF(options: ExportOptions): Promise<void> {
   const { metadata, columns, data, filename } = options;
@@ -136,14 +134,12 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
   const toastId = toast.loading('جاري إنشاء ملف PDF...');
 
   try {
-    // تحويل filters إلى Record<string, string>
     const filters: Record<string, string> | undefined = metadata.filters
       ? Object.fromEntries(
           Object.entries(metadata.filters).map(([k, v]) => [k, String(v)])
         )
       : undefined;
 
-    // استدعاء خدمة PDF من الخادم عبر tRPC
     const client = trpc.useUtils().client;
     const result = await client.export.generatePDF.mutate({
       metadata: { ...metadata, filters },
@@ -155,7 +151,6 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
       throw new Error('فشل إنشاء ملف PDF');
     }
 
-    // تحويل base64 إلى Blob
     const binaryString = atob(result.pdf);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
@@ -163,7 +158,6 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
     }
     const blob = new Blob([bytes], { type: 'application/pdf' });
 
-    // تنزيل الملف
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -184,18 +178,17 @@ async function exportToPDF(options: ExportOptions): Promise<void> {
 
 /**
  * طباعة الجدول مع ترويسة وذييل احترافية وترقيم الصفحات
+ * (لا تحتاج مكتبات خارجية - تستخدم window.print)
  */
 export function printTable(options: ExportOptions): void {
   const { metadata, columns, data } = options;
 
-  // إنشاء نافذة طباعة جديدة
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
     toast.error('فشل فتح نافذة الطباعة. يرجى السماح بالنوافذ المنبثقة.');
     return;
   }
 
-  // بناء عنوان الفلاتر
   let filterText = '';
   if (metadata.dateRange) {
     filterText += `خلال الفترة من ${metadata.dateRange}`;
@@ -211,13 +204,11 @@ export function printTable(options: ExportOptions): void {
     }
   }
 
-  // تحديد اتجاه الطباعة حسب عدد الأعمدة
   const columnCount = columns.length;
   const orientation = columnCount <= 5 ? 'portrait' : 'landscape';
   const fontSize = columnCount <= 5 ? '11pt' : columnCount <= 8 ? '10pt' : '9pt';
   const tableFontSize = columnCount <= 5 ? '10pt' : columnCount <= 8 ? '9pt' : '8pt';
 
-  // HTML للطباعة
   const htmlContent = `
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
@@ -230,13 +221,7 @@ export function printTable(options: ExportOptions): void {
           size: A4 ${orientation};
           margin: 20mm 15mm;
         }
-
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
           font-family: 'Arial', 'Tahoma', sans-serif;
           direction: rtl;
@@ -245,8 +230,6 @@ export function printTable(options: ExportOptions): void {
           line-height: 1.4;
           color: #000;
         }
-
-        /* ترويسة الصفحة */
         .page-header {
           display: flex;
           justify-content: space-between;
@@ -255,82 +238,21 @@ export function printTable(options: ExportOptions): void {
           border-bottom: 2px solid #0066cc;
           margin-bottom: 20px;
         }
-
-        .header-right {
-          flex: 1;
-        }
-
-        .header-right img {
-          height: 60px;
-          width: auto;
-        }
-
-        .header-left {
-          flex: 1;
-          text-align: left;
-          font-size: 10pt;
-          color: #333;
-        }
-
-        .header-left p {
-          margin: 3px 0;
-        }
-
-        /* عنوان التقرير */
-        .report-title {
-          text-align: center;
-          margin: 20px 0;
-        }
-
-        .report-title h1 {
-          font-size: 18pt;
-          font-weight: bold;
-          color: #0066cc;
-          margin-bottom: 8px;
-        }
-
-        .report-title p {
-          font-size: 11pt;
-          color: #555;
-        }
-
-        /* الجدول */
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 20px 0;
-          font-size: ${tableFontSize};
-        }
-
-        thead {
-          background-color: #0066cc;
-          color: white;
-        }
-
-        th, td {
-          border: 1px solid #ddd;
-          padding: 8px 10px;
-          text-align: right;
-        }
-
-        th {
-          font-weight: bold;
-        }
-
-        tbody tr:nth-child(even) {
-          background-color: #f9f9f9;
-        }
-
-        tbody tr:hover {
-          background-color: #f0f0f0;
-        }
-
-        /* ذييل الصفحة */
+        .header-right { flex: 1; }
+        .header-right img { height: 60px; width: auto; }
+        .header-left { flex: 1; text-align: left; font-size: 10pt; color: #333; }
+        .header-left p { margin: 3px 0; }
+        .report-title { text-align: center; margin: 20px 0; }
+        .report-title h1 { font-size: 18pt; font-weight: bold; color: #0066cc; margin-bottom: 8px; }
+        .report-title p { font-size: 11pt; color: #555; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: ${tableFontSize}; }
+        thead { background-color: #0066cc; color: white; }
+        th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: right; }
+        th { font-weight: bold; }
+        tbody tr:nth-child(even) { background-color: #f9f9f9; }
         .page-footer {
           position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
+          bottom: 0; left: 0; right: 0;
           height: 50px;
           display: flex;
           justify-content: space-between;
@@ -341,49 +263,16 @@ export function printTable(options: ExportOptions): void {
           font-size: 9pt;
           color: #666;
         }
-
-        .footer-left {
-          text-align: left;
-        }
-
-        .footer-center {
-          text-align: center;
-          font-weight: bold;
-          color: #0066cc;
-        }
-
-        .footer-right {
-          text-align: right;
-        }
-
-        /* ترقيم الصفحات */
-        .page-number:after {
-          counter-increment: page;
-          content: "صفحة " counter(page);
-        }
-
+        .footer-center { text-align: center; font-weight: bold; color: #0066cc; }
         @media print {
-          .page-footer {
-            position: fixed;
-            bottom: 0;
-          }
-
-          body {
-            margin-bottom: 60px;
-          }
-
-          thead {
-            display: table-header-group;
-          }
-
-          tr {
-            page-break-inside: avoid;
-          }
+          .page-footer { position: fixed; bottom: 0; }
+          body { margin-bottom: 60px; }
+          thead { display: table-header-group; }
+          tr { page-break-inside: avoid; }
         }
       </style>
     </head>
     <body>
-      <!-- ترويسة الصفحة -->
       <div class="page-header">
         <div class="header-right">
           <img src="/sgh-logo-full.png" alt="المستشفى السعودي الألماني">
@@ -393,59 +282,33 @@ export function printTable(options: ExportOptions): void {
           <p><strong>البريد الإلكتروني:</strong> info@sghsanaa.net</p>
         </div>
       </div>
-
-      <!-- عنوان التقرير -->
       <div class="report-title">
         <h1>تسجيلات ${metadata.tableName}</h1>
         ${filterText ? `<p>${filterText}</p>` : ''}
       </div>
-
-      <!-- الجدول -->
       <table>
         <thead>
-          <tr>
-            ${columns.map(col => `<th>${col.label}</th>`).join('')}
-          </tr>
+          <tr>${columns.map(col => `<th>${col.label}</th>`).join('')}</tr>
         </thead>
         <tbody>
           ${data.map(row => `
-            <tr>
-              ${columns.map(col => `<td>${row[col.key] || ''}</td>`).join('')}
-            </tr>
+            <tr>${columns.map(col => `<td>${row[col.key] || ''}</td>`).join('')}</tr>
           `).join('')}
         </tbody>
       </table>
-
-      <!-- ذييل الصفحة -->
       <div class="page-footer">
-        <div class="footer-left">
-          <p>وقت الطباعة: ${formatDateTime(new Date())}</p>
-        </div>
-        <div class="footer-center">
-          <p>نرعاكم كأهالينا</p>
-        </div>
-        <div class="footer-right">
-          <p>المستخدم: ${metadata.exportedBy}</p>
-          <p class="page-number"></p>
-        </div>
+        <div class="footer-left"><p>وقت الطباعة: ${formatDateTime(new Date())}</p></div>
+        <div class="footer-center"><p>نرعاكم كأهالينا</p></div>
+        <div class="footer-right"><p>المستخدم: ${metadata.exportedBy}</p></div>
       </div>
-
       <script>
-        // طباعة تلقائية عند تحميل الصفحة
-        window.onload = function() {
-          window.print();
-        };
-        
-        // إغلاق النافذة تلقائياً بعد الطباعة أو الإلغاء
-        window.onafterprint = function() {
-          window.close();
-        };
+        window.onload = function() { window.print(); };
+        window.onafterprint = function() { window.close(); };
       </script>
     </body>
     </html>
   `;
 
-  // كتابة المحتوى في نافذة الطباعة
   printWindow.document.write(htmlContent);
   printWindow.document.close();
 
@@ -459,7 +322,7 @@ export async function exportData(options: ExportOptions): Promise<void> {
   try {
     switch (options.format) {
       case 'excel':
-        exportToExcel(options);
+        await exportToExcel(options);
         break;
       case 'csv':
         exportToCSV(options);
