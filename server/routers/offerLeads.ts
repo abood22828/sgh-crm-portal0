@@ -20,7 +20,9 @@ export const offerLeadsRouter = router({
           "رقم الهاتف يجب أن يبدأ بالرقم 7 ويتكون من 9 أرقام"
         ),
         email: z.string().email().optional(),
-        gender: z.enum(["male", "female"]).optional(),
+        age: z.number().int().min(1).max(120).optional(),
+        gender: z.enum(["male", "female"]),
+        patientMessage: z.string().max(500).optional(),
         notes: z.string().optional(),
         source: z.string().optional(),
         status: z.enum(["new", "contacted", "booked", "not_interested", "no_answer", "pending", "confirmed", "completed", "cancelled"]).optional(), // Manual registration status
@@ -65,7 +67,9 @@ export const offerLeadsRouter = router({
         fullName: input.fullName,
         phone: input.phone,
         email: input.email,
+        age: input.age,
         gender: input.gender,
+        patientMessage: input.patientMessage,
         notes: input.notes,
         source: input.source || "website",
         utmSource: input.utmSource,

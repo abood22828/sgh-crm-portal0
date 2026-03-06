@@ -54,6 +54,7 @@ function DoctorDetailContent({ slug }: { slug: string }) {
     preferredDate: "",
     preferredTime: "",
     additionalNotes: "",
+    patientMessage: "",
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -102,6 +103,7 @@ function DoctorDetailContent({ slug }: { slug: string }) {
         preferredDate: formData.preferredDate,
         preferredTime: formData.preferredTime || undefined,
         additionalNotes: formData.additionalNotes || undefined,
+        patientMessage: formData.patientMessage || undefined,
         campaignSlug: `doctor-${slug}`,
         source: trackingData.source,
         utmSource: trackingData.utmSource,
@@ -592,13 +594,31 @@ function DoctorDetailContent({ slug }: { slug: string }) {
                     <Input
                       id="preferredDate"
                       type="date"
-                      enterKeyHint="done"
+                      enterKeyHint="next"
                       value={formData.preferredDate}
                       onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
                       required
                       min={new Date().toISOString().split("T")[0]}
                       className="mt-1.5 h-11"
                     />
+                  </div>
+
+                  {/* حقل الرسالة الاختياري */}
+                  <div>
+                    <Label htmlFor="patientMessage" className="text-sm font-medium text-foreground">
+                      رسالة أو ملاحظة (اختياري)
+                    </Label>
+                    <textarea
+                      id="patientMessage"
+                      name="patientMessage"
+                      value={formData.patientMessage}
+                      onChange={(e) => setFormData({ ...formData, patientMessage: e.target.value })}
+                      placeholder="أي معلومات إضافية تودّ إضافتها..."
+                      maxLength={500}
+                      rows={3}
+                      className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1 text-left" dir="ltr">{formData.patientMessage.length}/500</p>
                   </div>
 
                   <Button

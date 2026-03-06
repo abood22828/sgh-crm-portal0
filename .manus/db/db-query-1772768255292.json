@@ -1,0 +1,64 @@
+{
+  "query": "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME IN ('offerLeads', 'appointments', 'campRegistrations') AND COLUMN_NAME IN ('age', 'gender', 'patientMessage') ORDER BY TABLE_NAME, COLUMN_NAME;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME IN ('offerLeads', 'appointments', 'campRegistrations') AND COLUMN_NAME IN ('age', 'gender', 'patientMessage') ORDER BY TABLE_NAME, COLUMN_NAME;",
+  "rows": [
+    {
+      "TABLE_NAME": "appointments",
+      "COLUMN_NAME": "age",
+      "IS_NULLABLE": "YES",
+      "COLUMN_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "appointments",
+      "COLUMN_NAME": "gender",
+      "IS_NULLABLE": "YES",
+      "COLUMN_TYPE": "enum('male','female')"
+    },
+    {
+      "TABLE_NAME": "appointments",
+      "COLUMN_NAME": "patientMessage",
+      "IS_NULLABLE": "YES",
+      "COLUMN_TYPE": "text"
+    },
+    {
+      "TABLE_NAME": "campRegistrations",
+      "COLUMN_NAME": "age",
+      "IS_NULLABLE": "YES",
+      "COLUMN_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "campRegistrations",
+      "COLUMN_NAME": "gender",
+      "IS_NULLABLE": "YES",
+      "COLUMN_TYPE": "enum('male','female')"
+    },
+    {
+      "TABLE_NAME": "campRegistrations",
+      "COLUMN_NAME": "patientMessage",
+      "IS_NULLABLE": "YES",
+      "COLUMN_TYPE": "text"
+    },
+    {
+      "TABLE_NAME": "offerLeads",
+      "COLUMN_NAME": "age",
+      "IS_NULLABLE": "YES",
+      "COLUMN_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "offerLeads",
+      "COLUMN_NAME": "gender",
+      "IS_NULLABLE": "NO",
+      "COLUMN_TYPE": "enum('male','female')"
+    },
+    {
+      "TABLE_NAME": "offerLeads",
+      "COLUMN_NAME": "patientMessage",
+      "IS_NULLABLE": "YES",
+      "COLUMN_TYPE": "text"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tCOLUMN_NAME\tIS_NULLABLE\tCOLUMN_TYPE\nappointments\tage\tYES\tint\nappointments\tgender\tYES\tenum('male','female')\nappointments\tpatientMessage\tYES\ttext\ncampRegistrations\tage\tYES\tint\ncampRegistrations\tgender\tYES\tenum('male','female')\ncampRegistrations\tpatientMessage\tYES\ttext\nofferLeads\tage\tYES\tint\nofferLeads\tgender\tNO\tenum('male','female')\nofferLeads\tpatientMessage\tYES\ttext\n",
+  "stderr": "",
+  "execution_time_ms": 343
+}

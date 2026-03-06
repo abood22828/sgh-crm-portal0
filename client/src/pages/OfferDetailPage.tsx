@@ -50,8 +50,11 @@ function OfferDetailContent({ slug }: { slug: string }) {
     fullName: savedInfo?.fullName || "",
     phone: savedInfo?.phone || "",
     email: "",
+    age: "",
     gender: (savedInfo?.gender || "") as "male" | "female" | "",
+    patientMessage: "",
   });
+  const [genderError, setGenderError] = useState<string>("");
 
   useEffect(() => {
     if (!isLoading && !offer) {
@@ -65,6 +68,18 @@ function OfferDetailContent({ slug }: { slug: string }) {
 
     if (!formData.fullName || !formData.phone) {
       toast.error("الرجاء إدخال الاسم ورقم الهاتف");
+      return;
+    }
+
+    if (!formData.gender) {
+      setGenderError("الرجاء تحديد الجنس");
+      toast.error("الرجاء تحديد الجنس");
+      return;
+    }
+    setGenderError("");
+
+    if (!formData.age || isNaN(Number(formData.age)) || Number(formData.age) < 1 || Number(formData.age) > 120) {
+      toast.error("الرجاء إدخال عمر صحيح");
       return;
     }
 
@@ -94,7 +109,9 @@ function OfferDetailContent({ slug }: { slug: string }) {
         fullName: formData.fullName,
         phone: formData.phone,
         email: formData.email || undefined,
-        gender: formData.gender as "male" | "female" | undefined || undefined,
+        age: formData.age ? Number(formData.age) : undefined,
+        gender: formData.gender as "male" | "female",
+        patientMessage: formData.patientMessage || undefined,
         source: trackingData.source,
         utmSource: trackingData.utmSource,
         utmMedium: trackingData.utmMedium,
@@ -450,18 +467,43 @@ function OfferDetailContent({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                {/* حقل الجنس */}
+                {/* حقل العمر */}
+                <div>
+                  <Label htmlFor="age" className="text-sm font-medium text-foreground">
+                    العمر <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="age"
+                    name="age"
+                    type="number"
+                    autoComplete="off"
+                    enterKeyHint="next"
+                    value={formData.age}
+                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                    placeholder="مثال: 35"
+                    min={1}
+                    max={120}
+                    required
+                    className="mt-1.5 h-11"
+                    dir="ltr"
+                    inputMode="numeric"
+                  />
+                </div>
+
+                {/* حقل الجنس - إلزامي */}
                 <div>
                   <Label className="text-sm font-medium text-foreground">
-                    الجنس (اختياري)
+                    الجنس <span className="text-red-500">*</span>
                   </Label>
                   <div className="grid grid-cols-2 gap-3 mt-1.5">
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, gender: "male" })}
+                      onClick={() => { setFormData({ ...formData, gender: "male" }); setGenderError(""); }}
                       className={`h-11 rounded-lg border-2 text-sm font-medium transition-colors ${
                         formData.gender === "male"
                           ? "border-green-600 bg-green-50 text-green-700"
+                          : genderError
+                          ? "border-red-500 bg-background text-foreground"
                           : "border-border bg-background text-foreground hover:border-green-400"
                       }`}
                     >
@@ -469,16 +511,37 @@ function OfferDetailContent({ slug }: { slug: string }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, gender: "female" })}
+                      onClick={() => { setFormData({ ...formData, gender: "female" }); setGenderError(""); }}
                       className={`h-11 rounded-lg border-2 text-sm font-medium transition-colors ${
                         formData.gender === "female"
                           ? "border-pink-500 bg-pink-50 text-pink-700"
+                          : genderError
+                          ? "border-red-500 bg-background text-foreground"
                           : "border-border bg-background text-foreground hover:border-pink-400"
                       }`}
                     >
                       أنثى
                     </button>
                   </div>
+                  {genderError && <p className="text-red-500 text-xs mt-1">{genderError}</p>}
+                </div>
+
+                {/* حقل الرسالة الاختياري */}
+                <div>
+                  <Label htmlFor="patientMessage" className="text-sm font-medium text-foreground">
+                    رسالة أو ملاحظة (اختياري)
+                  </Label>
+                  <textarea
+                    id="patientMessage"
+                    name="patientMessage"
+                    value={formData.patientMessage}
+                    onChange={(e) => setFormData({ ...formData, patientMessage: e.target.value })}
+                    placeholder="أي معلومات إضافية تودّ إضافتها..."
+                    maxLength={500}
+                    rows={3}
+                    className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1 text-left" dir="ltr">{formData.patientMessage.length}/500</p>
                 </div>
 
                 <Button

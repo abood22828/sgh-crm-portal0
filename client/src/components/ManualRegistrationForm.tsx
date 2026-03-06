@@ -310,6 +310,7 @@ export default function ManualRegistrationForm() {
         createOfferLeadMutation.mutate({
           ...baseData,
           offerId: parsedOfferId,
+          gender: (gender as "male" | "female") || "male", // default to male if not set
         });
         break;
       case "camp":

@@ -1,0 +1,85 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'offerLeads' ORDER BY ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'offerLeads' ORDER BY ORDINAL_POSITION;",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "offerId"
+    },
+    {
+      "COLUMN_NAME": "fullName"
+    },
+    {
+      "COLUMN_NAME": "phone"
+    },
+    {
+      "COLUMN_NAME": "email"
+    },
+    {
+      "COLUMN_NAME": "notes"
+    },
+    {
+      "COLUMN_NAME": "status"
+    },
+    {
+      "COLUMN_NAME": "statusNotes"
+    },
+    {
+      "COLUMN_NAME": "source"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "COLUMN_NAME": "utmSource"
+    },
+    {
+      "COLUMN_NAME": "utmMedium"
+    },
+    {
+      "COLUMN_NAME": "utmCampaign"
+    },
+    {
+      "COLUMN_NAME": "utmContent"
+    },
+    {
+      "COLUMN_NAME": "referrer"
+    },
+    {
+      "COLUMN_NAME": "fbclid"
+    },
+    {
+      "COLUMN_NAME": "gclid"
+    },
+    {
+      "COLUMN_NAME": "utmTerm"
+    },
+    {
+      "COLUMN_NAME": "utmPlacement"
+    },
+    {
+      "COLUMN_NAME": "receiptNumber"
+    },
+    {
+      "COLUMN_NAME": "campaignId"
+    },
+    {
+      "COLUMN_NAME": "gender"
+    },
+    {
+      "COLUMN_NAME": "age"
+    },
+    {
+      "COLUMN_NAME": "patientMessage"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nofferId\nfullName\nphone\nemail\nnotes\nstatus\nstatusNotes\nsource\ncreatedAt\nupdatedAt\nutmSource\nutmMedium\nutmCampaign\nutmContent\nreferrer\nfbclid\ngclid\nutmTerm\nutmPlacement\nreceiptNumber\ncampaignId\ngender\nage\npatientMessage\n",
+  "stderr": "",
+  "execution_time_ms": 343
+}

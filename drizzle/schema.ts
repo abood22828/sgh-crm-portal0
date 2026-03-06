@@ -172,6 +172,7 @@ export const appointments = mysqlTable("appointments", {
   preferredDate: varchar("preferredDate", { length: 50 }),
   preferredTime: varchar("preferredTime", { length: 50 }),
   appointmentDate: timestamp("appointmentDate"), // Confirmed appointment date/time
+  patientMessage: text("patientMessage"), // رسالة المريض الاختيارية
   notes: text("notes"), // Patient notes
   additionalNotes: text("additionalNotes"), // Additional patient notes
   staffNotes: text("staffNotes"), // Staff notes (admin only)
@@ -275,7 +276,9 @@ export const offerLeads = mysqlTable("offerLeads", {
   fullName: varchar("fullName", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }).notNull(),
   email: varchar("email", { length: 320 }),
-  gender: mysqlEnum("gender", ["male", "female"]), // Patient gender
+  age: int("age"), // Patient age
+  gender: mysqlEnum("gender", ["male", "female"]).notNull(), // Patient gender (required)
+  patientMessage: text("patientMessage"), // رسالة المريض الاختيارية
   notes: text("notes"),
   status: mysqlEnum("status", ["new", "contacted", "booked", "not_interested", "no_answer", "pending", "confirmed", "completed", "cancelled"]).default("new").notNull(),
   statusNotes: text("statusNotes"),
@@ -318,6 +321,7 @@ export const campRegistrations = mysqlTable("campRegistrations", {
   gender: mysqlEnum("gender", ["male", "female"]),
   procedures: text("procedures"), // JSON array of selected procedures
   medicalCondition: text("medicalCondition"),
+  patientMessage: text("patientMessage"), // رسالة المريض الاختيارية
   notes: text("notes"),
   status: mysqlEnum("status", ["pending", "confirmed", "attended", "cancelled"]).default("pending").notNull(),
   statusNotes: text("statusNotes"),

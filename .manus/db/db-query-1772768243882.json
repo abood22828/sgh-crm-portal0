@@ -1,0 +1,55 @@
+{
+  "query": "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME IN ('offerLeads', 'appointments', 'campRegistrations') AND COLUMN_NAME IN ('age', 'gender', 'patientMessage') ORDER BY TABLE_NAME, ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME IN ('offerLeads', 'appointments', 'campRegistrations') AND COLUMN_NAME IN ('age', 'gender', 'patientMessage') ORDER BY TABLE_NAME, ORDINAL_POSITION;",
+  "rows": [
+    {
+      "TABLE_NAME": "appointments",
+      "COLUMN_NAME": "age",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_NAME": "appointments",
+      "COLUMN_NAME": "gender",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_NAME": "appointments",
+      "COLUMN_NAME": "patientMessage",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_NAME": "campRegistrations",
+      "COLUMN_NAME": "age",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_NAME": "campRegistrations",
+      "COLUMN_NAME": "gender",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_NAME": "campRegistrations",
+      "COLUMN_NAME": "patientMessage",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_NAME": "offerLeads",
+      "COLUMN_NAME": "gender",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_NAME": "offerLeads",
+      "COLUMN_NAME": "age",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_NAME": "offerLeads",
+      "COLUMN_NAME": "patientMessage",
+      "IS_NULLABLE": "YES"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tCOLUMN_NAME\tIS_NULLABLE\nappointments\tage\tYES\nappointments\tgender\tYES\nappointments\tpatientMessage\tYES\ncampRegistrations\tage\tYES\ncampRegistrations\tgender\tYES\ncampRegistrations\tpatientMessage\tYES\nofferLeads\tgender\tNO\nofferLeads\tage\tYES\nofferLeads\tpatientMessage\tYES\n",
+  "stderr": "",
+  "execution_time_ms": 342
+}

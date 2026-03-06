@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE offerLeads ADD COLUMN age INT NULL AFTER email;\nALTER TABLE offerLeads ADD COLUMN patientMessage TEXT NULL AFTER gender;\nALTER TABLE offerLeads MODIFY COLUMN gender ENUM('male', 'female') NOT NULL;\nALTER TABLE appointments ADD COLUMN patientMessage TEXT NULL AFTER appointmentDate;\nALTER TABLE campRegistrations ADD COLUMN patientMessage TEXT NULL AFTER medicalCondition;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2xtgvXGdr7mxJSP.root --database HgGpRPs4xs9xrzjfX4xmFY --execute ALTER TABLE offerLeads ADD COLUMN age INT NULL AFTER email;\nALTER TABLE offerLeads ADD COLUMN patientMessage TEXT NULL AFTER gender;\nALTER TABLE offerLeads MODIFY COLUMN gender ENUM('male', 'female') NOT NULL;\nALTER TABLE appointments ADD COLUMN patientMessage TEXT NULL AFTER appointmentDate;\nALTER TABLE campRegistrations ADD COLUMN patientMessage TEXT NULL AFTER medicalCondition;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1060 (42S21) at line 1: Duplicate column name 'age'"
+  ]
+}

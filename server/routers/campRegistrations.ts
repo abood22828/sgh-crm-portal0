@@ -24,6 +24,7 @@ export const campRegistrationsRouter = router({
         gender: z.enum(["male", "female"]).optional(),
         procedures: z.string().optional(), // JSON string of selected procedures
         medicalCondition: z.string().optional(),
+        patientMessage: z.string().max(500).optional(),
         notes: z.string().optional(),
         source: z.string().optional(),
         status: z.enum(["pending", "confirmed", "attended", "cancelled"]).optional(), // Manual registration status
@@ -72,6 +73,7 @@ export const campRegistrationsRouter = router({
         gender: input.gender,
         procedures: input.procedures,
         medicalCondition: input.medicalCondition,
+        patientMessage: input.patientMessage,
         notes: input.notes,
         source: input.source || "website",
         utmSource: input.utmSource,
