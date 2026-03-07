@@ -60,7 +60,7 @@ export default function ManualRegistrationForm() {
   const [campAge, setCampAge] = useState("");
   const [campProcedures, setCampProcedures] = useState<string[]>([]);
   const [medicalCondition, setMedicalCondition] = useState("");
-  const [registrationStatus, setRegistrationStatus] = useState<"new" | "contacted" | "booked" | "not_interested" | "no_answer" | "pending" | "confirmed" | "completed" | "cancelled">("new");
+  const [registrationStatus, setRegistrationStatus] = useState<"pending" | "contacted" | "no_answer" | "confirmed" | "attended" | "completed" | "cancelled" | "new" | "booked" | "not_interested">("confirmed");
 
   const { data: doctors } = trpc.doctors.list.useQuery();
   const { data: offers } = trpc.offers.getAll.useQuery();
@@ -72,7 +72,19 @@ export default function ManualRegistrationForm() {
 
   // Get selected camp's procedures
   const selectedCamp = camps?.find((c: any) => c.id.toString() === campId);
-  const availableCampProcedures = selectedCamp?.availableProcedures ? selectedCamp.availableProcedures.split(',').map((p: string) => p.trim()).filter(Boolean) : [];
+  const availableCampProcedures = (() => {
+    if (!selectedCamp?.availableProcedures) return [];
+    const raw = selectedCamp.availableProcedures;
+    // Try JSON parse first (array format)
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map((p: string) => p.trim()).filter(Boolean);
+    } catch {}
+    // Try newline-separated
+    if (raw.includes('\n')) return raw.split('\n').map((p: string) => p.trim()).filter(Boolean);
+    // Fallback: comma-separated
+    return raw.split(',').map((p: string) => p.trim()).filter(Boolean);
+  })();
 
   // Reset procedure when doctor/camp changes
   useEffect(() => {
@@ -395,21 +407,13 @@ export default function ManualRegistrationForm() {
                   <SelectValue placeholder="اختر الحالة" />
                 </SelectTrigger>
                 <SelectContent>
-                  {registrationType === "lead" ? (
-                    <>
-                      <SelectItem value="new">جديد</SelectItem>
-                      <SelectItem value="contacted">تم التواصل</SelectItem>
-                      <SelectItem value="booked">تم الحجز</SelectItem>
-                      <SelectItem value="not_interested">غير مهتم</SelectItem>
-                      <SelectItem value="no_answer">لم يرد</SelectItem>
-                    </>
-                  ) : (
-                    <>
-                      <SelectItem value="confirmed">مؤكد</SelectItem>
-                      <SelectItem value="completed">حضر/مكتمل</SelectItem>
-                      <SelectItem value="cancelled">ملغي</SelectItem>
-                    </>
-                  )}
+                  <SelectItem value="pending">قيد الانتظار</SelectItem>
+                  <SelectItem value="contacted">تم التواصل</SelectItem>
+                  <SelectItem value="no_answer">لم يرد</SelectItem>
+                  <SelectItem value="confirmed">مؤكد</SelectItem>
+                  <SelectItem value="attended">حضر</SelectItem>
+                  <SelectItem value="completed">مكتمل</SelectItem>
+                  <SelectItem value="cancelled">ملغي</SelectItem>
                 </SelectContent>
               </Select>
             </div>

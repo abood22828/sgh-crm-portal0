@@ -256,12 +256,25 @@ export default function GlobalSearch({ onClose }: GlobalSearchProps) {
                               </div>
                               <Badge 
                                 variant="outline" 
-                                className={apt.status === 'pending' ? 'bg-yellow-50 text-yellow-700' : ''}
+                                className={
+                                  apt.status === 'pending' ? 'bg-yellow-50 text-yellow-700' :
+                                  apt.status === 'contacted' ? 'bg-orange-50 text-orange-700' :
+                                  apt.status === 'no_answer' ? 'bg-gray-50 text-gray-700' :
+                                  apt.status === 'confirmed' ? 'bg-green-50 text-green-700' :
+                                  apt.status === 'attended' ? 'bg-teal-50 text-teal-700' :
+                                  apt.status === 'completed' ? 'bg-blue-50 text-blue-700' :
+                                  apt.status === 'cancelled' ? 'bg-red-50 text-red-700' : ''
+                                }
                               >
-                                {apt.status === 'pending' && 'قيد الانتظار'}
-                                {apt.status === 'confirmed' && 'مؤكد'}
-                                {apt.status === 'cancelled' && 'ملغي'}
-                                {apt.status === 'completed' && 'مكتمل'}
+                                {({
+                                  pending: 'قيد الانتظار',
+                                  contacted: 'تم التواصل',
+                                  no_answer: 'لم يرد',
+                                  confirmed: 'مؤكد',
+                                  attended: 'حضر',
+                                  completed: 'مكتمل',
+                                  cancelled: 'ملغي',
+                                } as Record<string, string>)[apt.status] || apt.status}
                               </Badge>
                             </div>
                           </CardContent>

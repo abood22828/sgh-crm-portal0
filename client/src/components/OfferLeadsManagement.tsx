@@ -79,6 +79,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useExportUtils } from "@/hooks/useExportUtils";
+import { formatStatusTime } from "@/hooks/useStatusLabels";
 import { printReceipt } from "@/components/PrintReceipt";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SOURCE_OPTIONS, SOURCE_LABELS, SOURCE_COLORS } from "@shared/sources";
@@ -172,6 +173,11 @@ export default function OfferLeadsManagement({
     { key: 'fbclid', label: 'Facebook Click ID', defaultVisible: false, sortType: 'string' },
     { key: 'gclid', label: 'Google Click ID', defaultVisible: false, sortType: 'string' },
     { key: 'campaignId', label: 'الحملة', defaultVisible: false, sortType: 'number' },
+    { key: 'contactedAt', label: 'وقت التواصل', defaultVisible: false, sortType: 'date' },
+    { key: 'confirmedAt', label: 'وقت التأكيد', defaultVisible: false, sortType: 'date' },
+    { key: 'attendedAt', label: 'وقت الحضور', defaultVisible: false, sortType: 'date' },
+    { key: 'completedAt', label: 'وقت الاكتمال', defaultVisible: false, sortType: 'date' },
+    { key: 'cancelledAt', label: 'وقت الإلغاء', defaultVisible: false, sortType: 'date' },
     { key: 'date', label: 'تاريخ التسجيل', defaultVisible: true, sortType: 'date' },
     { key: 'comments', label: 'التعليقات', defaultVisible: true, sortable: false },
     { key: 'tasks', label: 'المهام', defaultVisible: true, sortable: false },
@@ -870,6 +876,16 @@ export default function OfferLeadsManagement({
                             );
                           case 'statusNotes':
                             return <FrozenTableCell key={colKey} columnKey={colKey} wrap title={lead.statusNotes}>{lead.statusNotes || '-'}</FrozenTableCell>;
+                          case 'contactedAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(lead.contactedAt)}</FrozenTableCell>;
+                          case 'confirmedAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(lead.confirmedAt)}</FrozenTableCell>;
+                          case 'attendedAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(lead.attendedAt)}</FrozenTableCell>;
+                          case 'completedAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(lead.completedAt)}</FrozenTableCell>;
+                          case 'cancelledAt':
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(lead.cancelledAt)}</FrozenTableCell>;
                           case 'date':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">{formatDate(lead.createdAt)}</FrozenTableCell>;
                           case 'utmSource':

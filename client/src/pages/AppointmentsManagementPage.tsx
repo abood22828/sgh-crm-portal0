@@ -709,7 +709,10 @@ export default function AppointmentsManagementPage() {
                                     currentStatus={appointment.status}
                                     statusOptions={[
                                       { value: 'pending', label: 'قيد الانتظار', color: 'bg-yellow-500' },
+                                      { value: 'contacted', label: 'تم التواصل', color: 'bg-orange-400' },
+                                      { value: 'no_answer', label: 'لم يرد', color: 'bg-gray-500' },
                                       { value: 'confirmed', label: 'مؤكد', color: 'bg-green-500' },
+                                      { value: 'attended', label: 'حضر', color: 'bg-teal-500' },
                                       { value: 'completed', label: 'مكتمل', color: 'bg-blue-500' },
                                       { value: 'cancelled', label: 'ملغي', color: 'bg-red-500' },
                                     ]}
@@ -852,9 +855,12 @@ export default function AppointmentsManagementPage() {
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="pending">قيد الانتظار</SelectItem>
+                            <SelectItem value="contacted">تم التواصل</SelectItem>
+                            <SelectItem value="no_answer">لم يرد</SelectItem>
                             <SelectItem value="confirmed">مؤكد</SelectItem>
-                            <SelectItem value="cancelled">ملغي</SelectItem>
+                            <SelectItem value="attended">حضر</SelectItem>
                             <SelectItem value="completed">مكتمل</SelectItem>
+                            <SelectItem value="cancelled">ملغي</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -900,12 +906,15 @@ export default function AppointmentsManagementPage() {
           selectedCount={selectedAppointmentIds.length}
           statusOptions={[
             { value: "pending", label: "قيد الانتظار" },
+            { value: "contacted", label: "تم التواصل" },
+            { value: "no_answer", label: "لم يرد" },
             { value: "confirmed", label: "مؤكد" },
-            { value: "cancelled", label: "ملغي" },
+            { value: "attended", label: "حضر" },
             { value: "completed", label: "مكتمل" },
+            { value: "cancelled", label: "ملغي" },
           ]}
           onConfirm={(newStatus) => {
-            bulkUpdateAppointmentsMutation.mutate({ ids: selectedAppointmentIds, status: newStatus as "pending" | "confirmed" | "cancelled" | "completed" });
+            bulkUpdateAppointmentsMutation.mutate({ ids: selectedAppointmentIds, status: newStatus as any });
           }}
           isLoading={bulkUpdateAppointmentsMutation.isPending}
         />

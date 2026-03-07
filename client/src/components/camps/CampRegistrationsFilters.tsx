@@ -76,8 +76,11 @@ export default function CampRegistrationsFilters({
         <MultiSelect
           options={[
             { value: 'pending', label: 'قيد الانتظار' },
+            { value: 'contacted', label: 'تم التواصل' },
+            { value: 'no_answer', label: 'لم يرد' },
             { value: 'confirmed', label: 'مؤكد' },
             { value: 'attended', label: 'حضر' },
+            { value: 'completed', label: 'مكتمل' },
             { value: 'cancelled', label: 'ملغي' },
           ]}
           selected={statusFilter}

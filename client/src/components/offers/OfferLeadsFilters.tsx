@@ -75,11 +75,13 @@ export default function OfferLeadsFilters({
         </Select>
         <MultiSelect
           options={[
-            { value: 'new', label: 'جديد' },
+            { value: 'pending', label: 'قيد الانتظار' },
             { value: 'contacted', label: 'تم التواصل' },
-            { value: 'booked', label: 'تم الحجز' },
-            { value: 'not_interested', label: 'غير مهتم' },
             { value: 'no_answer', label: 'لم يرد' },
+            { value: 'confirmed', label: 'مؤكد' },
+            { value: 'attended', label: 'حضر' },
+            { value: 'completed', label: 'مكتمل' },
+            { value: 'cancelled', label: 'ملغي' },
           ]}
           selected={statusFilter}
           onChange={onStatusFilterChange}
