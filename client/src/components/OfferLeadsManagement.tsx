@@ -1,5 +1,16 @@
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useState, useMemo, useEffect, useCallback } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { trpc } from "@/lib/trpc";
 import { useFilterUtils } from "@/hooks/useFilterUtils";
 import { Button } from "@/components/ui/button";
@@ -65,6 +76,7 @@ import {
   Printer,
   Settings,
   ShoppingBag,
+  Trash2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -118,9 +130,17 @@ export default function OfferLeadsManagement({
   dateRange: { from: Date, to: Date }
 }) {
   const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
-  const { formatDate, formatDateTime } = useFormatDate();
+  const { formatDate, formatDateTime, formatRegistrationDate } = useFormatDate();
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.offerLeads.generateReceiptNumber.useMutation();
+  const deleteLeadMutation = trpc.offerLeads.delete.useMutation({
+    onSuccess: () => {
+      toast.success('تم حذف الحجز بنجاح');
+      utils.offerLeads.listPaginated.invalidate();
+      utils.offerLeads.stats.invalidate();
+    },
+    onError: () => toast.error('فشل في حذف الحجز'),
+  });
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
@@ -887,7 +907,7 @@ export default function OfferLeadsManagement({
                           case 'cancelledAt':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(lead.cancelledAt)}</FrozenTableCell>;
                           case 'date':
-                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">{formatDate(lead.createdAt)}</FrozenTableCell>;
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">{formatRegistrationDate(lead.createdAt)}</FrozenTableCell>;
                           case 'utmSource':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs">{lead.utmSource || '-'}</FrozenTableCell>;
                           case 'utmMedium':
@@ -947,6 +967,25 @@ export default function OfferLeadsManagement({
                                     </TooltipTrigger>
                                     <TooltipContent><p>طباعة السند</p></TooltipContent>
                                   </Tooltip>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                                        <AlertDialogDescription>هل أنت متأكد من حذف هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                        <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => deleteLeadMutation.mutate({ id: lead.id })}>
+                                          {deleteLeadMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'حذف'}
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
                                 </div>
                               </FrozenTableCell>
                             );

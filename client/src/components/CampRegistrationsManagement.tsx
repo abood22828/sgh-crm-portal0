@@ -1,5 +1,16 @@
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useState, useMemo, useEffect, useCallback } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { trpc } from "@/lib/trpc";
 import { useFilterUtils } from "@/hooks/useFilterUtils";
 import { Button } from "@/components/ui/button";
@@ -63,6 +74,7 @@ import {
   Printer,
   Settings,
   TentTree,
+  Trash2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -132,9 +144,17 @@ export default function CampRegistrationsManagement({
   dateRange: { from: Date, to: Date }
 }) {
   const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
-  const { formatDate, formatDateTime } = useFormatDate();
+  const { formatDate, formatDateTime, formatRegistrationDate } = useFormatDate();
   const { user } = useAuth();
   const generateReceiptNumberMutation = trpc.campRegistrations.generateReceiptNumber.useMutation();
+  const deleteRegMutation = trpc.campRegistrations.delete.useMutation({
+    onSuccess: () => {
+      toast.success('تم حذف التسجيل بنجاح');
+      utils.campRegistrations.listPaginated.invalidate();
+      utils.campRegistrations.stats.invalidate();
+    },
+    onError: () => toast.error('فشل في حذف التسجيل'),
+  });
   const [selectedRegistration, setSelectedRegistration] = useState<any>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -936,9 +956,9 @@ export default function CampRegistrationsManagement({
                           case 'cancelledAt':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs text-muted-foreground">{formatStatusTime(reg.cancelledAt)}</FrozenTableCell>;
                           case 'attendanceDate':
-                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm">{formatDate(reg.attendanceDate)}</FrozenTableCell>;
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm">{formatRegistrationDate(reg.attendanceDate)}</FrozenTableCell>;
                           case 'date':
-                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">{formatDate(reg.createdAt)}</FrozenTableCell>;
+                            return <FrozenTableCell key={colKey} columnKey={colKey} className="text-sm text-muted-foreground">{formatRegistrationDate(reg.createdAt)}</FrozenTableCell>;
                           case 'utmSource':
                             return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs">{reg.utmSource || '-'}</FrozenTableCell>;
                           case 'utmMedium':
@@ -1001,6 +1021,25 @@ export default function CampRegistrationsManagement({
                                     </TooltipTrigger>
                                     <TooltipContent><p>طباعة السند</p></TooltipContent>
                                   </Tooltip>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                                        <AlertDialogDescription>هل أنت متأكد من حذف هذا التسجيل؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                        <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => deleteRegMutation.mutate({ id: reg.id })}>
+                                          {deleteRegMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'حذف'}
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
                                 </div>
                               </FrozenTableCell>
                             );
@@ -1010,7 +1049,8 @@ export default function CampRegistrationsManagement({
                       })}
                     </TableRow>
                   ))
-                )}
+                )
+              }
               </TableBody>
             </ResizableTable>
 

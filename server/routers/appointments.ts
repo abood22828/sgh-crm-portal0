@@ -93,6 +93,16 @@ export const appointmentsRouter = router({
         throw new Error("Failed to create or retrieve campaign");
       }
 
+      // Build timestamp fields based on initial status
+      const now = new Date();
+      const statusTimestamps: Record<string, Date> = {};
+      const initialStatus = input.status || "pending";
+      if (initialStatus === 'contacted') statusTimestamps.contactedAt = now;
+      else if (initialStatus === 'confirmed') statusTimestamps.confirmedAt = now;
+      else if (initialStatus === 'attended') statusTimestamps.attendedAt = now;
+      else if (initialStatus === 'completed') statusTimestamps.completedAt = now;
+      else if (initialStatus === 'cancelled') statusTimestamps.cancelledAt = now;
+
       // Create appointment
       const appointment = await createAppointment({
         campaignId: campaign.id,
@@ -107,7 +117,7 @@ export const appointmentsRouter = router({
         preferredTime: input.preferredTime,
         additionalNotes: input.additionalNotes,
         patientMessage: input.patientMessage,
-        status: input.status || "pending",
+        status: initialStatus,
         source: input.source || "direct",
         utmSource: input.utmSource,
         utmMedium: input.utmMedium,
@@ -118,6 +128,7 @@ export const appointmentsRouter = router({
         referrer: input.referrer,
         fbclid: input.fbclid,
         gclid: input.gclid,
+        ...statusTimestamps,
       });
 
       // Send email notification
@@ -416,8 +427,21 @@ export const appointmentsRouter = router({
       const receiptNumber = `SGH-${year}-${paddedNumber}`;
 
       // Save receipt number
-      await db.update(appointments).set({ receiptNumber }).where(eq(appointments.id, input.id));
-
+       await db.update(appointments).set({ receiptNumber }).where(eq(appointments.id, input.id));
       return { receiptNumber };
+    }),
+
+  // Delete appointment (protected)
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      await db.delete(appointments).where(eq(appointments.id, input.id));
+      // Invalidate appointment caches after deletion
+      serverCache.invalidateByPrefix("paginated:appointments:");
+      serverCache.invalidate("list:appointments");
+      serverCache.invalidate(CacheKeys.appointmentStats());
+      return { success: true };
     }),
 });

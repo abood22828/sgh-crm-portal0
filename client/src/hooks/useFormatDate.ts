@@ -98,12 +98,35 @@ export function useFormatDate() {
     return `${fromStr} - ${toStr}`;
   }, [formatDate]);
 
+  /**
+   * تنسيق تاريخ التسجيل: "2:30 PM 23-03-2026"
+   * التنسيق المطلوب: h:mm AM/PM dd-MM-yyyy
+   */
+  const formatRegistrationDate = useCallback((date: string | Date | null | undefined): string => {
+    if (!date) return "-";
+    try {
+      const d = new Date(date);
+      const hours = d.getHours();
+      const minutes = d.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const h = hours % 12 || 12;
+      const mm = minutes.toString().padStart(2, '0');
+      const day = d.getDate().toString().padStart(2, '0');
+      const month = (d.getMonth() + 1).toString().padStart(2, '0');
+      const year = d.getFullYear();
+      return `${h}:${mm} ${ampm} ${day}-${month}-${year}`;
+    } catch {
+      return "-";
+    }
+  }, []);
+
   return {
     formatDate,
     formatDateShort,
     formatDateTime,
     formatDateCompact,
     formatDateRange,
+    formatRegistrationDate,
   };
 }
 
@@ -122,6 +145,28 @@ export function formatDateTimeUtil(date: string | Date | null | undefined): stri
   if (!date) return "-";
   try {
     return new Date(date).toLocaleDateString(LOCALE, DATE_TIME_OPTIONS);
+  } catch {
+    return "-";
+  }
+}
+
+/**
+ * دالة مستقلة لتنسيق تاريخ التسجيل: "2:30 PM 23-03-2026"
+ * للاستخدام خارج React components
+ */
+export function formatRegistrationDateUtil(date: string | Date | null | undefined): string {
+  if (!date) return "-";
+  try {
+    const d = new Date(date);
+    const hours = d.getHours();
+    const minutes = d.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const h = hours % 12 || 12;
+    const mm = minutes.toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear();
+    return `${h}:${mm} ${ampm} ${day}-${month}-${year}`;
   } catch {
     return "-";
   }

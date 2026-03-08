@@ -64,6 +64,16 @@ export const campRegistrationsRouter = router({
         });
       }
 
+      // Build timestamp fields based on initial status
+      const nowCamp = new Date();
+      const campStatusTimestamps: Record<string, Date> = {};
+      const campInitialStatus = input.status || "pending";
+      if (campInitialStatus === 'contacted') campStatusTimestamps.contactedAt = nowCamp;
+      else if (campInitialStatus === 'confirmed') campStatusTimestamps.confirmedAt = nowCamp;
+      else if (campInitialStatus === 'attended') campStatusTimestamps.attendedAt = nowCamp;
+      else if (campInitialStatus === 'completed') campStatusTimestamps.completedAt = nowCamp;
+      else if (campInitialStatus === 'cancelled') campStatusTimestamps.cancelledAt = nowCamp;
+
       const [registration] = await db.insert(campRegistrations).values({
         campId: input.campId,
         fullName: input.fullName,
@@ -85,7 +95,8 @@ export const campRegistrationsRouter = router({
         referrer: input.referrer,
         fbclid: input.fbclid,
         gclid: input.gclid,
-        status: input.status || "pending", // Use provided status or default to pending
+        status: campInitialStatus,
+        ...campStatusTimestamps,
       });
 
       // Get camp details for notification

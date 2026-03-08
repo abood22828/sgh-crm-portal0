@@ -62,6 +62,16 @@ export const offerLeadsRouter = router({
         });
       }
 
+      // Build timestamp fields based on initial status
+      const nowOffer = new Date();
+      const offerStatusTimestamps: Record<string, Date> = {};
+      const offerInitialStatus = input.status || "pending";
+      if (offerInitialStatus === 'contacted') offerStatusTimestamps.contactedAt = nowOffer;
+      else if (offerInitialStatus === 'confirmed') offerStatusTimestamps.confirmedAt = nowOffer;
+      else if (offerInitialStatus === 'attended') offerStatusTimestamps.attendedAt = nowOffer;
+      else if (offerInitialStatus === 'completed') offerStatusTimestamps.completedAt = nowOffer;
+      else if (offerInitialStatus === 'cancelled') offerStatusTimestamps.cancelledAt = nowOffer;
+
       const [lead] = await db.insert(offerLeads).values({
         offerId: input.offerId,
         fullName: input.fullName,
@@ -81,7 +91,8 @@ export const offerLeadsRouter = router({
         referrer: input.referrer,
         fbclid: input.fbclid,
         gclid: input.gclid,
-        status: input.status || "pending", // Use provided status or default to pending
+        status: offerInitialStatus,
+        ...offerStatusTimestamps,
       });
 
       // Get offer details for notification

@@ -45,8 +45,19 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Search, Loader2, Download, Settings, Printer, CalendarOff, CheckSquare, RotateCcw,
+  Search, Loader2, Download, Settings, Printer, CalendarOff, CheckSquare, RotateCcw, Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useExportUtils } from "@/hooks/useExportUtils";
 import { useFilterUtils } from "@/hooks/useFilterUtils";
@@ -60,9 +71,16 @@ import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 
 export default function AppointmentsManagementPage() {
   const { formatPhoneDisplay, getWhatsAppLink, getCallLink } = usePhoneFormat();
-  const { formatDate, formatDateTime } = useFormatDate();
+  const { formatDate, formatDateTime, formatRegistrationDate } = useFormatDate();
   const { user } = useAuth();
   const utils = trpc.useUtils();
+  const deleteAppointmentMutation = trpc.appointments.delete.useMutation({
+    onSuccess: () => {
+      toast.success('تم حذف الموعد بنجاح');
+      utils.appointments.listPaginated.invalidate();
+    },
+    onError: () => toast.error('فشل في حذف الموعد'),
+  });
 
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [appointmentStatusDialogOpen, setAppointmentStatusDialogOpen] = useState(false);
@@ -655,7 +673,7 @@ export default function AppointmentsManagementPage() {
                             case 'receiptNumber':
                               return <FrozenTableCell key={colKey} columnKey={colKey} className="font-mono text-xs">{appointment.receiptNumber || '-'}</FrozenTableCell>;
                             case 'date':
-                              return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs whitespace-nowrap">{formatDate(appointment.createdAt)}</FrozenTableCell>;
+                              return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs whitespace-nowrap">{formatRegistrationDate(appointment.createdAt)}</FrozenTableCell>;
                             case 'name':
                               return <FrozenTableCell key={colKey} columnKey={colKey} className="font-medium">{appointment.fullName || appointment.patientName}</FrozenTableCell>;
                             case 'phone':
@@ -772,6 +790,25 @@ export default function AppointmentsManagementPage() {
                                       </TooltipTrigger>
                                       <TooltipContent><p>طباعة السند</p></TooltipContent>
                                     </Tooltip>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                                          <AlertDialogDescription>هل أنت متأكد من حذف هذا الموعد؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                          <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => deleteAppointmentMutation.mutate({ id: appointment.id })}>
+                                            {deleteAppointmentMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'حذف'}
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
                                   </div>
                                 </FrozenTableCell>
                               );
