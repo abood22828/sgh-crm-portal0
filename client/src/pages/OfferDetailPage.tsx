@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 import { usePatientStorage } from "@/hooks/usePatientStorage";
+import { useAbandonedFormTracking } from "@/hooks/useAbandonedFormTracking";
 
 export default function OfferDetailPage() {
   const params = useParams();
@@ -55,6 +56,16 @@ function OfferDetailContent({ slug }: { slug: string }) {
     patientMessage: "",
   });
   const [genderError, setGenderError] = useState<string>("");
+  const [submitted, setSubmitted] = useState(false);
+
+  // تتبع النماذج المهجورة (الفرص الضائعة)
+  useAbandonedFormTracking({
+    formType: "offer",
+    relatedId: offer?.id,
+    relatedName: offer?.title,
+    getFormData: () => ({ name: formData.fullName, phone: formData.phone }),
+    submitted,
+  });
 
   useEffect(() => {
     if (!isLoading && !offer) {
@@ -124,6 +135,7 @@ function OfferDetailContent({ slug }: { slug: string }) {
         gclid: trackingData.gclid,
       });
 
+      setSubmitted(true);
       toast.success("تم إرسال طلبك بنجاح! سنتواصل معك قريباً");
       
       const params = new URLSearchParams({

@@ -19,6 +19,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 import { usePatientStorage } from "@/hooks/usePatientStorage";
+import { useAbandonedFormTracking } from "@/hooks/useAbandonedFormTracking";
 
 export default function DoctorDetailPage() {
   const [, params] = useRoute("/doctors/:slug");
@@ -59,6 +60,15 @@ function DoctorDetailContent({ slug }: { slug: string }) {
 
   const [submitted, setSubmitted] = useState(false);
   const [, setLocation] = useLocation();
+
+  // تتبع النماذج المهجورة (الفرص الضائعة)
+  useAbandonedFormTracking({
+    formType: "appointment",
+    relatedId: doctor?.id,
+    relatedName: doctor?.name,
+    getFormData: () => ({ name: formData.fullName, phone: formData.phone }),
+    submitted,
+  });
 
   // Parse procedures from doctor data (comma-separated string)
   const availableProcedures = doctor?.procedures 

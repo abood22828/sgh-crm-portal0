@@ -68,6 +68,7 @@ const allNavItems: NavItem[] = [
   { id: "reports", title: "التقارير", href: "/dashboard/reports", icon: FileText },
   { id: "analytics", title: "التحليلات", href: "/dashboard/analytics", icon: BarChart3 },
   { id: "bi", title: "ذكاء الأعمال (BI)", href: "/dashboard/bi", icon: TrendingUp },
+  { id: "tracking-settings", title: "إعدادات التتبع", href: "/dashboard/tracking-settings", icon: SettingsIcon },
   { id: "whatsapp", title: "واتساب", href: "/dashboard/whatsapp", icon: MessageCircle },
   { id: "messages", title: "الرسائل", href: "/dashboard/messages", icon: MessageSquare },
   { id: "message-settings", title: "إعدادات الرسائل", href: "/dashboard/message-settings", icon: SettingsIcon },
@@ -134,6 +135,7 @@ const allToolsGroups: NavGroup[] = [
       { id: "reports", title: "التقارير", href: "/dashboard/reports", icon: FileText },
       { id: "analytics", title: "التحليلات", href: "/dashboard/analytics", icon: BarChart3 },
       { id: "bi", title: "ذكاء الأعمال (BI)", href: "/dashboard/bi", icon: TrendingUp },
+      { id: "tracking-settings", title: "إعدادات التتبع", href: "/dashboard/tracking-settings", icon: SettingsIcon },
     ],
   },
   {

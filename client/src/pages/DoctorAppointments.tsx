@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
-import { MetaPixel, trackMetaLead, trackMetaCompleteRegistration } from "@/components/MetaPixel";
+import { trackMetaLead, trackMetaCompleteRegistration } from "@/components/MetaPixel";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,7 +54,7 @@ function DoctorAppointmentsContent() {
   const submitAppointment = trpc.appointments.submit.useMutation({
     onSuccess: () => {
       // Track Meta Conversion
-      trackMetaCompleteRegistration({ fullName: formData.fullName, phone: formData.phone });
+      trackMetaCompleteRegistration({ content_name: 'Doctor Appointment', content_category: 'Healthcare' });
 
       toast.success("تم حجز الموعد بنجاح!");
       setLocation("/thank-you");
@@ -88,7 +88,7 @@ function DoctorAppointmentsContent() {
     setPhoneError("");
 
     // Track Meta Lead
-    trackMetaLead({ fullName: formData.fullName, phone: formData.phone });
+    trackMetaLead({ content_name: 'Doctor Appointment', content_category: 'Healthcare' });
 
     submitAppointment.mutate({
       ...formData,
@@ -105,7 +105,6 @@ function DoctorAppointmentsContent() {
 
   return (
     <>
-      <MetaPixel pixelId="2008380493273171" />
       <div className="min-h-screen bg-gradient-to-b from-white to-blue-50" dir="rtl">
         {/* Header */}
         <header className="bg-white dark:bg-card shadow-sm sticky top-0 z-50">

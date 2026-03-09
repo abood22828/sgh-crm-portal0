@@ -7,6 +7,7 @@ import { offerLeads } from "../../drizzle/schema";
 import { sendNewOfferLeadTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
+import { sendOfferLeadEvent } from "../facebookCAPI";
 
 export const offerLeadsRouter = router({
   // Submit a new offer lead (public)
@@ -126,6 +127,16 @@ export const offerLeadsRouter = router({
           console.error("[WhatsApp] Failed to send offer booking confirmation:", error);
         });
       }
+
+      // Send Facebook Conversions API event (fire-and-forget)
+      sendOfferLeadEvent({
+        fullName: input.fullName,
+        phone: input.phone,
+        email: input.email,
+        offerName: offer?.title,
+        eventSourceUrl: input.referrer,
+        eventId: `offer_${lead?.insertId || Date.now()}`,
+      }).catch((err) => console.error("[CAPI] Offer lead error:", err));
 
       // Invalidate offer leads caches after new submission
       serverCache.invalidateByPrefix("paginated:offerLeads:");

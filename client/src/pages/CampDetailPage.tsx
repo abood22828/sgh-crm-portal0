@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
 import { usePatientStorage } from "@/hooks/usePatientStorage";
+import { useAbandonedFormTracking } from "@/hooks/useAbandonedFormTracking";
 
 export default function CampDetailPage() {
   const params = useParams();
@@ -58,6 +59,16 @@ function CampDetailContent({ slug }: { slug: string }) {
   const [showAllFreeOffers, setShowAllFreeOffers] = useState(false);
   const [showAllDiscountedOffers, setShowAllDiscountedOffers] = useState(false);
   const [showProcedures, setShowProcedures] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // تتبع النماذج المهجورة (الفرص الضائعة)
+  useAbandonedFormTracking({
+    formType: "camp",
+    relatedId: camp?.id,
+    relatedName: camp?.name,
+    getFormData: () => ({ name: formData.fullName, phone: formData.phone }),
+    submitted,
+  });
 
   // Get available procedures from camp data
   const availableProcedures = useMemo(() => {
@@ -133,6 +144,7 @@ function CampDetailContent({ slug }: { slug: string }) {
         gclid: trackingData.gclid,
       });
 
+      setSubmitted(true);
       toast.success("تم تسجيلك بنجاح! سنتواصل معك قريباً");
       
       const params = new URLSearchParams({

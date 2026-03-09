@@ -44,6 +44,7 @@ const CampRegistrationsPage = lazy(() => import("./pages/CampRegistrationsPage")
 const CustomersPage = lazy(() => import("./pages/CustomersPage"));
 const TasksPage = lazy(() => import("./pages/TasksPage"));
 import PWAManager from "./components/PWAManager";
+import MetaPixel from "./components/MetaPixel";
 import OfflineIndicator from "./components/OfflineIndicator";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 const DigitalMarketingTeamPage = lazy(() => import("./pages/DigitalMarketingTeamPage"));
@@ -61,6 +62,7 @@ const QueueDashboard = lazy(() => import("./pages/QueueDashboard"));
 const PWAStatsPage = lazy(() => import("./pages/PWAStatsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const BIPage = lazy(() => import("./pages/BIPage"));
+const TrackingSettingsPage = lazy(() => import("./pages/TrackingSettingsPage"));
 
 
 function Router() {
@@ -108,6 +110,7 @@ function Router() {
       <Route path={"/dashboard/campaigns"} component={CampaignsPage} />
       <Route path={"/dashboard/analytics"} component={AnalyticsPage} />
       <Route path={"/dashboard/bi"} component={BIPage} />
+      <Route path={"/dashboard/tracking-settings"} component={TrackingSettingsPage} />
        <Route path={"/dashboard/camp-stats"} component={CampStatsPage} />
       <Route path={"/dashboard/bookings"} component={BookingsManagementPage} />
       <Route path={"/dashboard/bookings/leads"} component={LeadsManagementPage} />
@@ -162,6 +165,7 @@ function App() {
           <PWAManager />
           <OfflineIndicator />
           <CookieConsentBanner />
+          <MetaPixel />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

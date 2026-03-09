@@ -19,6 +19,7 @@ import { sendWelcomeMessage } from "../whatsapp";
 import { sendNewAppointmentTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
+import { sendAppointmentLeadEvent } from "../facebookCAPI";
 
 export const appointmentsRouter = router({
   submit: publicProcedure
@@ -192,6 +193,18 @@ export const appointmentsRouter = router({
           console.error("[WhatsApp] Failed to send booking confirmation:", error);
         });
       }
+
+      // Send Facebook Conversions API event (fire-and-forget)
+      sendAppointmentLeadEvent({
+        fullName: input.fullName,
+        phone: input.phone,
+        email: input.email,
+        doctorName: doctor?.name,
+        procedure: input.procedure,
+        campaignName: campaign.name,
+        eventSourceUrl: input.referrer,
+        eventId: `appt_${appointment?.insertId || Date.now()}`,
+      }).catch((err) => console.error("[CAPI] Appointment lead error:", err));
 
       // Invalidate appointment caches after new submission
       serverCache.invalidateByPrefix("paginated:appointments:");

@@ -7,6 +7,7 @@ import { campRegistrations } from "../../drizzle/schema";
 import { sendNewCampRegistrationTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
+import { sendCampRegistrationEvent } from "../facebookCAPI";
 
 export const campRegistrationsRouter = router({
   // Submit a new camp registration (public)
@@ -132,6 +133,17 @@ export const campRegistrationsRouter = router({
           console.error("[WhatsApp] Failed to send camp registration confirmation:", error);
         });
       }
+
+      // Send Facebook Conversions API event (fire-and-forget)
+      sendCampRegistrationEvent({
+        fullName: input.fullName,
+        phone: input.phone,
+        email: input.email,
+        campName: camp?.name,
+        procedures: input.procedures,
+        eventSourceUrl: input.referrer,
+        eventId: `camp_${registration?.insertId || Date.now()}`,
+      }).catch((err) => console.error("[CAPI] Camp registration error:", err));
 
       // Invalidate camp registration caches after new submission
       serverCache.invalidateByPrefix("paginated:campRegistrations:");
