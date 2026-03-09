@@ -341,26 +341,26 @@ export default function PrivacyPolicyPage() {
               14. التواصل مع مسؤول حماية البيانات
             </h2>
             <p className="text-sm sm:text-base mb-4">
-              إذا كنت ترغب في ممارسة أي من حقوقك المتعلقة بحماية البيانات، أو إذا كنت تعتقد أن بياناتك الشخصية قد تعرضت لسوء المعالجة، يمكنك التواصل مع مسؤول حماية البيانات في مجموعة السعودي الألماني:
+              إذا كنت ترغب في ممارسة أي من حقوقك المتعلقة بحماية البيانات، أو إذا كنت تعتقد أن بياناتك الشخصية قد تعرضت لسوء المعالجة، يمكنك التواصل مع مسؤول حماية البيانات في المستشفى السعودي الألماني - صنعاء :
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <a href="tel:+966112685555" className="flex items-center gap-3 bg-green-50 rounded-lg p-4 hover:bg-green-100 transition-colors">
+              <a href="tel:+967734000018" className="flex items-center gap-3 bg-green-50 rounded-lg p-4 hover:bg-green-100 transition-colors">
                 <Phone className="w-5 h-5 text-green-600 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500">هاتف</p>
-                  <p className="font-medium text-sm">+966 11 268 5555 تحويلة 7051</p>
+                  <p className="font-medium text-sm">+967 734000018</p>
                 </div>
               </a>
-              <a href="mailto:DPO@sghgroup.net" className="flex items-center gap-3 bg-green-50 rounded-lg p-4 hover:bg-green-100 transition-colors">
+              <a href="mailto:DPO@sghsanaa.net" className="flex items-center gap-3 bg-green-50 rounded-lg p-4 hover:bg-green-100 transition-colors">
                 <Mail className="w-5 h-5 text-green-600 shrink-0" />
                 <div>
                   <p className="text-xs text-gray-500">بريد إلكتروني</p>
-                  <p className="font-medium text-sm">DPO@sghgroup.net</p>
+                  <p className="font-medium text-sm">DPO@sghsanaa.net</p>
                 </div>
               </a>
             </div>
             <p className="text-sm mt-4 text-gray-600">
-              إذا لم تكن راضياً عن ردنا خلال 30 يوماً، يمكنك تقديم شكوى إلى الهيئة السعودية للبيانات والذكاء الاصطناعي (SDAIA).
+              إذا لم تكن راضياً عن ردنا خلال 30 يوماً، يمكنك تقديم شكوى إلى المركز الوطني للمعلومات (Yemen-NIC).
             </p>
           </section>
 
