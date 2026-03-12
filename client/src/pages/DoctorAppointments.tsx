@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
-import { trackMetaLead, trackMetaCompleteRegistration } from "@/components/MetaPixel";
+import { trackMetaLead, trackMetaCompleteRegistration, updatePixelUserData } from "@/components/MetaPixel";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,13 +48,15 @@ function DoctorAppointmentsContent() {
   const utmCampaign = urlParams.get("utm_campaign") || "";
   const utmContent = urlParams.get("utm_content") || "";
 
+  // eventId موحّد لتجنب تكرار الحدث بين Pixel وCAPI (Deduplication)
+  const [apptEventId] = useState(() => `appt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
   // Fetch doctors list
   const { data: doctors, isLoading: doctorsLoading } = trpc.doctors.list.useQuery();
 
   const submitAppointment = trpc.appointments.submit.useMutation({
     onSuccess: () => {
       // Track Meta Conversion
-      trackMetaCompleteRegistration({ content_name: 'Doctor Appointment', content_category: 'Healthcare' });
+      trackMetaCompleteRegistration({ content_name: 'Doctor Appointment', content_category: 'Healthcare', eventId: apptEventId });
 
       toast.success("تم حجز الموعد بنجاح!");
       setLocation("/thank-you");
@@ -87,8 +89,10 @@ function DoctorAppointmentsContent() {
     }
     setPhoneError("");
 
+    // Advanced Matching: تحديث بيانات المستخدم في Pixel لرفع EMQ
+    updatePixelUserData({ phone: formData.phone, email: formData.email || undefined }).catch(() => {});
     // Track Meta Lead
-    trackMetaLead({ content_name: 'Doctor Appointment', content_category: 'Healthcare' });
+    trackMetaLead({ content_name: 'Doctor Appointment', content_category: 'Healthcare', eventId: apptEventId });
 
     submitAppointment.mutate({
       ...formData,

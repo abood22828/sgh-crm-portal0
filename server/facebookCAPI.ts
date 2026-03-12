@@ -4,7 +4,16 @@
  * يُرسل أحداث التحويل من الخادم إلى Meta لتحسين دقة التتبع.
  * يعمل جنباً إلى جنب مع Meta Pixel في المتصفح لتقليل التكرار.
  *
- * إصلاحات Payload وفق متطلبات Meta:
+ * ─── مسار المبيعات الكامل (Sales Funnel) ───────────────────────────────────
+ * pending          → Lead              (عند إنشاء الطلب)
+ * contacted        → WORKING           (تم التواصل مع المريض)
+ * no_answer        → No_Answer         (حدث مخصص — لم يرد)
+ * confirmed        → QUALIFIED         (تأكيد الموعد)
+ * attended         → Purchase          (الحضور = التحويل الفعلي)
+ * completed        → CONVERTED         (اكتمال الخدمة)
+ * cancelled        → Canceled_Booking  (حدث مخصص — إلغاء)
+ *
+ * ─── متطلبات Payload ────────────────────────────────────────────────────────
  * - ph و em يُرسَلان كـ arrays (متطلب Meta)
  * - external_id مُضاف لربط أحداث المتصفح بأحداث السيرفر
  * - lead_event_source مُضاف في custom_data
@@ -77,9 +86,40 @@ export interface CAPIUserData {
   fbp?: string;
 }
 
+/**
+ * Standard Meta event names + custom funnel events.
+ * Standard: Lead | CompleteRegistration | Schedule | Purchase
+ * Custom funnel: WORKING | QUALIFIED | CONVERTED | No_Answer | Canceled_Booking
+ */
+export type CAPIEventName =
+  | "Lead"
+  | "CompleteRegistration"
+  | "Schedule"
+  | "Purchase"
+  | "WORKING"
+  | "QUALIFIED"
+  | "CONVERTED"
+  | "No_Answer"
+  | "Canceled_Booking";
+
+/** Standard Meta event names (use fbq("track", ...)) */
+const STANDARD_META_EVENTS = new Set([
+  "Lead",
+  "CompleteRegistration",
+  "Schedule",
+  "Purchase",
+  "PageView",
+  "ViewContent",
+  "InitiateCheckout",
+  "AddToCart",
+  "Search",
+  "Contact",
+  "FindLocation",
+]);
+
 export interface CAPIEventOptions {
-  /** Event name: Lead | CompleteRegistration | Schedule | Purchase */
-  eventName: "Lead" | "CompleteRegistration" | "Schedule" | "Purchase";
+  /** Event name — standard or custom funnel event */
+  eventName: CAPIEventName;
   /** Unix timestamp in seconds (defaults to now) */
   eventTime?: number;
   /** URL where the event occurred */
@@ -110,6 +150,7 @@ export interface CAPIEventOptions {
 /**
  * Send a single event to Facebook Conversions API.
  * Silently logs errors so it never breaks the booking flow.
+ * Supports both standard Meta events and custom funnel events.
  *
  * Payload structure follows Meta's required format:
  * - ph/em as arrays of hashed values
@@ -198,6 +239,9 @@ export async function sendCAPIEvent(options: CAPIEventOptions): Promise<void> {
     if (customData.status) builtCustomData.status = customData.status;
   }
 
+  // ── Determine if standard or custom event ─────────────────────────────────
+  const isStandardEvent = STANDARD_META_EVENTS.has(eventName);
+
   // ── Build event object ─────────────────────────────────────────────────────
   const event: Record<string, unknown> = {
     event_name: eventName,
@@ -237,7 +281,7 @@ export async function sendCAPIEvent(options: CAPIEventOptions): Promise<void> {
       console.error("[CAPI] API error:", JSON.stringify(result));
     } else {
       console.log(
-        `[CAPI] Event "${eventName}" sent. Events received: ${result.events_received}`
+        `[CAPI] ${isStandardEvent ? "Standard" : "Custom"} event "${eventName}" sent. Events received: ${result.events_received}`
       );
     }
   } catch (error) {
@@ -246,7 +290,88 @@ export async function sendCAPIEvent(options: CAPIEventOptions): Promise<void> {
   }
 }
 
-// ─── Convenience wrappers ─────────────────────────────────────────────────────
+// ─── Sales Funnel Status Mapper ───────────────────────────────────────────────
+
+/**
+ * Maps CRM status to the appropriate Meta CAPI event.
+ *
+ * مسار المبيعات:
+ * pending    → لا حدث (Lead أُرسل عند الإنشاء)
+ * contacted  → WORKING   (تم التواصل)
+ * no_answer  → No_Answer (حدث مخصص)
+ * confirmed  → QUALIFIED (تأكيد الموعد)
+ * attended   → Purchase  (الحضور = التحويل الفعلي)
+ * completed  → CONVERTED (اكتمال الخدمة)
+ * cancelled  → Canceled_Booking (حدث مخصص)
+ */
+function mapStatusToEvent(status: string): CAPIEventName | null {
+  switch (status) {
+    case "contacted":   return "WORKING";
+    case "no_answer":   return "No_Answer";
+    case "confirmed":   return "QUALIFIED";
+    case "attended":    return "Purchase";
+    case "completed":   return "CONVERTED";
+    case "cancelled":   return "Canceled_Booking";
+    case "pending":     return null; // Lead already sent at creation
+    default:            return null;
+  }
+}
+
+// ─── Shared params type for status change events ──────────────────────────────
+
+export interface CAPIStatusChangeParams {
+  /** New status */
+  status: string;
+  /** Patient full name */
+  fullName: string;
+  /** Patient phone */
+  phone: string;
+  /** Patient email (optional) */
+  email?: string;
+  /** Service type: appointment | offer | camp */
+  serviceType: "appointment" | "offer" | "camp";
+  /** Unique booking ID for deduplication */
+  bookingId: number | string;
+}
+
+/**
+ * Central function to send a CAPI event when a booking status changes.
+ * Automatically maps the status to the appropriate Meta event.
+ * Returns false if no event should be sent for this status.
+ *
+ * استدعِ هذه الدالة من updateStatus في الروترات الثلاثة.
+ */
+export async function sendStatusChangeEvent(params: CAPIStatusChangeParams): Promise<boolean> {
+  const eventName = mapStatusToEvent(params.status);
+  if (!eventName) return false; // لا حدث لهذه الحالة
+
+  const serviceLabels: Record<string, string> = {
+    appointment: "حجز موعد طبيب",
+    offer: "طلب عرض طبي",
+    camp: "تسجيل مخيم طبي",
+  };
+
+  const eventId = `${params.serviceType}_${params.bookingId}_${params.status}`;
+
+  await sendCAPIEvent({
+    eventName,
+    eventId,
+    userData: {
+      fullName: params.fullName,
+      phone: params.phone,
+      email: params.email,
+    },
+    customData: {
+      contentName: serviceLabels[params.serviceType] || "خدمة طبية",
+      contentCategory: params.serviceType,
+      status: params.status,
+    },
+  });
+
+  return true;
+}
+
+// ─── Convenience wrappers (Initial submission events) ─────────────────────────
 
 /**
  * Fire a "Lead" event when a doctor appointment is submitted.
@@ -256,7 +381,6 @@ export async function sendAppointmentLeadEvent(params: {
   fullName: string;
   phone: string;
   email?: string;
-  doctorName?: string;
   clientIpAddress?: string;
   clientUserAgent?: string;
   fbc?: string;
@@ -294,7 +418,6 @@ export async function sendOfferLeadEvent(params: {
   fullName: string;
   phone: string;
   email?: string;
-  offerName?: string;
   clientIpAddress?: string;
   clientUserAgent?: string;
   fbc?: string;
@@ -332,7 +455,6 @@ export async function sendCampRegistrationEvent(params: {
   fullName: string;
   phone: string;
   email?: string;
-  campName?: string;
   clientIpAddress?: string;
   clientUserAgent?: string;
   fbc?: string;

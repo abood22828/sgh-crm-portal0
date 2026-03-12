@@ -19,7 +19,7 @@ import { sendWelcomeMessage } from "../whatsapp";
 import { sendNewAppointmentTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
-import { sendAppointmentLeadEvent } from "../facebookCAPI";
+import { sendAppointmentLeadEvent, sendStatusChangeEvent } from "../facebookCAPI";
 
 export const appointmentsRouter = router({
   submit: publicProcedure
@@ -291,6 +291,30 @@ export const appointmentsRouter = router({
       serverCache.invalidateByPrefix("paginated:appointments:");
       serverCache.invalidate("list:appointments");
       serverCache.invalidate(CacheKeys.appointmentStats());
+
+      // ── Send CAPI funnel event for status change (fire-and-forget) ────────────
+      // يُرسَل الحدث المناسب لكل مرحلة في مسار المبيعات
+      // لا تُرسَل بيانات طبية حساسة وفق سياسة Meta لمزودي الرعاية الصحية
+      {
+        const dbForCapi = await getDb();
+        if (dbForCapi) {
+          const [apptRow] = await dbForCapi
+            .select({ fullName: appointments.fullName, phone: appointments.phone, email: appointments.email })
+            .from(appointments)
+            .where(eq(appointments.id, input.id))
+            .limit(1);
+          if (apptRow?.phone) {
+            sendStatusChangeEvent({
+              status: input.status,
+              fullName: apptRow.fullName || "",
+              phone: apptRow.phone,
+              email: apptRow.email || undefined,
+              serviceType: "appointment",
+              bookingId: input.id,
+            }).catch((err) => console.error("[CAPI] Status change error:", err));
+          }
+        }
+      }
 
       // Send welcome message when status changes to "attended" (Patient Journey)
       if (input.status === "حضر" || input.status === "attended") {

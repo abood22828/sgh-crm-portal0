@@ -7,7 +7,7 @@ import { campRegistrations } from "../../drizzle/schema";
 import { sendNewCampRegistrationTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
-import { sendCampRegistrationEvent } from "../facebookCAPI";
+import { sendCampRegistrationEvent, sendStatusChangeEvent } from "../facebookCAPI";
 
 export const campRegistrationsRouter = router({
   // Submit a new camp registration (public)
@@ -307,6 +307,25 @@ export const campRegistrationsRouter = router({
         userName: ctx.user?.name,
         notes: input.notes,
       });
+
+      // ── Send CAPI funnel event for status change (fire-and-forget) ────────────
+      {
+        const [regRow] = await db
+          .select({ fullName: campRegistrations.fullName, phone: campRegistrations.phone, email: campRegistrations.email })
+          .from(campRegistrations)
+          .where(eq(campRegistrations.id, input.id))
+          .limit(1);
+        if (regRow?.phone) {
+          sendStatusChangeEvent({
+            status: input.status,
+            fullName: regRow.fullName || "",
+            phone: regRow.phone,
+            email: regRow.email || undefined,
+            serviceType: "camp",
+            bookingId: input.id,
+          }).catch((err) => console.error("[CAPI] Camp status change error:", err));
+        }
+      }
 
       // Send welcome message when status changes to "attended" (Patient Journey)
       if (input.status === "attended") {

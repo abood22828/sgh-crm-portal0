@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Phone, Mail, Calendar, CheckCircle2, Loader2, Tag, Clock, Sparkles, Stethoscope, Shield, HeartPulse, MessageSquare } from "lucide-react";
 import { getCompleteTrackingData } from "@/lib/tracking";
-import { trackViewContent } from "@/components/MetaPixel";
+import { trackViewContent, trackMetaLead, updatePixelUserData } from "@/components/MetaPixel";
 import { toast } from "sonner";
 
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
@@ -46,6 +46,8 @@ function OfferDetailContent({ slug }: { slug: string }) {
     { enabled: !!slug && slug !== ":slug" }
   );
   const submitLead = trpc.offerLeads.submit.useMutation();
+  // eventId موحّد لتجنب تكرار الحدث بين Pixel وCAPI (Deduplication)
+  const [leadEventId] = useState(() => `offer_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
 
   const savedInfo = getSavedPatientInfo();
   const [formData, setFormData] = useState({
@@ -120,7 +122,12 @@ function OfferDetailContent({ slug }: { slug: string }) {
 
     try {
       const trackingData = getCompleteTrackingData();
-      
+
+      // Advanced Matching: تحديث بيانات المستخدم في Pixel لرفع EMQ
+      updatePixelUserData({ phone: formData.phone, email: formData.email || undefined }).catch(() => {});
+      // Pixel Lead event (جانب العميل) — يُرسَل مع eventId لتجنب التكرار مع CAPI
+      trackMetaLead({ content_name: 'Offer Lead', content_category: 'Healthcare', eventId: leadEventId });
+
       // حفظ بيانات المريض في localStorage بعد الإرسال الناجح
       savePatientInfo({
         fullName: formData.fullName,

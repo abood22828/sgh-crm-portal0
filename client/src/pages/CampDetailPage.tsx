@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Phone, Calendar, MapPin, Loader2, Heart, Users, CheckCircle2, Clock, Star, MessageSquare, Tag, ChevronDown, ChevronUp } from "lucide-react";
 import { getCompleteTrackingData } from "@/lib/tracking";
-import { trackViewContent } from "@/components/MetaPixel";
+import { trackViewContent, trackMetaCompleteRegistration, updatePixelUserData } from "@/components/MetaPixel";
 import { toast } from "sonner";
 
 import { usePhoneFormat } from "@/hooks/usePhoneFormat";
@@ -46,6 +46,8 @@ function CampDetailContent({ slug }: { slug: string }) {
     { enabled: !!slug && slug !== ":slug" }
   );
   const submitRegistration = trpc.campRegistrations.submit.useMutation();
+  // eventId موحّد لتجنب تكرار الحدث بين Pixel وCAPI (Deduplication)
+  const [regEventId] = useState(() => `camp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
 
   const savedInfo = getSavedPatientInfo();
   const [formData, setFormData] = useState({
@@ -128,7 +130,12 @@ function CampDetailContent({ slug }: { slug: string }) {
 
     try {
       const trackingData = getCompleteTrackingData();
-      
+
+      // Advanced Matching: تحديث بيانات المستخدم في Pixel لرفع EMQ
+      updatePixelUserData({ phone: formData.phone, email: formData.email || undefined }).catch(() => {});
+      // Pixel CompleteRegistration event (جانب العميل) — يُرسَل مع eventId لتجنب التكرار مع CAPI
+      trackMetaCompleteRegistration({ content_name: 'Camp Registration', content_category: 'Healthcare', eventId: regEventId });
+
       // حفظ بيانات المريض في localStorage بعد الإرسال الناجح
       savePatientInfo({
         fullName: formData.fullName,

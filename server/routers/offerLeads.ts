@@ -7,7 +7,7 @@ import { offerLeads } from "../../drizzle/schema";
 import { sendNewOfferLeadTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
-import { sendOfferLeadEvent } from "../facebookCAPI";
+import { sendOfferLeadEvent, sendStatusChangeEvent } from "../facebookCAPI";
 
 export const offerLeadsRouter = router({
   // Submit a new offer lead (public)
@@ -293,6 +293,25 @@ export const offerLeadsRouter = router({
         userName: ctx.user?.name,
         notes: input.notes,
       });
+
+      // ── Send CAPI funnel event for status change (fire-and-forget) ────────────
+      {
+        const [leadRow] = await db
+          .select({ fullName: offerLeads.fullName, phone: offerLeads.phone, email: offerLeads.email })
+          .from(offerLeads)
+          .where(eq(offerLeads.id, input.id))
+          .limit(1);
+        if (leadRow?.phone) {
+          sendStatusChangeEvent({
+            status: input.status,
+            fullName: leadRow.fullName || "",
+            phone: leadRow.phone,
+            email: leadRow.email || undefined,
+            serviceType: "offer",
+            bookingId: input.id,
+          }).catch((err) => console.error("[CAPI] Offer status change error:", err));
+        }
+      }
 
       // Send welcome message when status changes to "confirmed" (Patient Journey)
       if (input.status === "confirmed") {
