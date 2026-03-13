@@ -543,6 +543,9 @@ export const whatsappMessages = mysqlTable("whatsapp_messages", {
   whatsappMessageId: varchar("whatsappMessageId", { length: 255 }), // WhatsApp API message ID
   sentBy: int("sentBy"), // User ID who sent (for outbound)
   isAutomated: int("isAutomated").default(0).notNull(), // 0 = manual, 1 = automated
+  deliveredAt: timestamp("deliveredAt"),
+  readAt: timestamp("readAt"),
+  errorInfo: text("errorInfo"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

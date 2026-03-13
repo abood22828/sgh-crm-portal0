@@ -76,6 +76,20 @@ export function createWebhookRouter(): Router {
                   console.error(`[Webhook] Message failed - Code: ${error.code}, Title: ${error.title}, Message: ${error.message || "N/A"}`);
                 }
               }
+              try {
+                // Try to find a message by whatsapp message id and update status
+                const existingMsg = await db.getWhatsAppMessageByWhatsAppId(status.id);
+                if (existingMsg) {
+                  const updateData: any = { status: status.status };
+                  if (status.status === 'delivered') updateData.deliveredAt = new Date();
+                  if (status.status === 'read') updateData.readAt = new Date();
+                  if (status.status === 'failed') updateData.errorInfo = JSON.stringify(status.errors || []);
+                  await db.updateWhatsAppMessage(existingMsg.id, updateData);
+                  console.log(`[Webhook] Updated message ${existingMsg.id} status => ${status.status}`);
+                }
+              } catch (err) {
+                console.error('[Webhook] Failed to update message status in DB', err);
+              }
             }
           }
 
@@ -129,7 +143,42 @@ export function createWebhookRouter(): Router {
               }
             } else if (message.type === "text" && message.text) {
               console.log(`[Webhook] Text message from ${userPhone}: ${message.text.body}`);
-              // TODO: Auto-reply or route to chat system
+              try {
+                // ensure conversation exists
+                const formattedPhone = userPhone;
+                let conversation = await db.getWhatsAppConversationByPhone(formattedPhone);
+                if (!conversation) {
+                  await db.createWhatsAppConversation({
+                    phoneNumber: formattedPhone,
+                    customerName: null,
+                    lastMessageAt: new Date(),
+                    unreadCount: 1,
+                    isImportant: 0,
+                    isArchived: 0,
+                  });
+                  conversation = await db.getWhatsAppConversationByPhone(formattedPhone);
+                }
+
+                if (conversation) {
+                  await db.createWhatsAppMessage({
+                    conversationId: conversation.id,
+                    direction: 'inbound',
+                    content: message.text.body,
+                    messageType: 'text',
+                    status: 'received',
+                    whatsappMessageId: message.id || null,
+                    sentAt: new Date(),
+                  });
+
+                  await db.updateWhatsAppConversation(conversation.id, {
+                    lastMessage: message.text.body.substring(0, 100),
+                    lastMessageAt: new Date(),
+                    unreadCount: (conversation.unreadCount || 0) + 1,
+                  });
+                }
+              } catch (err) {
+                console.error('[Webhook] Failed to persist incoming message', err);
+              }
             }
           }
         }

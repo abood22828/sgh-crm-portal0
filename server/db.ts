@@ -2,6 +2,7 @@ import { eq, desc, and, like, or, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, campaigns, leads, leadStatusHistory, settings, doctors, appointments, accessRequests, InsertCampaign, InsertLead, InsertLeadStatusHistory, InsertSetting, InsertAppointment, InsertAccessRequest, sharedColumnTemplates, InsertSharedColumnTemplate } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { publish, channelForConversation } from './_core/pubsub';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -762,7 +763,13 @@ export async function updateWhatsAppConversation(id: number, conversation: any) 
   if (!db) throw new Error("Database not available");
   
   const { whatsappConversations } = await import('../drizzle/schema');
-  return db.update(whatsappConversations).set(conversation).where(eq(whatsappConversations.id, id));
+  const result = await db.update(whatsappConversations).set(conversation).where(eq(whatsappConversations.id, id));
+  try {
+    publish(channelForConversation(id), 'conversation_updated', { id, ...conversation });
+  } catch (err) {
+    console.warn('[db] failed to publish conversation update event', err);
+  }
+  return result;
 }
 
 export async function getWhatsAppMessagesByConversation(conversationId: number) {
@@ -773,12 +780,29 @@ export async function getWhatsAppMessagesByConversation(conversationId: number) 
   return db.select().from(whatsappMessages).where(eq(whatsappMessages.conversationId, conversationId)).orderBy(whatsappMessages.createdAt);
 }
 
+export async function getWhatsAppMessageByWhatsAppId(whatsappId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const { whatsappMessages } = await import('../drizzle/schema');
+  const result = await db.select().from(whatsappMessages).where(eq(whatsappMessages.whatsappMessageId, whatsappId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function createWhatsAppMessage(message: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
   const { whatsappMessages } = await import('../drizzle/schema');
   const result = await db.insert(whatsappMessages).values(message);
+  try {
+    // publish event to subscribers of this conversation (if id available)
+    const convId = message.conversationId;
+    if (convId) {
+      publish(channelForConversation(convId), 'message_created', { ...message, id: result?.insertId || null });
+    }
+  } catch (err) {
+    console.warn('[db] failed to publish whatsapp message event', err);
+  }
   return result;
 }
 
@@ -787,7 +811,18 @@ export async function updateWhatsAppMessage(id: number, message: any) {
   if (!db) throw new Error("Database not available");
   
   const { whatsappMessages } = await import('../drizzle/schema');
-  return db.update(whatsappMessages).set(message).where(eq(whatsappMessages.id, id));
+  const result = await db.update(whatsappMessages).set(message).where(eq(whatsappMessages.id, id));
+  try {
+    // fetch the updated message to get conversationId
+    const updated = await db.select().from(whatsappMessages).where(eq(whatsappMessages.id, id)).limit(1);
+    const msg = updated.length > 0 ? updated[0] : null;
+    if (msg) {
+      publish(channelForConversation(msg.conversationId), 'message_updated', { id, ...message, conversationId: msg.conversationId });
+    }
+  } catch (err) {
+    console.warn('[db] failed to publish whatsapp message update event', err);
+  }
+  return result;
 }
 
 export async function getAllWhatsAppTemplates() {

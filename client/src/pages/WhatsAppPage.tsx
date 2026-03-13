@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { MessageCircle, Send, Search, Plus, FileText, Clock, CheckCheck, User, Phone, Smartphone, Wifi, WifiOff, Loader2 as LoaderIcon, ArrowRight, ChevronLeft } from "lucide-react";
+import ChatWindow from "@/components/ChatWindow";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -114,130 +115,28 @@ function WhatsAppContent() {
 
   const handleSendNewMessage = () => {
     if (!newMessagePhone.trim() || !newMessageText.trim()) {
-      toast.error("يرجى إدخال رقم الهاتف ونص الرسالة");
-      return;
-    }
-    sendNewMessageMutation.mutate({
-      phone: newMessagePhone.trim(),
-      content: newMessageText.trim(),
-    });
-  };
-
-  const handleUseTemplate = (templateContent: string) => {
-    let filledContent = templateContent;
-    if (selectedConv) {
-      if (selectedConv.customerName) {
-        filledContent = filledContent.replaceAll("{name}", selectedConv.customerName);
-      }
-      if (selectedConv.phoneNumber) {
-        filledContent = filledContent.replaceAll("{phone}", selectedConv.phoneNumber);
-      }
-      const today = new Date().toLocaleDateString("ar-EG", {
-        year: "numeric", month: "long", day: "numeric",
-      });
-      filledContent = filledContent.replaceAll("{date}", today);
-      const now = new Date().toLocaleTimeString("ar-EG", {
-        hour: "2-digit", minute: "2-digit",
-      });
-      filledContent = filledContent.replaceAll("{time}", now);
-    }
-    setMessageText(filledContent);
-    toast.success("تم تطبيق القالب مع ملء المتغيرات تلقائياً");
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "sent":
-        return <CheckCheck className="h-3 w-3 text-muted-foreground" />;
-      case "delivered":
-        return <CheckCheck className="h-3 w-3 text-blue-500" />;
-      case "read":
-        return <CheckCheck className="h-3 w-3 text-green-500" />;
-      case "failed":
-        return <span className="text-red-500 text-xs">فشل</span>;
-      default:
-        return <Clock className="h-3 w-3 text-muted-foreground" />;
-    }
-  };
-
-  // ─── Conversations List Panel ───
-  const ConversationsList = () => (
-    <div className="flex flex-col h-full">
-      {/* Conversations Header */}
-      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-3 sm:p-4 rounded-t-lg">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base sm:text-lg font-bold">المحادثات</h2>
-          <Dialog open={isNewMessageOpen} onOpenChange={setIsNewMessageOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="secondary" className="gap-1.5 h-8 text-xs sm:text-sm">
-                <Plus className="h-3.5 w-3.5" />
-                <span className="hidden xs:inline">جديدة</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent dir="rtl" className="w-[calc(100vw-2rem)] sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>إرسال رسالة جديدة</DialogTitle>
-                <DialogDescription>أرسل رسالة واتساب إلى عميل جديد</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="phone">رقم الهاتف</Label>
-                  <Input
-                    id="phone"
-                    placeholder="967734000018"
-                    value={newMessagePhone}
-                    onChange={(e) => setNewMessagePhone(processPhoneInput(e.target.value))}
-                    dir="ltr"
-                    inputMode="numeric"
-                  />
+      const ChatArea = () => (
+        <div className="flex flex-col h-full">
+          {selectedConversation ? (
+            <ChatWindow
+              conversationId={selectedConversation}
+              onConversationUpdate={() => {
+                refetchConversations();
+              }}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900/30 rounded-lg">
+              <div className="text-center text-muted-foreground p-8">
+                <div className="bg-green-100 dark:bg-green-900/30 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                  <MessageCircle className="h-12 w-12 text-green-500" />
                 </div>
-                <div>
-                  <Label htmlFor="message">نص الرسالة</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="اكتب رسالتك هنا..."
-                    value={newMessageText}
-                    onChange={(e) => setNewMessageText(e.target.value)}
-                    rows={4}
-                  />
-                </div>
+                <h3 className="text-base sm:text-lg font-semibold mb-1">إدارة محادثات واتساب</h3>
+                <p className="text-sm">اختر محادثة من القائمة لبدء المراسلة</p>
               </div>
-              <DialogFooter>
-                <Button
-                  onClick={handleSendNewMessage}
-                  disabled={sendNewMessageMutation.isPending}
-                  className="gap-2 w-full sm:w-auto"
-                >
-                  <Send className="h-4 w-4" />
-                  {sendNewMessageMutation.isPending ? "جاري الإرسال..." : "إرسال"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            </div>
+          )}
         </div>
-        <div className="relative">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="ابحث عن محادثة..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pr-10 bg-white/90 dark:bg-gray-800/90 h-9 text-sm"
-          />
-        </div>
-      </div>
-
-      {/* Conversations List */}
-      <ScrollArea className="flex-1">
-        {conversationsLoading ? (
-          <div className="p-6 text-center text-muted-foreground">
-            <LoaderIcon className="h-6 w-6 animate-spin mx-auto mb-2" />
-            جاري التحميل...
-          </div>
-        ) : filteredConversations && filteredConversations.length > 0 ? (
-          <div className="divide-y">
-            {filteredConversations.map((conv: any, index: number) => (
-              <div
-                key={conv.id}
+      );
                 onClick={() => handleSelectConversation(conv.id)}
                 style={{
                   opacity: 0,
