@@ -274,6 +274,13 @@
       "when": 1773010086202,
       "tag": "0038_pretty_vapor",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1773452044483,
+      "tag": "0039_sudden_venus",
+      "breakpoints": true
     }
   ]
 }

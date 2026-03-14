@@ -1,4 +1,3 @@
-import { useFormatDate } from "@/hooks/useFormatDate";
 import { useState, useRef, useEffect } from "react";
 import { processPhoneInput } from "@/hooks/usePhoneFormat";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -11,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { MessageCircle, Send, Search, Plus, FileText, Clock, CheckCheck, User, Phone, Smartphone, Wifi, WifiOff, Loader2 as LoaderIcon, ArrowRight, ChevronLeft } from "lucide-react";
+import { MessageCircle, Send, Search, Plus, FileText, Clock, CheckCheck, Check, User, Phone, Smartphone, Wifi, WifiOff, Loader2 as LoaderIcon, ArrowRight, ChevronLeft } from "lucide-react";
 import ChatWindow from "@/components/ChatWindow";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -27,22 +26,20 @@ export default function WhatsAppPage() {
 }
 
 function WhatsAppContent() {
-  const { formatDate, formatDateTime } = useFormatDate();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [newMessagePhone, setNewMessagePhone] = useState("");
   const [newMessageText, setNewMessageText] = useState("");
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
-  // Mobile: show chat view when a conversation is selected
   const [mobileShowChat, setMobileShowChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Queries
-  const { data: conversations, isLoading: conversationsLoading, refetch: refetchConversations } = 
+  const { data: conversations, isLoading: conversationsLoading, refetch: refetchConversations } =
     trpc.whatsapp.conversations.list.useQuery();
-  
-  const { data: messages, isLoading: messagesLoading, refetch: refetchMessages } = 
+
+  const { data: messages, isLoading: messagesLoading, refetch: refetchMessages } =
     trpc.whatsapp.messages.listByConversation.useQuery(
       { conversationId: selectedConversation! },
       { enabled: selectedConversation !== null }
@@ -50,8 +47,7 @@ function WhatsAppContent() {
 
   const { data: templates } = trpc.whatsapp.templates.list.useQuery();
 
-  // WhatsApp connection status
-  const { data: connectionStatus, isLoading: statusLoading } = 
+  const { data: connectionStatus, isLoading: statusLoading } =
     trpc.whatsapp.connection.status.useQuery(undefined, {
       refetchInterval: 5000,
     });
@@ -115,28 +111,111 @@ function WhatsAppContent() {
 
   const handleSendNewMessage = () => {
     if (!newMessagePhone.trim() || !newMessageText.trim()) {
-      const ChatArea = () => (
-        <div className="flex flex-col h-full">
-          {selectedConversation ? (
-            <ChatWindow
-              conversationId={selectedConversation}
-              onConversationUpdate={() => {
-                refetchConversations();
-              }}
+      toast.error("يرجى إدخال رقم الهاتف والرسالة");
+      return;
+    }
+    sendNewMessageMutation.mutate({
+      phone: newMessagePhone,
+      content: newMessageText,
+    });
+  };
+
+  const handleUseTemplate = (content: string) => {
+    setMessageText(content);
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "delivered":
+        return <CheckCheck className="h-3 w-3 text-blue-300" />;
+      case "read":
+        return <CheckCheck className="h-3 w-3 text-blue-400" />;
+      case "sent":
+        return <Check className="h-3 w-3 text-white/70" />;
+      case "failed":
+        return <span className="text-red-300 text-[10px]">!</span>;
+      default:
+        return <Clock className="h-3 w-3 text-white/50" />;
+    }
+  };
+
+  // ─── Conversations List Panel ───
+  const ConversationsList = () => (
+    <div className="flex flex-col h-full">
+      {/* Search + New Message */}
+      <div className="p-3 border-b dark:border-gray-800 bg-gradient-to-r from-green-500 to-emerald-600">
+        <div className="flex gap-2 mb-2">
+          <div className="relative flex-1">
+            <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/70" />
+            <Input
+              placeholder="بحث في المحادثات..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-8 h-8 text-xs bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:bg-white/30"
             />
-          ) : (
-            <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900/30 rounded-lg">
-              <div className="text-center text-muted-foreground p-8">
-                <div className="bg-green-100 dark:bg-green-900/30 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                  <MessageCircle className="h-12 w-12 text-green-500" />
+          </div>
+          <Dialog open={isNewMessageOpen} onOpenChange={setIsNewMessageOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="secondary" className="h-8 px-2 bg-white/20 hover:bg-white/30 text-white border-white/30">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent dir="rtl">
+              <DialogHeader>
+                <DialogTitle>رسالة جديدة</DialogTitle>
+                <DialogDescription>أرسل رسالة واتساب لرقم جديد</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div className="space-y-1.5">
+                  <Label>رقم الهاتف</Label>
+                  <Input
+                    placeholder="7XXXXXXXX"
+                    value={newMessagePhone}
+                    onChange={(e) => setNewMessagePhone(processPhoneInput(e.target.value))}
+                    dir="ltr"
+                  />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold mb-1">إدارة محادثات واتساب</h3>
-                <p className="text-sm">اختر محادثة من القائمة لبدء المراسلة</p>
+                <div className="space-y-1.5">
+                  <Label>الرسالة</Label>
+                  <Textarea
+                    placeholder="اكتب رسالتك هنا..."
+                    value={newMessageText}
+                    onChange={(e) => setNewMessageText(e.target.value)}
+                    rows={3}
+                  />
+                </div>
               </div>
-            </div>
-          )}
+              <DialogFooter>
+                <Button
+                  onClick={handleSendNewMessage}
+                  disabled={sendNewMessageMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {sendNewMessageMutation.isPending ? (
+                    <LoaderIcon className="h-4 w-4 animate-spin ml-2" />
+                  ) : (
+                    <Send className="h-4 w-4 ml-2" />
+                  )}
+                  إرسال
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
-      );
+      </div>
+
+      {/* Conversations */}
+      <ScrollArea className="flex-1">
+        {conversationsLoading ? (
+          <div className="p-8 text-center text-muted-foreground">
+            <LoaderIcon className="h-8 w-8 animate-spin mx-auto mb-2 text-green-500" />
+            <p className="text-sm">جاري تحميل المحادثات...</p>
+          </div>
+        ) : filteredConversations && filteredConversations.length > 0 ? (
+          <div className="divide-y dark:divide-gray-800">
+            {filteredConversations.map((conv: any, index: number) => (
+              <div
+                key={conv.id}
                 onClick={() => handleSelectConversation(conv.id)}
                 style={{
                   opacity: 0,
@@ -156,7 +235,7 @@ function WhatsAppContent() {
                         {conv.customerName || "عميل جديد"}
                       </h3>
                       {conv.unreadCount > 0 && (
-                        <Badge variant="destructive" className="rounded-full px-1.5 text-[10px] sm:text-xs h-5 sm:h-auto badge-pulse flex-shrink-0 mr-1">
+                        <Badge variant="destructive" className="rounded-full px-1.5 text-[10px] sm:text-xs h-5 sm:h-auto flex-shrink-0 mr-1">
                           {conv.unreadCount}
                         </Badge>
                       )}
@@ -174,7 +253,6 @@ function WhatsAppContent() {
                         : "لا توجد رسائل"}
                     </p>
                   </div>
-                  {/* Arrow for mobile */}
                   <ChevronLeft className="h-4 w-4 text-muted-foreground lg:hidden flex-shrink-0" />
                 </div>
               </div>
@@ -198,7 +276,6 @@ function WhatsAppContent() {
           {/* Chat Header */}
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-3 sm:p-4 rounded-t-lg lg:rounded-tr-lg lg:rounded-tl-none">
             <div className="flex items-center gap-2.5 sm:gap-3">
-              {/* Back button for mobile */}
               <button
                 onClick={handleBackToList}
                 className="lg:hidden p-1.5 hover:bg-white/20 rounded-full transition-colors"
@@ -220,7 +297,13 @@ function WhatsAppContent() {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-[#e5ddd5] dark:bg-gray-900/50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}>
+          <div
+            className="flex-1 overflow-y-auto p-3 sm:p-4 bg-[#e5ddd5] dark:bg-gray-900/50"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+            }}
+          >
             {messagesLoading ? (
               <div className="text-center text-muted-foreground py-8">
                 <LoaderIcon className="h-6 w-6 animate-spin mx-auto mb-2" />
@@ -361,7 +444,6 @@ function WhatsAppContent() {
               <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground hidden xs:block">تواصل مع العملاء عبر واتساب بيزنس</p>
             </div>
             <div className="flex gap-1 sm:gap-2 items-center flex-shrink-0">
-              {/* Connection Status Badge */}
               {statusLoading ? (
                 <Badge variant="secondary" className="gap-1 text-[10px] sm:text-xs h-6 sm:h-auto">
                   <LoaderIcon className="h-3 w-3 animate-spin" />
@@ -383,7 +465,6 @@ function WhatsAppContent() {
                   <span className="hidden xs:inline">غير متصل</span>
                 </Badge>
               )}
-              
               <Link href="/dashboard/whatsapp/connection">
                 <Button variant="outline" size="sm" className="gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-2.5">
                   <Smartphone className="h-3.5 w-3.5" />
@@ -401,7 +482,10 @@ function WhatsAppContent() {
         </div>
 
         {/* Main Chat Layout */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl overflow-hidden border dark:border-gray-800" style={{ height: "calc(100vh - 140px)", minHeight: "400px" }}>
+        <div
+          className="bg-white dark:bg-gray-900 rounded-xl shadow-xl overflow-hidden border dark:border-gray-800"
+          style={{ height: "calc(100vh - 140px)", minHeight: "400px" }}
+        >
           {/* Desktop: side-by-side layout */}
           <div className="hidden lg:grid lg:grid-cols-[340px_1fr] h-full">
             <div className="border-l dark:border-gray-800 h-full overflow-hidden">

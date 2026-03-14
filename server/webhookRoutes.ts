@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getDb } from "./db";
+import { getDb, getWhatsAppMessageByWhatsAppId, updateWhatsAppMessage, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation } from "./db";
 import { appointments, offerLeads, campRegistrations } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
@@ -78,13 +78,13 @@ export function createWebhookRouter(): Router {
               }
               try {
                 // Try to find a message by whatsapp message id and update status
-                const existingMsg = await db.getWhatsAppMessageByWhatsAppId(status.id);
+                const existingMsg = await getWhatsAppMessageByWhatsAppId(status.id);
                 if (existingMsg) {
                   const updateData: any = { status: status.status };
                   if (status.status === 'delivered') updateData.deliveredAt = new Date();
                   if (status.status === 'read') updateData.readAt = new Date();
                   if (status.status === 'failed') updateData.errorInfo = JSON.stringify(status.errors || []);
-                  await db.updateWhatsAppMessage(existingMsg.id, updateData);
+                  await updateWhatsAppMessage(existingMsg.id, updateData);
                   console.log(`[Webhook] Updated message ${existingMsg.id} status => ${status.status}`);
                 }
               } catch (err) {
@@ -146,9 +146,9 @@ export function createWebhookRouter(): Router {
               try {
                 // ensure conversation exists
                 const formattedPhone = userPhone;
-                let conversation = await db.getWhatsAppConversationByPhone(formattedPhone);
+                let conversation = await getWhatsAppConversationByPhone(formattedPhone);
                 if (!conversation) {
-                  await db.createWhatsAppConversation({
+                  await createWhatsAppConversation({
                     phoneNumber: formattedPhone,
                     customerName: null,
                     lastMessageAt: new Date(),
@@ -156,11 +156,11 @@ export function createWebhookRouter(): Router {
                     isImportant: 0,
                     isArchived: 0,
                   });
-                  conversation = await db.getWhatsAppConversationByPhone(formattedPhone);
+                  conversation = await getWhatsAppConversationByPhone(formattedPhone);
                 }
 
                 if (conversation) {
-                  await db.createWhatsAppMessage({
+                  await createWhatsAppMessage({
                     conversationId: conversation.id,
                     direction: 'inbound',
                     content: message.text.body,
@@ -170,7 +170,7 @@ export function createWebhookRouter(): Router {
                     sentAt: new Date(),
                   });
 
-                  await db.updateWhatsAppConversation(conversation.id, {
+                  await updateWhatsAppConversation(conversation.id, {
                     lastMessage: message.text.body.substring(0, 100),
                     lastMessageAt: new Date(),
                     unreadCount: (conversation.unreadCount || 0) + 1,

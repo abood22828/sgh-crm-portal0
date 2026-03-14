@@ -798,7 +798,7 @@ export async function createWhatsAppMessage(message: any) {
     // publish event to subscribers of this conversation (if id available)
     const convId = message.conversationId;
     if (convId) {
-      publish(channelForConversation(convId), 'message_created', { ...message, id: result?.insertId || null });
+      publish(channelForConversation(convId), 'message_created', { ...message, id: (result as any)?.[0]?.insertId || null });
     }
   } catch (err) {
     console.warn('[db] failed to publish whatsapp message event', err);
