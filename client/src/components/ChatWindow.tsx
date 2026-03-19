@@ -73,9 +73,14 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
   // SSE subscription for this conversation
   useSSE(conversationId ? `/api/whatsapp/stream/${conversationId}` : null, (e) => {
     try {
+      // SSE events are named (event: <name>\ndata: ...) — e.type holds the event name
+      const eventName = (e as any).type || 'message';
       const payload = JSON.parse(e.data);
-      if (payload?.event === "message_created") {
-        const msg = payload.data;
+
+      // Handle new_message (inbound from webhook) or message_created (from db helper)
+      if (eventName === 'new_message' || eventName === 'message_created' || payload?.event === 'message_created') {
+        const msg = eventName === 'new_message' ? payload : payload?.data;
+        if (!msg) return;
         if (String(msg.conversationId) === String(conversationId)) {
           setLocalMessages((prev) => {
             // Avoid duplicate by id or whatsappMessageId
@@ -90,22 +95,26 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
             return [...prev, msg];
           });
           scrollToBottom();
+          onConversationUpdate?.();
         }
-      } else if (payload?.event === "message_updated") {
-        const msg = payload.data;
-        if (String(msg.conversationId) === String(conversationId)) {
-          setLocalMessages((prev) => {
-            const idx = prev.findIndex((m) => m.id === msg.id || (m.whatsappMessageId && msg.whatsappMessageId && m.whatsappMessageId === msg.whatsappMessageId));
-            if (idx >= 0) {
-              const copy = [...prev];
-              copy[idx] = { ...copy[idx], ...msg };
-              return copy;
-            }
-            // if not found, append
-            return [...prev, msg];
-          });
-        }
-      } else if (payload?.event === "conversation_updated") {
+      } else if (eventName === 'message_updated' || payload?.event === 'message_updated') {
+        // Update delivery status (delivered ✓✓ / read ✓✓ blue)
+        const msg = eventName === 'message_updated' ? payload : payload?.data;
+        if (!msg) return;
+        setLocalMessages((prev) => {
+          const idx = prev.findIndex((m) =>
+            m.id === msg.messageId ||
+            m.id === msg.id ||
+            (m.whatsappMessageId && msg.whatsappMessageId && m.whatsappMessageId === msg.whatsappMessageId)
+          );
+          if (idx >= 0) {
+            const copy = [...prev];
+            copy[idx] = { ...copy[idx], ...msg, id: copy[idx].id };
+            return copy;
+          }
+          return prev;
+        });
+      } else if (payload?.event === 'conversation_updated') {
         onConversationUpdate?.();
       }
     } catch (_) {}

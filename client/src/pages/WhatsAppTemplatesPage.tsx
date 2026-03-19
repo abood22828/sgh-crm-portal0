@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Plus, Edit, Trash2, Copy } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -32,6 +32,17 @@ function WhatsAppTemplatesContent() {
 
   // Queries
   const { data: templates, isLoading, refetch } = trpc.whatsapp.templates.list.useQuery();
+
+  // Sync from Meta mutation
+  const syncFromMetaMutation = trpc.whatsapp.templates.syncFromMeta.useMutation({
+    onSuccess: (result) => {
+      toast.success(result.message || `تمت المزامنة: ${result.synced} قالب جديد، ${result.updated} محدَّث`);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`فشل المزامنة: ${error.message}`);
+    },
+  });
 
   // Mutations
   const createMutation = trpc.whatsapp.templates.create.useMutation({
@@ -199,9 +210,23 @@ function WhatsAppTemplatesContent() {
                 <p className="text-xs sm:text-sm text-muted-foreground">إدارة قوالب رسائل واتساب الجاهزة</p>
               </div>
             </div>
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Sync from Meta Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => syncFromMetaMutation.mutate()}
+                disabled={syncFromMetaMutation.isPending}
+                className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3 border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400"
+                title="مزامنة القوالب المعتمدة من Meta Business Manager"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${syncFromMetaMutation.isPending ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{syncFromMetaMutation.isPending ? 'جاري المزامنة...' : 'مزامنة Meta'}</span>
+              </Button>
+
+              <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-1.5 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-4 flex-shrink-0">
+                <Button className="gap-1.5 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-4">
                   <Plus className="h-4 w-4" />
                   <span className="hidden xs:inline">قالب جديد</span>
                   <span className="xs:hidden">جديد</span>
@@ -225,6 +250,7 @@ function WhatsAppTemplatesContent() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+          </div>
           </div>
 
           {/* Info Card */}
@@ -262,6 +288,15 @@ function WhatsAppTemplatesContent() {
                         <Badge className={`${getCategoryColor(template.category)} text-[10px] sm:text-xs flex-shrink-0`}>
                           {getCategoryLabel(template.category)}
                         </Badge>
+                        {template.metaStatus === 'APPROVED' && (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-[10px] sm:text-xs flex-shrink-0 gap-1">
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block"></span>
+                            Meta معتمد
+                          </Badge>
+                        )}
+                        {template.languageCode && (
+                          <span className="text-[9px] sm:text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{template.languageCode}</span>
+                        )}
                       </div>
                       <CardDescription className="text-[10px] sm:text-sm">
                         تم الإنشاء{" "}

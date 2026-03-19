@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { getDb, getWhatsAppMessageByWhatsAppId, updateWhatsAppMessage, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation } from "./db";
 import { appointments, offerLeads, campRegistrations } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { publish, channelForConversation } from "./_core/pubsub";
 
 /**
  * WhatsApp Webhook Express Routes
@@ -11,6 +12,9 @@ import { eq } from "drizzle-orm";
  */
 
 const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || "sgh_crm_webhook_2024";
+
+// Global channel for all users to receive new message notifications
+const GLOBAL_CHANNEL = "global:whatsapp";
 
 export function createWebhookRouter(): Router {
   const router = Router();
@@ -86,6 +90,19 @@ export function createWebhookRouter(): Router {
                   if (status.status === 'failed') updateData.errorInfo = JSON.stringify(status.errors || []);
                   await updateWhatsAppMessage(existingMsg.id, updateData);
                   console.log(`[Webhook] Updated message ${existingMsg.id} status => ${status.status}`);
+
+                  // 🔔 Publish SSE: message status updated (for ✓✓ delivery indicators in ChatWindow)
+                  publish(
+                    channelForConversation(existingMsg.conversationId),
+                    'message_updated',
+                    {
+                      messageId: existingMsg.id,
+                      whatsappMessageId: status.id,
+                      status: status.status,
+                      deliveredAt: status.status === 'delivered' ? new Date().toISOString() : undefined,
+                      readAt: status.status === 'read' ? new Date().toISOString() : undefined,
+                    }
+                  );
                 }
               } catch (err) {
                 console.error('[Webhook] Failed to update message status in DB', err);
@@ -160,7 +177,7 @@ export function createWebhookRouter(): Router {
                 }
 
                 if (conversation) {
-                  await createWhatsAppMessage({
+                  const newMessageResult = await createWhatsAppMessage({
                     conversationId: conversation.id,
                     direction: 'inbound',
                     content: message.text.body,
@@ -169,12 +186,46 @@ export function createWebhookRouter(): Router {
                     whatsappMessageId: message.id || null,
                     sentAt: new Date(),
                   });
+                  const newMessageId = (newMessageResult as any)?.[0]?.insertId || null;
 
+                  const updatedUnreadCount = (conversation.unreadCount || 0) + 1;
                   await updateWhatsAppConversation(conversation.id, {
                     lastMessage: message.text.body.substring(0, 100),
                     lastMessageAt: new Date(),
-                    unreadCount: (conversation.unreadCount || 0) + 1,
+                    unreadCount: updatedUnreadCount,
                   });
+
+                  // 🔔 Publish SSE: new message to conversation channel (ChatWindow listens)
+                  publish(
+                    channelForConversation(conversation.id),
+                    'new_message',
+                    {
+                      id: newMessageId,
+                      conversationId: conversation.id,
+                      direction: 'inbound',
+                      content: message.text.body,
+                      messageType: 'text',
+                      status: 'received',
+                      whatsappMessageId: message.id || null,
+                      sentAt: new Date().toISOString(),
+                    }
+                  );
+
+                  // 🔔 Publish SSE: global notification for sidebar badge
+                  publish(
+                    GLOBAL_CHANNEL,
+                    'new_inbound_message',
+                    {
+                      conversationId: conversation.id,
+                      phoneNumber: formattedPhone,
+                      customerName: conversation.customerName,
+                      content: message.text.body.substring(0, 100),
+                      unreadCount: updatedUnreadCount,
+                      timestamp: new Date().toISOString(),
+                    }
+                  );
+
+                  console.log(`[Webhook] SSE published for conversation ${conversation.id}`);
                 }
               } catch (err) {
                 console.error('[Webhook] Failed to persist incoming message', err);

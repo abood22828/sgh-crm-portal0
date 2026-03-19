@@ -34,12 +34,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSidebarState } from "@/hooks/useSidebarState";
 import { useRecentlyUsed } from "@/hooks/useRecentlyUsed";
 import AllToolsDrawer from "./AllToolsDrawer";
 import EditSidebarModal from "./EditSidebarModal";
 import InstallPWAButton from "./InstallPWAButton";
+import useSSE from "@/hooks/useSSE";
 
 export interface NavItem {
   title: string;
@@ -182,6 +183,63 @@ export default function DashboardSidebarV2({ currentPath }: { currentPath: strin
   // });
   const unreadCounts = { leads: 0, appointments: 0, offerLeads: 0, campRegistrations: 0 };
 
+  // 🔔 WhatsApp Notification State
+  const [whatsappUnreadCount, setWhatsappUnreadCount] = useState(0);
+  const notificationSoundRef = useRef<AudioContext | null>(null);
+  const currentPathRef = useRef(currentPath);
+  useEffect(() => { currentPathRef.current = currentPath; }, [currentPath]);
+
+  // Fetch initial unread count
+  const { data: initialUnreadData } = trpc.whatsapp.conversations.unreadCount.useQuery(undefined, {
+    refetchInterval: 60000, // refresh every minute as fallback
+  });
+  useEffect(() => {
+    if (initialUnreadData !== undefined) {
+      setWhatsappUnreadCount(initialUnreadData as number);
+    }
+  }, [initialUnreadData]);
+
+  // Play a gentle notification beep using Web Audio API
+  const playNotificationSound = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.15);
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.3);
+    } catch (_) { /* Audio not available */ }
+  }, []);
+
+  // Global SSE listener for new inbound WhatsApp messages
+  useSSE('/api/whatsapp/stream/user/0', useCallback((e: MessageEvent) => {
+    try {
+      const eventName = (e as any).type || 'message';
+      if (eventName === 'new_inbound_message') {
+        const data = JSON.parse(e.data);
+        // Only show badge if user is not currently on WhatsApp page
+        const isOnWhatsApp = currentPathRef.current.includes('/dashboard/whatsapp');
+        if (!isOnWhatsApp) {
+          setWhatsappUnreadCount(prev => prev + 1);
+          playNotificationSound();
+        }
+      }
+    } catch (_) {}
+  }, [playNotificationSound]));
+
+  // Reset badge when user navigates to WhatsApp
+  useEffect(() => {
+    if (currentPath.includes('/dashboard/whatsapp')) {
+      setWhatsappUnreadCount(0);
+    }
+  }, [currentPath]);
+
   // تحديد العناصر المرئية في الشريط (أول 10 عناصر)
   const [visibleItemIds, setVisibleItemIds] = useState<string[]>(() => {
     try {
@@ -227,20 +285,21 @@ export default function DashboardSidebarV2({ currentPath }: { currentPath: strin
 
   // الحصول على عدد الإشعارات لعنصر معين
   const getBadgeCount = useCallback((itemId: string) => {
-    if (!unreadCounts) return 0;
     switch (itemId) {
       case "leads":
-        return unreadCounts.leads || 0;
+        return unreadCounts?.leads || 0;
       case "appointments":
-        return unreadCounts.appointments || 0;
+        return unreadCounts?.appointments || 0;
       case "offer-leads":
-        return unreadCounts.offerLeads || 0;
+        return unreadCounts?.offerLeads || 0;
       case "camp-registrations":
-        return unreadCounts.campRegistrations || 0;
+        return unreadCounts?.campRegistrations || 0;
+      case "whatsapp":
+        return whatsappUnreadCount;
       default:
         return 0;
     }
-  }, [unreadCounts]);
+  }, [unreadCounts, whatsappUnreadCount]);
 
   // معالج النقر على عنصر التنقل
   const handleNavClick = useCallback((href: string) => {

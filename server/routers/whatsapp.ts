@@ -403,6 +403,117 @@ export const whatsappRouter = router({
 
         return { content };
       }),
+
+    /**
+     * Sync approved templates from Meta Business Manager
+     * يجلب القوالب المعتمدة من Meta Business Manager ويحفظها في قاعدة البيانات
+     */
+    syncFromMeta: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const accessToken = process.env.META_ACCESS_TOKEN;
+        const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+        if (!accessToken || !phoneNumberId) {
+          throw new Error("META_ACCESS_TOKEN أو WHATSAPP_PHONE_NUMBER_ID غير مُعد");
+        }
+
+        // Get WABA ID from phone number
+        const phoneRes = await fetch(
+          `https://graph.facebook.com/v21.0/${phoneNumberId}?fields=whatsapp_business_account&access_token=${accessToken}`
+        );
+        const phoneData = await phoneRes.json() as any;
+
+        if (!phoneRes.ok || !phoneData.whatsapp_business_account?.id) {
+          console.error('[syncFromMeta] Failed to get WABA ID:', phoneData);
+          throw new Error("فشل في الحصول على معرف حساب WhatsApp Business. تحقق من META_ACCESS_TOKEN وWHATSAPP_PHONE_NUMBER_ID");
+        }
+
+        const wabaId = phoneData.whatsapp_business_account.id;
+
+        // Fetch templates from Meta
+        const templatesRes = await fetch(
+          `https://graph.facebook.com/v21.0/${wabaId}/message_templates?fields=name,status,category,language,components&limit=100&access_token=${accessToken}`
+        );
+        const templatesData = await templatesRes.json() as any;
+
+        if (!templatesRes.ok) {
+          console.error('[syncFromMeta] Failed to fetch templates:', templatesData);
+          throw new Error("فشل في جلب القوالب من Meta");
+        }
+
+        const metaTemplates = (templatesData.data || []) as any[];
+        const approvedTemplates = metaTemplates.filter((t: any) => t.status === 'APPROVED');
+
+        let synced = 0;
+        let updated = 0;
+
+        for (const metaTemplate of approvedTemplates) {
+          try {
+            const bodyComponent = metaTemplate.components?.find((c: any) => c.type === 'BODY');
+            const headerComponent = metaTemplate.components?.find((c: any) => c.type === 'HEADER' && c.format === 'TEXT');
+            const footerComponent = metaTemplate.components?.find((c: any) => c.type === 'FOOTER');
+
+            const bodyText = bodyComponent?.text || metaTemplate.name;
+            const headerText = headerComponent?.text || null;
+            const footerText = footerComponent?.text || null;
+
+            // Extract {{1}}, {{2}} style variables
+            const variableMatches = bodyText.match(/\{\{\d+\}\}/g) || [];
+            const variables = variableMatches.map((_: string, i: number) => `var${i + 1}`);
+
+            const categoryMap: Record<string, string> = {
+              'UTILITY': 'confirmation',
+              'MARKETING': 'custom',
+              'AUTHENTICATION': 'confirmation',
+            };
+            const mappedCategory = (categoryMap[metaTemplate.category] || 'custom') as any;
+
+            // Check if template already exists by metaName
+            const existing = await db.getWhatsAppTemplateByMetaName(metaTemplate.name);
+
+            if (existing) {
+              await db.updateWhatsAppTemplate(existing.id, {
+                metaName: metaTemplate.name,
+                languageCode: metaTemplate.language,
+                metaStatus: metaTemplate.status,
+                metaCategory: metaTemplate.category,
+                content: bodyText,
+                headerText,
+                footerText,
+                variables: JSON.stringify(variables),
+              });
+              updated++;
+            } else {
+              await db.createWhatsAppTemplate({
+                name: metaTemplate.name.replace(/_/g, ' '),
+                category: mappedCategory,
+                content: bodyText,
+                variables: JSON.stringify(variables),
+                isActive: 1,
+                usageCount: 0,
+                createdBy: ctx.user.id,
+                metaName: metaTemplate.name,
+                languageCode: metaTemplate.language,
+                metaStatus: metaTemplate.status,
+                metaCategory: metaTemplate.category,
+                headerText,
+                footerText,
+              });
+              synced++;
+            }
+          } catch (err) {
+            console.error(`[syncFromMeta] Failed to sync template ${metaTemplate.name}:`, err);
+          }
+        }
+
+        return {
+          success: true,
+          total: approvedTemplates.length,
+          synced,
+          updated,
+          message: `تمت المزامنة: ${synced} قالب جديد، ${updated} قالب محدّث من أصل ${approvedTemplates.length} قالب معتمد`,
+        };
+      }),
   }),
 
   // Quick test endpoint

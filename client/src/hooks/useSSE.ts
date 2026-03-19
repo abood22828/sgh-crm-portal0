@@ -33,7 +33,7 @@ export function useSSE(url: string | null, onMessage?: SSEHandler) {
         const dispatch = (e: MessageEvent) => handlerRef.current?.(e);
 
         // Named events the server emits (event: <name>\n)
-        const namedEvents = ['message_created', 'message_updated', 'conversation_updated', 'new_conversation'];
+        const namedEvents = ['message_created', 'message_updated', 'conversation_updated', 'new_conversation', 'new_message', 'new_inbound_message'];
         namedEvents.forEach((name) => es.addEventListener(name, dispatch as EventListener));
         // Fallback for plain data lines without an event name
         es.addEventListener('message', dispatch as EventListener);

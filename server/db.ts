@@ -867,6 +867,17 @@ export async function deleteWhatsAppTemplate(id: number) {
   return db.delete(whatsappTemplates).where(eq(whatsappTemplates.id, id));
 }
 
+export async function getWhatsAppTemplateByMetaName(metaName: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const { whatsappTemplates } = await import('../drizzle/schema');
+  const result = await db.select().from(whatsappTemplates)
+    .where(eq(whatsappTemplates.metaName, metaName))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function searchWhatsAppConversations(searchTerm: string) {
   const db = await getDb();
   if (!db) return [];

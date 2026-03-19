@@ -281,6 +281,13 @@
       "when": 1773452044483,
       "tag": "0039_sudden_venus",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1773792674525,
+      "tag": "0040_warm_lionheart",
+      "breakpoints": true
     }
   ]
 }

@@ -565,6 +565,13 @@ export const whatsappTemplates = mysqlTable("whatsapp_templates", {
   isActive: int("isActive").default(1).notNull(),
   usageCount: int("usageCount").default(0).notNull(),
   createdBy: int("createdBy").notNull(),
+  // Meta Business Manager fields
+  metaName: varchar("metaName", { length: 255 }), // Template name in Meta (snake_case)
+  languageCode: varchar("languageCode", { length: 20 }), // e.g. "ar", "en_US"
+  metaStatus: varchar("metaStatus", { length: 50 }), // APPROVED, PENDING, REJECTED
+  metaCategory: varchar("metaCategory", { length: 50 }), // UTILITY, MARKETING, AUTHENTICATION
+  headerText: text("headerText"), // Optional header component
+  footerText: varchar("footerText", { length: 255 }), // Optional footer component
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
