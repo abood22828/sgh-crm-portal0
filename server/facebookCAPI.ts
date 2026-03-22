@@ -24,12 +24,14 @@
  */
 
 import crypto from "crypto";
+import { meta } from "./MetaApiService";
 
-const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN || "";
+/**
+ * ⚠️  التوكن يأتي من MetaApiService.accessToken حصراً.
+ *     لا تستخدم process.env.META_ACCESS_TOKEN مباشرة في هذا الملف.
+ */
 const META_PIXEL_ID = process.env.META_PIXEL_ID || "";
 const META_TEST_EVENT_CODE = process.env.META_TEST_EVENT_CODE || "";
-const CAPI_API_VERSION = "v19.0";
-const CAPI_ENDPOINT = `https://graph.facebook.com/${CAPI_API_VERSION}/${META_PIXEL_ID}/events`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -159,7 +161,7 @@ export interface CAPIEventOptions {
  * - action_source = "website"
  */
 export async function sendCAPIEvent(options: CAPIEventOptions): Promise<void> {
-  if (!META_ACCESS_TOKEN || !META_PIXEL_ID) {
+  if (!meta.accessToken || !META_PIXEL_ID) {
     console.warn("[CAPI] Skipping – META_ACCESS_TOKEN or META_PIXEL_ID not configured");
     return;
   }
@@ -264,24 +266,19 @@ export async function sendCAPIEvent(options: CAPIEventOptions): Promise<void> {
     payload.test_event_code = META_TEST_EVENT_CODE;
   }
 
-  // ── Send to Meta ───────────────────────────────────────────────────────────
+  // ── Send to Meta via MetaApiService ──────────────────────────────────────
   try {
-    const response = await fetch(
-      `${CAPI_ENDPOINT}?access_token=${META_ACCESS_TOKEN}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }
+    const capiRes = await meta.sendCAPIEvent(
+      META_PIXEL_ID,
+      [event],
+      META_TEST_EVENT_CODE || undefined
     );
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error("[CAPI] API error:", JSON.stringify(result));
+    if (!capiRes.success) {
+      console.error("[CAPI] API error:", capiRes.error);
     } else {
       console.log(
-        `[CAPI] ${isStandardEvent ? "Standard" : "Custom"} event "${eventName}" sent. Events received: ${result.events_received}`
+        `[CAPI] ${isStandardEvent ? "Standard" : "Custom"} event "${eventName}" sent successfully.`
       );
     }
   } catch (error) {

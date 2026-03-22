@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
+import { meta } from "../MetaApiService";
 import { 
   sendWhatsAppTextMessage, 
   sendWhatsAppTemplateMessage, 
@@ -410,38 +411,29 @@ export const whatsappRouter = router({
      */
     syncFromMeta: protectedProcedure
       .mutation(async ({ ctx }) => {
-        const accessToken = process.env.META_ACCESS_TOKEN;
         const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
-        if (!accessToken || !phoneNumberId) {
+        if (!meta.accessToken || !phoneNumberId) {
           throw new Error("META_ACCESS_TOKEN أو WHATSAPP_PHONE_NUMBER_ID غير مُعد");
         }
 
-        // Get WABA ID from phone number
-        const phoneRes = await fetch(
-          `https://graph.facebook.com/v21.0/${phoneNumberId}?fields=whatsapp_business_account&access_token=${accessToken}`
-        );
-        const phoneData = await phoneRes.json() as any;
-
-        if (!phoneRes.ok || !phoneData.whatsapp_business_account?.id) {
-          console.error('[syncFromMeta] Failed to get WABA ID:', phoneData);
+        // الحصول على WABA ID عبر MetaApiService المركزي
+        const wabaResult = await meta.getWabaIdFromPhoneNumberId(phoneNumberId);
+        if (!wabaResult.success || !wabaResult.wabaId) {
+          console.error('[syncFromMeta] Failed to get WABA ID:', wabaResult.error);
           throw new Error("فشل في الحصول على معرف حساب WhatsApp Business. تحقق من META_ACCESS_TOKEN وWHATSAPP_PHONE_NUMBER_ID");
         }
 
-        const wabaId = phoneData.whatsapp_business_account.id;
+        const wabaId = wabaResult.wabaId;
 
-        // Fetch templates from Meta
-        const templatesRes = await fetch(
-          `https://graph.facebook.com/v21.0/${wabaId}/message_templates?fields=name,status,category,language,components&limit=100&access_token=${accessToken}`
-        );
-        const templatesData = await templatesRes.json() as any;
-
-        if (!templatesRes.ok) {
-          console.error('[syncFromMeta] Failed to fetch templates:', templatesData);
+        // جلب القوالب من Meta عبر MetaApiService المركزي
+        const templatesResult = await meta.getWhatsAppTemplates(wabaId);
+        if (!templatesResult.success) {
+          console.error('[syncFromMeta] Failed to fetch templates:', templatesResult.error);
           throw new Error("فشل في جلب القوالب من Meta");
         }
 
-        const metaTemplates = (templatesData.data || []) as any[];
+        const metaTemplates = (templatesResult.templates || []) as any[];
         const approvedTemplates = metaTemplates.filter((t: any) => t.status === 'APPROVED');
 
         let synced = 0;
