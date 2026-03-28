@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getDb, getWhatsAppMessageByWhatsAppId, updateWhatsAppMessage, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, getCustomerInfoByPhone } from "./db";
+import { getDb, getWhatsAppMessageByWhatsAppId, updateWhatsAppMessage, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation } from "./db";
 import { appointments, offerLeads, campRegistrations } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { publish, channelForConversation } from "./_core/pubsub";
@@ -165,20 +165,9 @@ export function createWebhookRouter(): Router {
                 const formattedPhone = userPhone;
                 let conversation = await getWhatsAppConversationByPhone(formattedPhone);
                 if (!conversation) {
-                  // البحث عن اسم العميل من ملفات العملاء
-                  let customerName = "عميل جديد";
-                  try {
-                    const customerInfo = await getCustomerInfoByPhone(formattedPhone);
-                    if (customerInfo && customerInfo.name) {
-                      customerName = customerInfo.name;
-                    }
-                  } catch (err) {
-                    console.log(`[Webhook] Could not find customer info for ${formattedPhone}`);
-                  }
-
                   await createWhatsAppConversation({
                     phoneNumber: formattedPhone,
-                    customerName: customerName,
+                    customerName: null,
                     lastMessageAt: new Date(),
                     unreadCount: 1,
                     isImportant: 0,
@@ -223,30 +212,13 @@ export function createWebhookRouter(): Router {
                   );
 
                   // 🔔 Publish SSE: global notification for sidebar badge
-                  // تحديث اسم العميل إذا كان null أو "عميل جديد"
-                  let displayName = conversation.customerName;
-                  if (!displayName || displayName === "عميل جديد") {
-                    try {
-                      const customerInfo = await getCustomerInfoByPhone(formattedPhone);
-                      if (customerInfo && customerInfo.name) {
-                        displayName = customerInfo.name;
-                        // تحديث اسم العميل في المحادثة
-                        await updateWhatsAppConversation(conversation.id, {
-                          customerName: customerInfo.name,
-                        });
-                      }
-                    } catch (err) {
-                      console.log(`[Webhook] Could not update customer name for ${formattedPhone}`);
-                    }
-                  }
-
                   publish(
                     GLOBAL_CHANNEL,
                     'new_inbound_message',
                     {
                       conversationId: conversation.id,
                       phoneNumber: formattedPhone,
-                      customerName: displayName || "عميل جديد",
+                      customerName: conversation.customerName,
                       content: message.text.body.substring(0, 100),
                       unreadCount: updatedUnreadCount,
                       timestamp: new Date().toISOString(),

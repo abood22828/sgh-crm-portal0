@@ -351,7 +351,7 @@ function WhatsAppContent() {
   // Mutations
   const markConversationAsReadMutation = trpc.whatsapp.conversations.markAsRead.useMutation();
   
-  const sendNewMessageMutation = trpc.whatsapp.messages.send.useMutation({
+  const sendNewMessageMutation = trpc.whatsapp.messages.sendDirect.useMutation({
     onSuccess: () => {
       toast.success("تم إرسال الرسالة بنجاح");
       setNewMessagePhone("");
@@ -360,10 +360,20 @@ function WhatsAppContent() {
       setIsNewMessageOpen(false);
       refetchConversations();
     },
-    onError: (error: any) => toast.error(`فشل إرسال الرسالة: ${error.message}`),
+    onError: (error) => toast.error(`فشل إرسال الرسالة: ${error.message}`),
   });
 
-  // sendTemplateMutation removed — feature in development
+  const sendTemplateMutation = trpc.whatsapp.messages.sendTemplate.useMutation({
+    onSuccess: () => {
+      toast.success("تم إرسال القالب بنجاح");
+      setNewMessagePhone("");
+      setNewMessageText("");
+      setNewMessageTemplateId(null);
+      setIsNewMessageOpen(false);
+      refetchConversations();
+    },
+    onError: (error) => toast.error(`فشل إرسال القالب: ${error.message}`),
+  });
 
   // Stable callbacks — useCallback prevents new references on every render
   const handleSelectConversation = useCallback((id: number) => {
@@ -388,7 +398,15 @@ function WhatsAppContent() {
     if (newMessageTemplateId) {
       const template = templates?.find((t: Template) => t.id === newMessageTemplateId);
       if (!template) { toast.error("القالب غير موجود"); return; }
-      toast.info("إرسال القوالب قيد التطوير");
+      // استخدام metaName (الاسم المعتمد من Meta) إذا كان متاحاً، وإلا name
+      const templateName = template.metaName || template.name;
+      const languageCode = template.languageCode || "ar";
+      sendTemplateMutation.mutate({
+        phone: newMessagePhone,
+        templateName,
+        languageCode,
+        components: [],
+      });
     } else {
       if (!newMessageText.trim()) {
         toast.error("يرجى إدخال الرسالة أو اختيار قالب");
@@ -396,7 +414,7 @@ function WhatsAppContent() {
       }
       sendNewMessageMutation.mutate({ phone: newMessagePhone, content: newMessageText });
     }
-  }, [newMessagePhone, newMessageTemplateId, newMessageText, templates, sendNewMessageMutation]);
+  }, [newMessagePhone, newMessageTemplateId, newMessageText, templates, sendTemplateMutation, sendNewMessageMutation]);
 
   const handleConversationUpdate = useCallback(() => refetchConversations(), [refetchConversations]);
 
@@ -424,7 +442,7 @@ function WhatsAppContent() {
     return bTime - aTime;
   });
   const selectedConv = conversations?.find((c: Conversation) => c.id === selectedConversation);
-  const isSendingNewMessage = sendNewMessageMutation.isPending;
+  const isSendingNewMessage = sendNewMessageMutation.isPending || sendTemplateMutation.isPending;
 
   // Shared props for ConversationsList
   const listProps = {

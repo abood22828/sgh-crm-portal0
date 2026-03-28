@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Calendar, MessageSquare, Clock, MoreVertical, Loader2, AlertCircle, MessageCircle } from "lucide-react";
+import { Phone, Mail, Calendar, MessageSquare, Clock, MoreVertical, Loader2, AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import {
@@ -87,23 +87,6 @@ export default function ConversationInfo({
     toast.success("تم نسخ رقم الهاتف");
   };
 
-  const handleCall = () => {
-    window.location.href = `tel:${conversation.phoneNumber}`;
-  };
-
-  const handleWhatsApp = () => {
-    const message = encodeURIComponent("مرحباً، كيف يمكنني مساعدتك؟");
-    window.open(`https://wa.me/${conversation.phoneNumber}?text=${message}`, "_blank");
-  };
-
-  const handleEmail = () => {
-    if (customerInfo?.email) {
-      window.location.href = `mailto:${customerInfo.email}`;
-    } else {
-      toast.error("لا توجد عنوان بريد إلكتروني للعميل");
-    }
-  };
-
   const getStatusBadgeColor = (status: string) => {
     const statusColors: Record<string, string> = {
       'new': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
@@ -175,41 +158,6 @@ export default function ConversationInfo({
           </DropdownMenu>
         </div>
       </Card>
-
-      {/* Quick Action Buttons */}
-      <div className="grid grid-cols-3 gap-2">
-        <Button
-          onClick={handleCall}
-          variant="outline"
-          size="sm"
-          className="h-9 text-xs sm:text-sm flex flex-col items-center justify-center gap-1"
-          title="اتصال مباشر"
-        >
-          <Phone className="h-4 w-4" />
-          <span className="hidden sm:inline">اتصال</span>
-        </Button>
-        <Button
-          onClick={handleWhatsApp}
-          variant="outline"
-          size="sm"
-          className="h-9 text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-900/20"
-          title="فتح WhatsApp"
-        >
-          <MessageCircle className="h-4 w-4" />
-          <span className="hidden sm:inline">واتس</span>
-        </Button>
-        <Button
-          onClick={handleEmail}
-          variant="outline"
-          size="sm"
-          className="h-9 text-xs sm:text-sm flex flex-col items-center justify-center gap-1"
-          title="إرسال بريد إلكتروني"
-          disabled={!customerInfo?.email}
-        >
-          <Mail className="h-4 w-4" />
-          <span className="hidden sm:inline">بريد</span>
-        </Button>
-      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-2">

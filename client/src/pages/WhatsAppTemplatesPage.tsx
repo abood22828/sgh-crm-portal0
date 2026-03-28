@@ -33,12 +33,51 @@ function WhatsAppTemplatesContent() {
   // Queries
   const { data: templates, isLoading, refetch } = trpc.whatsapp.templates.list.useQuery();
 
-  // Sync from Meta mutation removed — feature in development
+  // Sync from Meta mutation
+  const syncFromMetaMutation = trpc.whatsapp.templates.syncFromMeta.useMutation({
+    onSuccess: (result) => {
+      toast.success(result.message || `تمت المزامنة: ${result.synced} قالب جديد، ${result.updated} محدَّث`);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`فشل المزامنة: ${error.message}`);
+    },
+  });
 
   // Mutations
+  const createMutation = trpc.whatsapp.templates.create.useMutation({
+    onSuccess: () => {
+      toast.success("تم إنشاء القالب بنجاح");
+      setIsCreateOpen(false);
+      resetForm();
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`فشل إنشاء القالب: ${error.message}`);
+    },
+  });
 
+  const updateMutation = trpc.whatsapp.templates.update.useMutation({
+    onSuccess: () => {
+      toast.success("تم تحديث القالب بنجاح");
+      setIsEditOpen(false);
+      resetForm();
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`فشل تحديث القالب: ${error.message}`);
+    },
+  });
 
-
+  const deleteMutation = trpc.whatsapp.templates.delete.useMutation({
+    onSuccess: () => {
+      toast.success("تم حذف القالب بنجاح");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`فشل حذف القالب: ${error.message}`);
+    },
+  });
 
   const resetForm = () => {
     setName("");
@@ -48,7 +87,15 @@ function WhatsAppTemplatesContent() {
   };
 
   const handleCreate = () => {
-    toast.info("هذه الميزة قيد التطوير");
+    if (!name.trim() || !content.trim()) {
+      toast.error("يرجى إدخال اسم القالب والمحتوى");
+      return;
+    }
+    createMutation.mutate({
+      name: name.trim(),
+      content: content.trim(),
+      category,
+    });
   };
 
   const handleEdit = (template: any) => {
@@ -60,30 +107,22 @@ function WhatsAppTemplatesContent() {
   };
 
   const handleUpdate = () => {
-    toast.info("هذه الميزة قيد التطوير");
+    if (!selectedTemplate || !name.trim() || !content.trim()) {
+      toast.error("يرجى إدخال اسم القالب والمحتوى");
+      return;
+    }
+    updateMutation.mutate({
+      id: selectedTemplate.id,
+      name: name.trim(),
+      content: content.trim(),
+      category,
+    });
   };
 
   const handleDelete = (id: number, templateName: string) => {
-    toast.info("هذه الميزة قيد التطوير");
-  };
-
-  const handleOpenCreate = () => {
-    resetForm();
-    setIsCreateOpen(true);
-  };
-
-  const handleOpenEdit = (template: any) => {
-    handleEdit(template);
-  };
-
-  const handleCloseCreate = () => {
-    setIsCreateOpen(false);
-    resetForm();
-  };
-
-  const handleCloseEdit = () => {
-    setIsEditOpen(false);
-    resetForm();
+    if (confirm(`هل أنت متأكد من حذف القالب "${templateName}"؟`)) {
+      deleteMutation.mutate({ id });
+    }
   };
 
   const handleCopy = (content: string) => {
@@ -176,12 +215,13 @@ function WhatsAppTemplatesContent() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => toast.info("هذه الميزة قيد التطوير")}
+                onClick={() => syncFromMetaMutation.mutate()}
+                disabled={syncFromMetaMutation.isPending}
                 className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3 border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400"
                 title="مزامنة القوالب المعتمدة من Meta Business Manager"
               >
-                <RefreshCw className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">مزامنة Meta</span>
+                <RefreshCw className={`h-3.5 w-3.5 ${syncFromMetaMutation.isPending ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{syncFromMetaMutation.isPending ? 'جاري المزامنة...' : 'مزامنة Meta'}</span>
               </Button>
 
               <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -204,8 +244,8 @@ function WhatsAppTemplatesContent() {
                   <Button variant="outline" onClick={() => setIsCreateOpen(false)} className="text-xs sm:text-sm h-8 sm:h-9">
                     إلغاء
                   </Button>
-                  <Button onClick={handleCreate} className="text-xs sm:text-sm h-8 sm:h-9">
-                    إنشاء
+                  <Button onClick={handleCreate} disabled={createMutation.isPending} className="text-xs sm:text-sm h-8 sm:h-9">
+                    {createMutation.isPending ? "جاري الإنشاء..." : "إنشاء"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -332,9 +372,9 @@ function WhatsAppTemplatesContent() {
               <Button variant="outline" onClick={() => setIsEditOpen(false)} className="text-xs sm:text-sm h-8 sm:h-9">
                 إلغاء
               </Button>
-                  <Button onClick={handleUpdate} className="text-xs sm:text-sm h-8 sm:h-9">
-                    تحديث
-                  </Button>
+              <Button onClick={handleUpdate} disabled={updateMutation.isPending} className="text-xs sm:text-sm h-8 sm:h-9">
+                {updateMutation.isPending ? "جاري التحديث..." : "تحديث"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
