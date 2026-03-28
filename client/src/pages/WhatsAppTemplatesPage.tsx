@@ -33,16 +33,7 @@ function WhatsAppTemplatesContent() {
   // Queries
   const { data: templates, isLoading, refetch } = trpc.whatsapp.templates.list.useQuery();
 
-  // Sync from Meta mutation
-  const syncFromMetaMutation = trpc.whatsapp.templates.syncFromMeta.useMutation({
-    onSuccess: (result) => {
-      toast.success(result.message || `تمت المزامنة: ${result.synced} قالب جديد، ${result.updated} محدَّث`);
-      refetch();
-    },
-    onError: (error) => {
-      toast.error(`فشل المزامنة: ${error.message}`);
-    },
-  });
+  // Sync from Meta mutation removed — feature in development
 
   // Mutations
 
@@ -185,13 +176,12 @@ function WhatsAppTemplatesContent() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => syncFromMetaMutation.mutate()}
-                disabled={syncFromMetaMutation.isPending}
+                onClick={() => toast.info("هذه الميزة قيد التطوير")}
                 className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3 border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400"
                 title="مزامنة القوالب المعتمدة من Meta Business Manager"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${syncFromMetaMutation.isPending ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">{syncFromMetaMutation.isPending ? 'جاري المزامنة...' : 'مزامنة Meta'}</span>
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">مزامنة Meta</span>
               </Button>
 
               <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
