@@ -1,8 +1,7 @@
-import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Calendar, MessageSquare, Clock, MoreVertical, Loader2, AlertCircle } from "lucide-react";
+import { Phone, Mail, Calendar, MessageSquare, Clock, MoreVertical, Loader2, AlertCircle, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import {
@@ -87,6 +86,23 @@ export default function ConversationInfo({
     toast.success("تم نسخ رقم الهاتف");
   };
 
+  const handleCall = () => {
+    window.location.href = `tel:${conversation.phoneNumber}`;
+  };
+
+  const handleWhatsApp = () => {
+    const message = encodeURIComponent("مرحباً! هذه رسالة من المستشفى السعودي الألماني");
+    window.open(`https://wa.me/${conversation.phoneNumber}?text=${message}`, '_blank');
+  };
+
+  const handleEmail = (email?: string) => {
+    if (!email) {
+      toast.error("لا يوجد بريد إلكتروني");
+      return;
+    }
+    window.location.href = `mailto:${email}`;
+  };
+
   const getStatusBadgeColor = (status: string) => {
     const statusColors: Record<string, string> = {
       'new': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
@@ -111,8 +127,18 @@ export default function ConversationInfo({
     return labels[type] || type;
   };
 
+  const getRecordIcon = (type: string) => {
+    const icons: Record<string, string> = {
+      'appointment': '📅',
+      'lead': '👤',
+      'offer': '🏥',
+      'camp': '🏕️',
+    };
+    return icons[type] || '📋';
+  };
+
   return (
-    <div className="space-y-3 p-3 sm:p-4">
+    <div className="space-y-3 p-3 sm:p-4 overflow-y-auto max-h-[calc(100vh-200px)]">
       {/* Header Card */}
       <Card className="p-3 sm:p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
         <div className="flex items-start justify-between gap-2">
@@ -158,6 +184,40 @@ export default function ConversationInfo({
           </DropdownMenu>
         </div>
       </Card>
+
+      {/* Quick Action Buttons */}
+      <div className="grid grid-cols-3 gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 text-xs"
+          onClick={handleCall}
+        >
+          <Phone className="h-3.5 w-3.5 ml-1" />
+          <span className="hidden sm:inline">اتصال</span>
+          <span className="sm:hidden">☎️</span>
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 text-xs bg-green-50 hover:bg-green-100 dark:bg-green-900/20"
+          onClick={handleWhatsApp}
+        >
+          <MessageCircle className="h-3.5 w-3.5 ml-1" />
+          <span className="hidden sm:inline">واتس</span>
+          <span className="sm:hidden">💬</span>
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 text-xs"
+          onClick={() => handleEmail(customerInfo?.email)}
+        >
+          <Mail className="h-3.5 w-3.5 ml-1" />
+          <span className="hidden sm:inline">بريد</span>
+          <span className="sm:hidden">✉️</span>
+        </Button>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-2">
@@ -209,25 +269,32 @@ export default function ConversationInfo({
       {!loading && customerInfo && (
         <Card className="p-3 sm:p-4 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
           <div className="space-y-2">
-            <div className="flex items-start justify-between gap-2">
+            <p className="text-xs font-semibold text-muted-foreground">معلومات العميل الأساسية</p>
+            <div className="space-y-1.5">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">معلومات العميل</p>
+                <p className="text-xs text-muted-foreground">الاسم</p>
                 <p className="font-semibold text-sm text-foreground">{customerInfo.name}</p>
-                {customerInfo.email && (
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              </div>
+              {customerInfo.email && (
+                <div>
+                  <p className="text-xs text-muted-foreground">البريد الإلكتروني</p>
+                  <p className="text-xs text-foreground flex items-center gap-1">
                     <Mail className="h-3 w-3" />
                     {customerInfo.email}
                   </p>
-                )}
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">الحالة والنوع</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge className={`text-xs ${getStatusBadgeColor(customerInfo.status)}`}>
+                    {customerInfo.status}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {getTypeLabel(customerInfo.type)}
+                  </Badge>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge className={`text-xs ${getStatusBadgeColor(customerInfo.status)}`}>
-                {customerInfo.status}
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                {getTypeLabel(customerInfo.type)}
-              </Badge>
             </div>
           </div>
         </Card>
@@ -236,69 +303,101 @@ export default function ConversationInfo({
       {/* Records Section */}
       {!loading && customerRecords && (
         <div className="space-y-2">
+          {/* Appointments Card */}
           {customerRecords.appointments.length > 0 && (
-            <Card className="p-3 sm:p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">المواعيد الطبية ({customerRecords.appointments.length})</p>
+            <Card className="p-3 sm:p-4 border-l-4 border-l-blue-500">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">📅</span>
+                <p className="text-xs font-semibold text-foreground">
+                  المواعيد الطبية ({customerRecords.appointments.length})
+                </p>
+              </div>
               <div className="space-y-1.5">
                 {customerRecords.appointments.slice(0, 3).map((apt) => (
-                  <div key={apt.id} className="text-xs p-1.5 bg-muted rounded flex items-center justify-between">
-                    <span className="truncate">{apt.fullName}</span>
-                    <Badge variant="outline" className="text-[10px]">{apt.status}</Badge>
+                  <div key={apt.id} className="text-xs p-2 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-between">
+                    <span className="truncate flex-1">{apt.fullName}</span>
+                    <Badge variant="outline" className="text-[10px] ml-2 flex-shrink-0">{apt.status}</Badge>
                   </div>
                 ))}
                 {customerRecords.appointments.length > 3 && (
-                  <p className="text-xs text-muted-foreground text-center py-1">+{customerRecords.appointments.length - 3} مواعيد أخرى</p>
+                  <p className="text-xs text-muted-foreground text-center py-1">
+                    +{customerRecords.appointments.length - 3} مواعيد أخرى
+                  </p>
                 )}
               </div>
             </Card>
           )}
 
+          {/* Leads Card */}
           {customerRecords.leads.length > 0 && (
-            <Card className="p-3 sm:p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">العملاء المحتملين ({customerRecords.leads.length})</p>
+            <Card className="p-3 sm:p-4 border-l-4 border-l-yellow-500">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">👤</span>
+                <p className="text-xs font-semibold text-foreground">
+                  العملاء المحتملين ({customerRecords.leads.length})
+                </p>
+              </div>
               <div className="space-y-1.5">
                 {customerRecords.leads.slice(0, 2).map((lead) => (
-                  <div key={lead.id} className="text-xs p-1.5 bg-muted rounded flex items-center justify-between">
-                    <span className="truncate">{lead.fullName}</span>
-                    <Badge variant="outline" className="text-[10px]">{lead.status}</Badge>
+                  <div key={lead.id} className="text-xs p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded flex items-center justify-between">
+                    <span className="truncate flex-1">{lead.fullName}</span>
+                    <Badge variant="outline" className="text-[10px] ml-2 flex-shrink-0">{lead.status}</Badge>
                   </div>
                 ))}
                 {customerRecords.leads.length > 2 && (
-                  <p className="text-xs text-muted-foreground text-center py-1">+{customerRecords.leads.length - 2} عملاء آخرين</p>
+                  <p className="text-xs text-muted-foreground text-center py-1">
+                    +{customerRecords.leads.length - 2} عملاء آخرين
+                  </p>
                 )}
               </div>
             </Card>
           )}
 
+          {/* Offers Card */}
           {customerRecords.offers.length > 0 && (
-            <Card className="p-3 sm:p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">العروض الطبية ({customerRecords.offers.length})</p>
+            <Card className="p-3 sm:p-4 border-l-4 border-l-green-500">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">🏥</span>
+                <p className="text-xs font-semibold text-foreground">
+                  العروض الطبية ({customerRecords.offers.length})
+                </p>
+              </div>
               <div className="space-y-1.5">
                 {customerRecords.offers.slice(0, 2).map((offer) => (
-                  <div key={offer.id} className="text-xs p-1.5 bg-muted rounded flex items-center justify-between">
-                    <span className="truncate">{offer.fullName}</span>
-                    <Badge variant="outline" className="text-[10px]">{offer.status}</Badge>
+                  <div key={offer.id} className="text-xs p-2 bg-green-50 dark:bg-green-900/20 rounded flex items-center justify-between">
+                    <span className="truncate flex-1">{offer.fullName}</span>
+                    <Badge variant="outline" className="text-[10px] ml-2 flex-shrink-0">{offer.status}</Badge>
                   </div>
                 ))}
                 {customerRecords.offers.length > 2 && (
-                  <p className="text-xs text-muted-foreground text-center py-1">+{customerRecords.offers.length - 2} عروض أخرى</p>
+                  <p className="text-xs text-muted-foreground text-center py-1">
+                    +{customerRecords.offers.length - 2} عروض أخرى
+                  </p>
                 )}
               </div>
             </Card>
           )}
 
+          {/* Camps Card */}
           {customerRecords.camps.length > 0 && (
-            <Card className="p-3 sm:p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">تسجيلات المخيمات ({customerRecords.camps.length})</p>
+            <Card className="p-3 sm:p-4 border-l-4 border-l-purple-500">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">🏕️</span>
+                <p className="text-xs font-semibold text-foreground">
+                  تسجيلات المخيمات ({customerRecords.camps.length})
+                </p>
+              </div>
               <div className="space-y-1.5">
                 {customerRecords.camps.slice(0, 2).map((camp) => (
-                  <div key={camp.id} className="text-xs p-1.5 bg-muted rounded flex items-center justify-between">
-                    <span className="truncate">{camp.fullName}</span>
-                    <Badge variant="outline" className="text-[10px]">{camp.status}</Badge>
+                  <div key={camp.id} className="text-xs p-2 bg-purple-50 dark:bg-purple-900/20 rounded flex items-center justify-between">
+                    <span className="truncate flex-1">{camp.fullName}</span>
+                    <Badge variant="outline" className="text-[10px] ml-2 flex-shrink-0">{camp.status}</Badge>
                   </div>
                 ))}
                 {customerRecords.camps.length > 2 && (
-                  <p className="text-xs text-muted-foreground text-center py-1">+{customerRecords.camps.length - 2} تسجيلات أخرى</p>
+                  <p className="text-xs text-muted-foreground text-center py-1">
+                    +{customerRecords.camps.length - 2} تسجيلات أخرى
+                  </p>
                 )}
               </div>
             </Card>

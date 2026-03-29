@@ -3747,3 +3747,12 @@
 - [x] إصلاح CAPI Payload: action_source صحيح + external_id + SHA-256 صحيح
 - [x] إزالة البيانات الطبية الحساسة من أحداث CAPI
 - [x] إضافة external_id لتحسين Event Match Quality
+
+## مشكلة عدم ظهور أسماء العملاء في محادثات WhatsApp ✅ مكتملة
+
+- [x] فحص شامل لـ webhookRoutes.ts و whatsapp router و ConversationInfo
+- [x] تحديد السبب الدقيق لعدم ظهور أسماء العملاء
+- [x] تطبيق الحل على الكود (تحديث أسماء المحادثات القديمة)
+- [ ] تشغيل migration script لتحديث البيانات الموجودة (اختياري)
+- [x] اختبار الحل والتحقق من عدم وجود أخطاء TypeScript
+- [x] تحسين عرض معلومات العميل في ConversationInfo بتصميم بطاقات منفصلة

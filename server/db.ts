@@ -849,7 +849,12 @@ export async function getWhatsAppConversationByPhone(phone: string) {
   if (!db) return undefined;
   
   const { whatsappConversations } = await import('../drizzle/schema');
-  const result = await db.select().from(whatsappConversations).where(eq(whatsappConversations.phoneNumber, phone)).limit(1);
+  const normalizedPhone = normalizePhoneNumber(phone);
+  
+  // Get all conversations and filter by normalized phone number
+  // (since phoneNumber in DB might have different formats)
+  const allConversations = await db.select().from(whatsappConversations).limit(1000);
+  const result = allConversations.filter(c => normalizePhoneNumber(c.phoneNumber) === normalizedPhone).slice(0, 1);
   return result.length > 0 ? result[0] : undefined;
 }
 

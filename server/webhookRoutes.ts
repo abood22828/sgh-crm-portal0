@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getDb, getWhatsAppMessageByWhatsAppId, updateWhatsAppMessage, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation } from "./db";
+import { getDb, getWhatsAppMessageByWhatsAppId, updateWhatsAppMessage, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, getCustomerInfoByPhone, normalizePhoneNumber } from "./db";
 import { appointments, offerLeads, campRegistrations } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { publish, channelForConversation } from "./_core/pubsub";
@@ -162,18 +162,32 @@ export function createWebhookRouter(): Router {
               console.log(`[Webhook] Text message from ${userPhone}: ${message.text.body}`);
               try {
                 // ensure conversation exists
-                const formattedPhone = userPhone;
-                let conversation = await getWhatsAppConversationByPhone(formattedPhone);
+                const normalizedPhone = normalizePhoneNumber(userPhone);
+                let conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+                
                 if (!conversation) {
+                  // Search for customer name from customer records
+                  const customerInfo = await getCustomerInfoByPhone(normalizedPhone);
+                  const customerName = customerInfo?.name || null;
+                  
                   await createWhatsAppConversation({
-                    phoneNumber: formattedPhone,
-                    customerName: null,
+                    phoneNumber: normalizedPhone,
+                    customerName: customerName,
                     lastMessageAt: new Date(),
                     unreadCount: 1,
                     isImportant: 0,
                     isArchived: 0,
                   });
-                  conversation = await getWhatsAppConversationByPhone(formattedPhone);
+                  conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+                } else if (conversation.customerName === null || conversation.customerName === 'عميل جديد') {
+                  // Update old conversations with "عميل جديد" to actual customer name
+                  const customerInfo = await getCustomerInfoByPhone(normalizedPhone);
+                  if (customerInfo?.name) {
+                    await updateWhatsAppConversation(conversation.id, {
+                      customerName: customerInfo.name,
+                    });
+                    conversation = { ...conversation, customerName: customerInfo.name };
+                  }
                 }
 
                 if (conversation) {
@@ -217,7 +231,7 @@ export function createWebhookRouter(): Router {
                     'new_inbound_message',
                     {
                       conversationId: conversation.id,
-                      phoneNumber: formattedPhone,
+                      phoneNumber: normalizedPhone,
                       customerName: conversation.customerName,
                       content: message.text.body.substring(0, 100),
                       unreadCount: updatedUnreadCount,
