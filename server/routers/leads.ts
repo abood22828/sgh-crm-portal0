@@ -13,6 +13,7 @@ import {
   searchLeads,
   getLeadsByCampaign,
   createCampaign,
+  normalizePhoneNumber,
 } from "../db";
 import { notifyOwner } from "../_core/notification";
 import { sendNewLeadNotification } from "../email";
@@ -63,7 +64,7 @@ export const leadsRouter = router({
       await createLead({
         campaignId: campaign.id,
         fullName: input.fullName,
-        phone: input.phone,
+        phone: normalizePhoneNumber(input.phone),
         email: input.email,
         notes: input.notes,
         status: input.status || "new",

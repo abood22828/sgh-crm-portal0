@@ -8,6 +8,7 @@ import { sendNewOfferLeadTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
 import { sendOfferLeadEvent, sendStatusChangeEvent } from "../facebookCAPI";
+import { normalizePhoneNumber } from "../db";
 
 export const offerLeadsRouter = router({
   // Submit a new offer lead (public)
@@ -39,23 +40,24 @@ export const offerLeadsRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      const normalizedPhone = normalizePhoneNumber(input.phone);
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
       // التحقق من عدم تكرار الطلب بنفس الرقم ونفس العرض خلال 3 أيام
       const threeDaysAgo = new Date();
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-      const existingLead = await db
-        .select({ id: offerLeads.id })
+      const allLeads = await db
+        .select({ id: offerLeads.id, phone: offerLeads.phone })
         .from(offerLeads)
         .where(
           and(
-            eq(offerLeads.phone, input.phone),
             eq(offerLeads.offerId, input.offerId),
             gte(offerLeads.createdAt, threeDaysAgo)
           )
         )
-        .limit(1);
+        .limit(100);
+      const existingLead = allLeads.filter(l => normalizePhoneNumber(l.phone) === normalizedPhone);
       if (existingLead.length > 0) {
         throw new TRPCError({
           code: "CONFLICT",
@@ -76,7 +78,7 @@ export const offerLeadsRouter = router({
       const [lead] = await db.insert(offerLeads).values({
         offerId: input.offerId,
         fullName: input.fullName,
-        phone: input.phone,
+        phone: normalizedPhone,
         email: input.email,
         age: input.age,
         gender: input.gender,

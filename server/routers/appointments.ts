@@ -12,6 +12,7 @@ import {
   updateAppointmentStatus,
   bulkUpdateAppointmentStatus,
   createCampaign,
+  normalizePhoneNumber,
 } from "../db";
 import { notifyOwner } from "../_core/notification";
 import { sendNewAppointmentEmail } from "../email";
@@ -53,21 +54,22 @@ export const appointmentsRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
       // التحقق من عدم تكرار الحجز بنفس الرقم ونفس الطبيب خلال 3 أيام
+      const normalizedPhone = normalizePhoneNumber(input.phone);
       const db = await getDb();
       if (db) {
         const threeDaysAgo = new Date();
         threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-        const existing = await db
-          .select({ id: appointments.id })
+        const allAppointments = await db
+          .select({ id: appointments.id, phone: appointments.phone })
           .from(appointments)
           .where(
             and(
-              eq(appointments.phone, input.phone),
-              eq(appointments.doctorId, input.doctorId),
-              gte(appointments.createdAt, threeDaysAgo)
+              gte(appointments.createdAt, threeDaysAgo),
+              eq(appointments.doctorId, input.doctorId)
             )
           )
-          .limit(1);
+          .limit(100);
+        const existing = allAppointments.filter(a => normalizePhoneNumber(a.phone) === normalizedPhone);
         if (existing.length > 0) {
           throw new TRPCError({
             code: "CONFLICT",
@@ -105,11 +107,11 @@ export const appointmentsRouter = router({
       else if (initialStatus === 'cancelled') statusTimestamps.cancelledAt = now;
 
       // Create appointment
-      const appointment = await createAppointment({
+      const result = await createAppointment({
         campaignId: campaign.id,
         doctorId: input.doctorId,
         fullName: input.fullName,
-        phone: input.phone,
+        phone: normalizedPhone,
         email: input.email,
         age: input.age,
         gender: input.gender,
@@ -178,7 +180,7 @@ export const appointmentsRouter = router({
       });
 
       // Send automated booking confirmation message (Patient Journey)
-      if (appointment) {
+      if (result) {
         const { sendBookingConfirmationInteractive } = await import("../messaging");
         sendBookingConfirmationInteractive({
           phone: input.phone,
@@ -187,7 +189,7 @@ export const appointmentsRouter = router({
           time: input.preferredTime || "غير محدد",
           doctor: doctor?.name || "غير محدد",
           service: input.procedure || "فحص عام",
-          bookingId: appointment.insertId,
+          bookingId: result.insertId,
           bookingType: "appointment",
         }).catch(error => {
           console.error("[WhatsApp] Failed to send booking confirmation:", error);
@@ -205,7 +207,7 @@ export const appointmentsRouter = router({
         fbc: ctx.req.cookies?.["_fbc"],
         fbp: ctx.req.cookies?.["_fbp"],
         eventSourceUrl: input.referrer,
-        eventId: `appt_${appointment?.insertId || Date.now()}`,
+        eventId: `appt_${result?.insertId || Date.now()}`,
       }).catch((err) => console.error("[CAPI] Appointment lead error:", err));
 
       // Invalidate appointment caches after new submission
@@ -213,7 +215,7 @@ export const appointmentsRouter = router({
       serverCache.invalidate("list:appointments");
       serverCache.invalidate(CacheKeys.appointmentStats());
 
-      return appointment;
+      return result;
     }),
 
   list: protectedProcedure.query(async () => {

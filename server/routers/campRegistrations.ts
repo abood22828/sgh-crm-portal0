@@ -8,6 +8,7 @@ import { sendNewCampRegistrationTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
 import { sendCampRegistrationEvent, sendStatusChangeEvent } from "../facebookCAPI";
+import { normalizePhoneNumber } from "../db";
 
 export const campRegistrationsRouter = router({
   // Submit a new camp registration (public)
@@ -41,23 +42,24 @@ export const campRegistrationsRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      const normalizedPhone = normalizePhoneNumber(input.phone);
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
       // التحقق من عدم تكرار التسجيل بنفس الرقم ونفس المخيم خلال 3 أيام
       const threeDaysAgo = new Date();
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-      const existingReg = await db
-        .select({ id: campRegistrations.id })
+      const allRegs = await db
+        .select({ id: campRegistrations.id, phone: campRegistrations.phone })
         .from(campRegistrations)
         .where(
           and(
-            eq(campRegistrations.phone, input.phone),
             eq(campRegistrations.campId, input.campId),
             gte(campRegistrations.createdAt, threeDaysAgo)
           )
         )
-        .limit(1);
+        .limit(100);
+      const existingReg = allRegs.filter(r => normalizePhoneNumber(r.phone) === normalizedPhone);
       if (existingReg.length > 0) {
         throw new TRPCError({
           code: "CONFLICT",
@@ -78,7 +80,7 @@ export const campRegistrationsRouter = router({
       const [registration] = await db.insert(campRegistrations).values({
         campId: input.campId,
         fullName: input.fullName,
-        phone: input.phone,
+        phone: normalizedPhone,
         email: input.email,
         age: input.age,
         gender: input.gender,
