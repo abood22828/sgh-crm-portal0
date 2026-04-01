@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { getDb, getWhatsAppMessageByWhatsAppId, updateWhatsAppMessage, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, getCustomerInfoByPhone, normalizePhoneNumber } from "./db";
 import { appointments, offerLeads, campRegistrations } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
-import { publish, channelForConversation } from "./_core/pubsub";
+import { publish, channelForConversation, channelForUser } from "./_core/pubsub";
 
 /**
  * WhatsApp Webhook Express Routes
@@ -228,6 +228,21 @@ export function createWebhookRouter(): Router {
                   // 🔔 Publish SSE: global notification for sidebar badge
                   publish(
                     GLOBAL_CHANNEL,
+                    'new_inbound_message',
+                    {
+                      conversationId: conversation.id,
+                      phoneNumber: normalizedPhone,
+                      customerName: conversation.customerName,
+                      content: message.text.body.substring(0, 100),
+                      unreadCount: updatedUnreadCount,
+                      timestamp: new Date().toISOString(),
+                    }
+                  );
+
+                  // 🔔 Publish SSE: user-specific channel for real-time updates
+                  const ownerId = parseInt(process.env.OWNER_ID || '1', 10);
+                  publish(
+                    channelForUser(ownerId),
                     'new_inbound_message',
                     {
                       conversationId: conversation.id,

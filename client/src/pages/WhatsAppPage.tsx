@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Link } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Conversation {
@@ -419,7 +420,10 @@ function WhatsAppContent() {
   const handleConversationUpdate = useCallback(() => refetchConversations(), [refetchConversations]);
 
   // ── Global SSE: refresh conversation list when a new inbound message arrives ─────────────
-  useSSE('/api/whatsapp/stream/user/0', useCallback((e: MessageEvent) => {
+  const { user } = useAuth();
+  const userId = user?.id || 0;
+  
+  useSSE(userId ? `/api/whatsapp/stream/user/${userId}` : null, useCallback((e: MessageEvent) => {
     try {
       const eventName = (e as any).type || 'message';
       if (eventName === 'new_inbound_message') {
