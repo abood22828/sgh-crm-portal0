@@ -247,3 +247,146 @@ export const whatsappPhase2Procedures = {
       };
     }),
 };
+
+// Phase 3: Advanced Features Procedures
+export const whatsappPhase3Procedures = {
+  // Templates
+  sendTemplate: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        templateName: z.string().min(1),
+        language: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendTemplateMessage } = await import("../services/whatsappTemplates");
+      return sendTemplateMessage({
+        phone: input.phone,
+        templateName: input.templateName,
+        language: input.language,
+      });
+    }),
+
+  getTemplates: protectedProcedure.query(async () => {
+    const { getAvailableTemplates } = await import("../services/whatsappTemplates");
+    return getAvailableTemplates();
+  }),
+
+  getTemplateStatus: protectedProcedure
+    .input(z.object({ templateName: z.string() }))
+    .query(async ({ input }) => {
+      const { getTemplateStatus } = await import("../services/whatsappTemplates");
+      return getTemplateStatus(input.templateName);
+    }),
+
+  sendMedia: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        mediaType: z.enum(["image", "video", "document", "audio"]),
+        mediaUrl: z.string().url(),
+        caption: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendMediaMessage } = await import("../services/whatsappTemplates");
+      return sendMediaMessage({
+        phone: input.phone,
+        mediaType: input.mediaType,
+        mediaUrl: input.mediaUrl,
+        caption: input.caption,
+      });
+    }),
+
+  // Broadcast
+  sendBroadcast: protectedProcedure
+    .input(
+      z.object({
+        message: z.string().min(1).max(4096),
+        recipients: z.array(z.string().min(9).max(15)),
+        priority: z.enum(["high", "normal", "low"]).optional(),
+        delay: z.number().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendBroadcast } = await import("../services/whatsappBroadcast");
+      return sendBroadcast({
+        message: input.message,
+        recipients: input.recipients,
+        priority: input.priority,
+        delay: input.delay,
+      });
+    }),
+
+  getBroadcastStatus: protectedProcedure
+    .input(z.object({ jobId: z.string() }))
+    .query(async ({ input }) => {
+      const { getBroadcastStatus } = await import("../services/whatsappBroadcast");
+      return getBroadcastStatus(input.jobId);
+    }),
+
+  getBroadcastStats: protectedProcedure.query(async () => {
+    const { getBroadcastStats } = await import("../services/whatsappBroadcast");
+    return getBroadcastStats();
+  }),
+
+  scheduleBroadcast: protectedProcedure
+    .input(
+      z.object({
+        message: z.string().min(1).max(4096),
+        recipients: z.array(z.string().min(9).max(15)),
+        scheduledAt: z.date(),
+        priority: z.enum(["high", "normal", "low"]).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { scheduleBroadcast } = await import("../services/whatsappBroadcast");
+      return scheduleBroadcast({
+        message: input.message,
+        recipients: input.recipients,
+        scheduledAt: input.scheduledAt,
+        priority: input.priority,
+      });
+    }),
+
+  // Auto Replies
+  addAutoReplyRule: protectedProcedure
+    .input(
+      z.object({
+        trigger: z.string().min(1),
+        response: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { addAutoReplyRule } = await import("../services/whatsappAutoReply");
+      return addAutoReplyRule({
+        trigger: input.trigger,
+        response: input.response,
+      });
+    }),
+
+  deleteAutoReplyRule: protectedProcedure
+    .input(z.object({ ruleId: z.string() }))
+    .mutation(async ({ input }) => {
+      const { deleteAutoReplyRule } = await import("../services/whatsappAutoReply");
+      return deleteAutoReplyRule(input.ruleId);
+    }),
+
+  getAutoReplyRules: protectedProcedure.query(async () => {
+    const { getAutoReplyRules } = await import("../services/whatsappAutoReply");
+    return getAutoReplyRules();
+  }),
+
+  toggleAutoReplyRule: protectedProcedure
+    .input(
+      z.object({
+        ruleId: z.string(),
+        enabled: z.boolean(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { toggleAutoReplyRule } = await import("../services/whatsappAutoReply");
+      return toggleAutoReplyRule(input.ruleId, input.enabled);
+    }),
+};
