@@ -32,10 +32,13 @@ async function checkRedisConnection(): Promise<boolean> {
  */
 
 export interface WhatsAppMessageJob {
-  to: string;
-  templateName: string;
-  language: string;
-  components: Array<{
+  type?: "text" | "template";
+  to?: string;
+  phone?: string;
+  message?: string;
+  templateName?: string;
+  language?: string;
+  components?: Array<{
     type: "header" | "body" | "footer" | "button";
     parameters?: Array<{ type: "text" | "payload"; text?: string; payload?: string }>;
     sub_type?: "quick_reply";
@@ -47,6 +50,7 @@ export interface WhatsAppMessageJob {
     bookingType?: "appointment" | "offer" | "camp";
     patientName?: string;
   };
+  timestamp?: Date;
 }
 
 // Create the queue (will be initialized only if Redis is available)
@@ -92,17 +96,18 @@ async function initializeWorker() {
   whatsappWorker = new Worker<WhatsAppMessageJob, any, string>(
   "whatsapp-messages",
   async (job: Job<WhatsAppMessageJob>) => {
-    const { to, templateName, language, components, category, metadata } = job.data;
+    const { to, phone, templateName, language, components, category, metadata } = job.data;
+    const phoneNumber = to || phone || "";
 
-    console.log(`[WhatsApp Queue] Processing job ${job.id} for ${to}`);
+    console.log(`[WhatsApp Queue] Processing job ${job.id} for ${phoneNumber}`);
 
     try {
       const result = await sendWhatsAppTemplateMessage(
-        to,
+        phoneNumber,
         {
-          templateName,
-          languageCode: language,
-          components,
+          templateName: templateName || "",
+          languageCode: language || "ar",
+          components: components || [],
         },
         category ? { category } : undefined
       );
@@ -157,12 +162,13 @@ export async function queueWhatsAppMessage(data: WhatsAppMessageJob): Promise<st
     // Fallback: Send directly without queue
     console.log("[WhatsApp Queue] Redis unavailable, sending message directly");
     try {
+      const phoneNumber = data.to || data.phone || "";
       const result = await sendWhatsAppTemplateMessage(
-        data.to,
+        phoneNumber,
         {
-          templateName: data.templateName,
-          languageCode: data.language,
-          components: data.components,
+          templateName: data.templateName || "",
+          languageCode: data.language || "ar",
+          components: data.components || [],
         },
         data.category ? { category: data.category } : undefined
       );
@@ -179,7 +185,7 @@ export async function queueWhatsAppMessage(data: WhatsAppMessageJob): Promise<st
   });
   
   console.log(`[WhatsApp Queue] Added job ${job.id} to queue`);
-  return job.id || "";
+  return (job.id?.toString()) || "";
 }
 
 /**

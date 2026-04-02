@@ -22,4 +22,5 @@ export const ENV = {
   metaPixelId: process.env.META_PIXEL_ID ?? "",
   metaTestEventCode: process.env.META_TEST_EVENT_CODE ?? "",
   whatsappBusinessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID ?? "",
+  webhookVerifyToken: process.env.WEBHOOK_VERIFY_TOKEN ?? "",
 };

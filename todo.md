@@ -3765,3 +3765,40 @@
 - [ ] تطبيق نظام webhooks فعلي لاستقبال الرسائل الفورية
 - [ ] إضافة نظام إشعارات فورية للرسائل الجديدة
 - [ ] اختبار النظام والتحقق من وصول الرسائل الفورية
+
+
+## تطبيق WhatsApp Cloud API - المرحلة 1: الإعداد الأساسي ✅ مكتمل
+
+### تثبيت المكتبات والإعدادات الأساسية
+- [x] تثبيت @awadoc/whatsapp-cloud-api
+- [x] تثبيت @kapso/whatsapp-cloud-api
+- [x] تثبيت bull (Queue system)
+- [x] تثبيت redis (لـ Queue)
+- [x] تثبيت zod (للـ validation)
+
+### إنشاء ملفات الإعدادات
+- [x] إنشاء server/config/whatsapp.ts
+- [x] إنشاء server/services/whatsappService.ts
+- [x] تحديث server/queues/whatsappQueue.ts
+- [x] إنشاء server/webhooks/whatsappWebhook.ts
+- [x] تحديث server/_core/env.ts بإضافة webhookVerifyToken
+
+### إعداد Webhook
+- [x] إنشاء webhook handler
+- [x] معالجة incoming messages
+- [x] معالجة message status updates
+- [x] معالجة template status updates
+
+### معالجة الرسائل الأساسية
+- [x] دالة إرسال رسائل نصية
+- [x] دالة إرسال رسائل الترحيب
+- [x] دالة إرسال رسائل تأكيد الحجز
+- [x] دالة إرسال رسائل مخصصة
+- [x] دعم Queue system مع retry logic
+
+### ملاحظات:
+- تم إنشاء البنية الأساسية لـ WhatsApp Cloud API
+- تم دعم كل من @awadoc و @kapso libraries
+- تم إضافة Queue system مع Bull و Redis
+- تم إضافة معالجة الأخطاء والـ retries
+- الأخطاء المتبقية في WhatsAppTemplatesPage.tsx غير متعلقة بـ WhatsApp Phase 1
