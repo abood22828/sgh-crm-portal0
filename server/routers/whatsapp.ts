@@ -1,4 +1,4 @@
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { meta } from "../MetaApiService";
 import { z } from "zod";
@@ -7,6 +7,14 @@ import {
   getWhatsAppAPIStatus,
   formatPhoneNumber 
 } from "../whatsappCloudAPI";
+import {
+  sendTextMessage,
+  sendWelcomeMessage,
+  sendBookingConfirmation,
+  verifyWhatsAppHealth,
+} from "../services/whatsappService";
+import { normalizePhoneNumber } from "../db";
+import { whatsappBot } from "../config/whatsapp";
 
 export const whatsappRouter = router({
   // WhatsApp Cloud API Status
@@ -163,3 +171,79 @@ export const whatsappRouter = router({
       }),
   }),
 });
+
+// Phase 2: New WhatsApp Service Methods - Added after templates router
+export const whatsappPhase2Procedures = {
+  sendSimpleText: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        message: z.string().min(1).max(4096),
+        priority: z.enum(["high", "normal", "low"]).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return sendTextMessage(input.phone, input.message, {
+        priority: input.priority,
+      });
+    }),
+
+  sendWelcomeMsg: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        fullName: z.string().min(1),
+        campaignName: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return sendWelcomeMessage({
+        phone: input.phone,
+        fullName: input.fullName,
+        campaignName: input.campaignName,
+      });
+    }),
+
+  health: publicProcedure.query(async () => {
+    return verifyWhatsAppHealth();
+  }),
+
+  testConnection: protectedProcedure
+    .input(z.object({ phone: z.string().min(9).max(15) }))
+    .mutation(async ({ input }) => {
+      try {
+        if (!whatsappBot) {
+          return {
+            success: false,
+            error: "WhatsApp bot not initialized",
+          };
+        }
+
+        const normalizedPhone = normalizePhoneNumber(input.phone);
+        const testMessage = `اختبار الاتصال بـ WhatsApp ✅\nالوقت: ${new Date().toLocaleString("ar-YE")}`;
+
+        await whatsappBot.sendText(normalizedPhone, testMessage);
+
+        return {
+          success: true,
+          message: "تم إرسال رسالة الاختبار بنجاح",
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    }),
+
+  normalizePhone: publicProcedure
+    .input(z.object({ phone: z.string() }))
+    .query(({ input }) => {
+      const normalized = normalizePhoneNumber(input.phone);
+      return {
+        original: input.phone,
+        normalized,
+        isValid: normalized.length >= 9 && normalized.length <= 15,
+      };
+    }),
+};
