@@ -390,3 +390,181 @@ export const whatsappPhase3Procedures = {
       return toggleAutoReplyRule(input.ruleId, input.enabled);
     }),
 };
+
+// Phase 4: Appointments, Audit Log, Security & Compliance
+export const whatsappPhase4Procedures = {
+  // Appointments
+  sendAppointmentConfirmation: protectedProcedure
+    .input(
+      z.object({
+        appointmentId: z.number(),
+        phone: z.string().min(9).max(15),
+        patientName: z.string(),
+        doctorName: z.string(),
+        appointmentTime: z.date(),
+        department: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendAppointmentConfirmation } = await import(
+        "../services/whatsappAppointments"
+      );
+      return sendAppointmentConfirmation({
+        appointmentId: input.appointmentId,
+        phone: input.phone,
+        patientName: input.patientName,
+        doctorName: input.doctorName,
+        appointmentTime: input.appointmentTime,
+        department: input.department,
+      });
+    }),
+
+  sendAppointmentReminder: protectedProcedure
+    .input(
+      z.object({
+        appointmentId: z.number(),
+        phone: z.string().min(9).max(15),
+        patientName: z.string(),
+        doctorName: z.string(),
+        appointmentTime: z.date(),
+        hoursUntil: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendAppointmentReminder } = await import(
+        "../services/whatsappAppointments"
+      );
+      return sendAppointmentReminder({
+        appointmentId: input.appointmentId,
+        phone: input.phone,
+        patientName: input.patientName,
+        doctorName: input.doctorName,
+        appointmentTime: input.appointmentTime,
+        hoursUntil: input.hoursUntil,
+      });
+    }),
+
+  sendAppointmentFollowup: protectedProcedure
+    .input(
+      z.object({
+        appointmentId: z.number(),
+        phone: z.string().min(9).max(15),
+        patientName: z.string(),
+        doctorName: z.string(),
+        department: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendAppointmentFollowup } = await import(
+        "../services/whatsappAppointments"
+      );
+      return sendAppointmentFollowup({
+        appointmentId: input.appointmentId,
+        phone: input.phone,
+        patientName: input.patientName,
+        doctorName: input.doctorName,
+        department: input.department,
+      });
+    }),
+
+  checkAndSendReminders: protectedProcedure.mutation(async () => {
+    const { checkAndSendReminders } = await import("../services/whatsappAppointments");
+    return checkAndSendReminders();
+  }),
+
+  // Audit Log
+  getAuditLogs: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().optional(),
+        type: z.string().optional(),
+        limit: z.number().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { getAuditLogs } = await import("../services/whatsappAuditLog");
+      return getAuditLogs({
+        phone: input.phone,
+        type: input.type,
+        limit: input.limit,
+      });
+    }),
+
+  getAuditStats: protectedProcedure.query(async () => {
+    const { getAuditStats } = await import("../services/whatsappAuditLog");
+    return getAuditStats();
+  }),
+
+  exportAuditLogs: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { exportAuditLogs } = await import("../services/whatsappAuditLog");
+      return exportAuditLogs({
+        phone: input.phone,
+      });
+    }),
+
+  // Security & Compliance
+  blockPhone: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        reason: z.enum(["opt_out", "spam", "manual", "invalid"]),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { blockPhone } = await import("../services/whatsappSecurity");
+      return blockPhone({
+        phone: input.phone,
+        reason: input.reason,
+      });
+    }),
+
+  unblockPhone: protectedProcedure
+    .input(z.object({ phone: z.string().min(9).max(15) }))
+    .mutation(async ({ input }) => {
+      const { unblockPhone } = await import("../services/whatsappSecurity");
+      return unblockPhone(input.phone);
+    }),
+
+  getBlockedPhones: protectedProcedure.query(async () => {
+    const { getBlockedPhones } = await import("../services/whatsappSecurity");
+    return getBlockedPhones();
+  }),
+
+  handleOptOutRequest: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        reason: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { handleOptOutRequest } = await import("../services/whatsappSecurity");
+      return handleOptOutRequest({
+        phone: input.phone,
+        reason: input.reason,
+      });
+    }),
+
+  getOptOutRequests: protectedProcedure.query(async () => {
+    const { getOptOutRequests } = await import("../services/whatsappSecurity");
+    return getOptOutRequests();
+  }),
+
+  validateMetaCompliance: protectedProcedure
+    .input(z.object({ message: z.string() }))
+    .query(async ({ input }) => {
+      const { validateMetaCompliance } = await import("../services/whatsappSecurity");
+      return validateMetaCompliance(input.message);
+    }),
+
+  getSecurityStats: protectedProcedure.query(async () => {
+    const { getSecurityStats } = await import("../services/whatsappSecurity");
+    return getSecurityStats();
+  }),
+};
