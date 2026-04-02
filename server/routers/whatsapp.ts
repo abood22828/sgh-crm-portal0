@@ -568,3 +568,36 @@ export const whatsappPhase4Procedures = {
     return getSecurityStats();
   }),
 };
+
+// Phase 5: Scheduler & Advanced Features
+export const whatsappPhase5Procedures = {
+  // Scheduler Management
+  initializeScheduler: protectedProcedure.mutation(async () => {
+    const { initializeScheduler } = await import("../services/whatsappScheduler");
+    return initializeScheduler();
+  }),
+
+  getScheduledTasks: protectedProcedure.query(async () => {
+    const { getScheduledTasks } = await import("../services/whatsappScheduler");
+    return getScheduledTasks();
+  }),
+
+  stopTask: protectedProcedure
+    .input(z.object({ taskId: z.string() }))
+    .mutation(async ({ input }) => {
+      const { stopTask } = await import("../services/whatsappScheduler");
+      return stopTask(input.taskId);
+    }),
+
+  resumeTask: protectedProcedure
+    .input(z.object({ taskId: z.string() }))
+    .mutation(async ({ input }) => {
+      const { resumeTask } = await import("../services/whatsappScheduler");
+      return resumeTask(input.taskId);
+    }),
+
+  shutdownScheduler: protectedProcedure.mutation(async () => {
+    const { shutdownScheduler } = await import("../services/whatsappScheduler");
+    return shutdownScheduler();
+  }),
+};
