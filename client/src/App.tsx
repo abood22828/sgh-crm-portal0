@@ -104,7 +104,7 @@ function Router() {
       <Route path={"/dashboard/content"} component={ContentManagementPage} />
       <Route path={"/dashboard/users"} component={UsersManagementPage} />
       <Route path={"/dashboard/publishing"} component={PublishingPage} />
-      <Route path={"/dashboard/whatsapp"} component={WhatsAppDashboard} />
+      <Route path={"/dashboard/whatsapp"} component={WhatsAppPage} />
       <Route path={"/dashboard/whatsapp/templates"} component={WhatsAppTemplatesPage} />
       <Route path={"/dashboard/whatsapp/connection"} component={WhatsAppConnectionPage} />
       <Route path={"/dashboard/whatsapp/analytics"} component={WhatsAppAnalytics} />

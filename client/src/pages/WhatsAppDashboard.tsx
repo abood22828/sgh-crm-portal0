@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,14 @@ import { AlertCircle, CheckCircle2, Clock, Send, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 export default function WhatsAppDashboard() {
+  return (
+    <DashboardLayout pageTitle="الرسائل والمحادثات" pageDescription="إدارة الرسائل والمحادثات عبر واتساب">
+      <WhatsAppDashboardContent />
+    </DashboardLayout>
+  );
+}
+
+function WhatsAppDashboardContent() {
   const [testPhone, setTestPhone] = useState("");
   const [testMessage, setTestMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -80,7 +89,7 @@ export default function WhatsAppDashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">لوحة تحكم WhatsApp</h1>
