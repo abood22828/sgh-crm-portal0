@@ -99,7 +99,8 @@ export async function scheduleTask(params: {
         const task = scheduledTasks.get(params.id);
         if (task) {
           task.lastRun = new Date();
-          task.nextRun = job.nextDate().toDate();
+          const nextDate = job.nextDate();
+          task.nextRun = nextDate ? nextDate.toJSDate() : new Date();
         }
 
         console.log(
@@ -110,13 +111,14 @@ export async function scheduleTask(params: {
       }
     });
 
+    const nextDate = job.nextDate();
     const task: ScheduledTask = {
       id: params.id,
       name: params.name,
       cronExpression: params.cronExpression,
       enabled: true,
       job,
-      nextRun: job.nextDate().toDate(),
+      nextRun: nextDate ? nextDate.toJSDate() : new Date(),
     };
 
     scheduledTasks.set(params.id, task);
@@ -287,7 +289,8 @@ export async function shutdownScheduler(): Promise<{
   try {
     console.log("[WhatsApp Scheduler] Shutting down scheduler...");
 
-    for (const task of scheduledTasks.values()) {
+    const tasks = Array.from(scheduledTasks.values());
+    for (const task of tasks) {
       if (task.job) {
         task.job.stop();
       }

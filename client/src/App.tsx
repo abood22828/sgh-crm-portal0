@@ -31,6 +31,10 @@ const PublishingPage = lazy(() => import("./pages/PublishingPage"));
 const WhatsAppPage = lazy(() => import("./pages/WhatsAppPage"));
 const WhatsAppTemplatesPage = lazy(() => import("./pages/WhatsAppTemplatesPage"));
 const WhatsAppConnectionPage = lazy(() => import("./pages/WhatsAppConnectionPage"));
+const WhatsAppDashboard = lazy(() => import("./pages/WhatsAppDashboard"));
+const WhatsAppAnalytics = lazy(() => import("./pages/WhatsAppAnalytics"));
+const WhatsAppCompliance = lazy(() => import("./pages/WhatsAppCompliance"));
+const WhatsAppAppointments = lazy(() => import("./pages/WhatsAppAppointments"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const ReportsPageNew = lazy(() => import("./pages/admin/ReportsPage"));
@@ -100,9 +104,12 @@ function Router() {
       <Route path={"/dashboard/content"} component={ContentManagementPage} />
       <Route path={"/dashboard/users"} component={UsersManagementPage} />
       <Route path={"/dashboard/publishing"} component={PublishingPage} />
-      <Route path={"/dashboard/whatsapp"} component={WhatsAppPage} />
+      <Route path={"/dashboard/whatsapp"} component={WhatsAppDashboard} />
       <Route path={"/dashboard/whatsapp/templates"} component={WhatsAppTemplatesPage} />
       <Route path={"/dashboard/whatsapp/connection"} component={WhatsAppConnectionPage} />
+      <Route path={"/dashboard/whatsapp/analytics"} component={WhatsAppAnalytics} />
+      <Route path={"/dashboard/whatsapp/compliance"} component={WhatsAppCompliance} />
+      <Route path={"/dashboard/whatsapp/appointments"} component={WhatsAppAppointments} />
       <Route path={"/dashboard/messages"} component={MessagesPage} />
       <Route path={"/dashboard/message-settings"} component={MessageSettingsPage} />
       <Route path={"/dashboard/queue"} component={QueueDashboard} />
