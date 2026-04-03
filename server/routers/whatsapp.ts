@@ -169,6 +169,429 @@ export const whatsappRouter = router({
       .query(async ({ input }) => {
         return await db.getWhatsAppTemplateById(input.id);
       }),
+
+    syncFromMeta: protectedProcedure.mutation(async () => {
+      const { syncTemplatesFromMeta } = await import("../services/whatsappTemplates");
+      return syncTemplatesFromMeta();
+    }),
+
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1),
+          content: z.string().min(1),
+          category: z.string(),
+          language: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { createTemplate } = await import("../services/whatsappTemplates");
+        return createTemplate(input);
+      }),
+
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          name: z.string().optional(),
+          content: z.string().optional(),
+          category: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { updateTemplate } = await import("../services/whatsappTemplates");
+        return updateTemplate(input.id, input);
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteTemplate } = await import("../services/whatsappTemplates");
+        return deleteTemplate(input.id);
+      }),
+  }),
+
+  // Phase 2 Procedures
+  sendSimpleText: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        message: z.string().min(1).max(4096),
+        priority: z.enum(["high", "normal", "low"]).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return sendTextMessage(input.phone, input.message, {
+        priority: input.priority,
+      });
+    }),
+
+  sendWelcomeMsg: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        fullName: z.string().min(1),
+        campaignName: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return sendWelcomeMessage({
+        phone: input.phone,
+        fullName: input.fullName,
+        campaignName: input.campaignName,
+      });
+    }),
+
+  health: publicProcedure.query(async () => {
+    return verifyWhatsAppHealth();
+  }),
+
+  testConnection: protectedProcedure
+    .input(z.object({ phone: z.string().min(9).max(15) }))
+    .mutation(async ({ input }) => {
+      try {
+        if (!whatsappBot) {
+          return {
+            success: false,
+            error: "WhatsApp bot not initialized",
+          };
+        }
+
+        const normalizedPhone = normalizePhoneNumber(input.phone);
+        const testMessage = `اختبار الاتصال بـ WhatsApp ✅\nالوقت: ${new Date().toLocaleString("ar-YE")}`;
+
+        await whatsappBot.sendText(normalizedPhone, testMessage);
+
+        return {
+          success: true,
+          message: "تم إرسال رسالة الاختبار بنجاح",
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    }),
+
+  normalizePhone: publicProcedure
+    .input(z.object({ phone: z.string() }))
+    .query(({ input }) => {
+      const normalized = normalizePhoneNumber(input.phone);
+      return {
+        original: input.phone,
+        normalized,
+        isValid: normalized.length >= 9 && normalized.length <= 15,
+      };
+    }),
+
+  // Phase 3 Procedures
+  sendTemplate: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        templateName: z.string().min(1),
+        language: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendTemplateMessage } = await import("../services/whatsappTemplates");
+      return sendTemplateMessage({
+        phone: input.phone,
+        templateName: input.templateName,
+        language: input.language,
+      });
+    }),
+
+  getTemplates: protectedProcedure.query(async () => {
+    const { getAvailableTemplates } = await import("../services/whatsappTemplates");
+    return getAvailableTemplates();
+  }),
+
+  getTemplateStatus: protectedProcedure
+    .input(z.object({ templateName: z.string() }))
+    .query(async ({ input }) => {
+      const { getTemplateStatus } = await import("../services/whatsappTemplates");
+      return getTemplateStatus(input.templateName);
+    }),
+
+  sendMedia: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        mediaType: z.enum(["image", "video", "document", "audio"]),
+        mediaUrl: z.string().url(),
+        caption: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendMediaMessage } = await import("../services/whatsappTemplates");
+      return sendMediaMessage({
+        phone: input.phone,
+        mediaType: input.mediaType,
+        mediaUrl: input.mediaUrl,
+        caption: input.caption,
+      });
+    }),
+
+  sendBroadcast: protectedProcedure
+    .input(
+      z.object({
+        message: z.string().min(1).max(4096),
+        recipients: z.array(z.string().min(9).max(15)),
+        priority: z.enum(["high", "normal", "low"]).optional(),
+        delay: z.number().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendBroadcast } = await import("../services/whatsappBroadcast");
+      return sendBroadcast({
+        message: input.message,
+        recipients: input.recipients,
+        priority: input.priority,
+        delay: input.delay,
+      });
+    }),
+
+  getBroadcastStatus: protectedProcedure
+    .input(z.object({ jobId: z.string() }))
+    .query(async ({ input }) => {
+      const { getBroadcastStatus } = await import("../services/whatsappBroadcast");
+      return getBroadcastStatus(input.jobId);
+    }),
+
+  getBroadcastStats: protectedProcedure.query(async () => {
+    const { getBroadcastStats } = await import("../services/whatsappBroadcast");
+    return getBroadcastStats();
+  }),
+
+  scheduleBroadcast: protectedProcedure
+    .input(
+      z.object({
+        message: z.string().min(1).max(4096),
+        recipients: z.array(z.string().min(9).max(15)),
+        scheduledAt: z.date(),
+        priority: z.enum(["high", "normal", "low"]).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { scheduleBroadcast } = await import("../services/whatsappBroadcast");
+      return scheduleBroadcast({
+        message: input.message,
+        recipients: input.recipients,
+        scheduledAt: input.scheduledAt,
+        priority: input.priority,
+      });
+    }),
+
+  addAutoReplyRule: protectedProcedure
+    .input(
+      z.object({
+        trigger: z.string().min(1),
+        response: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { addAutoReplyRule } = await import("../services/whatsappAutoReply");
+      return addAutoReplyRule({
+        trigger: input.trigger,
+        response: input.response,
+      });
+    }),
+
+  deleteAutoReplyRule: protectedProcedure
+    .input(z.object({ ruleId: z.string() }))
+    .mutation(async ({ input }) => {
+      const { deleteAutoReplyRule } = await import("../services/whatsappAutoReply");
+      return deleteAutoReplyRule(input.ruleId);
+    }),
+
+  getAutoReplyRules: protectedProcedure.query(async () => {
+    const { getAutoReplyRules } = await import("../services/whatsappAutoReply");
+    return getAutoReplyRules();
+  }),
+
+  toggleAutoReplyRule: protectedProcedure
+    .input(
+      z.object({
+        ruleId: z.string(),
+        enabled: z.boolean(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { toggleAutoReplyRule } = await import("../services/whatsappAutoReply");
+      return toggleAutoReplyRule(input.ruleId, input.enabled);
+    }),
+
+  // Phase 4 Procedures
+  sendAppointmentConfirmation: protectedProcedure
+    .input(
+      z.object({
+        appointmentId: z.number(),
+        phone: z.string().min(9).max(15),
+        patientName: z.string(),
+        doctorName: z.string(),
+        appointmentTime: z.date(),
+        department: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendAppointmentConfirmation } = await import(
+        "../services/whatsappAppointments"
+      );
+      return sendAppointmentConfirmation(input);
+    }),
+
+  sendAppointmentReminder: protectedProcedure
+    .input(
+      z.object({
+        appointmentId: z.number(),
+        phone: z.string().min(9).max(15),
+        patientName: z.string(),
+        doctorName: z.string(),
+        appointmentTime: z.date(),
+        hoursUntil: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendAppointmentReminder } = await import(
+        "../services/whatsappAppointments"
+      );
+      return sendAppointmentReminder(input);
+    }),
+
+  sendAppointmentFollowup: protectedProcedure
+    .input(
+      z.object({
+        appointmentId: z.number(),
+        phone: z.string().min(9).max(15),
+        patientName: z.string(),
+        doctorName: z.string(),
+        department: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { sendAppointmentFollowup } = await import(
+        "../services/whatsappAppointments"
+      );
+      return sendAppointmentFollowup(input);
+    }),
+
+  checkAndSendReminders: protectedProcedure.mutation(async () => {
+    const { checkAndSendReminders } = await import("../services/whatsappAppointments");
+    return checkAndSendReminders();
+  }),
+
+  getAuditLogs: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().optional(),
+        type: z.string().optional(),
+        limit: z.number().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { getAuditLogs } = await import("../services/whatsappAuditLog");
+      return getAuditLogs(input);
+    }),
+
+  getAuditStats: protectedProcedure.query(async () => {
+    const { getAuditStats } = await import("../services/whatsappAuditLog");
+    return getAuditStats();
+  }),
+
+  exportAuditLogs: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { exportAuditLogs } = await import("../services/whatsappAuditLog");
+      return exportAuditLogs(input);
+    }),
+
+  blockPhone: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        reason: z.enum(["opt_out", "spam", "manual", "invalid"]),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { blockPhone } = await import("../services/whatsappSecurity");
+      return blockPhone(input);
+    }),
+
+  unblockPhone: protectedProcedure
+    .input(z.object({ phone: z.string().min(9).max(15) }))
+    .mutation(async ({ input }) => {
+      const { unblockPhone } = await import("../services/whatsappSecurity");
+      return unblockPhone(input.phone);
+    }),
+
+  getBlockedPhones: protectedProcedure.query(async () => {
+    const { getBlockedPhones } = await import("../services/whatsappSecurity");
+    return getBlockedPhones();
+  }),
+
+  handleOptOutRequest: protectedProcedure
+    .input(
+      z.object({
+        phone: z.string().min(9).max(15),
+        reason: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { handleOptOutRequest } = await import("../services/whatsappSecurity");
+      return handleOptOutRequest(input);
+    }),
+
+  getOptOutRequests: protectedProcedure.query(async () => {
+    const { getOptOutRequests } = await import("../services/whatsappSecurity");
+    return getOptOutRequests();
+  }),
+
+  validateMetaCompliance: protectedProcedure
+    .input(z.object({ message: z.string() }))
+    .query(async ({ input }) => {
+      const { validateMetaCompliance } = await import("../services/whatsappSecurity");
+      return validateMetaCompliance(input.message);
+    }),
+
+  getSecurityStats: protectedProcedure.query(async () => {
+    const { getSecurityStats } = await import("../services/whatsappSecurity");
+    return getSecurityStats();
+  }),
+
+  // Phase 5 Procedures
+  initializeScheduler: protectedProcedure.mutation(async () => {
+    const { initializeScheduler } = await import("../services/whatsappScheduler");
+    return initializeScheduler();
+  }),
+
+  getScheduledTasks: protectedProcedure.query(async () => {
+    const { getScheduledTasks } = await import("../services/whatsappScheduler");
+    return getScheduledTasks();
+  }),
+
+  stopTask: protectedProcedure
+    .input(z.object({ taskId: z.string() }))
+    .mutation(async ({ input }) => {
+      const { stopTask } = await import("../services/whatsappScheduler");
+      return stopTask(input.taskId);
+    }),
+
+  resumeTask: protectedProcedure
+    .input(z.object({ taskId: z.string() }))
+    .mutation(async ({ input }) => {
+      const { resumeTask } = await import("../services/whatsappScheduler");
+      return resumeTask(input.taskId);
+    }),
+
+  shutdownScheduler: protectedProcedure.mutation(async () => {
+    const { shutdownScheduler } = await import("../services/whatsappScheduler");
+    return shutdownScheduler();
   }),
 });
 

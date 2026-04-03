@@ -373,7 +373,7 @@ function WhatsAppContent() {
       setIsNewMessageOpen(false);
       refetchConversations();
     },
-    onError: (error) => toast.error(`فشل إرسال القالب: ${error.message}`),
+    onError: (error: any) => toast.error(`فشل إرسال القالب: ${error?.message || 'خطأ غير معروف'}`),
   });
 
   // Stable callbacks — useCallback prevents new references on every render
