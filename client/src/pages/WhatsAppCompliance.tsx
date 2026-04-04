@@ -50,8 +50,8 @@ export default function WhatsAppCompliance() {
   // Mutations
   const blockPhoneMutation = trpc.whatsapp.blockPhone.useMutation();
   const unblockPhoneMutation = trpc.whatsapp.unblockPhone.useMutation();
-  const validateComplianceMutation = trpc.whatsapp.validateMetaCompliance.useMutation();
-  const exportAuditMutation = trpc.whatsapp.exportAuditLogs.useMutation();
+  const validateComplianceQuery = trpc.whatsapp.validateMetaCompliance.useQuery({ message: "" });
+  const exportAuditQuery = trpc.whatsapp.exportAuditLogs.useQuery({ phone: undefined });
 
   const handleBlockPhone = async () => {
     if (!blockPhone) {
@@ -106,15 +106,13 @@ export default function WhatsAppCompliance() {
 
     setIsLoading(true);
     try {
-      const result = await validateComplianceMutation.mutateAsync({
-        message: messageToValidate,
-      });
+      const result = await validateComplianceQuery.refetch();
 
-      if (result.success) {
-        if (result.compliant) {
+      if (result.data?.success) {
+        if (result.data?.compliant) {
           toast.success("الرسالة متوافقة مع معايير Meta");
         } else {
-          toast.error(`الرسالة تحتوي على مشاكل: ${result.issues?.join(", ")}`);
+          toast.error(`الرسالة تحتوي على مشاكل: ${result.data?.issues?.join(", ")}`);
         }
       }
     } catch (error) {
@@ -127,12 +125,12 @@ export default function WhatsAppCompliance() {
   const handleExportAudit = async () => {
     setIsLoading(true);
     try {
-      const result = await exportAuditMutation.mutateAsync({});
+      const result = await exportAuditQuery.refetch();
 
-      if (result.success && result.csv) {
+      if (result.data?.success && result.data?.csv) {
         // Create download link
         const element = document.createElement("a");
-        element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(result.csv));
+        element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(result.data.csv));
         element.setAttribute("download", `audit-log-${new Date().toISOString()}.csv`);
         element.style.display = "none";
         document.body.appendChild(element);

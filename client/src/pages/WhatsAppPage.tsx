@@ -352,7 +352,7 @@ function WhatsAppContent() {
   // Mutations
   const markConversationAsReadMutation = trpc.whatsapp.conversations.markAsRead.useMutation();
   
-  const sendNewMessageMutation = trpc.whatsapp.messages.sendDirect.useMutation({
+  const sendNewMessageMutation = trpc.whatsapp.messages.send.useMutation({
     onSuccess: () => {
       toast.success("تم إرسال الرسالة بنجاح");
       setNewMessagePhone("");
@@ -364,7 +364,7 @@ function WhatsAppContent() {
     onError: (error) => toast.error(`فشل إرسال الرسالة: ${error.message}`),
   });
 
-  const sendTemplateMutation = trpc.whatsapp.messages.sendTemplate.useMutation({
+  const sendTemplateMutation = trpc.whatsapp.sendTemplate.useMutation({
     onSuccess: () => {
       toast.success("تم إرسال القالب بنجاح");
       setNewMessagePhone("");
@@ -405,15 +405,14 @@ function WhatsAppContent() {
       sendTemplateMutation.mutate({
         phone: newMessagePhone,
         templateName,
-        languageCode,
-        components: [],
+        language: languageCode,
       });
     } else {
       if (!newMessageText.trim()) {
         toast.error("يرجى إدخال الرسالة أو اختيار قالب");
         return;
       }
-      sendNewMessageMutation.mutate({ phone: newMessagePhone, content: newMessageText });
+      sendNewMessageMutation.mutate({ conversationId: selectedConversation || 0, message: newMessageText });
     }
   }, [newMessagePhone, newMessageTemplateId, newMessageText, templates, sendTemplateMutation, sendNewMessageMutation]);
 
