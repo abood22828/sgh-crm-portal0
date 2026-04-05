@@ -59,27 +59,25 @@ export default function ConversationInfo({
 
 
 
-  useEffect(() => {
-    const fetchCustomerData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [infoResult, recordsResult] = await Promise.all([
-          trpc.whatsapp.conversations.getCustomerInfo.fetch({ phone: conversation.phoneNumber }),
-          trpc.whatsapp.conversations.getCustomerRecords.fetch({ phone: conversation.phoneNumber }),
-        ]);
-        
-        if (infoResult) setCustomerInfo(infoResult);
-        if (recordsResult) setCustomerRecords(recordsResult);
-      } catch (err: any) {
-        setError(err.message || "خطأ في تحميل البيانات");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: infoData, isLoading: infoLoading } = trpc.whatsapp.conversations.getCustomerInfo.useQuery(
+    { phone: conversation.phoneNumber },
+    { enabled: !!conversation.phoneNumber }
+  );
 
-    fetchCustomerData();
-  }, [conversation.phoneNumber]);
+  const { data: recordsData, isLoading: recordsLoading } = trpc.whatsapp.conversations.getCustomerRecords.useQuery(
+    { phone: conversation.phoneNumber },
+    { enabled: !!conversation.phoneNumber }
+  );
+
+  useEffect(() => {
+    if (infoData) setCustomerInfo(infoData as any);
+    if (recordsData) setCustomerRecords(recordsData as any);
+  }, [infoData, recordsData]);
+
+  useEffect(() => {
+    const loading = infoLoading || recordsLoading;
+    setLoading(loading);
+  }, [infoLoading, recordsLoading]);
 
   const handleCopyPhone = () => {
     navigator.clipboard.writeText(conversation.phoneNumber);

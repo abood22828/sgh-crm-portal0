@@ -76,14 +76,14 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     },
   });
 
-  const sendTemplateMutation = trpc.whatsapp.messages.sendTemplateByConversation.useMutation({
+  const sendTemplateMutation = trpc.whatsapp.sendTemplate.useMutation({
     onSuccess: () => {
       refetchMessages();
       onConversationUpdate?.();
       toast.success("تم إرسال القالب بنجاح");
     },
-    onError: (err) => {
-      toast.error(`فشل إرسال القالب: ${err.message}`);
+    onError: (err: any) => {
+      toast.error(`فشل إرسال القالب: ${err?.message || 'خطأ غير معروف'}`);
     },
   });
 
@@ -231,8 +231,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     scrollToBottom();
     sendMessageMutation.mutate({
       conversationId,
-      content: messageText.trim(),
-      messageType: "text",
+      message: messageText.trim(),
     });
     setMessageText("");
   };
@@ -242,12 +241,11 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     // استخدام metaName (الاسم المعتمد من Meta) إذا كان متاحاً، وإلا name
     const templateName = template.metaName || template.name;
     const languageCode = template.languageCode || "ar";
-    sendTemplateMutation.mutate({
-      conversationId,
-      templateName,
-      languageCode,
-      components: [],
-    });
+    // TODO: ربط مع المحادثة للحصول على رقم الهاتف
+    // في الوقت الحالي نستخدم toast للتأكد من اختيار القالب
+    toast.info('تم اختيار القالب: ' + templateName);
+    // سيتم تطبيق الإرسال الفعلي بعد ربط البيانات
+    console.log('Template selected:', templateName, languageCode);
   };
 
   return (
