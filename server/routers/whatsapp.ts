@@ -1024,3 +1024,67 @@ export const whatsappPhase5Procedures = {
     return shutdownScheduler();
   }),
 };
+
+  // WhatsApp Integration with Bookings
+  integration: router({
+    // Appointment confirmations
+    sendAppointmentConfirmation: protectedProcedure
+      .input(z.object({ appointmentId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { sendAppointmentConfirmation } = await import("../services/whatsappIntegration");
+        return sendAppointmentConfirmation(input.appointmentId);
+      }),
+
+    // Camp registration confirmations
+    sendCampRegistrationConfirmation: protectedProcedure
+      .input(z.object({ campRegistrationId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { sendCampRegistrationConfirmation } = await import("../services/whatsappIntegration");
+        return sendCampRegistrationConfirmation(input.campRegistrationId);
+      }),
+
+    // Offer lead confirmations
+    sendOfferLeadConfirmation: protectedProcedure
+      .input(z.object({ offerLeadId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { sendOfferLeadConfirmation } = await import("../services/whatsappIntegration");
+        return sendOfferLeadConfirmation(input.offerLeadId);
+      }),
+
+    // Appointment reminders
+    scheduleAppointmentReminder24h: protectedProcedure
+      .input(z.object({ appointmentId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { scheduleAppointmentReminder24h } = await import("../services/whatsappIntegration");
+        return scheduleAppointmentReminder24h(input.appointmentId);
+      }),
+
+    scheduleAppointmentReminder1h: protectedProcedure
+      .input(z.object({ appointmentId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { scheduleAppointmentReminder1h } = await import("../services/whatsappIntegration");
+        return scheduleAppointmentReminder1h(input.appointmentId);
+      }),
+
+    // Status updates
+    sendAppointmentStatusUpdate: protectedProcedure
+      .input(z.object({ appointmentId: z.number(), newStatus: z.string(), reason: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const { sendAppointmentStatusUpdate } = await import("../services/whatsappIntegration");
+        return sendAppointmentStatusUpdate(input.appointmentId, input.newStatus, input.reason);
+      }),
+
+    sendCampRegistrationStatusUpdate: protectedProcedure
+      .input(z.object({ campRegistrationId: z.number(), newStatus: z.string(), reason: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const { sendCampRegistrationStatusUpdate } = await import("../services/whatsappIntegration");
+        return sendCampRegistrationStatusUpdate(input.campRegistrationId, input.newStatus, input.reason);
+      }),
+
+    sendOfferLeadStatusUpdate: protectedProcedure
+      .input(z.object({ offerLeadId: z.number(), newStatus: z.string(), reason: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const { sendOfferLeadStatusUpdate } = await import("../services/whatsappIntegration");
+        return sendOfferLeadStatusUpdate(input.offerLeadId, input.newStatus, input.reason);
+      }),
+  }),
