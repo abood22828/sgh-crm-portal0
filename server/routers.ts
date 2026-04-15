@@ -42,6 +42,7 @@ import { chartsRouter } from "./routers/charts";
 import { trackingRouter } from "./routers/tracking";
 import { patientPortalRouter } from "./routers/patientPortal";
 import { pwaRouter } from "./routers/pwa";
+import { metaSyncRouter } from "./routers/metaSync";
 import { generatePDF, type ExportMetadata } from "./pdfService";
 
 export const appRouter = router({
@@ -54,6 +55,7 @@ export const appRouter = router({
   pwa: pwaRouter,
   whatsapp: whatsappRouter,
   whatsappTemplateTest: whatsappTemplateTestRouter,
+  metaSync: metaSyncRouter,
   messageSettings: messageSettingsRouter,
   webhooks: webhooksRouter,
   queue: queueRouter,
