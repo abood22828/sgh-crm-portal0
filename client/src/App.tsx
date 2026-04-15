@@ -35,6 +35,7 @@ const WhatsAppDashboard = lazy(() => import("./pages/WhatsAppDashboard"));
 const WhatsAppAnalytics = lazy(() => import("./pages/WhatsAppAnalytics"));
 const WhatsAppCompliance = lazy(() => import("./pages/WhatsAppCompliance"));
 const WhatsAppAppointments = lazy(() => import("./pages/WhatsAppAppointments"));
+const WhatsAppIntegration = lazy(() => import("./pages/WhatsAppIntegration"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const ReportsPageNew = lazy(() => import("./pages/admin/ReportsPage"));
@@ -110,6 +111,7 @@ function Router() {
       <Route path={"/dashboard/whatsapp/analytics"} component={WhatsAppAnalytics} />
       <Route path={"/dashboard/whatsapp/compliance"} component={WhatsAppCompliance} />
       <Route path={"/dashboard/whatsapp/appointments"} component={WhatsAppAppointments} />
+      <Route path={"/dashboard/whatsapp/integration"} component={WhatsAppIntegration} />
       <Route path={"/dashboard/messages"} component={MessagesPage} />
       <Route path={"/dashboard/message-settings"} component={MessageSettingsPage} />
       <Route path={"/dashboard/queue"} component={QueueDashboard} />

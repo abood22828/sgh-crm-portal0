@@ -23,6 +23,7 @@ import { reportsRouter } from "./routers/reports";
 import { campaignsRouter } from "./routers/campaigns";
 import { tasksRouter } from "./routers/tasks";
 import { whatsappRouter } from "./routers/whatsapp";
+import { whatsappTemplateTestRouter } from "./routers/whatsappTemplateTest";
 import { messageSettingsRouter } from "./routers/messageSettings";
 import { webhooksRouter } from "./routers/webhooks";
 import { commentsRouter } from "./routers/comments";
@@ -52,6 +53,7 @@ export const appRouter = router({
   patientPortal: patientPortalRouter,
   pwa: pwaRouter,
   whatsapp: whatsappRouter,
+  whatsappTemplateTest: whatsappTemplateTestRouter,
   messageSettings: messageSettingsRouter,
   webhooks: webhooksRouter,
   queue: queueRouter,
