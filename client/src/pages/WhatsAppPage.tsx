@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useState, useMemo } from "react";
 import { processPhoneInput } from "@/hooks/usePhoneFormat";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
@@ -14,17 +14,24 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MessageCircle, Send, Search, Plus, FileText, User, Phone,
   Smartphone, Wifi, WifiOff, Loader2 as LoaderIcon, ArrowRight,
-  ChevronLeft, AlertCircle,
+  ChevronLeft, AlertCircle, Archive, Filter, BarChart2,
+  Clock, CheckCheck, MessageSquare, MoreVertical, Star,
+  RefreshCw, TrendingUp, Users, X,
 } from "lucide-react";
 import ChatWindow from "@/components/ChatWindow";
 import ConversationInfo from "@/components/ConversationInfo";
 import useSSE from "@/hooks/useSSE";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -37,6 +44,8 @@ interface Conversation {
   lastMessage?: string | null;
   lastMessageAt?: string | Date | null;
   unreadCount: number;
+  isImportant?: number;
+  isArchived?: number;
 }
 
 interface Template {
@@ -50,7 +59,34 @@ interface Template {
   languageCode?: string | null;
 }
 
-// ─── ConversationsList — defined OUTSIDE WhatsAppContent to prevent re-mount ─
+type FilterType = "all" | "unread" | "important" | "archived";
+
+// ─── Stats Bar ────────────────────────────────────────────────────────────────
+function StatsBar({ conversations }: { conversations: Conversation[] | undefined }) {
+  const total = conversations?.length || 0;
+  const unread = conversations?.filter(c => c.unreadCount > 0).length || 0;
+  const important = conversations?.filter(c => c.isImportant === 1).length || 0;
+  const active = conversations?.filter(c => !c.isArchived).length || 0;
+
+  return (
+    <div className="grid grid-cols-4 gap-2 mb-3">
+      {[
+        { label: "الكل", value: total, icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
+        { label: "نشطة", value: active, icon: Users, color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20" },
+        { label: "غير مقروءة", value: unread, icon: MessageCircle, color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20" },
+        { label: "مهمة", value: important, icon: Star, color: "text-yellow-600", bg: "bg-yellow-50 dark:bg-yellow-900/20" },
+      ].map(({ label, value, icon: Icon, color, bg }) => (
+        <div key={label} className={`${bg} rounded-lg p-2 text-center`}>
+          <Icon className={`h-3.5 w-3.5 ${color} mx-auto mb-0.5`} />
+          <p className={`text-base font-bold ${color}`}>{value}</p>
+          <p className="text-[9px] text-muted-foreground">{label}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── ConversationsList ────────────────────────────────────────────────────────
 interface ConversationsListProps {
   filteredConversations: Conversation[] | undefined;
   conversationsLoading: boolean;
@@ -71,6 +107,11 @@ interface ConversationsListProps {
   isSendingNewMessage: boolean;
   connectionStatus: { isReady?: boolean; isConnecting?: boolean } | undefined;
   statusLoading: boolean;
+  allConversations: Conversation[] | undefined;
+  activeFilter: FilterType;
+  onFilterChange: (f: FilterType) => void;
+  onArchiveConversation: (id: number) => void;
+  onToggleImportant: (id: number) => void;
 }
 
 const ConversationsList = memo(function ConversationsList({
@@ -93,12 +134,17 @@ const ConversationsList = memo(function ConversationsList({
   isSendingNewMessage,
   connectionStatus,
   statusLoading,
+  allConversations,
+  activeFilter,
+  onFilterChange,
+  onArchiveConversation,
+  onToggleImportant,
 }: ConversationsListProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="p-3 sm:p-4 border-b dark:border-gray-800 bg-gradient-to-r from-green-500 to-emerald-600">
-        <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             <h2 className="text-sm sm:text-base font-bold text-white">المحادثات</h2>
@@ -144,7 +190,7 @@ const ConversationsList = memo(function ConversationsList({
                   <div className="space-y-1.5">
                     <Label className="flex items-center gap-1.5">
                       قالب الرسالة
-                      <span className="text-[10px] text-muted-foreground font-normal">(مطلوب للمحادثات الجديدة أو بعد 24 ساعة)</span>
+                      <span className="text-[10px] text-muted-foreground font-normal">(مطلوب للمحادثات الجديدة)</span>
                     </Label>
                     <Select
                       value={newMessageTemplateId ? String(newMessageTemplateId) : "none"}
@@ -203,81 +249,155 @@ const ConversationsList = memo(function ConversationsList({
         <div className="relative">
           <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/60" />
           <Input
-            placeholder="بحث في المحادثات..."
+            placeholder="بحث بالاسم أو الرقم..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pr-8 h-8 text-xs bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:bg-white/30"
           />
+          {searchQuery && (
+            <button
+              onClick={() => onSearchChange("")}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Filter Tabs */}
+      <div className="px-2 pt-2 pb-1 border-b dark:border-gray-800">
+        <Tabs value={activeFilter} onValueChange={(v) => onFilterChange(v as FilterType)}>
+          <TabsList className="h-7 w-full grid grid-cols-4 bg-muted/50">
+            <TabsTrigger value="all" className="text-[10px] h-6 px-1">الكل</TabsTrigger>
+            <TabsTrigger value="unread" className="text-[10px] h-6 px-1">
+              غير مقروءة
+              {(allConversations?.filter(c => c.unreadCount > 0).length || 0) > 0 && (
+                <Badge variant="destructive" className="mr-1 h-3.5 px-1 text-[8px] rounded-full">
+                  {allConversations?.filter(c => c.unreadCount > 0).length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="important" className="text-[10px] h-6 px-1">مهمة</TabsTrigger>
+            <TabsTrigger value="archived" className="text-[10px] h-6 px-1">مؤرشفة</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Stats */}
+      <div className="px-2 pt-2">
+        <StatsBar conversations={allConversations} />
+      </div>
+
       {/* List */}
       <ScrollArea className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto">
           {conversationsLoading ? (
-          <div className="p-8 text-center text-muted-foreground">
-            <LoaderIcon className="h-8 w-8 animate-spin mx-auto mb-2 text-green-500" />
-            <p className="text-sm">جاري تحميل المحادثات...</p>
-          </div>
-        ) : filteredConversations && filteredConversations.length > 0 ? (
-          <div className="divide-y dark:divide-gray-800">
-            {filteredConversations.map((conv, index) => (
-              <div
-                key={conv.id}
-                onClick={() => onSelectConversation(conv.id)}
-                style={{ opacity: 0, animation: `row-enter 0.35s ease-out ${Math.min(index * 60, 600)}ms forwards` }}
-                className={`p-3 sm:p-4 cursor-pointer transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 active:bg-green-100 ${
-                  selectedConversation === conv.id ? "bg-green-100 dark:bg-green-900/30 border-r-4 border-green-600" : ""
-                }`}
-              >
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                  <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-1.5 sm:p-2 rounded-full flex-shrink-0">
-                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <h3 className="font-semibold text-sm sm:text-base text-foreground truncate">
-                        {conv.customerName || "عميل جديد"}
-                      </h3>
-                      {conv.unreadCount > 0 && (
-                        <Badge variant="destructive" className="rounded-full px-1.5 text-[10px] sm:text-xs h-5 flex-shrink-0 mr-1">
-                          {conv.unreadCount}
-                        </Badge>
+            <div className="p-8 text-center text-muted-foreground">
+              <LoaderIcon className="h-8 w-8 animate-spin mx-auto mb-2 text-green-500" />
+              <p className="text-sm">جاري تحميل المحادثات...</p>
+            </div>
+          ) : filteredConversations && filteredConversations.length > 0 ? (
+            <div className="divide-y dark:divide-gray-800">
+              {filteredConversations.map((conv, index) => (
+                <div
+                  key={conv.id}
+                  style={{ opacity: 0, animation: `row-enter 0.35s ease-out ${Math.min(index * 60, 600)}ms forwards` }}
+                  className={`group relative p-3 sm:p-4 cursor-pointer transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 active:bg-green-100 ${
+                    selectedConversation === conv.id ? "bg-green-100 dark:bg-green-900/30 border-r-4 border-green-600" : ""
+                  } ${conv.isArchived ? "opacity-60" : ""}`}
+                >
+                  <div className="flex items-center gap-2.5 sm:gap-3" onClick={() => onSelectConversation(conv.id)}>
+                    <div className={`relative p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
+                      conv.isImportant ? "bg-gradient-to-br from-yellow-400 to-orange-500" : "bg-gradient-to-br from-green-500 to-emerald-600"
+                    }`}>
+                      <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                      {conv.isImportant === 1 && (
+                        <Star className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 fill-yellow-400" />
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
-                      <Phone className="h-3 w-3 flex-shrink-0" />
-                      <span dir="ltr" className="truncate">{conv.phoneNumber}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <h3 className="font-semibold text-sm sm:text-base text-foreground truncate">
+                          {conv.customerName || "عميل جديد"}
+                        </h3>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {conv.unreadCount > 0 && (
+                            <Badge variant="destructive" className="rounded-full px-1.5 text-[10px] h-5">
+                              {conv.unreadCount}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
+                        <Phone className="h-3 w-3 flex-shrink-0" />
+                        <span dir="ltr" className="truncate">{conv.phoneNumber}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-[140px]">
+                          {conv.lastMessage || "لا توجد رسائل"}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground flex-shrink-0">
+                          {conv.lastMessageAt
+                            ? formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: true, locale: ar })
+                            : ""}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">
-                      {conv.lastMessageAt
-                        ? formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: true, locale: ar })
-                        : "لا توجد رسائل"}
-                    </p>
+                    <ChevronLeft className="h-4 w-4 text-muted-foreground lg:hidden flex-shrink-0" />
                   </div>
-                  <ChevronLeft className="h-4 w-4 text-muted-foreground lg:hidden flex-shrink-0" />
+
+                  {/* Quick Actions */}
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem onClick={() => onToggleImportant(conv.id)}>
+                          <Star className="h-3.5 w-3.5 ml-2" />
+                          {conv.isImportant ? "إلغاء المهمة" : "تعيين كمهمة"}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onArchiveConversation(conv.id)}>
+                          <Archive className="h-3.5 w-3.5 ml-2" />
+                          {conv.isArchived ? "إلغاء الأرشفة" : "أرشفة"}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-8 text-center text-muted-foreground">
-            <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-sm sm:text-base">لا توجد محادثات</p>
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-muted-foreground">
+              <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-gray-300" />
+              <p className="text-sm sm:text-base">
+                {searchQuery ? `لا نتائج لـ "${searchQuery}"` : "لا توجد محادثات"}
+              </p>
+              {searchQuery && (
+                <Button variant="ghost" size="sm" className="mt-2 text-xs" onClick={() => onSearchChange("")}>
+                  مسح البحث
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </ScrollArea>
     </div>
   );
 });
 
-// ─── ChatAreaHeader — defined OUTSIDE to prevent re-mount ────────────────────
+// ─── ChatAreaHeader ───────────────────────────────────────────────────────────
 interface ChatAreaHeaderProps {
   selectedConv: Conversation | undefined;
   onBackToList: () => void;
+  onToggleImportant: (id: number) => void;
 }
 
-const ChatAreaHeader = memo(function ChatAreaHeader({ selectedConv, onBackToList }: ChatAreaHeaderProps) {
+const ChatAreaHeader = memo(function ChatAreaHeader({ selectedConv, onBackToList, onToggleImportant }: ChatAreaHeaderProps) {
   return (
     <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-3 sm:p-4 flex-shrink-0">
       <div className="flex items-center gap-2.5 sm:gap-3">
@@ -298,18 +418,30 @@ const ChatAreaHeader = memo(function ChatAreaHeader({ selectedConv, onBackToList
             {selectedConv?.phoneNumber}
           </p>
         </div>
-        <Link href="/dashboard/whatsapp/templates">
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-white hover:bg-white/20 gap-1 text-[10px]">
-            <FileText className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">القوالب</span>
-          </Button>
-        </Link>
+        <div className="flex items-center gap-1">
+          {selectedConv && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`h-7 w-7 p-0 hover:bg-white/20 ${selectedConv.isImportant ? "text-yellow-300" : "text-white/70"}`}
+              onClick={() => selectedConv && onToggleImportant(selectedConv.id)}
+            >
+              <Star className={`h-4 w-4 ${selectedConv.isImportant ? "fill-yellow-300" : ""}`} />
+            </Button>
+          )}
+          <Link href="/dashboard/whatsapp/templates">
+            <Button variant="ghost" size="sm" className="h-7 px-2 text-white hover:bg-white/20 gap-1 text-[10px]">
+              <FileText className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">القوالب</span>
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
 });
 
-// ─── EmptyChatPlaceholder — defined OUTSIDE ──────────────────────────────────
+// ─── EmptyChatPlaceholder ─────────────────────────────────────────────────────
 const EmptyChatPlaceholder = memo(function EmptyChatPlaceholder() {
   return (
     <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900/30">
@@ -319,6 +451,20 @@ const EmptyChatPlaceholder = memo(function EmptyChatPlaceholder() {
         </div>
         <p className="text-lg font-medium mb-1">إدارة محادثات واتساب</p>
         <p className="text-sm">اختر محادثة من القائمة لبدء المراسلة</p>
+        <div className="mt-4 flex justify-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <CheckCheck className="h-3.5 w-3.5 text-green-500" />
+            <span>قوالب معتمدة</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <TrendingUp className="h-3.5 w-3.5 text-blue-500" />
+            <span>إحصائيات فورية</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5 text-orange-500" />
+            <span>رد سريع</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -336,6 +482,7 @@ export default function WhatsAppPage() {
 function WhatsAppContent() {
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [newMessagePhone, setNewMessagePhone] = useState("");
   const [newMessageText, setNewMessageText] = useState("");
   const [newMessageTemplateId, setNewMessageTemplateId] = useState<number | null>(null);
@@ -351,13 +498,16 @@ function WhatsAppContent() {
 
   // Mutations
   const markConversationAsReadMutation = trpc.whatsapp.conversations.markAsRead.useMutation();
-  
+
+  const updateConversationMutation = trpc.whatsapp.conversations.update.useMutation({
+    onSuccess: () => refetchConversations(),
+    onError: () => toast.error("فشل تحديث المحادثة"),
+  });
+
   const sendNewMessageMutation = trpc.whatsapp.messages.send.useMutation({
     onSuccess: () => {
       toast.success("تم إرسال الرسالة بنجاح");
-      setNewMessagePhone("");
-      setNewMessageText("");
-      setNewMessageTemplateId(null);
+      setNewMessagePhone(""); setNewMessageText(""); setNewMessageTemplateId(null);
       setIsNewMessageOpen(false);
       refetchConversations();
     },
@@ -367,20 +517,17 @@ function WhatsAppContent() {
   const sendTemplateMutation = trpc.whatsapp.sendTemplate.useMutation({
     onSuccess: () => {
       toast.success("تم إرسال القالب بنجاح");
-      setNewMessagePhone("");
-      setNewMessageText("");
-      setNewMessageTemplateId(null);
+      setNewMessagePhone(""); setNewMessageText(""); setNewMessageTemplateId(null);
       setIsNewMessageOpen(false);
       refetchConversations();
     },
     onError: (error: any) => toast.error(`فشل إرسال القالب: ${error?.message || 'خطأ غير معروف'}`),
   });
 
-  // Stable callbacks — useCallback prevents new references on every render
+  // Callbacks
   const handleSelectConversation = useCallback((id: number) => {
     setSelectedConversation(id);
     setMobileShowChat(true);
-    // Mark conversation as read when opened
     markConversationAsReadMutation.mutate({ id });
   }, [markConversationAsReadMutation]);
 
@@ -391,63 +538,78 @@ function WhatsAppContent() {
   const handleNewMessageTemplateIdChange = useCallback((v: number | null) => setNewMessageTemplateId(v), []);
   const handleNewMessageOpenChange = useCallback((v: boolean) => setIsNewMessageOpen(v), []);
 
+  const handleArchiveConversation = useCallback((id: number) => {
+    const conv = conversations?.find(c => c.id === id);
+    updateConversationMutation.mutate({ id, archived: !conv?.isArchived });
+    toast.success(conv?.isArchived ? "تم إلغاء الأرشفة" : "تم أرشفة المحادثة");
+  }, [conversations, updateConversationMutation]);
+
+  const handleToggleImportant = useCallback((id: number) => {
+    const conv = conversations?.find(c => c.id === id);
+    updateConversationMutation.mutate({ id, important: !conv?.isImportant });
+    toast.success(conv?.isImportant ? "تم إلغاء التعيين كمهمة" : "تم تعيين المحادثة كمهمة");
+  }, [conversations, updateConversationMutation]);
+
   const handleSendNewMessage = useCallback(() => {
-    if (!newMessagePhone.trim()) {
-      toast.error("يرجى إدخال رقم الهاتف");
-      return;
-    }
+    if (!newMessagePhone.trim()) { toast.error("يرجى إدخال رقم الهاتف"); return; }
     if (newMessageTemplateId) {
       const template = templates?.find((t: Template) => t.id === newMessageTemplateId);
       if (!template) { toast.error("القالب غير موجود"); return; }
-      // استخدام metaName (الاسم المعتمد من Meta) إذا كان متاحاً، وإلا name
-      const templateName = template.metaName || template.name;
-      const languageCode = template.languageCode || "ar";
       sendTemplateMutation.mutate({
         phone: newMessagePhone,
-        templateName,
-        language: languageCode,
+        templateName: template.metaName || template.name,
+        language: template.languageCode || "ar",
       });
     } else {
-      if (!newMessageText.trim()) {
-        toast.error("يرجى إدخال الرسالة أو اختيار قالب");
-        return;
-      }
+      if (!newMessageText.trim()) { toast.error("يرجى إدخال الرسالة أو اختيار قالب"); return; }
       sendNewMessageMutation.mutate({ conversationId: selectedConversation || 0, message: newMessageText });
     }
-  }, [newMessagePhone, newMessageTemplateId, newMessageText, templates, sendTemplateMutation, sendNewMessageMutation]);
+  }, [newMessagePhone, newMessageTemplateId, newMessageText, templates, sendTemplateMutation, sendNewMessageMutation, selectedConversation]);
 
   const handleConversationUpdate = useCallback(() => refetchConversations(), [refetchConversations]);
 
-  // ── Global SSE: refresh conversation list when a new inbound message arrives ─────────────
+  // SSE
   const { user } = useAuth();
   const userId = user?.id || 0;
-  
   useSSE(userId ? `/api/whatsapp/stream/user/${userId}` : null, useCallback((e: MessageEvent) => {
     try {
-      const eventName = (e as any).type || 'message';
-      if (eventName === 'new_inbound_message') {
-        refetchConversations();
-      }
+      if ((e as any).type === 'new_inbound_message') refetchConversations();
     } catch (_) {}
   }, [refetchConversations]));
 
-  // Derived
-  const filteredConversations = conversations?.filter((conv: Conversation) =>
-    conv.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.phoneNumber?.includes(searchQuery)
-  ).sort((a: Conversation, b: Conversation) => {
-    // Sort by unreadCount (unread first), then by lastMessageAt (newest first)
-    if (a.unreadCount !== b.unreadCount) {
-      return (b.unreadCount || 0) - (a.unreadCount || 0);
+  // Derived - filtered conversations
+  const filteredConversations = useMemo(() => {
+    let result = conversations || [];
+
+    // Apply filter tab
+    switch (activeFilter) {
+      case "unread": result = result.filter(c => c.unreadCount > 0); break;
+      case "important": result = result.filter(c => c.isImportant === 1); break;
+      case "archived": result = result.filter(c => c.isArchived === 1); break;
+      default: result = result.filter(c => !c.isArchived); break;
     }
-    const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
-    const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
-    return bTime - aTime;
-  });
+
+    // Apply search
+    if (searchQuery) {
+      result = result.filter(c =>
+        c.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.phoneNumber?.includes(searchQuery) ||
+        c.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Sort: unread first, then by date
+    return result.sort((a, b) => {
+      if (a.unreadCount !== b.unreadCount) return (b.unreadCount || 0) - (a.unreadCount || 0);
+      const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return bTime - aTime;
+    });
+  }, [conversations, activeFilter, searchQuery]);
+
   const selectedConv = conversations?.find((c: Conversation) => c.id === selectedConversation);
   const isSendingNewMessage = sendNewMessageMutation.isPending || sendTemplateMutation.isPending;
 
-  // Shared props for ConversationsList
   const listProps = {
     filteredConversations,
     conversationsLoading,
@@ -468,6 +630,11 @@ function WhatsAppContent() {
     isSendingNewMessage,
     connectionStatus,
     statusLoading,
+    allConversations: conversations,
+    activeFilter,
+    onFilterChange: setActiveFilter,
+    onArchiveConversation: handleArchiveConversation,
+    onToggleImportant: handleToggleImportant,
   };
 
   return (
@@ -484,6 +651,15 @@ function WhatsAppContent() {
               <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground hidden xs:block">تواصل مع العملاء عبر واتساب بيزنس</p>
             </div>
             <div className="flex gap-1 sm:gap-2 items-center flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-2.5"
+                onClick={() => refetchConversations()}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">تحديث</span>
+              </Button>
               <Link href="/dashboard/whatsapp/connection">
                 <Button variant="outline" size="sm" className="gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-2.5">
                   <Smartphone className="h-3.5 w-3.5" />
@@ -494,6 +670,12 @@ function WhatsAppContent() {
                 <Button variant="outline" size="sm" className="gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-2.5">
                   <FileText className="h-3.5 w-3.5" />
                   <span className="hidden md:inline">القوالب</span>
+                </Button>
+              </Link>
+              <Link href="/dashboard/whatsapp/analytics">
+                <Button variant="outline" size="sm" className="gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-2.5">
+                  <BarChart2 className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">التحليلات</span>
                 </Button>
               </Link>
             </div>
@@ -513,7 +695,11 @@ function WhatsAppContent() {
             <div className="h-full overflow-hidden flex flex-col">
               {selectedConversation ? (
                 <>
-                  <ChatAreaHeader selectedConv={selectedConv} onBackToList={handleBackToList} />
+                  <ChatAreaHeader
+                    selectedConv={selectedConv}
+                    onBackToList={handleBackToList}
+                    onToggleImportant={handleToggleImportant}
+                  />
                   <div className="flex-1 overflow-hidden">
                     <ChatWindow conversationId={selectedConversation} lastMessageAt={selectedConv?.lastMessageAt} onConversationUpdate={handleConversationUpdate} />
                   </div>
@@ -522,7 +708,6 @@ function WhatsAppContent() {
                 <EmptyChatPlaceholder />
               )}
             </div>
-            {/* Right Sidebar - Conversation Info */}
             <div className="h-full overflow-y-auto border-l dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
               {selectedConv ? (
                 <ConversationInfo conversation={selectedConv} />
@@ -538,7 +723,11 @@ function WhatsAppContent() {
           <div className="lg:hidden h-full flex flex-col">
             {mobileShowChat && selectedConversation ? (
               <>
-                <ChatAreaHeader selectedConv={selectedConv} onBackToList={handleBackToList} />
+                <ChatAreaHeader
+                  selectedConv={selectedConv}
+                  onBackToList={handleBackToList}
+                  onToggleImportant={handleToggleImportant}
+                />
                 <div className="flex-1 overflow-hidden">
                   <ChatWindow conversationId={selectedConversation} lastMessageAt={selectedConv?.lastMessageAt} onConversationUpdate={handleConversationUpdate} />
                 </div>
