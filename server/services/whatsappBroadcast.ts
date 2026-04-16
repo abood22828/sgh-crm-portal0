@@ -1,6 +1,18 @@
-import { whatsappBot } from "../config/whatsapp";
+/**
+ * WhatsApp Broadcast Service
+ * خدمة الرسائل الجماعية عبر WhatsApp Cloud API الرسمي
+ *
+ * ✅ يستخدم Cloud API الرسمي (sendWhatsAppTextMessage)
+ * ✅ Rate limiting: 1000 رسالة/دقيقة (وفق حدود Meta)
+ * ✅ تأخير بين الرسائل لتجنب الحظر
+ * ✅ متوافق مع وثائق Meta الرسمية
+ *
+ * ⚠️ تنبيه: الرسائل الجماعية يجب أن تستخدم قوالب معتمدة من Meta
+ * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/message-types/template-messages
+ */
+
 import { normalizePhoneNumber } from "../db";
-import * as db from "../db";
+import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
 
 export interface BroadcastJob {
   id: string;
@@ -14,6 +26,9 @@ export interface BroadcastJob {
   completedAt?: Date;
 }
 
+// In-memory store for broadcast jobs (يُنصح بنقلها لقاعدة البيانات في الإنتاج)
+const broadcastJobs = new Map<string, BroadcastJob>();
+
 export async function sendBroadcast(params: {
   message: string;
   recipients: string[];
@@ -21,10 +36,6 @@ export async function sendBroadcast(params: {
   delay?: number;
 }): Promise<{ success: boolean; jobId?: string; error?: string }> {
   try {
-    if (!whatsappBot) {
-      return { success: false, error: "WhatsApp bot not initialized" };
-    }
-
     if (!params.recipients || params.recipients.length === 0) {
       return { success: false, error: "No recipients provided" };
     }
@@ -38,27 +49,54 @@ export async function sendBroadcast(params: {
       return { success: false, error: "No valid phone numbers" };
     }
 
+    // تسجيل الـ job
+    const job: BroadcastJob = {
+      id: jobId,
+      messageId: `broadcast_msg_${Date.now()}`,
+      message: params.message,
+      recipients: normalizedRecipients,
+      status: "in_progress",
+      sentCount: 0,
+      failedCount: 0,
+      createdAt: new Date(),
+    };
+    broadcastJobs.set(jobId, job);
+
     console.log(`[WhatsApp Broadcast] Starting broadcast ${jobId} to ${normalizedRecipients.length} recipients`);
 
-    // Send messages sequentially with delay
-    const delay = params.delay || 1000;
+    // إرسال الرسائل بشكل متسلسل مع تأخير لتجنب Rate Limiting
+    // وفق Meta: الحد الأقصى 1000 رسالة/دقيقة لحسابات الأعمال
+    const delay = params.delay || 1200; // 1.2 ثانية بين كل رسالة (أمان من Rate Limiting)
     let sentCount = 0;
     let failedCount = 0;
 
-    for (const phone of normalizedRecipients) {
+    for (let i = 0; i < normalizedRecipients.length; i++) {
+      const phone = normalizedRecipients[i];
       try {
-        await whatsappBot.sendText(phone, params.message);
-        sentCount++;
+        const result = await sendWhatsAppTextMessage(phone, params.message);
+        if (result.success) {
+          sentCount++;
+        } else {
+          console.error(`[WhatsApp Broadcast] Failed to send to ${phone}: ${result.error}`);
+          failedCount++;
+        }
       } catch (error) {
-        console.error(`[WhatsApp Broadcast] Failed to send to ${phone}:`, error);
+        console.error(`[WhatsApp Broadcast] Error sending to ${phone}:`, error);
         failedCount++;
       }
 
-      // Add delay between messages to avoid rate limiting
-      if (normalizedRecipients.indexOf(phone) < normalizedRecipients.length - 1) {
+      // تأخير بين الرسائل
+      if (i < normalizedRecipients.length - 1) {
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
+
+    // تحديث حالة الـ job
+    job.status = failedCount === normalizedRecipients.length ? "failed" : "completed";
+    job.sentCount = sentCount;
+    job.failedCount = failedCount;
+    job.completedAt = new Date();
+    broadcastJobs.set(jobId, job);
 
     console.log(`[WhatsApp Broadcast] Broadcast ${jobId} completed: ${sentCount} sent, ${failedCount} failed`);
 
@@ -81,22 +119,11 @@ export async function getBroadcastStatus(jobId: string): Promise<{
   error?: string;
 }> {
   try {
-    // This would query from database
-    // For now, return placeholder
-    return {
-      success: true,
-      status: {
-        id: jobId,
-        messageId: "msg_123",
-        message: "Sample message",
-        recipients: ["967777165305"],
-        status: "completed",
-        sentCount: 1,
-        failedCount: 0,
-        createdAt: new Date(),
-        completedAt: new Date(),
-      },
-    };
+    const job = broadcastJobs.get(jobId);
+    if (!job) {
+      return { success: false, error: "Broadcast job not found" };
+    }
+    return { success: true, status: job };
   } catch (error) {
     console.error("[WhatsApp Broadcast] Failed to get broadcast status:", error);
     return {
@@ -118,18 +145,15 @@ export async function getBroadcastStats(): Promise<{
   error?: string;
 }> {
   try {
-    // This would query from database
-    // For now, return placeholder
-    return {
-      success: true,
-      stats: {
-        totalBroadcasts: 10,
-        completedBroadcasts: 8,
-        failedBroadcasts: 2,
-        totalMessagesSent: 500,
-        totalMessagesFailed: 25,
-      },
+    const jobs = Array.from(broadcastJobs.values());
+    const stats = {
+      totalBroadcasts: jobs.length,
+      completedBroadcasts: jobs.filter((j) => j.status === "completed").length,
+      failedBroadcasts: jobs.filter((j) => j.status === "failed").length,
+      totalMessagesSent: jobs.reduce((sum, j) => sum + j.sentCount, 0),
+      totalMessagesFailed: jobs.reduce((sum, j) => sum + j.failedCount, 0),
     };
+    return { success: true, stats };
   } catch (error) {
     console.error("[WhatsApp Broadcast] Failed to get broadcast stats:", error);
     return {
@@ -147,13 +171,32 @@ export async function scheduleBroadcast(params: {
 }): Promise<{ success: boolean; scheduleId?: string; error?: string }> {
   try {
     const scheduleId = `schedule_${Date.now()}`;
+    const now = new Date();
+    const delay = params.scheduledAt.getTime() - now.getTime();
+
+    if (delay <= 0) {
+      // إرسال فوري إذا كان الوقت قد مضى
+      return sendBroadcast({
+        message: params.message,
+        recipients: params.recipients,
+        priority: params.priority,
+      });
+    }
 
     console.log(
-      `[WhatsApp Broadcast] Scheduled broadcast ${scheduleId} for ${params.scheduledAt.toISOString()}`
+      `[WhatsApp Broadcast] Scheduled broadcast ${scheduleId} for ${params.scheduledAt.toISOString()} (in ${Math.round(delay / 1000)}s)`
     );
 
-    // This would save to database and use a job scheduler
-    // For now, just return success
+    // جدولة الإرسال
+    setTimeout(async () => {
+      console.log(`[WhatsApp Broadcast] Executing scheduled broadcast ${scheduleId}`);
+      await sendBroadcast({
+        message: params.message,
+        recipients: params.recipients,
+        priority: params.priority,
+      });
+    }, delay);
+
     return {
       success: true,
       scheduleId,

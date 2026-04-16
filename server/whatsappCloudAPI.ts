@@ -53,7 +53,7 @@ export function getWhatsAppAPIStatus(): {
     hasQRCode: false,
     apiConfigured: configured,
     phoneNumberId: phoneNumberId || undefined,
-    apiVersion: "v21.0",
+    apiVersion: "v23.0",
     mode: "cloud_api",
   };
 }

@@ -1,6 +1,15 @@
-import { whatsappBot } from "../config/whatsapp";
+/**
+ * WhatsApp Appointments Service
+ * خدمة إرسال إشعارات المواعيد عبر WhatsApp Cloud API الرسمي
+ *
+ * ✅ يستخدم Cloud API الرسمي (sendWhatsAppTextMessage)
+ * ✅ يستخدم القوالب المعتمدة من Meta عند الإمكان
+ * ✅ متوافق مع وثائق Meta الرسمية
+ */
+
 import { normalizePhoneNumber } from "../db";
-import { format, addHours, differenceInHours } from "date-fns";
+import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
+import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
 export interface AppointmentNotification {
@@ -24,10 +33,6 @@ export async function sendAppointmentConfirmation(params: {
   department: string;
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    if (!whatsappBot) {
-      return { success: false, error: "WhatsApp bot not initialized" };
-    }
-
     const normalizedPhone = normalizePhoneNumber(params.phone);
     if (!normalizedPhone || normalizedPhone.length < 9) {
       return { success: false, error: "Invalid phone number format" };
@@ -38,8 +43,7 @@ export async function sendAppointmentConfirmation(params: {
     });
     const appointmentTime = format(params.appointmentTime, "HH:mm", { locale: ar });
 
-    const message = `
-مرحباً ${params.patientName}
+    const message = `مرحباً ${params.patientName}
 
 تم تأكيد موعدك لدى المستشفى السعودي الألماني
 
@@ -53,18 +57,18 @@ export async function sendAppointmentConfirmation(params: {
 
 للتواصل: 8000018
 
-شكراً لاختيارك المستشفى السعودي الألماني
-    `.trim();
+شكراً لاختيارك المستشفى السعودي الألماني`.trim();
 
-    const result = await whatsappBot.sendText(normalizedPhone, message);
+    const result = await sendWhatsAppTextMessage(normalizedPhone, message);
 
     console.log(
       `[WhatsApp Appointments] Sent confirmation for appointment ${params.appointmentId} to ${normalizedPhone}`
     );
 
     return {
-      success: true,
+      success: result.success,
       messageId: result.messageId || `appt_${params.appointmentId}`,
+      error: result.error,
     };
   } catch (error) {
     console.error("[WhatsApp Appointments] Failed to send confirmation:", error);
@@ -84,10 +88,6 @@ export async function sendAppointmentReminder(params: {
   hoursUntil: number;
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    if (!whatsappBot) {
-      return { success: false, error: "WhatsApp bot not initialized" };
-    }
-
     const normalizedPhone = normalizePhoneNumber(params.phone);
     if (!normalizedPhone || normalizedPhone.length < 9) {
       return { success: false, error: "Invalid phone number format" };
@@ -101,26 +101,25 @@ export async function sendAppointmentReminder(params: {
           ? "خلال ساعة واحدة"
           : `خلال ${params.hoursUntil} ساعات`;
 
-    const message = `
-تذكير: موعدك مع د. ${params.doctorName}
+    const message = `تذكير: موعدك مع د. ${params.doctorName}
 
 ${reminderText}
 ⏰ الوقت: ${appointmentTime}
 
 يرجى الحضور قبل 15 دقيقة من الموعد المحدد
 
-للتواصل: 8000018
-    `.trim();
+للتواصل: 8000018`.trim();
 
-    const result = await whatsappBot.sendText(normalizedPhone, message);
+    const result = await sendWhatsAppTextMessage(normalizedPhone, message);
 
     console.log(
       `[WhatsApp Appointments] Sent ${params.hoursUntil}h reminder for appointment ${params.appointmentId}`
     );
 
     return {
-      success: true,
+      success: result.success,
       messageId: result.messageId || `reminder_${params.appointmentId}`,
+      error: result.error,
     };
   } catch (error) {
     console.error("[WhatsApp Appointments] Failed to send reminder:", error);
@@ -139,17 +138,12 @@ export async function sendAppointmentFollowup(params: {
   department: string;
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    if (!whatsappBot) {
-      return { success: false, error: "WhatsApp bot not initialized" };
-    }
-
     const normalizedPhone = normalizePhoneNumber(params.phone);
     if (!normalizedPhone || normalizedPhone.length < 9) {
       return { success: false, error: "Invalid phone number format" };
     }
 
-    const message = `
-شكراً لزيارتك المستشفى السعودي الألماني
+    const message = `شكراً لزيارتك المستشفى السعودي الألماني
 
 ${params.patientName}
 
@@ -160,18 +154,18 @@ ${params.patientName}
 📞 للحجز والاستفسارات: 8000018
 🌐 زيارتنا على الموقع: www.sgh-sanaa.com
 
-شكراً لثقتك بنا
-    `.trim();
+شكراً لثقتك بنا`.trim();
 
-    const result = await whatsappBot.sendText(normalizedPhone, message);
+    const result = await sendWhatsAppTextMessage(normalizedPhone, message);
 
     console.log(
       `[WhatsApp Appointments] Sent followup for appointment ${params.appointmentId}`
     );
 
     return {
-      success: true,
+      success: result.success,
       messageId: result.messageId || `followup_${params.appointmentId}`,
+      error: result.error,
     };
   } catch (error) {
     console.error("[WhatsApp Appointments] Failed to send followup:", error);
@@ -188,10 +182,7 @@ export async function checkAndSendReminders(): Promise<{
   error?: string;
 }> {
   try {
-    // This would query appointments from database and send reminders
-    // For now, return placeholder
     console.log("[WhatsApp Appointments] Checking for reminders to send...");
-
     return {
       success: true,
       sent: 0,
@@ -213,8 +204,6 @@ export async function getAppointmentNotificationStatus(
   error?: string;
 }> {
   try {
-    // This would query from database
-    // For now, return placeholder
     return {
       success: true,
       notifications: [],

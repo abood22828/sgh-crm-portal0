@@ -1,11 +1,29 @@
-import { whatsappBot, whatsappClient } from "../config/whatsapp";
+/**
+ * WhatsApp Templates Service
+ * خدمة إرسال القوالب المعتمدة من Meta عبر Cloud API الرسمي
+ *
+ * ✅ يستخدم Cloud API الرسمي (MetaApiService)
+ * ✅ يدعم إرسال القوالب مع المتغيرات (components)
+ * ✅ يدعم إرسال الوسائط (صور، فيديو، مستندات)
+ * ✅ متوافق مع وثائق Meta الرسمية v23.0
+ *
+ * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/message-types/template-messages
+ */
+
 import { normalizePhoneNumber } from "../db";
+import { sendWhatsAppTextMessage, sendWhatsAppTemplateMessage } from "../whatsappCloudAPI";
+import meta from "../MetaApiService";
+import { ENV } from "../_core/env";
 
 export interface TemplateParameter {
   type: "text" | "image" | "document" | "video";
   value: string;
 }
 
+/**
+ * إرسال رسالة قالب معتمد من Meta
+ * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/message-types/template-messages
+ */
 export async function sendTemplateMessage(params: {
   phone: string;
   templateName: string;
@@ -13,24 +31,39 @@ export async function sendTemplateMessage(params: {
   parameters?: TemplateParameter[];
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    if (!whatsappBot) {
-      return { success: false, error: "WhatsApp bot not initialized" };
-    }
-
     const normalizedPhone = normalizePhoneNumber(params.phone);
     if (!normalizedPhone || normalizedPhone.length < 9) {
       return { success: false, error: "Invalid phone number format" };
     }
 
-    const result = await whatsappBot.sendTemplate(
+    // بناء components للقالب وفق بنية Meta الرسمية
+    const components: any[] = [];
+    if (params.parameters && params.parameters.length > 0) {
+      components.push({
+        type: "body",
+        parameters: params.parameters.map((p) => ({
+          type: p.type,
+          text: p.type === "text" ? p.value : undefined,
+          image: p.type === "image" ? { link: p.value } : undefined,
+          document: p.type === "document" ? { link: p.value } : undefined,
+          video: p.type === "video" ? { link: p.value } : undefined,
+        })),
+      });
+    }
+
+    const result = await sendWhatsAppTemplateMessage(
       normalizedPhone,
-      params.templateName,
-      params.language || "ar"
+      {
+        templateName: params.templateName,
+        languageCode: params.language || "ar",
+        components,
+      }
     );
 
     return {
-      success: true,
-      messageId: result.messageId || "template_sent",
+      success: result.success,
+      messageId: result.messageId,
+      error: result.error,
     };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to send template:", error);
@@ -41,6 +74,10 @@ export async function sendTemplateMessage(params: {
   }
 }
 
+/**
+ * مزامنة القوالب من Meta API
+ * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/templates/overview
+ */
 export async function syncTemplatesFromMeta(): Promise<{
   success: boolean;
   synced?: number;
@@ -49,18 +86,19 @@ export async function syncTemplatesFromMeta(): Promise<{
   error?: string;
 }> {
   try {
-    if (!whatsappClient) {
-      return { success: false, error: "WhatsApp client not initialized" };
+    const wabaId = ENV.whatsappBusinessAccountId;
+
+    if (!wabaId) {
+      return { success: false, error: "WHATSAPP_BUSINESS_ACCOUNT_ID not configured" };
     }
 
-    // Sync templates from Meta API
-    const templates = await getAvailableTemplates();
-    
+    const response = await meta.get(`/${wabaId}/message_templates?fields=id,name,status,language,category,components&limit=100`);
+
     return {
       success: true,
-      synced: templates.templates?.length || 0,
+      synced: response.data?.length || 0,
       updated: 0,
-      message: "تمت مزامنة القوالب بنجاح",
+      message: `تمت مزامنة ${response.data?.length || 0} قالب من Meta`,
     };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to sync templates:", error);
@@ -71,6 +109,10 @@ export async function syncTemplatesFromMeta(): Promise<{
   }
 }
 
+/**
+ * إنشاء قالب جديد في Meta
+ * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/templates/create-and-manage-templates
+ */
 export async function createTemplate(params: {
   name: string;
   content: string;
@@ -78,14 +120,27 @@ export async function createTemplate(params: {
   language?: string;
 }): Promise<{ success: boolean; templateId?: string; error?: string }> {
   try {
-    if (!whatsappClient) {
-      return { success: false, error: "WhatsApp client not initialized" };
+    const wabaId = ENV.whatsappBusinessAccountId;
+
+    if (!wabaId) {
+      return { success: false, error: "WHATSAPP_BUSINESS_ACCOUNT_ID not configured" };
     }
 
-    // Create template via Meta API
+    const response: any = await meta.post(`/${wabaId}/message_templates`, {
+      name: params.name,
+      language: params.language || "ar",
+      category: params.category.toUpperCase(),
+      components: [
+        {
+          type: "BODY",
+          text: params.content,
+        },
+      ],
+    });
+
     return {
       success: true,
-      templateId: `template_${Date.now()}`,
+      templateId: response.id || `template_${Date.now()}`,
     };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to create template:", error);
@@ -96,6 +151,9 @@ export async function createTemplate(params: {
   }
 }
 
+/**
+ * تحديث قالب موجود في Meta
+ */
 export async function updateTemplate(
   templateId: number,
   params: {
@@ -105,11 +163,16 @@ export async function updateTemplate(
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!whatsappClient) {
-      return { success: false, error: "WhatsApp client not initialized" };
+    const updateData: any = {};
+    if (params.content) {
+      updateData.components = [{ type: "BODY", text: params.content }];
+    }
+    if (params.category) {
+      updateData.category = params.category.toUpperCase();
     }
 
-    // Update template via Meta API
+    await meta.post(`/${templateId}`, updateData);
+
     return { success: true };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to update template:", error);
@@ -120,15 +183,22 @@ export async function updateTemplate(
   }
 }
 
+/**
+ * حذف قالب من Meta
+ * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/templates/create-and-manage-templates#delete-templates
+ */
 export async function deleteTemplate(
   templateId: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!whatsappClient) {
-      return { success: false, error: "WhatsApp client not initialized" };
+    const wabaId = ENV.whatsappBusinessAccountId;
+
+    if (!wabaId) {
+      return { success: false, error: "WHATSAPP_BUSINESS_ACCOUNT_ID not configured" };
     }
 
-    // Delete template via Meta API
+    await meta.delete(`/${wabaId}/message_templates?hsm_id=${templateId}`);
+
     return { success: true };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to delete template:", error);
@@ -139,41 +209,28 @@ export async function deleteTemplate(
   }
 }
 
+/**
+ * جلب القوالب المتاحة من Meta API
+ */
 export async function getAvailableTemplates(): Promise<{
   success: boolean;
   templates?: any[];
   error?: string;
 }> {
   try {
-    if (!whatsappClient) {
-      return { success: false, error: "WhatsApp client not initialized" };
+    const wabaId = ENV.whatsappBusinessAccountId;
+
+    if (!wabaId) {
+      return { success: false, error: "WHATSAPP_BUSINESS_ACCOUNT_ID not configured" };
     }
+
+    const response = await meta.get(
+      `/${wabaId}/message_templates?fields=id,name,status,language,category,components&limit=100`
+    );
 
     return {
       success: true,
-      templates: [
-        {
-          id: "1",
-          name: "welcome_message",
-          language: "ar",
-          status: "APPROVED",
-          category: "UTILITY",
-        },
-        {
-          id: "2",
-          name: "booking_confirmation",
-          language: "ar",
-          status: "APPROVED",
-          category: "MARKETING",
-        },
-        {
-          id: "3",
-          name: "appointment_reminder",
-          language: "ar",
-          status: "APPROVED",
-          category: "UTILITY",
-        },
-      ],
+      templates: response.data || [],
     };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to get templates:", error);
@@ -184,21 +241,29 @@ export async function getAvailableTemplates(): Promise<{
   }
 }
 
+/**
+ * جلب حالة قالب معين من Meta
+ */
 export async function getTemplateStatus(templateName: string): Promise<{
   success: boolean;
   status?: string;
   error?: string;
 }> {
   try {
-    const statusMap: Record<string, string> = {
-      welcome_message: "APPROVED",
-      booking_confirmation: "APPROVED",
-      appointment_reminder: "APPROVED",
-    };
+    const wabaId = ENV.whatsappBusinessAccountId;
 
+    if (!wabaId) {
+      return { success: false, error: "WHATSAPP_BUSINESS_ACCOUNT_ID not configured" };
+    }
+
+    const response = await meta.get(
+      `/${wabaId}/message_templates?name=${templateName}&fields=name,status`
+    );
+
+    const template = response.data?.[0];
     return {
       success: true,
-      status: statusMap[templateName] || "PENDING_REVIEW",
+      status: template?.status || "UNKNOWN",
     };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to get template status:", error);
@@ -209,6 +274,10 @@ export async function getTemplateStatus(templateName: string): Promise<{
   }
 }
 
+/**
+ * إرسال رسالة وسائط عبر Cloud API الرسمي
+ * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/message-types/media-messages
+ */
 export async function sendMediaMessage(params: {
   phone: string;
   mediaType: "image" | "video" | "document" | "audio";
@@ -216,42 +285,47 @@ export async function sendMediaMessage(params: {
   caption?: string;
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    if (!whatsappBot) {
-      return { success: false, error: "WhatsApp bot not initialized" };
-    }
-
     const normalizedPhone = normalizePhoneNumber(params.phone);
     if (!normalizedPhone || normalizedPhone.length < 9) {
       return { success: false, error: "Invalid phone number format" };
     }
 
-    let result: any;
+    const phoneNumberId = ENV.whatsappPhoneNumberId;
+
+    if (!phoneNumberId) {
+      return { success: false, error: "WHATSAPP_PHONE_NUMBER_ID not configured" };
+    }
+
+    // بناء payload وفق بنية Meta الرسمية للوسائط
+    const mediaPayload: any = {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: normalizedPhone,
+      type: params.mediaType,
+    };
+
     switch (params.mediaType) {
       case "image":
-        result = await whatsappBot.sendImage(normalizedPhone, params.mediaUrl, {
-          caption: params.caption,
-        });
+        mediaPayload.image = { link: params.mediaUrl, caption: params.caption };
         break;
       case "video":
-        result = await whatsappBot.sendVideo(normalizedPhone, params.mediaUrl, {
-          caption: params.caption,
-        });
+        mediaPayload.video = { link: params.mediaUrl, caption: params.caption };
         break;
       case "document":
-        result = await whatsappBot.sendDocument(normalizedPhone, params.mediaUrl, {
-          caption: params.caption,
-        });
+        mediaPayload.document = { link: params.mediaUrl, caption: params.caption };
         break;
       case "audio":
-        result = await whatsappBot.sendAudio(normalizedPhone, params.mediaUrl);
+        mediaPayload.audio = { link: params.mediaUrl };
         break;
       default:
         return { success: false, error: "Unsupported media type" };
     }
 
+    const response: any = await meta.post(`/${phoneNumberId}/messages`, mediaPayload);
+
     return {
       success: true,
-      messageId: result?.messageId || "media_sent",
+      messageId: response.messages?.[0]?.id || "media_sent",
     };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to send media message:", error);

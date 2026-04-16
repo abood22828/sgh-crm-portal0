@@ -1,4 +1,3 @@
-import { whatsappBot } from "../config/whatsapp";
 
 export interface AuditLogEntry {
   id: string;

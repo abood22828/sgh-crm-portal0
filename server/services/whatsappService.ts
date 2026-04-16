@@ -1,14 +1,17 @@
 /**
  * WhatsApp Service
- * خدمة مركزية لإرسال الرسائل والتعامل مع WhatsApp
+ * خدمة مركزية لإرسال الرسائل والتعامل مع WhatsApp Cloud API الرسمي
+ *
+ * ✅ يستخدم Cloud API الرسمي (sendWhatsAppTextMessage)
+ * ✅ متوافق مع وثائق Meta الرسمية v23.0
  */
 
-import { whatsappBot } from "../config/whatsapp";
-import { whatsappQueue } from "../queues/whatsappQueue";
 import { normalizePhoneNumber } from "../db";
+import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
+import { ENV } from "../_core/env";
 
 /**
- * Send a simple text message
+ * Send a simple text message via Cloud API
  */
 export async function sendTextMessage(
   phone: string,
@@ -16,13 +19,6 @@ export async function sendTextMessage(
   options?: { priority?: "high" | "normal" | "low" }
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    if (!whatsappBot) {
-      return {
-        success: false,
-        error: "WhatsApp bot not initialized",
-      };
-    }
-
     const normalizedPhone = normalizePhoneNumber(phone);
     if (!normalizedPhone || normalizedPhone.length < 9) {
       return {
@@ -31,33 +27,12 @@ export async function sendTextMessage(
       };
     }
 
-    // Add to queue
-    if (whatsappQueue) {
-      const jobData: any = {
-        type: "text",
-        phone: normalizedPhone,
-        message,
-        timestamp: new Date(),
-      };
-      
-      const jobOptions: any = {
-        priority: options?.priority === "high" ? 10 : options?.priority === "low" ? 1 : 5,
-        attempts: 3,
-        backoff: {
-          type: "exponential",
-          delay: 2000,
-        },
-      };
-      
-      await whatsappQueue.add(jobData, jobOptions);
-    } else {
-      // Send directly if queue not available
-      await whatsappBot.sendText(normalizedPhone, message);
-    }
+    const result = await sendWhatsAppTextMessage(normalizedPhone, message);
 
     return {
-      success: true,
-      messageId: `queued_${Date.now()}`,
+      success: result.success,
+      messageId: result.messageId,
+      error: result.error,
     };
   } catch (error) {
     console.error("[WhatsApp] Failed to send text message:", error);
@@ -129,7 +104,7 @@ export async function sendCustomMessage(
 }
 
 /**
- * Verify WhatsApp Service Health
+ * Verify WhatsApp Cloud API Health
  */
 export async function verifyWhatsAppHealth(): Promise<{
   botReady: boolean;
@@ -139,16 +114,13 @@ export async function verifyWhatsAppHealth(): Promise<{
 }> {
   const errors: string[] = [];
 
-  const botReady = whatsappBot !== null;
-  if (!botReady) errors.push("WhatsApp bot not initialized");
-
-  const queueReady = whatsappQueue !== null;
-  if (!queueReady) errors.push("WhatsApp queue not initialized");
+  const cloudApiReady = !!(ENV.whatsappPhoneNumberId && ENV.metaAccessToken);
+  if (!cloudApiReady) errors.push("WhatsApp Cloud API not configured (missing WHATSAPP_PHONE_NUMBER_ID or META_ACCESS_TOKEN)");
 
   return {
-    botReady,
-    clientReady: true,
-    queueReady,
+    botReady: cloudApiReady,
+    clientReady: cloudApiReady,
+    queueReady: true, // Cloud API لا يحتاج queue
     errors,
   };
 }

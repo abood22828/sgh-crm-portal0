@@ -21,7 +21,7 @@ describe('WhatsApp API Credentials', () => {
     }
 
     const response = await fetch(
-      `https://graph.facebook.com/v21.0/me?access_token=${token}`
+      `https://graph.facebook.com/v23.0/me?access_token=${token}`
     );
     const data = await response.json() as any;
     
@@ -39,7 +39,7 @@ describe('WhatsApp API Credentials', () => {
     }
 
     const response = await fetch(
-      `https://graph.facebook.com/v21.0/${phoneId}?fields=display_phone_number,platform_type,verified_name&access_token=${token}`
+      `https://graph.facebook.com/v23.0/${phoneId}?fields=display_phone_number,platform_type,verified_name&access_token=${token}`
     );
     const data = await response.json() as any;
     

@@ -85,8 +85,10 @@ export default function WhatsAppAnalytics() {
     setIsLoading(true);
     try {
       const result = await addAutoReplyMutation.mutateAsync({
-        trigger: autoReplyTrigger,
-        response: autoReplyResponse,
+        name: autoReplyTrigger,
+        triggerType: "keyword" as const,
+        triggerValue: autoReplyTrigger,
+        replyMessage: autoReplyResponse,
       });
 
       if (result.success) {
@@ -104,7 +106,7 @@ export default function WhatsAppAnalytics() {
     }
   };
 
-  const handleDeleteAutoReply = async (ruleId: string) => {
+  const handleDeleteAutoReply = async (ruleId: number) => {
     try {
       const result = await deleteAutoReplyMutation.mutateAsync({ ruleId });
       if (result.success) {
@@ -343,8 +345,8 @@ export default function WhatsAppAnalytics() {
                   className="flex items-center justify-between p-3 bg-muted rounded-lg"
                 >
                   <div>
-                    <p className="font-medium text-sm">{rule.trigger}</p>
-                    <p className="text-xs text-muted-foreground">{rule.response}</p>
+                    <p className="font-medium text-sm">{rule.triggerValue || rule.triggerType}</p>
+                    <p className="text-xs text-muted-foreground">{rule.replyMessage}</p>
                   </div>
                   <Button
                     variant="destructive"

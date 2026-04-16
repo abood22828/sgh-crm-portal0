@@ -1,0 +1,1 @@
+ALTER TABLE `whatsapp_templates` ADD `metaTemplateId` varchar(64);

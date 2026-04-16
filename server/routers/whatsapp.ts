@@ -14,7 +14,7 @@ import {
   verifyWhatsAppHealth,
 } from "../services/whatsappService";
 import { normalizePhoneNumber } from "../db";
-import { whatsappBot } from "../config/whatsapp";
+// whatsappBot removed — using sendWhatsAppTextMessage (Cloud API) directly
 
 export const whatsappRouter = router({
   // WhatsApp Cloud API Status
@@ -250,21 +250,15 @@ export const whatsappRouter = router({
     .input(z.object({ phone: z.string().min(9).max(15) }))
     .mutation(async ({ input }) => {
       try {
-        if (!whatsappBot) {
-          return {
-            success: false,
-            error: "WhatsApp bot not initialized",
-          };
-        }
-
         const normalizedPhone = normalizePhoneNumber(input.phone);
         const testMessage = `اختبار الاتصال بـ WhatsApp ✅\nالوقت: ${new Date().toLocaleString("ar-YE")}`;
 
-        await whatsappBot.sendText(normalizedPhone, testMessage);
+        const result = await sendWhatsAppTextMessage(normalizedPhone, testMessage);
 
         return {
-          success: true,
-          message: "تم إرسال رسالة الاختبار بنجاح",
+          success: result.success,
+          message: result.success ? "تم إرسال رسالة الاختبار بنجاح" : undefined,
+          error: result.error,
         };
       } catch (error) {
         return {
@@ -387,20 +381,27 @@ export const whatsappRouter = router({
   addAutoReplyRule: protectedProcedure
     .input(
       z.object({
-        trigger: z.string().min(1),
-        response: z.string().min(1),
+        name: z.string().min(1),
+        triggerType: z.enum(["keyword", "outside_hours", "first_message", "faq"]),
+        triggerValue: z.string().optional(),
+        replyMessage: z.string().min(1),
+        priority: z.number().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { addAutoReplyRule } = await import("../services/whatsappAutoReply");
       return addAutoReplyRule({
-        trigger: input.trigger,
-        response: input.response,
+        name: input.name,
+        triggerType: input.triggerType,
+        triggerValue: input.triggerValue,
+        replyMessage: input.replyMessage,
+        priority: input.priority,
+        createdBy: ctx.user.id,
       });
     }),
 
   deleteAutoReplyRule: protectedProcedure
-    .input(z.object({ ruleId: z.string() }))
+    .input(z.object({ ruleId: z.number() }))
     .mutation(async ({ input }) => {
       const { deleteAutoReplyRule } = await import("../services/whatsappAutoReply");
       return deleteAutoReplyRule(input.ruleId);
@@ -414,7 +415,7 @@ export const whatsappRouter = router({
   toggleAutoReplyRule: protectedProcedure
     .input(
       z.object({
-        ruleId: z.string(),
+        ruleId: z.number(),
         enabled: z.boolean(),
       })
     )

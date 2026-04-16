@@ -570,6 +570,7 @@ export const whatsappTemplates = mysqlTable("whatsapp_templates", {
   languageCode: varchar("languageCode", { length: 20 }), // e.g. "ar", "en_US"
   metaStatus: varchar("metaStatus", { length: 50 }), // APPROVED, PENDING, REJECTED
   metaCategory: varchar("metaCategory", { length: 50 }), // UTILITY, MARKETING, AUTHENTICATION
+  metaTemplateId: varchar("metaTemplateId", { length: 64 }), // Meta's internal template ID (returned after creation)
   headerText: text("headerText"), // Optional header component
   footerText: varchar("footerText", { length: 255 }), // Optional footer component
   createdAt: timestamp("createdAt").defaultNow().notNull(),

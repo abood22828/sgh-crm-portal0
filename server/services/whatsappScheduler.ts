@@ -1,6 +1,6 @@
 import { CronJob } from "cron";
-import { whatsappBot } from "../config/whatsapp";
 import { normalizePhoneNumber } from "../db";
+import { ENV } from "../_core/env";
 import { format, subHours } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -268,12 +268,12 @@ async function cleanupOldAuditLogs(): Promise<void> {
 
 async function performHealthCheck(): Promise<void> {
   try {
-    if (!whatsappBot) {
-      console.warn("[WhatsApp Scheduler] WhatsApp bot not initialized");
+    if (!ENV.whatsappPhoneNumberId || !ENV.metaAccessToken) {
+      console.warn("[WhatsApp Scheduler] WhatsApp Cloud API not configured (missing WHATSAPP_PHONE_NUMBER_ID or META_ACCESS_TOKEN)");
       return;
     }
 
-    console.log("[WhatsApp Scheduler] Health check passed");
+    console.log("[WhatsApp Scheduler] Health check passed — Cloud API configured");
   } catch (error) {
     console.error("[WhatsApp Scheduler] Health check failed:", error);
   }

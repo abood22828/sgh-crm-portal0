@@ -24,7 +24,7 @@
  */
 
 /** نسخة Graph API الافتراضية لجميع الخدمات */
-const GRAPH_API_VERSION = "v21.0";
+const GRAPH_API_VERSION = "v23.0"; // ✅ محدَّث وفق وثائق Meta الرسمية (ديسمبر 2025)
 const GRAPH_API_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
 
 export interface MetaApiResponse<T = any> {
