@@ -14,17 +14,38 @@ export const metaSyncRouter = router({
    * جلب جميع القوالب من Meta
    */
   fetchTemplates: protectedProcedure.mutation(async () => {
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || "";
+    const phoneNumberId = ENV.whatsappPhoneNumberId;
+    const wabaId = ENV.whatsappBusinessAccountId;
     const accessToken = ENV.metaAccessToken;
 
-    if (!phoneNumberId || !accessToken) {
+    // تشخيص شامل لمتغيرات البيئة
+    const diagnostics = {
+      hasPhoneNumberId: !!phoneNumberId,
+      hasWabaId: !!wabaId,
+      hasAccessToken: !!accessToken,
+      phoneNumberIdLength: phoneNumberId?.length || 0,
+      wabaIdLength: wabaId?.length || 0,
+      accessTokenPrefix: accessToken ? accessToken.substring(0, 10) + '...' : 'MISSING',
+    };
+
+    if (!accessToken) {
       return {
         success: false,
-        message: "بيانات اعتماد Meta غير مكتملة",
+        message: "توكن Meta غير موجود. تأكد من إضافة META_ACCESS_TOKEN إلى متغيرات البيئة",
+        diagnostics,
       };
     }
 
-    return await fetchTemplatesFromMeta(phoneNumberId, accessToken);
+    if (!phoneNumberId && !wabaId) {
+      return {
+        success: false,
+        message: "يجب توفير WHATSAPP_PHONE_NUMBER_ID أو WHATSAPP_BUSINESS_ACCOUNT_ID",
+        diagnostics,
+      };
+    }
+
+    const result = await fetchTemplatesFromMeta(phoneNumberId || wabaId, accessToken);
+    return { ...result, diagnostics };
   }),
 
   /**

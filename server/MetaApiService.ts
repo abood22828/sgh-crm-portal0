@@ -24,8 +24,17 @@
  */
 
 /** نسخة Graph API الافتراضية لجميع الخدمات */
-const GRAPH_API_VERSION = "v23.0"; // ✅ محدَّث وفق وثائق Meta الرسمية (ديسمبر 2025)
+const GRAPH_API_VERSION = "v25.0"; // ✅ أحدث إصدار من Meta (2026)
 const GRAPH_API_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
+
+/** إعدادات Retry Logic لمعالجة Rate Limiting وانقطاع الاتصال */
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  initialDelayMs: 1000,
+  maxDelayMs: 30000,
+  backoffMultiplier: 2,
+  retryOnCodes: [429, 500, 502, 503, 504], // Rate limit + Server errors
+};
 
 export interface MetaApiResponse<T = any> {
   data?: T;
@@ -72,6 +81,62 @@ class MetaApiService {
   }
 
   /**
+   * تأخير مع Exponential Backoff لمعالجة Rate Limiting
+   */
+  private async _delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * تنفيذ طلب مع Retry Logic تلقائي
+   */
+  private async _fetchWithRetry(
+    url: string,
+    options: RequestInit,
+    endpoint: string
+  ): Promise<{ res: Response; body: any }> {
+    let lastError: any;
+    let delay = RETRY_CONFIG.initialDelayMs;
+
+    for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+      try {
+        const res = await fetch(url, { ...options, signal: AbortSignal.timeout(30000) });
+        const body = await res.json();
+
+        // معالجة Rate Limiting (429) - انتظر وأعد المحاولة
+        if (res.status === 429 || (body.error?.code === 4 || body.error?.code === 80007)) {
+          const retryAfter = res.headers.get('Retry-After');
+          const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : delay;
+          console.warn(`[MetaApiService] Rate limited on ${endpoint}. Waiting ${waitMs}ms (attempt ${attempt + 1}/${RETRY_CONFIG.maxRetries})`);
+          if (attempt < RETRY_CONFIG.maxRetries) {
+            await this._delay(Math.min(waitMs, RETRY_CONFIG.maxDelayMs));
+            delay = Math.min(delay * RETRY_CONFIG.backoffMultiplier, RETRY_CONFIG.maxDelayMs);
+            continue;
+          }
+        }
+
+        // إعادة المحاولة على أخطاء الخادم
+        if (RETRY_CONFIG.retryOnCodes.includes(res.status) && res.status !== 429 && attempt < RETRY_CONFIG.maxRetries) {
+          console.warn(`[MetaApiService] Server error ${res.status} on ${endpoint}. Retrying in ${delay}ms (attempt ${attempt + 1}/${RETRY_CONFIG.maxRetries})`);
+          await this._delay(delay);
+          delay = Math.min(delay * RETRY_CONFIG.backoffMultiplier, RETRY_CONFIG.maxDelayMs);
+          continue;
+        }
+
+        return { res, body };
+      } catch (err) {
+        lastError = err;
+        if (attempt < RETRY_CONFIG.maxRetries) {
+          console.warn(`[MetaApiService] Network error on ${endpoint}. Retrying in ${delay}ms (attempt ${attempt + 1}/${RETRY_CONFIG.maxRetries}):`, err);
+          await this._delay(delay);
+          delay = Math.min(delay * RETRY_CONFIG.backoffMultiplier, RETRY_CONFIG.maxDelayMs);
+        }
+      }
+    }
+    throw lastError || new Error(`فشل الطلب بعد ${RETRY_CONFIG.maxRetries} محاولات`);
+  }
+
+  /**
    * طلب GET عام — يستخدم Authorization: Bearer header حصراً
    * @param endpoint  مسار نقطة النهاية (مثل: "me", "123456/messages")
    * @param params    معاملات query string إضافية
@@ -83,14 +148,13 @@ class MetaApiService {
     this.assertToken();
     const url = this.buildUrl(endpoint, params);
     try {
-      const res = await fetch(url, {
+      const { res, body } = await this._fetchWithRetry(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${this.accessToken}`,
         },
-      });
-      const body = await res.json();
+      }, endpoint);
       return {
         data: body,
         error: body.error,
@@ -99,7 +163,7 @@ class MetaApiService {
       };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[MetaApiService] GET ${endpoint} failed:`, msg);
+      console.error(`[MetaApiService] GET ${endpoint} failed after retries:`, msg);
       return { error: { message: msg, type: "NetworkError", code: 0 }, status: 0, ok: false };
     }
   }
@@ -116,15 +180,14 @@ class MetaApiService {
     this.assertToken();
     const url = `${GRAPH_API_BASE}/${endpoint.replace(/^\//, "")}`;
     try {
-      const res = await fetch(url, {
+      const { res, body } = await this._fetchWithRetry(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.accessToken}`,
         },
         body: JSON.stringify(payload),
-      });
-      const body = await res.json();
+      }, endpoint);
       return {
         data: body,
         error: body.error,
@@ -133,7 +196,7 @@ class MetaApiService {
       };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[MetaApiService] POST ${endpoint} failed:`, msg);
+      console.error(`[MetaApiService] POST ${endpoint} failed after retries:`, msg);
       return { error: { message: msg, type: "NetworkError", code: 0 }, status: 0, ok: false };
     }
   }
@@ -145,11 +208,10 @@ class MetaApiService {
     this.assertToken();
     const url = this.buildUrl(endpoint);
     try {
-      const res = await fetch(url, {
+      const { res, body } = await this._fetchWithRetry(url, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${this.accessToken}` },
-      });
-      const body = await res.json();
+      }, endpoint);
       return {
         data: body,
         error: body.error,
@@ -158,7 +220,7 @@ class MetaApiService {
       };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[MetaApiService] DELETE ${endpoint} failed:`, msg);
+      console.error(`[MetaApiService] DELETE ${endpoint} failed after retries:`, msg);
       return { error: { message: msg, type: "NetworkError", code: 0 }, status: 0, ok: false };
     }
   }
@@ -253,16 +315,22 @@ class MetaApiService {
   /** جلب قوالب WhatsApp من WABA */
   async getWhatsAppTemplates(
     wabaId: string,
-    limit = 100
-  ): Promise<{ success: boolean; templates?: any[]; error?: string }> {
+    limit = 250
+  ): Promise<{ success: boolean; templates?: any[]; error?: string; rawError?: any }> {
+    // وفق وثائق Meta v25.0: GET /{whatsapp-business-account-id}/message_templates
+    // الحقول المتاحة: id, name, status, category, language, components, quality_score, rejected_reason
     const res = await this.get(`${wabaId}/message_templates`, {
-      fields: "name,status,category,language,components",
+      fields: "id,name,status,category,language,components,quality_score,rejected_reason",
       limit: String(limit),
     });
     if (!res.ok) {
-      return { success: false, error: res.error?.message ?? "خطأ غير معروف" };
+      const errMsg = this._formatMetaError(res.error);
+      console.error(`[MetaApiService] getWhatsAppTemplates failed for WABA ${wabaId}:`, JSON.stringify(res.error));
+      return { success: false, error: errMsg, rawError: res.error };
     }
-    return { success: true, templates: res.data?.data ?? [] };
+    const templates = res.data?.data ?? [];
+    console.log(`[MetaApiService] Fetched ${templates.length} templates from WABA ${wabaId}`);
+    return { success: true, templates };
   }
 
   /** الحصول على WABA ID من Phone Number ID */

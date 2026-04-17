@@ -15,7 +15,7 @@ import crypto from "crypto";
 
 const PIXEL_ID = process.env.META_PIXEL_ID ?? "";
 const ACCESS_TOKEN = process.env.META_CAPI_ACCESS_TOKEN ?? "";
-const CAPI_URL = `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`;
+const CAPI_URL = `https://graph.facebook.com/v25.0/${PIXEL_ID}/events`;
 
 /**
  * تشفير البيانات الحساسة بـ SHA-256 كما تتطلب Meta

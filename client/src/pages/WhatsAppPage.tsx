@@ -494,7 +494,10 @@ function WhatsAppContent() {
     trpc.whatsapp.conversations.list.useQuery();
   const { data: templates } = trpc.whatsapp.templates.list.useQuery();
   const { data: connectionStatus, isLoading: statusLoading } =
-    trpc.whatsapp.connection.status.useQuery(undefined, { refetchInterval: 5000 });
+    trpc.whatsapp.connection.status.useQuery(undefined, {
+    refetchInterval: 60_000, // كل دقيقة بدلاً من 5 ثوانٍ لتجنب Rate Limiting من Meta
+    refetchOnWindowFocus: false,
+  });
 
   // Mutations
   const markConversationAsReadMutation = trpc.whatsapp.conversations.markAsRead.useMutation();
