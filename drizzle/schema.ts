@@ -559,7 +559,7 @@ export type InsertWhatsAppMessage = typeof whatsappMessages.$inferInsert;
 export const whatsappTemplates = mysqlTable("whatsapp_templates", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  category: mysqlEnum("category", ["confirmation", "reminder", "thank_you", "follow_up", "cancellation", "custom"]).notNull(),
+  category: mysqlEnum("category", ["MARKETING", "UTILITY", "AUTHENTICATION"]).notNull().default("UTILITY"),
   content: text("content").notNull(),
   variables: text("variables"), // JSON array of variable names like ["name", "date", "time"]
   isActive: int("isActive").default(1).notNull(),

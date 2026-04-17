@@ -256,7 +256,7 @@ function WhatsAppTemplatesContent() {
   // Form state
   const [name, setName] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState("custom");
+  const [category, setCategory] = useState("UTILITY");
   const [language, setLanguage] = useState("ar");
   const [testPhone, setTestPhone] = useState("");
 
@@ -310,7 +310,7 @@ function WhatsAppTemplatesContent() {
   });
 
   const resetForm = () => {
-    setName(""); setContent(""); setCategory("custom"); setLanguage("ar");
+    setName(""); setContent(""); setCategory("UTILITY"); setLanguage("ar");
     setSelectedTemplate(null);
   };
 
@@ -445,11 +445,6 @@ function WhatsAppTemplatesContent() {
                         <SelectItem value="UTILITY">خدمات (Utility)</SelectItem>
                         <SelectItem value="MARKETING">تسويق (Marketing)</SelectItem>
                         <SelectItem value="AUTHENTICATION">مصادقة (Authentication)</SelectItem>
-                        <SelectItem value="confirmation">تأكيد</SelectItem>
-                        <SelectItem value="reminder">تذكير</SelectItem>
-                        <SelectItem value="followup">متابعة</SelectItem>
-                        <SelectItem value="welcome">ترحيب</SelectItem>
-                        <SelectItem value="custom">مخصص</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -553,11 +548,9 @@ function WhatsAppTemplatesContent() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">جميع الفئات</SelectItem>
-            <SelectItem value="UTILITY">خدمات</SelectItem>
-            <SelectItem value="MARKETING">تسويق</SelectItem>
-            <SelectItem value="confirmation">تأكيد</SelectItem>
-            <SelectItem value="reminder">تذكير</SelectItem>
-            <SelectItem value="welcome">ترحيب</SelectItem>
+            <SelectItem value="UTILITY">خدمات (Utility)</SelectItem>
+            <SelectItem value="MARKETING">تسويق (Marketing)</SelectItem>
+            <SelectItem value="AUTHENTICATION">مصادقة (Authentication)</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -620,13 +613,9 @@ function WhatsAppTemplatesContent() {
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="UTILITY">خدمات</SelectItem>
-                  <SelectItem value="MARKETING">تسويق</SelectItem>
-                  <SelectItem value="confirmation">تأكيد</SelectItem>
-                  <SelectItem value="reminder">تذكير</SelectItem>
-                  <SelectItem value="followup">متابعة</SelectItem>
-                  <SelectItem value="welcome">ترحيب</SelectItem>
-                  <SelectItem value="custom">مخصص</SelectItem>
+                  <SelectItem value="UTILITY">خدمات (Utility)</SelectItem>
+                  <SelectItem value="MARKETING">تسويق (Marketing)</SelectItem>
+                  <SelectItem value="AUTHENTICATION">مصادقة (Authentication)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

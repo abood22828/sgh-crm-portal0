@@ -10,10 +10,13 @@
  * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/message-types/template-messages
  */
 
+import { eq } from "drizzle-orm";
 import { normalizePhoneNumber } from "../db";
+import { getDb } from "../db";
 import { sendWhatsAppTextMessage, sendWhatsAppTemplateMessage } from "../whatsappCloudAPI";
 import meta from "../MetaApiService";
 import { ENV } from "../_core/env";
+import { whatsappTemplates } from "../../drizzle/schema";
 
 export interface TemplateParameter {
   type: "text" | "image" | "document" | "video";
@@ -92,13 +95,128 @@ export async function syncTemplatesFromMeta(): Promise<{
       return { success: false, error: "WHATSAPP_BUSINESS_ACCOUNT_ID not configured" };
     }
 
-    const response = await meta.get(`/${wabaId}/message_templates?fields=id,name,status,language,category,components&limit=100`);
+    // جلب القوالب من Meta - الاستجابة تكون {data: {data: [...], paging: {...}}}
+    const response = await meta.get(`${wabaId}/message_templates`, {
+      fields: "id,name,status,language,category,components,quality_score,rejected_reason",
+      limit: "250",
+    });
 
+    if (!response.ok) {
+      console.error("[WhatsApp Templates] Meta API error:", response.error);
+      return {
+        success: false,
+        error: response.error?.message || "Failed to fetch templates from Meta",
+      };
+    }
+
+    // Meta تُرجع {data: [...]} والمصفوفة تكون response.data.data
+    const templates: any[] = response.data?.data ?? [];
+    console.log(`[WhatsApp Templates] Fetched ${templates.length} templates from Meta (WABA: ${wabaId})`);
+
+    if (templates.length === 0) {
+      return {
+        success: true,
+        synced: 0,
+        updated: 0,
+        message: "لم يتم العثور على قوالب في Meta. تأكد من صحة WHATSAPP_BUSINESS_ACCOUNT_ID وصلاحية META_ACCESS_TOKEN",
+      };
+    }
+
+    const db = await getDb();
+    if (!db) {
+      return { success: false, error: "لا يمكن الاتصال بقاعدة البيانات" };
+    }
+
+    let synced = 0;
+    let updated = 0;
+    const errors: string[] = [];
+
+    for (const template of templates) {
+      try {
+        // استخراج محتوى الجسم والمتغيرات
+        let content = "";
+        let variables: string[] = [];
+        let headerText: string | null = null;
+        let footerText: string | null = null;
+
+        if (template.components) {
+          for (const component of template.components) {
+            if (component.type === "HEADER" && component.text) {
+              headerText = component.text;
+            } else if (component.type === "BODY" && component.text) {
+              content = component.text;
+              const positional = component.text.match(/\{\{(\d+)\}\}/g) || [];
+              const named = component.text.match(/\{\{([a-z_]+)\}\}/g) || [];
+              variables = [...positional, ...named].map((m: string) => m.replace(/[{}]/g, ""));
+            } else if (component.type === "FOOTER" && component.text) {
+              footerText = component.text;
+            }
+          }
+        }
+
+        // تحديد الفئة - استخدام فئة Meta مباشرة
+        const validCategories = ["MARKETING", "UTILITY", "AUTHENTICATION"];
+        const category = validCategories.includes(template.category?.toUpperCase())
+          ? (template.category.toUpperCase() as "MARKETING" | "UTILITY" | "AUTHENTICATION")
+          : "UTILITY";
+
+        // التحقق من وجود القالب بالاسم
+        const existing = await db
+          .select()
+          .from(whatsappTemplates)
+          .where(eq(whatsappTemplates.metaName, template.name))
+          .limit(1);
+
+        if (existing.length > 0) {
+          // تحديث القالب الموجود
+          await db
+            .update(whatsappTemplates)
+            .set({
+              metaStatus: template.status,
+              metaCategory: template.category,
+              metaTemplateId: template.id,
+              content: content || existing[0].content,
+              variables: JSON.stringify(variables),
+              languageCode: template.language,
+              headerText: headerText ?? existing[0].headerText,
+              footerText: footerText ?? existing[0].footerText,
+              updatedAt: new Date(),
+            })
+            .where(eq(whatsappTemplates.metaName, template.name));
+          updated++;
+        } else {
+          // إضافة قالب جديد
+          await db.insert(whatsappTemplates).values({
+            name: template.name,
+            metaName: template.name,
+            metaTemplateId: template.id,
+            metaStatus: template.status,
+            metaCategory: template.category,
+            languageCode: template.language,
+            category,
+            content,
+            variables: JSON.stringify(variables),
+            headerText,
+            footerText,
+            createdBy: 1,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+          synced++;
+        }
+      } catch (err) {
+        const errMsg = `فشل معالجة القالب ${template.name}: ${err instanceof Error ? err.message : "خطأ غير معروف"}`;
+        console.error("[WhatsApp Templates]", errMsg);
+        errors.push(errMsg);
+      }
+    }
+
+    const totalProcessed = synced + updated;
     return {
       success: true,
-      synced: response.data?.length || 0,
-      updated: 0,
-      message: `تمت مزامنة ${response.data?.length || 0} قالب من Meta`,
+      synced,
+      updated,
+      message: `تمت مزامنة ${totalProcessed} قالب من Meta (جديد: ${synced}, محدّث: ${updated})${errors.length > 0 ? ` - ${errors.length} أخطاء` : ""}`,
     };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to sync templates:", error);

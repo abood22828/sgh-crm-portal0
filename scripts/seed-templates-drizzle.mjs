@@ -19,7 +19,7 @@ const templates = [
   // 1. تأكيدات الحجوزات
   {
     name: "appointment_confirmation_ar",
-    category: "confirmation",
+    category: "UTILITY",
     content:
       "مرحباً {{1}},\n\nتم تأكيد موعدك الطبي بنجاح ✅\n\n📋 التفاصيل:\n• الطبيب: {{2}}\n• التخصص: {{3}}\n• التاريخ: {{4}}\n• الوقت: {{5}}\n• الموقع: شارع الستين الشمالي - صنعاء\n\nشكراً لاختيارك المستشفى السعودي الألماني",
     variables: JSON.stringify([
@@ -40,7 +40,7 @@ const templates = [
 
   {
     name: "camp_registration_confirmation_ar",
-    category: "confirmation",
+    category: "UTILITY",
     content:
       "مرحباً {{1}},\n\nتم تأكيد تسجيلك في المخيم الطبي بنجاح ✅\n\n🏥 المخيم: {{2}}\n📅 التاريخ: {{3}} - {{4}}\n📍 الموقع: {{5}}\n👥 الفئة: {{6}}\n\nشكراً لمشاركتك معنا!",
     variables: JSON.stringify([
@@ -62,7 +62,7 @@ const templates = [
 
   {
     name: "offer_booking_confirmation_ar",
-    category: "confirmation",
+    category: "MARKETING",
     content:
       "مرحباً {{1}},\n\nشكراً لاهتمامك بعرضنا الخاص! 🎁\n\n💰 العرض: {{2}}\n📝 التفاصيل: {{3}}\n⏰ صلاحية العرض: {{4}}\n\nسيتواصل معك فريقنا قريباً لتأكيد التفاصيل.\n\nشكراً لاختيارك المستشفى السعودي الألماني",
     variables: JSON.stringify([
@@ -83,7 +83,7 @@ const templates = [
   // 2. التذكيرات
   {
     name: "appointment_reminder_24h_ar",
-    category: "reminder",
+    category: "UTILITY",
     content:
       "مرحباً {{1}},\n\nتذكير: لديك موعد طبي غداً! ⏰\n\n📋 التفاصيل:\n• الطبيب: {{2}}\n• الوقت: {{3}}\n• الموقع: شارع الستين الشمالي - صنعاء\n\nالرجاء التأكد من وصولك قبل الموعد بـ 15 دقيقة.",
     variables: JSON.stringify(["name", "doctor_name", "time"]),
@@ -98,7 +98,7 @@ const templates = [
 
   {
     name: "appointment_reminder_1h_ar",
-    category: "reminder",
+    category: "UTILITY",
     content:
       "مرحباً {{1}},\n\nتذكير: موعدك الطبي بعد ساعة واحدة! ⏰\n\nالرجاء التأكد من وصولك الآن.\n\n📍 الموقع: شارع الستين الشمالي - صنعاء\n📞 للاستفسارات: {{2}}",
     variables: JSON.stringify(["name", "phone_number"]),
@@ -114,7 +114,7 @@ const templates = [
   // 3. تحديثات الحالة
   {
     name: "appointment_status_confirmed_ar",
-    category: "custom",
+    category: "UTILITY",
     content:
       "مرحباً {{1}},\n\n✅ تم تأكيد موعدك الطبي بنجاح\n\n📅 الموعد: {{2}}\n⏰ الوقت: {{3}}\n👨‍⚕️ الطبيب: {{4}}\n\nشكراً لاختيارك المستشفى السعودي الألماني",
     variables: JSON.stringify(["name", "date", "time", "doctor_name"]),
@@ -129,7 +129,7 @@ const templates = [
 
   {
     name: "appointment_status_cancelled_ar",
-    category: "cancellation",
+    category: "UTILITY",
     content:
       "مرحباً {{1}},\n\n❌ تم إلغاء موعدك الطبي\n\n📅 الموعد: {{2}}\n📝 السبب: {{3}}\n\nللحجز مرة أخرى، يرجى التواصل معنا:\n📞 {{4}}",
     variables: JSON.stringify(["name", "date", "reason", "phone_number"]),
@@ -144,7 +144,7 @@ const templates = [
 
   {
     name: "appointment_status_rescheduled_ar",
-    category: "custom",
+    category: "UTILITY",
     content:
       "مرحباً {{1}},\n\n📅 تم إعادة جدولة موعدك الطبي\n\nالموعد الجديد:\n📅 التاريخ: {{2}}\n⏰ الوقت: {{3}}\n👨‍⚕️ الطبيب: {{4}}\n\nشكراً لتفهمك",
     variables: JSON.stringify(["name", "new_date", "new_time", "doctor_name"]),
@@ -159,7 +159,7 @@ const templates = [
 
   {
     name: "appointment_status_completed_ar",
-    category: "thank_you",
+    category: "UTILITY",
     content:
       "مرحباً {{1}},\n\n✨ شكراً لزيارتك!\n\nنتمنى لك الشفاء العاجل وتحسن صحتك.\n\nإذا كنت بحاجة لموعد متابعة أو لديك أي استفسارات:\n📞 {{2}}\n\nشكراً لاختيارك المستشفى السعودي الألماني",
     variables: JSON.stringify(["name", "phone_number"]),
@@ -175,7 +175,7 @@ const templates = [
   // 4. المتابعة
   {
     name: "appointment_followup_ar",
-    category: "follow_up",
+    category: "MARKETING",
     content:
       "مرحباً {{1}},\n\nنتمنى أن تكون قد استفدت من زيارتك! 😊\n\n📋 هل تحتاج إلى:\n• موعد متابعة؟\n• استشارة أخرى؟\n• معلومات إضافية؟\n\nتواصل معنا:\n📞 {{2}}\n💬 WhatsApp: {{3}}",
     variables: JSON.stringify(["name", "phone_number", "whatsapp_number"]),
@@ -190,7 +190,7 @@ const templates = [
 
   {
     name: "camp_followup_ar",
-    category: "follow_up",
+    category: "MARKETING",
     content:
       "مرحباً {{1}},\n\nشكراً لمشاركتك في المخيم الطبي! 🏥\n\nنتمنى أن تكون قد استفدت من الخدمات المقدمة.\n\nهل لديك أي استفسارات أو تحتاج إلى:\n📞 {{2}}\n💬 WhatsApp: {{3}}",
     variables: JSON.stringify(["name", "phone_number", "whatsapp_number"]),
@@ -206,7 +206,7 @@ const templates = [
   // 5. الإلغاء
   {
     name: "camp_cancellation_ar",
-    category: "cancellation",
+    category: "UTILITY",
     content:
       "مرحباً {{1}},\n\nتم إلغاء تسجيلك في المخيم الطبي.\n\n📅 المخيم: {{2}}\n📝 السبب: {{3}}\n\nللمزيد من المعلومات:\n📞 {{4}}",
     variables: JSON.stringify(["name", "camp_name", "reason", "phone_number"]),
@@ -221,7 +221,7 @@ const templates = [
 
   {
     name: "offer_cancellation_ar",
-    category: "cancellation",
+    category: "MARKETING",
     content:
       "مرحباً {{1}},\n\n❌ انتهت صلاحية العرض الخاص\n\n🎁 العرض: {{2}}\n⏰ انتهى في: {{3}}\n\nتابع معنا للحصول على عروض جديدة!\n📞 {{4}}",
     variables: JSON.stringify([
@@ -242,7 +242,7 @@ const templates = [
   // 6. الترحيب والتسويق
   {
     name: "welcome_message_ar",
-    category: "custom",
+    category: "MARKETING",
     content:
       "مرحباً {{1}},\n\nأهلاً وسهلاً بك في المستشفى السعودي الألماني بصنعاء! 👋\n\n🏥 نقدم لك:\n• خدمات طبية متقدمة\n• فريق طبي متخصص\n• رعاية صحية شاملة\n\n📞 للحجز والاستفسارات:\n{{2}}\n\nشارع الستين الشمالي - صنعاء",
     variables: JSON.stringify(["name", "phone_number"]),
@@ -257,7 +257,7 @@ const templates = [
 
   {
     name: "new_offer_announcement_ar",
-    category: "custom",
+    category: "MARKETING",
     content:
       "مرحباً {{1}},\n\n🎁 عرض خاص جديد!\n\n{{2}}\n\n💰 السعر: {{3}}\n⏰ صلاحية العرض: {{4}}\n\nاحجز الآن:\n📞 {{5}}",
     variables: JSON.stringify([
@@ -279,7 +279,7 @@ const templates = [
   // 7. قالب ترحيب مخصص بهوية المستشفى
   {
     name: "sgh_welcome_greeting_ar",
-    category: "custom",
+    category: "MARKETING",
     content:
       "مرحباً {{1}},\n\nأهلاً وسهلاً عزيزي العميل. المستشفى السعودي الألماني معكم. 👋\n\nتفضلوا بطرح استفساراتكم وسؤالكم. نحن هنا لخدمتكم.\n\n🏥 خدماتنا:\n• مواعيد طبية\n• مخيمات صحية\n• عروض خاصة\n\nشكراً لاختيارك المستشفى السعودي الألماني\n\n#المستشفى_السعودي_الألماني",
     variables: JSON.stringify(["name"]),

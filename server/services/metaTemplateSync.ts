@@ -132,7 +132,9 @@ export async function fetchTemplatesFromMeta(
             metaStatus: template.status,
             metaCategory: template.category,
             languageCode: template.language,
-            category: "custom",
+            category: (["MARKETING", "UTILITY", "AUTHENTICATION"].includes(template.category?.toUpperCase())
+              ? template.category.toUpperCase()
+              : "UTILITY") as "MARKETING" | "UTILITY" | "AUTHENTICATION",
             content,
             variables: JSON.stringify(variables),
             createdBy: 1,
