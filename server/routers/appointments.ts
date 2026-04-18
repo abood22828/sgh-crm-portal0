@@ -21,6 +21,7 @@ import { sendNewAppointmentTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
 import { sendAppointmentLeadEvent, sendStatusChangeEvent } from "../facebookCAPI";
+import { sendAppointmentConfirmation } from "../services/whatsappAppointments";
 
 export const appointmentsRouter = router({
   submit: publicProcedure
@@ -194,6 +195,18 @@ export const appointmentsRouter = router({
         }).catch(error => {
           console.error("[WhatsApp] Failed to send booking confirmation:", error);
         });
+
+        // حفظ سجل إشعار WhatsApp في قاعدة البيانات (fire-and-forget)
+        if (doctor) {
+          sendAppointmentConfirmation({
+            appointmentId: result.insertId,
+            phone: input.phone,
+            patientName: input.fullName,
+            doctorName: doctor.name || "غير محدد",
+            appointmentTime: new Date(),
+            department: doctor.specialty || "عام",
+          }).catch(err => console.error("[WhatsApp Notifications] Failed to save notification:", err));
+        }
       }
 
       // Send Facebook Conversions API event (fire-and-forget)

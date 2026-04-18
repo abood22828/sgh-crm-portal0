@@ -549,8 +549,8 @@ export const whatsappRouter = router({
     }),
 
   getOptOutRequests: protectedProcedure.query(async () => {
-    const { getOptOutRequests } = await import("../services/whatsappSecurity");
-    return getOptOutRequests();
+    const { getBlockedPhones } = await import("../services/whatsappSecurity");
+    return getBlockedPhones();
   }),
 
   validateMetaCompliance: protectedProcedure
@@ -593,5 +593,23 @@ export const whatsappRouter = router({
   shutdownScheduler: protectedProcedure.mutation(async () => {
     const { shutdownScheduler } = await import("../services/whatsappScheduler");
     return shutdownScheduler();
+  }),
+
+  // جلب سجلات إشعارات WhatsApp من قاعدة البيانات
+  getNotificationLogs: protectedProcedure
+    .input(z.object({
+      entityType: z.enum(["appointment", "camp_registration", "offer_lead"]).optional(),
+      status: z.enum(["pending", "sent", "delivered", "read", "failed"]).optional(),
+      limit: z.number().min(1).max(100).default(50),
+      offset: z.number().min(0).default(0),
+    }))
+    .query(async ({ input }) => {
+      const { getNotificationLogs } = await import("../services/whatsappAppointments");
+      return getNotificationLogs(input);
+    }),
+
+  getNotificationStats: protectedProcedure.query(async () => {
+    const { getNotificationStats } = await import("../services/whatsappAppointments");
+    return getNotificationStats();
   }),
 });

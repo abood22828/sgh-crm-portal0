@@ -1,268 +1,201 @@
+/**
+ * WhatsApp Security & Compliance Service
+ * خدمة الأمان والامتثال لـ WhatsApp
+ *
+ * ✅ إدارة الأرقام المحظورة في قاعدة البيانات
+ * ✅ معالجة طلبات إلغاء الاشتراك (opt-out)
+ * ✅ التحقق من امتثال الرسائل لمعايير Meta
+ * ✅ تشفير البيانات الحساسة
+ */
+
 import crypto from "crypto";
+import { eq } from "drizzle-orm";
+import { getDb } from "../db";
+import { whatsappBlockedNumbers } from "../../drizzle/schema";
 
-export interface BlockedNumber {
-  phone: string;
-  reason: "opt_out" | "spam" | "manual" | "invalid";
-  blockedAt: Date;
-  blockedBy?: string;
-}
-
-export interface OptOutRequest {
-  phone: string;
-  requestedAt: Date;
-  status: "pending" | "approved" | "rejected";
-  reason?: string;
-}
-
-const blockedNumbers: Map<string, BlockedNumber> = new Map();
-const optOutRequests: Map<string, OptOutRequest> = new Map();
-
+// ── التحقق من حظر الرقم ──────────────────────────────────────────────────────
 export async function isPhoneBlocked(phone: string): Promise<boolean> {
   try {
-    return blockedNumbers.has(phone);
-  } catch (error) {
-    console.error("[WhatsApp Security] Failed to check if phone is blocked:", error);
+    const db = await getDb();
+    if (!db) return false;
+    const result = await db
+      .select()
+      .from(whatsappBlockedNumbers)
+      .where(eq(whatsappBlockedNumbers.phone, phone))
+      .limit(1);
+    return result.length > 0;
+  } catch {
     return false;
   }
 }
 
+// ── حظر رقم ──────────────────────────────────────────────────────────────────
 export async function blockPhone(params: {
   phone: string;
-  reason: "opt_out" | "spam" | "manual" | "invalid";
-  blockedBy?: string;
+  reason?: string;
+  blockedBy?: number;
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const blocked: BlockedNumber = {
+    const db = await getDb();
+    if (!db) return { success: false, error: "قاعدة البيانات غير متاحة" };
+
+    // التحقق من عدم وجود الرقم مسبقاً
+    const existing = await db
+      .select()
+      .from(whatsappBlockedNumbers)
+      .where(eq(whatsappBlockedNumbers.phone, params.phone))
+      .limit(1);
+
+    if (existing.length > 0) {
+      return { success: true }; // مسبقاً محظور
+    }
+
+    await db.insert(whatsappBlockedNumbers).values({
       phone: params.phone,
-      reason: params.reason,
-      blockedAt: new Date(),
+      reason: params.reason || "manual",
       blockedBy: params.blockedBy,
-    };
+    });
 
-    blockedNumbers.set(params.phone, blocked);
-
-    console.log(`[WhatsApp Security] Blocked phone ${params.phone} (${params.reason})`);
-
+    console.log(`[WhatsApp Security] Blocked phone ${params.phone}`);
     return { success: true };
   } catch (error) {
     console.error("[WhatsApp Security] Failed to block phone:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
+    return { success: false, error: error instanceof Error ? error.message : "خطأ غير معروف" };
   }
 }
 
+// ── إلغاء حظر رقم ────────────────────────────────────────────────────────────
 export async function unblockPhone(phone: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!blockedNumbers.has(phone)) {
-      return { success: false, error: "Phone not blocked" };
-    }
+    const db = await getDb();
+    if (!db) return { success: false, error: "قاعدة البيانات غير متاحة" };
 
-    blockedNumbers.delete(phone);
+    await db.delete(whatsappBlockedNumbers).where(eq(whatsappBlockedNumbers.phone, phone));
 
     console.log(`[WhatsApp Security] Unblocked phone ${phone}`);
-
     return { success: true };
   } catch (error) {
     console.error("[WhatsApp Security] Failed to unblock phone:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
+    return { success: false, error: error instanceof Error ? error.message : "خطأ غير معروف" };
   }
 }
 
+// ── جلب قائمة الأرقام المحظورة ───────────────────────────────────────────────
 export async function getBlockedPhones(): Promise<{
   success: boolean;
-  phones?: BlockedNumber[];
+  phones?: any[];
+  total?: number;
   error?: string;
 }> {
   try {
-    const phones = Array.from(blockedNumbers.values());
+    const db = await getDb();
+    if (!db) return { success: false, error: "قاعدة البيانات غير متاحة" };
 
-    return {
-      success: true,
-      phones,
-    };
+    const phones = await db.select().from(whatsappBlockedNumbers).orderBy(whatsappBlockedNumbers.createdAt);
+
+    return { success: true, phones, total: phones.length };
   } catch (error) {
     console.error("[WhatsApp Security] Failed to get blocked phones:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
+    return { success: false, error: error instanceof Error ? error.message : "خطأ غير معروف" };
   }
 }
 
+// ── معالجة طلب إلغاء الاشتراك (opt-out) ─────────────────────────────────────
 export async function handleOptOutRequest(params: {
   phone: string;
   reason?: string;
-}): Promise<{ success: boolean; requestId?: string; error?: string }> {
+  blockedBy?: number;
+}): Promise<{ success: boolean; error?: string }> {
   try {
-    const requestId = `optout_${Date.now()}`;
-
-    const request: OptOutRequest = {
+    return await blockPhone({
       phone: params.phone,
-      requestedAt: new Date(),
-      status: "pending",
-      reason: params.reason,
-    };
-
-    optOutRequests.set(requestId, request);
-
-    // Auto-approve and block the phone
-    await blockPhone({
-      phone: params.phone,
-      reason: "opt_out",
+      reason: params.reason || "opt_out - طلب العميل إيقاف الرسائل",
+      blockedBy: params.blockedBy,
     });
-
-    console.log(`[WhatsApp Security] Processed opt-out request for ${params.phone}`);
-
-    return {
-      success: true,
-      requestId,
-    };
   } catch (error) {
-    console.error("[WhatsApp Security] Failed to handle opt-out request:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
+    console.error("[WhatsApp Security] Failed to handle opt-out:", error);
+    return { success: false, error: error instanceof Error ? error.message : "خطأ غير معروف" };
   }
 }
 
-export async function getOptOutRequests(): Promise<{
+// ── إحصائيات الأمان ───────────────────────────────────────────────────────────
+export async function getSecurityStats(): Promise<{
   success: boolean;
-  requests?: OptOutRequest[];
+  stats?: {
+    blockedPhones: number;
+    optOutCount: number;
+    manualBlockCount: number;
+  };
   error?: string;
 }> {
   try {
-    const requests = Array.from(optOutRequests.values());
+    const db = await getDb();
+    if (!db) return { success: false, error: "قاعدة البيانات غير متاحة" };
 
-    return {
-      success: true,
-      requests,
+    const all = await db.select().from(whatsappBlockedNumbers);
+
+    const stats = {
+      blockedPhones: all.length,
+      optOutCount: all.filter(p => p.reason?.includes("opt_out")).length,
+      manualBlockCount: all.filter(p => !p.reason?.includes("opt_out")).length,
     };
+
+    return { success: true, stats };
   } catch (error) {
-    console.error("[WhatsApp Security] Failed to get opt-out requests:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
+    console.error("[WhatsApp Security] Failed to get stats:", error);
+    return { success: false, error: error instanceof Error ? error.message : "خطأ غير معروف" };
   }
 }
 
+// ── تشفير البيانات الحساسة ────────────────────────────────────────────────────
 export function encryptSensitiveData(data: string, encryptionKey?: string): string {
   try {
-    const key = encryptionKey || process.env.ENCRYPTION_KEY || "default-key-change-in-production";
+    const key = encryptionKey || process.env.ENCRYPTION_KEY || "sgh-default-key-change-in-prod";
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(key.padEnd(32, "0")), iv);
-
+    const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(key.padEnd(32, "0").substring(0, 32)), iv);
     let encrypted = cipher.update(data, "utf-8", "hex");
     encrypted += cipher.final("hex");
-
     return iv.toString("hex") + ":" + encrypted;
-  } catch (error) {
-    console.error("[WhatsApp Security] Failed to encrypt data:", error);
+  } catch {
     return data;
   }
 }
 
 export function decryptSensitiveData(encryptedData: string, encryptionKey?: string): string {
   try {
-    const key = encryptionKey || process.env.ENCRYPTION_KEY || "default-key-change-in-production";
+    const key = encryptionKey || process.env.ENCRYPTION_KEY || "sgh-default-key-change-in-prod";
     const parts = encryptedData.split(":");
+    if (parts.length !== 2) return encryptedData;
     const iv = Buffer.from(parts[0], "hex");
-    const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(key.padEnd(32, "0")), iv);
-
+    const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(key.padEnd(32, "0").substring(0, 32)), iv);
     let decrypted = decipher.update(parts[1], "hex", "utf-8");
     decrypted += decipher.final("utf-8");
-
     return decrypted;
-  } catch (error) {
-    console.error("[WhatsApp Security] Failed to decrypt data:", error);
+  } catch {
     return encryptedData;
   }
 }
 
+// ── التحقق من امتثال الرسالة لمعايير Meta ────────────────────────────────────
 export async function validateMetaCompliance(message: string): Promise<{
   success: boolean;
   compliant: boolean;
   issues?: string[];
 }> {
-  try {
-    const issues: string[] = [];
+  const issues: string[] = [];
 
-    // Check for prohibited content
-    const prohibitedPatterns = [
-      /viagra|cialis|pharmacy/i,
-      /lottery|prize|winner/i,
-      /click here|download now/i,
-    ];
-
-    for (const pattern of prohibitedPatterns) {
-      if (pattern.test(message)) {
-        issues.push(`Message contains prohibited content: ${pattern}`);
-      }
-    }
-
-    // Check message length
-    if (message.length > 4096) {
-      issues.push("Message exceeds maximum length of 4096 characters");
-    }
-
-    // Check for excessive URLs
-    const urlCount = (message.match(/https?:\/\//g) || []).length;
-    if (urlCount > 3) {
-      issues.push("Message contains too many URLs");
-    }
-
-    return {
-      success: true,
-      compliant: issues.length === 0,
-      issues: issues.length > 0 ? issues : undefined,
-    };
-  } catch (error) {
-    console.error("[WhatsApp Security] Failed to validate Meta compliance:", error);
-    return {
-      success: false,
-      compliant: false,
-      issues: ["Compliance check failed"],
-    };
+  if (message.length > 4096) {
+    issues.push("الرسالة تتجاوز الحد الأقصى 4096 حرف");
   }
-}
 
-export async function getSecurityStats(): Promise<{
-  success: boolean;
-  stats?: {
-    blockedPhones: number;
-    optOutRequests: number;
-    pendingOptOuts: number;
-    approvedOptOuts: number;
+  const urlCount = (message.match(/https?:\/\//g) || []).length;
+  if (urlCount > 3) {
+    issues.push("الرسالة تحتوي على عدد كبير من الروابط");
+  }
+
+  return {
+    success: true,
+    compliant: issues.length === 0,
+    issues: issues.length > 0 ? issues : undefined,
   };
-  error?: string;
-}> {
-  try {
-    const stats = {
-      blockedPhones: blockedNumbers.size,
-      optOutRequests: optOutRequests.size,
-      pendingOptOuts: Array.from(optOutRequests.values()).filter(
-        (r) => r.status === "pending"
-      ).length,
-      approvedOptOuts: Array.from(optOutRequests.values()).filter(
-        (r) => r.status === "approved"
-      ).length,
-    };
-
-    return {
-      success: true,
-      stats,
-    };
-  } catch (error) {
-    console.error("[WhatsApp Security] Failed to get security stats:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
 }

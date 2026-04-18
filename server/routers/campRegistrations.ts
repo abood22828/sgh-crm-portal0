@@ -9,6 +9,7 @@ import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
 import { sendCampRegistrationEvent, sendStatusChangeEvent } from "../facebookCAPI";
 import { normalizePhoneNumber } from "../db";
+import { sendCampRegistrationConfirmation } from "../services/whatsappAppointments";
 
 export const campRegistrationsRouter = router({
   // Submit a new camp registration (public)
@@ -134,6 +135,16 @@ export const campRegistrationsRouter = router({
         }).catch(error => {
           console.error("[WhatsApp] Failed to send camp registration confirmation:", error);
         });
+
+        // حفظ سجل إشعار WhatsApp في قاعدة البيانات (fire-and-forget)
+        sendCampRegistrationConfirmation({
+          registrationId: Number(registration.insertId),
+          phone: input.phone,
+          patientName: input.fullName,
+          campName: camp.name,
+          campDate: camp.startDate ? new Date(camp.startDate) : undefined,
+          campLocation: "المستشفى السعودي الألماني - صنعاء",
+        }).catch(err => console.error("[WhatsApp Notifications] Failed to save camp notification:", err));
       }
 
       // Send Facebook Conversions API event (fire-and-forget)

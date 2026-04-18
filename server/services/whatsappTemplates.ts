@@ -14,7 +14,7 @@ import { eq } from "drizzle-orm";
 import { normalizePhoneNumber } from "../db";
 import { getDb } from "../db";
 import { sendWhatsAppTextMessage, sendWhatsAppTemplateMessage } from "../whatsappCloudAPI";
-import meta from "../MetaApiService";
+import { meta } from "../MetaApiService";
 import { ENV } from "../_core/env";
 import { whatsappTemplates } from "../../drizzle/schema";
 

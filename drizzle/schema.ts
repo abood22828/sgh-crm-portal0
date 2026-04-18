@@ -1106,3 +1106,69 @@ export const trackingEvents = mysqlTable("trackingEvents", {
 });
 export type TrackingEvent = typeof trackingEvents.$inferSelect;
 export type InsertTrackingEvent = typeof trackingEvents.$inferInsert;
+
+/**
+ * WhatsApp Notifications Table - تتبع إشعارات WhatsApp المرسلة
+ * يربط كل رسالة واتساب بالسجل المرتبط بها (موعد، تسجيل مخيم، حجز عرض)
+ */
+export const whatsappNotifications = mysqlTable("whatsapp_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+
+  // نوع السجل المرتبط
+  entityType: mysqlEnum("entityType", ["appointment", "camp_registration", "offer_lead"]).notNull(),
+  entityId: int("entityId").notNull(),
+
+  // نوع الإشعار
+  notificationType: mysqlEnum("notificationType", [
+    "booking_confirmation",   // تأكيد الحجز
+    "reminder_24h",           // تذكير قبل 24 ساعة
+    "reminder_1h",            // تذكير قبل ساعة
+    "post_visit_followup",    // متابعة بعد الزيارة
+    "cancellation",           // إلغاء
+    "status_update",          // تحديث الحالة
+    "custom",                 // مخصص
+  ]).notNull(),
+
+  // بيانات الرسالة
+  phone: varchar("phone", { length: 20 }).notNull(),
+  recipientName: varchar("recipientName", { length: 255 }),
+  templateName: varchar("templateName", { length: 255 }),
+  messageContent: text("messageContent"),
+  variables: text("variables"), // JSON متغيرات القالب
+
+  // حالة الإرسال
+  status: mysqlEnum("status", ["pending", "sent", "delivered", "read", "failed"]).default("pending").notNull(),
+  metaMessageId: varchar("metaMessageId", { length: 255 }), // معرف الرسالة من Meta
+  errorMessage: text("errorMessage"),
+
+  // معلومات الإرسال
+  sentAt: timestamp("sentAt"),
+  deliveredAt: timestamp("deliveredAt"),
+  readAt: timestamp("readAt"),
+  sentBy: int("sentBy"), // معرف المستخدم الذي أرسل (null = تلقائي)
+  isAutomatic: boolean("isAutomatic").default(true).notNull(),
+
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  entityIdx: index("wn_entity_idx").on(table.entityType, table.entityId),
+  phoneIdx: index("wn_phone_idx").on(table.phone),
+  statusIdx: index("wn_status_idx").on(table.status),
+  createdAtIdx: index("wn_createdAt_idx").on(table.createdAt),
+}));
+
+export type WhatsappNotification = typeof whatsappNotifications.$inferSelect;
+export type InsertWhatsappNotification = typeof whatsappNotifications.$inferInsert;
+
+/**
+ * WhatsApp Blocked Numbers - قائمة الأرقام المحظورة (opt-out)
+ */
+export const whatsappBlockedNumbers = mysqlTable("whatsapp_blocked_numbers", {
+  id: int("id").autoincrement().primaryKey(),
+  phone: varchar("phone", { length: 20 }).notNull().unique(),
+  reason: varchar("reason", { length: 255 }),
+  blockedBy: int("blockedBy"), // null = opt-out تلقائي
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type WhatsappBlockedNumber = typeof whatsappBlockedNumbers.$inferSelect;
+export type InsertWhatsappBlockedNumber = typeof whatsappBlockedNumbers.$inferInsert;

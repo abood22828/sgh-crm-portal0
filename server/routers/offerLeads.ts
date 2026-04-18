@@ -9,6 +9,7 @@ import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
 import { sendOfferLeadEvent, sendStatusChangeEvent } from "../facebookCAPI";
 import { normalizePhoneNumber } from "../db";
+import { sendOfferLeadConfirmation } from "../services/whatsappAppointments";
 
 export const offerLeadsRouter = router({
   // Submit a new offer lead (public)
@@ -128,6 +129,15 @@ export const offerLeadsRouter = router({
         }).catch(error => {
           console.error("[WhatsApp] Failed to send offer booking confirmation:", error);
         });
+
+        // حفظ سجل إشعار WhatsApp في قاعدة البيانات (fire-and-forget)
+        sendOfferLeadConfirmation({
+          offerLeadId: Number(lead.insertId),
+          phone: input.phone,
+          patientName: input.fullName,
+          offerName: offer.title,
+
+        }).catch(err => console.error("[WhatsApp Notifications] Failed to save offer notification:", err));
       }
 
       // Send Facebook Conversions API event (fire-and-forget)

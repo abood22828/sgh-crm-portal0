@@ -187,7 +187,7 @@ export default function WhatsAppCompliance() {
             <CardTitle className="text-sm font-medium">طلبات الإلغاء</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{securityStatsQuery.data?.stats?.optOutRequests || 0}</div>
+            <div className="text-2xl font-bold">{securityStatsQuery.data?.stats?.optOutCount || 0}</div>
             <p className="text-xs text-muted-foreground">طلب إلغاء</p>
           </CardContent>
         </Card>

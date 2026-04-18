@@ -239,3 +239,36 @@
 - [ ] اختبار إرسال تأكيد العرض
 - [ ] اختبار التذكيرات المجدولة
 - [ ] اختبار التحديثات التلقائية
+
+
+---
+
+## ✅ المرحلة الرابعة المنجزة - إصلاحات Meta API وتكامل الإشعارات
+
+### إصلاح مزامنة قوالب WhatsApp مع Meta
+- [x] إصلاح دالة syncTemplatesFromMeta لتحفظ القوالب في DB (كانت لا تحفظ شيئاً)
+- [x] تصحيح هيكل استجابة Meta: response.data.data بدلاً من response.data
+- [x] تحديث فئات القوالب إلى MARKETING/UTILITY/AUTHENTICATION
+- [x] تحديث 22 قالب موجود في DB من الفئات القديمة
+- [x] إصلاح category: "custom" في metaTemplateSync.ts
+- [x] تحديث dropdowns الفئات في WhatsAppTemplatesPage.tsx
+
+### تكامل الإشعارات مع قاعدة البيانات
+- [x] إضافة جدول whatsapp_notifications في schema.ts
+- [x] إضافة جدول whatsapp_blocked_numbers في schema.ts
+- [x] إعادة كتابة whatsappAppointments.ts لاستخدام DB
+- [x] إعادة كتابة whatsappSecurity.ts لاستخدام DB
+- [x] إضافة دوال getNotificationLogs وgetNotificationStats
+- [x] إضافة procedures getNotificationLogs وgetNotificationStats في whatsapp router
+
+### ربط التسجيلات والمواعيد والعروض مع WhatsApp
+- [x] إضافة trigger تلقائي في appointments.ts عند إنشاء موعد
+- [x] إضافة trigger تلقائي في campRegistrations.ts عند التسجيل
+- [x] إضافة trigger تلقائي في offerLeads.ts عند حجز عرض
+
+### تحديث الواجهات
+- [x] إعادة كتابة WhatsAppAppointments.tsx لتجلب البيانات الحقيقية من DB
+- [x] إضافة إحصائيات الإشعارات (إجمالي، مرسلة، قيد الانتظار، فشل)
+- [x] إضافة فلترة حسب نوع الكيان والحالة
+- [x] إضافة pagination للسجلات
+- [x] تحديث اسم "حجوزات واتساب" إلى "سجل الإشعارات" في الشريط الجانبي
