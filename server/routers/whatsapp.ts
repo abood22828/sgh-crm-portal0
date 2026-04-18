@@ -171,8 +171,32 @@ export const whatsappRouter = router({
       }),
 
     syncFromMeta: protectedProcedure.mutation(async () => {
+      const wabaId = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
+      const hasToken = !!process.env.META_ACCESS_TOKEN;
+      const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+      console.log(`[syncFromMeta] WABA_ID=${wabaId}, PHONE_ID=${phoneId}, HAS_TOKEN=${hasToken}`);
+
+      if (!wabaId) {
+        return {
+          success: false,
+          error: "WHATSAPP_BUSINESS_ACCOUNT_ID غير مُعيَّن في متغيرات البيئة",
+          synced: 0,
+          updated: 0,
+        };
+      }
+      if (!hasToken) {
+        return {
+          success: false,
+          error: "META_ACCESS_TOKEN غير مُعيَّن في متغيرات البيئة",
+          synced: 0,
+          updated: 0,
+        };
+      }
+
       const { syncTemplatesFromMeta } = await import("../services/whatsappTemplates");
-      return syncTemplatesFromMeta();
+      const result = await syncTemplatesFromMeta();
+      console.log(`[syncFromMeta] Result:`, JSON.stringify(result));
+      return result;
     }),
 
     create: protectedProcedure
@@ -612,4 +636,102 @@ export const whatsappRouter = router({
     const { getNotificationStats } = await import("../services/whatsappAppointments");
     return getNotificationStats();
   }),
+
+  // إعادة إرسال إشعار WhatsApp لكيان محدد
+  resendNotification: protectedProcedure
+    .input(z.object({
+      entityType: z.enum(["appointment", "camp_registration", "offer_lead"]),
+      entityId: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const { sendAppointmentConfirmation, sendCampRegistrationConfirmation, sendOfferLeadConfirmation } =
+        await import("../services/whatsappAppointments");
+      const dbConn = await db.getDb();
+      if (!dbConn) return { success: false, error: "لا يمكن الاتصال بقاعدة البيانات" };
+
+      if (input.entityType === "appointment") {
+        const { appointments } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const rows = await dbConn.select().from(appointments).where(eq(appointments.id, input.entityId)).limit(1);
+        if (!rows.length) return { success: false, error: "الموعد غير موجود" };
+        const appt = rows[0];
+        return sendAppointmentConfirmation({
+          appointmentId: appt.id,
+          phone: appt.phone,
+          patientName: appt.fullName,
+          doctorName: "",
+          appointmentTime: appt.appointmentDate instanceof Date ? appt.appointmentDate : new Date(appt.appointmentDate || appt.createdAt),
+          department: appt.procedure || "",
+        });
+      }
+
+      if (input.entityType === "camp_registration") {
+        const { campRegistrations, camps } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const rows = await dbConn.select().from(campRegistrations).where(eq(campRegistrations.id, input.entityId)).limit(1);
+        if (!rows.length) return { success: false, error: "التسجيل غير موجود" };
+        const reg = rows[0];
+        let campName = "";
+        if (reg.campId) {
+          const campRows = await dbConn.select().from(camps).where(eq(camps.id, reg.campId)).limit(1);
+          campName = campRows[0]?.name || "";
+        }
+        return sendCampRegistrationConfirmation({
+          registrationId: reg.id,
+          phone: reg.phone,
+          patientName: reg.fullName,
+          campName,
+          campDate: reg.createdAt instanceof Date ? reg.createdAt : new Date(reg.createdAt),
+        });
+      }
+
+      if (input.entityType === "offer_lead") {
+        const { offerLeads, offers } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const rows = await dbConn.select().from(offerLeads).where(eq(offerLeads.id, input.entityId)).limit(1);
+        if (!rows.length) return { success: false, error: "حجز العرض غير موجود" };
+        const lead = rows[0];
+        let offerName = "";
+        if (lead.offerId) {
+          const offerRows = await dbConn.select().from(offers).where(eq(offers.id, lead.offerId)).limit(1);
+          offerName = offerRows[0]?.title || "";
+        }
+        return sendOfferLeadConfirmation({
+          offerLeadId: lead.id,
+          phone: lead.phone,
+          patientName: lead.fullName,
+          offerName,
+        });
+      }
+
+      return { success: false, error: "نوع غير معروف" };
+    }),
+
+  // جلب حالة إشعار WhatsApp لكيان محدد
+  getEntityWhatsAppStatus: protectedProcedure
+    .input(z.object({
+      entityType: z.enum(["appointment", "camp_registration", "offer_lead"]),
+      entityId: z.number(),
+    }))
+    .query(async ({ input }) => {
+      const { getEntityNotifications } = await import("../services/whatsappAppointments");
+      const result = await getEntityNotifications({ entityType: input.entityType, entityId: input.entityId });
+      const notifications = result.notifications || [];
+      const latest = notifications[notifications.length - 1] || null;
+      return {
+        hasSent: notifications.length > 0,
+        status: latest?.status || null,
+        sentAt: latest?.sentAt || null,
+        messageId: latest?.messageId || null,
+        count: notifications.length,
+      };
+    }),
+
+  // ── تشغيل مهام التذكير يدوياً (للاختبار أو التشغيل الفوري) ─────────────────
+  runReminderJobs: protectedProcedure
+    .mutation(async () => {
+      const { runAppointmentReminderJobs } = await import("../cron/appointmentReminders");
+      const result = await runAppointmentReminderJobs();
+      return result;
+    }),
 });

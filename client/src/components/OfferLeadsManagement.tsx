@@ -25,6 +25,7 @@ import QuickFilters from "@/components/QuickFilters";
 import InlineStatusEditor from "@/components/InlineStatusEditor";
 import CommentsSection from "@/components/CommentsSection";
 import CommentCount from "@/components/CommentCount";
+import WhatsAppStatusBadge from "@/components/WhatsAppStatusBadge";
 import TaskCount from "@/components/TaskCount";
 import TasksSection from "@/components/TasksSection";
 import AuditLogSection from "@/components/AuditLogSection";
@@ -201,6 +202,7 @@ export default function OfferLeadsManagement({
     { key: 'date', label: 'تاريخ التسجيل', defaultVisible: true, sortType: 'date' },
     { key: 'comments', label: 'التعليقات', defaultVisible: true, sortable: false },
     { key: 'tasks', label: 'المهام', defaultVisible: true, sortable: false },
+    { key: 'whatsapp', label: 'WhatsApp', defaultVisible: true, sortable: false },
     { key: 'actions', label: 'الإجراءات', defaultVisible: true, sortable: false },
   ];
 
@@ -932,6 +934,8 @@ export default function OfferLeadsManagement({
                             return <FrozenTableCell key={colKey} columnKey={colKey}><CommentCount entityType="offerLead" entityId={lead.id} /></FrozenTableCell>;
                           case 'tasks':
                             return <FrozenTableCell key={colKey} columnKey={colKey}><TaskCount entityType="offerLead" entityId={lead.id} /></FrozenTableCell>;
+                          case 'whatsapp':
+                            return <FrozenTableCell key={colKey} columnKey={colKey}><WhatsAppStatusBadge entityType="offer_lead" entityId={lead.id} /></FrozenTableCell>;
                           case 'actions':
                             return (
                               <FrozenTableCell key={colKey} columnKey={colKey}>

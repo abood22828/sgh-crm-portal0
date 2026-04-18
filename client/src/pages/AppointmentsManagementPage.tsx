@@ -18,6 +18,7 @@ import InlineStatusEditor from "@/components/InlineStatusEditor";
 import CommentsSection from "@/components/CommentsSection";
 import CommentCount from "@/components/CommentCount";
 import TaskCount from "@/components/TaskCount";
+import WhatsAppStatusBadge from "@/components/WhatsAppStatusBadge";
 import TasksSection from "@/components/TasksSection";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { Button } from "@/components/ui/button";
@@ -181,6 +182,7 @@ export default function AppointmentsManagementPage() {
     { key: 'gclid', label: 'Google Click ID', defaultVisible: false, sortType: 'string' },
     { key: 'comments', label: 'التعليقات', defaultVisible: true, sortable: false },
     { key: 'tasks', label: 'المهام', defaultVisible: true, sortable: false },
+    { key: 'whatsapp', label: 'WhatsApp', defaultVisible: true, sortable: false },
     { key: 'actions', label: 'الإجراءات', defaultVisible: true, sortable: false },
   ];
 
@@ -755,6 +757,7 @@ export default function AppointmentsManagementPage() {
                             case 'gclid': return <FrozenTableCell key={colKey} columnKey={colKey} className="text-xs font-mono">{appointment.gclid || '-'}</FrozenTableCell>;
                             case 'comments': return <FrozenTableCell key={colKey} columnKey={colKey}><CommentCount entityType="appointment" entityId={appointment.id} /></FrozenTableCell>;
                             case 'tasks': return <FrozenTableCell key={colKey} columnKey={colKey}><TaskCount entityType="appointment" entityId={appointment.id} /></FrozenTableCell>;
+                            case 'whatsapp': return <FrozenTableCell key={colKey} columnKey={colKey}><WhatsAppStatusBadge entityType="appointment" entityId={appointment.id} /></FrozenTableCell>;
                             case 'actions':
                               return (
                                 <FrozenTableCell key={colKey} columnKey={colKey}>

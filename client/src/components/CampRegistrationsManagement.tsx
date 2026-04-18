@@ -26,6 +26,7 @@ import InlineStatusEditor from "@/components/InlineStatusEditor";
 import CommentsSection from "@/components/CommentsSection";
 import CommentCount from "@/components/CommentCount";
 import TaskCount from "@/components/TaskCount";
+import WhatsAppStatusBadge from "@/components/WhatsAppStatusBadge";
 import TasksSection from "@/components/TasksSection";
 import AuditLogSection from "@/components/AuditLogSection";
 import SavedFilters from "@/components/SavedFilters";
@@ -224,6 +225,7 @@ export default function CampRegistrationsManagement({
     { key: 'date', label: 'تاريخ التسجيل', defaultVisible: true, sortType: 'date' },
     { key: 'comments', label: 'التعليقات', defaultVisible: true, sortable: false },
     { key: 'tasks', label: 'المهام', defaultVisible: true, sortable: false },
+    { key: 'whatsapp', label: 'WhatsApp', defaultVisible: true, sortable: false },
     { key: 'actions', label: 'الإجراءات', defaultVisible: true, sortable: false },
   ];
 
@@ -983,6 +985,8 @@ export default function CampRegistrationsManagement({
                             return <FrozenTableCell key={colKey} columnKey={colKey}><CommentCount entityType="campRegistration" entityId={reg.id} /></FrozenTableCell>;
                           case 'tasks':
                             return <FrozenTableCell key={colKey} columnKey={colKey}><TaskCount entityType="campRegistration" entityId={reg.id} /></FrozenTableCell>;
+                          case 'whatsapp':
+                            return <FrozenTableCell key={colKey} columnKey={colKey}><WhatsAppStatusBadge entityType="camp_registration" entityId={reg.id} /></FrozenTableCell>;
                           case 'actions':
                             return (
                               <FrozenTableCell key={colKey} columnKey={colKey}>

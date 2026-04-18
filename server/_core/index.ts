@@ -76,6 +76,11 @@ async function startServer() {
     
     // Initialize cron scheduler for automatic deactivation
     // initSimpleCronScheduler(); // Disabled: Auto-deactivation feature removed per user request
+
+    // Initialize WhatsApp appointment reminders scheduler (every 30 minutes)
+    import("../cron/appointmentReminders").then(({ initAppointmentRemindersScheduler }) => {
+      initAppointmentRemindersScheduler();
+    }).catch(console.error);
   });
 }
 

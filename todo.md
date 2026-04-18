@@ -272,3 +272,59 @@
 - [x] إضافة فلترة حسب نوع الكيان والحالة
 - [x] إضافة pagination للسجلات
 - [x] تحديث اسم "حجوزات واتساب" إلى "سجل الإشعارات" في الشريط الجانبي
+
+
+---
+
+## المرحلة الخامسة: اختبار Meta + شارات الإشعار + التذكيرات المجدولة 🔄
+
+### اختبار وإصلاح مزامنة القوالب مع Meta
+- [ ] فحص metaTemplateSync.ts وwhatsappTemplates.ts بشكل كامل
+- [ ] التحقق من صحة WABA_ID وMETA_ACCESS_TOKEN
+- [ ] إضافة logging تفصيلي لعملية المزامنة
+- [ ] إصلاح أي مشاكل في استدعاء Meta API
+
+### شارة حالة WhatsApp في صفحات الحجوزات
+- [ ] إضافة procedure resendWhatsAppNotification في whatsapp router
+- [ ] إضافة procedure getEntityWhatsAppStatus للتحقق من حالة الإشعار
+- [ ] إضافة شارة حالة WhatsApp في AppointmentsTab.tsx
+- [ ] إضافة شارة حالة WhatsApp في CampRegistrationsManagement.tsx
+- [ ] إضافة شارة حالة WhatsApp في OfferLeadsManagement.tsx
+- [ ] إضافة زر "إعادة الإرسال" في كل صفحة
+
+### التذكيرات المجدولة (Cron Job)
+- [ ] إنشاء server/jobs/appointmentReminders.ts
+- [ ] إضافة cron job يعمل كل ساعة
+- [ ] إرسال تذكير 24 ساعة قبل الموعد
+- [ ] إرسال تذكير 1 ساعة قبل الموعد
+- [ ] تسجيل التذكيرات في whatsapp_notifications
+- [ ] تجنب إرسال تذكير مكرر (idempotency)
+- [ ] تشغيل cron job عند بدء الخادم
+
+
+---
+
+## ✅ المرحلة الخامسة المنجزة (18 أبريل 2026)
+
+### إصلاح مزامنة القوالب مع Meta
+- [x] إضافة logging تفصيلي في procedure syncFromMeta لتشخيص أخطاء Meta API
+- [x] إصلاح قراءة response.data.data (هيكل Meta الصحيح)
+- [x] تحسين رسائل الخطأ لتظهر سبب فشل المزامنة بوضوح
+
+### شارة حالة WhatsApp في صفحات الحجوزات
+- [x] إضافة procedure resendNotification في whatsapp router
+- [x] إضافة procedure getEntityWhatsAppStatus في whatsapp router
+- [x] إنشاء مكون WhatsAppStatusBadge المشترك مع زر إعادة الإرسال
+- [x] إضافة عمود WhatsApp في AppointmentsManagementPage.tsx
+- [x] إضافة عمود WhatsApp في CampRegistrationsManagement.tsx
+- [x] إضافة عمود WhatsApp في OfferLeadsManagement.tsx
+
+### التذكيرات المجدولة (Cron Job)
+- [x] إنشاء server/cron/appointmentReminders.ts
+- [x] cron job يعمل كل 30 دقيقة
+- [x] إرسال تذكير 24 ساعة قبل الموعد (نافذة ±30 دقيقة)
+- [x] إرسال تذكير 1 ساعة قبل الموعد (نافذة ±15 دقيقة)
+- [x] تسجيل التذكيرات في whatsapp_notifications
+- [x] تجنب إرسال تذكير مكرر (idempotency check)
+- [x] تفعيل cron job في server/_core/index.ts
+- [x] إضافة procedure runReminderJobs لتشغيل التذكيرات يدوياً
