@@ -11,7 +11,7 @@
 import { eq, and } from "drizzle-orm";
 import { normalizePhoneNumber } from "../db";
 import { getDb } from "../db";
-import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
+import { sendWhatsAppTextMessage, sendWhatsAppTemplateMessage } from "../whatsappCloudAPI";
 import { whatsappNotifications, whatsappBlockedNumbers } from "../../drizzle/schema";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -93,24 +93,35 @@ export async function sendAppointmentConfirmation(params: {
     }
 
     const appointmentDate = format(params.appointmentTime, "EEEE d MMMM yyyy", { locale: ar });
-    const appointmentTime = format(params.appointmentTime, "HH:mm");
+    const appointmentTimeStr = format(params.appointmentTime, "HH:mm");
 
-    const message = `مرحباً ${params.patientName} 👋
+    // محاولة إرسال قالب Meta الرسمي appointment_confirmation أولاً
+    let result = await sendWhatsAppTemplateMessage(normalizedPhone, {
+      templateName: "appointment_confirmation",
+      languageCode: "ar",
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: params.patientName },
+            { type: "text", text: params.doctorName },
+            { type: "text", text: params.department },
+            { type: "text", text: appointmentDate },
+            { type: "text", text: appointmentTimeStr },
+          ],
+        },
+      ],
+    });
 
-✅ تم تأكيد موعدك في المستشفى السعودي الألماني
+    let usedTemplate = "appointment_confirmation";
 
-📋 *تفاصيل الموعد:*
-👨‍⚕️ الطبيب: ${params.doctorName}
-🏥 القسم: ${params.department}
-📅 التاريخ: ${appointmentDate}
-⏰ الوقت: ${appointmentTime}
-
-⚠️ يرجى الحضور قبل 15 دقيقة من الموعد
-
-📞 للاستفسار: 8000018
-🌐 www.sgh-sanaa.com`.trim();
-
-    const result = await sendWhatsAppTextMessage(normalizedPhone, message);
+    // Fallback: إذا فشل إرسال القالب نرسل رسالة نصية عادية
+    if (!result.success) {
+      console.warn(`[WhatsApp Appointments] Template appointment_confirmation failed (${result.error}), falling back to text message`);
+      const message = `مرحباً ${params.patientName} 👋\n\n✅ تم تأكيد موعدك في المستشفى السعودي الألماني\n\n📋 تفاصيل الموعد:\n👨‍⚕️ الطبيب: ${params.doctorName}\n🏥 القسم: ${params.department}\n📅 التاريخ: ${appointmentDate}\n⏰ الوقت: ${appointmentTimeStr}\n\n⚠️ يرجى الحضور قبل 15 دقيقة من الموعد\n\n📞 للاستفسار: 8000018`;
+      result = await sendWhatsAppTextMessage(normalizedPhone, message);
+      usedTemplate = "text_fallback";
+    }
 
     const notificationId = await saveNotification({
       entityType: "appointment",
@@ -118,7 +129,8 @@ export async function sendAppointmentConfirmation(params: {
       notificationType: "booking_confirmation",
       phone: normalizedPhone,
       recipientName: params.patientName,
-      messageContent: message,
+      templateName: usedTemplate,
+      messageContent: `appointment_confirmation | ${params.doctorName} | ${appointmentDate} ${appointmentTimeStr}`,
       status: result.success ? "sent" : "failed",
       metaMessageId: result.messageId,
       errorMessage: result.error,
@@ -152,19 +164,36 @@ export async function sendAppointmentReminder(params: {
       return { success: false, error: "الرقم محظور من استقبال الرسائل" };
     }
 
-    const appointmentTime = format(params.appointmentTime, "HH:mm");
+    const appointmentTimeStr2 = format(params.appointmentTime, "HH:mm");
     const reminderText = params.hoursUntil === 24 ? "غداً" : params.hoursUntil === 1 ? "خلال ساعة" : `خلال ${params.hoursUntil} ساعات`;
-
-    const message = `⏰ *تذكير بموعدك*
-
-${params.patientName}، موعدك مع د. ${params.doctorName} ${reminderText}
-🕐 الوقت: ${appointmentTime}
-
-يرجى الحضور قبل 15 دقيقة
-📞 للإلغاء أو التعديل: 8000018`.trim();
-
-    const result = await sendWhatsAppTextMessage(normalizedPhone, message);
     const notifType = params.hoursUntil >= 24 ? "reminder_24h" : "reminder_1h";
+
+    // محاولة إرسال قالب Meta الرسمي appointment_reminder أولاً
+    let result = await sendWhatsAppTemplateMessage(normalizedPhone, {
+      templateName: "appointment_reminder",
+      languageCode: "ar",
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: params.patientName },
+            { type: "text", text: params.doctorName },
+            { type: "text", text: reminderText },
+            { type: "text", text: appointmentTimeStr2 },
+          ],
+        },
+      ],
+    });
+
+    let usedTemplate2 = "appointment_reminder";
+
+    // Fallback: إذا فشل إرسال القالب نرسل رسالة نصية عادية
+    if (!result.success) {
+      console.warn(`[WhatsApp Appointments] Template appointment_reminder failed (${result.error}), falling back to text message`);
+      const fallbackMsg = `⏰ تذكير بموعدك\n\n${params.patientName}، موعدك مع د. ${params.doctorName} ${reminderText}\n🕐 الوقت: ${appointmentTimeStr2}\n\nيرجى الحضور قبل 15 دقيقة\n📞 للإلغاء أو التعديل: 8000018`;
+      result = await sendWhatsAppTextMessage(normalizedPhone, fallbackMsg);
+      usedTemplate2 = "text_fallback";
+    }
 
     const notificationId = await saveNotification({
       entityType: "appointment",
@@ -172,7 +201,8 @@ ${params.patientName}، موعدك مع د. ${params.doctorName} ${reminderText}
       notificationType: notifType,
       phone: normalizedPhone,
       recipientName: params.patientName,
-      messageContent: message,
+      templateName: usedTemplate2,
+      messageContent: `appointment_reminder | ${params.doctorName} | ${reminderText} | ${appointmentTimeStr2}`,
       status: result.success ? "sent" : "failed",
       metaMessageId: result.messageId,
       errorMessage: result.error,

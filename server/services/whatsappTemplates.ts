@@ -10,7 +10,7 @@
  * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/message-types/template-messages
  */
 
-import { eq } from "drizzle-orm";
+import { eq, notInArray } from "drizzle-orm";
 import { normalizePhoneNumber } from "../db";
 import { getDb } from "../db";
 import { sendWhatsAppTextMessage, sendWhatsAppTemplateMessage } from "../whatsappCloudAPI";
@@ -85,6 +85,7 @@ export async function syncTemplatesFromMeta(): Promise<{
   success: boolean;
   synced?: number;
   updated?: number;
+  deleted?: number;
   message?: string;
   error?: string;
 }> {
@@ -211,12 +212,40 @@ export async function syncTemplatesFromMeta(): Promise<{
       }
     }
 
+    // ── حذف القوالب المحلية غير الموجودة في Meta ──────────────────────────────
+    // نجمع أسماء القوالب التي جلبناها من Meta
+    const metaTemplateNames = templates.map((t: any) => t.name as string);
+    let deleted = 0;
+
+    if (metaTemplateNames.length > 0) {
+      try {
+        // نجلب القوالب المحلية التي لها metaName ولكنها غير موجودة في Meta
+        const localTemplates = await db
+          .select({ id: whatsappTemplates.id, name: whatsappTemplates.name })
+          .from(whatsappTemplates)
+          .where(notInArray(whatsappTemplates.metaName, metaTemplateNames));
+
+        // نحذف فقط القوالب التي لها metaName (أي تم جلبها من Meta سابقاً) وغير موجودة الآن
+        const toDelete = localTemplates.filter((t) => t.name); // كل القوالب التي لها اسم
+        if (toDelete.length > 0) {
+          for (const t of toDelete) {
+            await db.delete(whatsappTemplates).where(eq(whatsappTemplates.id, t.id));
+            deleted++;
+          }
+          console.log(`[WhatsApp Templates] Deleted ${deleted} local templates not found in Meta`);
+        }
+      } catch (delErr) {
+        console.error("[WhatsApp Templates] Failed to delete stale templates:", delErr);
+      }
+    }
+
     const totalProcessed = synced + updated;
     return {
       success: true,
       synced,
       updated,
-      message: `تمت مزامنة ${totalProcessed} قالب من Meta (جديد: ${synced}, محدّث: ${updated})${errors.length > 0 ? ` - ${errors.length} أخطاء` : ""}`,
+      deleted,
+      message: `تمت مزامنة ${totalProcessed} قالب من Meta (جديد: ${synced}, محدّث: ${updated}, محذوف: ${deleted})${errors.length > 0 ? ` - ${errors.length} أخطاء` : ""}`,
     };
   } catch (error) {
     console.error("[WhatsApp Templates] Failed to sync templates:", error);

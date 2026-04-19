@@ -20,7 +20,7 @@ import {
   FileText, Plus, Edit, Trash2, Copy, RefreshCw, Send, Eye,
   CheckCircle2, Clock, AlertCircle, XCircle, Search, Filter,
   BarChart2, MessageSquare, Smartphone, Globe, Loader2, Star,
-  ChevronDown, ChevronUp, Info, Check, X,
+  ChevronDown, ChevronUp, Info, Check, X, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -61,6 +61,24 @@ function StatusBadge({ status }: { status?: string | null }) {
     <Badge variant="outline" className={`text-[10px] gap-1 ${cfg.className}`}>
       <Icon className="h-2.5 w-2.5" />
       {cfg.label}
+    </Badge>
+  );
+}
+
+// ─── القوالب المستخدمة في الرسائل التلقائية ─────────────────────────────────
+const AUTO_TEMPLATES: Record<string, string> = {
+  appointment_confirmation: "تأكيد الموعد تلقائياً",
+  appointment_reminder: "تذكير 24ساعة / 1ساعة تلقائياً",
+  missed_appointment: "موعد فائت (يدوي)",
+};
+
+// ─── Usage Badge ──────────────────────────────────────────────────────────────
+function UsageBadge({ metaName }: { metaName?: string | null }) {
+  if (!metaName || !AUTO_TEMPLATES[metaName]) return null;
+  return (
+    <Badge variant="outline" className="text-[10px] gap-1 bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300">
+      <Zap className="h-2.5 w-2.5" />
+      {AUTO_TEMPLATES[metaName]}
     </Badge>
   );
 }
@@ -146,6 +164,7 @@ function TemplateCard({
         <div className="flex flex-wrap gap-1 mt-1">
           <StatusBadge status={template.metaStatus} />
           <CategoryBadge category={template.category} />
+          <UsageBadge metaName={template.metaName} />
           {template.languageCode && (
             <Badge variant="outline" className="text-[10px] gap-1">
               <Globe className="h-2.5 w-2.5" />
