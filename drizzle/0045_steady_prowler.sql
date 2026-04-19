@@ -1,0 +1,4 @@
+ALTER TABLE `message_settings` ADD `entityType` enum('appointment','camp_registration','offer_lead','all') DEFAULT 'all';--> statement-breakpoint
+ALTER TABLE `message_settings` ADD `triggerEvent` enum('on_create','on_confirmed','on_arrived','on_completed','on_cancelled','on_reminder_24h','on_reminder_1h','manual') DEFAULT 'manual';--> statement-breakpoint
+ALTER TABLE `message_settings` ADD `whatsappTemplateId` int;--> statement-breakpoint
+ALTER TABLE `message_settings` ADD CONSTRAINT `message_settings_whatsappTemplateId_whatsapp_templates_id_fk` FOREIGN KEY (`whatsappTemplateId`) REFERENCES `whatsapp_templates`(`id`) ON DELETE set null ON UPDATE no action;

@@ -10,6 +10,7 @@ import { createAuditLog } from "./auditLogs";
 import { sendOfferLeadEvent, sendStatusChangeEvent } from "../facebookCAPI";
 import { normalizePhoneNumber } from "../db";
 import { sendOfferLeadConfirmation } from "../services/whatsappAppointments";
+import { dispatchWhatsAppMessage } from "../services/whatsappMessageDispatcher";
 
 export const offerLeadsRouter = router({
   // Submit a new offer lead (public)
@@ -325,18 +326,42 @@ export const offerLeadsRouter = router({
         }
       }
 
-      // Send welcome message when status changes to "confirmed" (Patient Journey)
-      if (input.status === "confirmed") {
+      // ── WhatsApp Dispatcher: إرسال رسالة تلقائية بناءً على الحالة ──
+      {
         const [lead] = await db.select().from(offerLeads).where(eq(offerLeads.id, input.id)).limit(1);
-        if (lead && lead.phone) {
-          const { sendOfferPatientArrivalWelcome } = await import("../messaging");
+        if (lead?.phone) {
           const { offers } = await import("../../drizzle/schema");
           const [offer] = await db.select().from(offers).where(eq(offers.id, lead.offerId)).limit(1);
-          await sendOfferPatientArrivalWelcome({
-            phone: lead.phone,
-            name: lead.fullName || "المريض",
-            service: offer?.title || "العرض",
-          });
+          const triggerMap: Record<string, string> = {
+            "confirmed": "on_confirmed",
+            "attended": "on_arrived",
+            "completed": "on_completed",
+            "cancelled": "on_cancelled",
+          };
+          const triggerEvent = triggerMap[input.status];
+          if (triggerEvent) {
+            dispatchWhatsAppMessage({
+              entityType: "offer_lead",
+              triggerEvent: triggerEvent as any,
+              phone: lead.phone,
+              recipientName: lead.fullName || undefined,
+              variables: {
+                name: lead.fullName || "العميل",
+                service: offer?.title || "العرض",
+              },
+              entityId: input.id,
+              sentBy: ctx.user?.id,
+            }).catch(err => console.error("[WhatsApp Dispatcher] Offer status trigger error:", err));
+          }
+          // Legacy: Send welcome message when status changes to confirmed
+          if (input.status === "confirmed") {
+            const { sendOfferPatientArrivalWelcome } = await import("../messaging");
+            sendOfferPatientArrivalWelcome({
+              phone: lead.phone,
+              name: lead.fullName || "المريض",
+              service: offer?.title || "العرض",
+            }).catch(err => console.error("[WhatsApp] Offer arrival welcome error:", err));
+          }
         }
       }
 

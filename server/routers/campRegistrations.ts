@@ -10,6 +10,7 @@ import { createAuditLog } from "./auditLogs";
 import { sendCampRegistrationEvent, sendStatusChangeEvent } from "../facebookCAPI";
 import { normalizePhoneNumber } from "../db";
 import { sendCampRegistrationConfirmation } from "../services/whatsappAppointments";
+import { dispatchWhatsAppMessage } from "../services/whatsappMessageDispatcher";
 
 export const campRegistrationsRouter = router({
   // Submit a new camp registration (public)
@@ -340,18 +341,43 @@ export const campRegistrationsRouter = router({
         }
       }
 
-      // Send welcome message when status changes to "attended" (Patient Journey)
-      if (input.status === "attended") {
-        const [registration] = await db.select().from(campRegistrations).where(eq(campRegistrations.id, input.id)).limit(1);
-        if (registration && registration.phone) {
-          const { sendCampPatientArrivalWelcome } = await import("../messaging");
+      // ── WhatsApp Dispatcher: إرسال رسالة تلقائية بناءً على الحالة ──
+      {
+        const [reg] = await db.select().from(campRegistrations).where(eq(campRegistrations.id, input.id)).limit(1);
+        if (reg?.phone) {
           const { camps } = await import("../../drizzle/schema");
-          const [camp] = await db.select().from(camps).where(eq(camps.id, registration.campId)).limit(1);
-          await sendCampPatientArrivalWelcome({
-            phone: registration.phone,
-            name: registration.fullName || "المريض",
-            campName: camp?.name || "المخيم",
-          });
+          const [camp] = await db.select().from(camps).where(eq(camps.id, reg.campId)).limit(1);
+          const triggerMap: Record<string, string> = {
+            "confirmed": "on_confirmed",
+            "attended": "on_arrived",
+            "completed": "on_completed",
+            "cancelled": "on_cancelled",
+          };
+          const triggerEvent = triggerMap[input.status];
+          if (triggerEvent) {
+            dispatchWhatsAppMessage({
+              entityType: "camp_registration",
+              triggerEvent: triggerEvent as any,
+              phone: reg.phone,
+              recipientName: reg.fullName || undefined,
+              variables: {
+                name: reg.fullName || "المسجل",
+                camp: camp?.name || "المخيم",
+                date: camp?.startDate ? new Date(camp.startDate).toLocaleDateString("ar-YE") : "غير محدد",
+              },
+              entityId: input.id,
+              sentBy: ctx.user?.id,
+            }).catch(err => console.error("[WhatsApp Dispatcher] Camp status trigger error:", err));
+          }
+          // Legacy: Send welcome message when status changes to attended
+          if (input.status === "attended") {
+            const { sendCampPatientArrivalWelcome } = await import("../messaging");
+            sendCampPatientArrivalWelcome({
+              phone: reg.phone,
+              name: reg.fullName || "المريض",
+              campName: camp?.name || "المخيم",
+            }).catch(err => console.error("[WhatsApp] Camp arrival welcome error:", err));
+          }
         }
       }
 

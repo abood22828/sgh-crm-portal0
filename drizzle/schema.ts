@@ -666,6 +666,21 @@ export const messageSettings = mysqlTable("message_settings", {
   availableVariables: text("availableVariables"), // ["name", "date", "time", "doctor", "service"]
   // Description
   description: text("description"),
+  // Entity type: which entity this message applies to
+  entityType: mysqlEnum("entityType", ["appointment", "camp_registration", "offer_lead", "all"]).default("all"),
+  // Trigger event: which status change triggers this message
+  triggerEvent: mysqlEnum("triggerEvent", [
+    "on_create",        // عند الحجز/التسجيل
+    "on_confirmed",     // عند تحديث الحالة إلى مؤكد
+    "on_arrived",       // عند تحديث الحالة إلى حضر
+    "on_completed",     // عند تحديث الحالة إلى مكتمل
+    "on_cancelled",     // عند تحديث الحالة إلى ملغي
+    "on_reminder_24h",  // تذكير 24 ساعة
+    "on_reminder_1h",   // تذكير ساعة
+    "manual"            // يدوي
+  ]).default("manual"),
+  // WhatsApp template ID (from whatsapp_templates table) - used when deliveryChannel is whatsapp_api
+  whatsappTemplateId: int("whatsappTemplateId").references(() => whatsappTemplates.id, { onDelete: 'set null' }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

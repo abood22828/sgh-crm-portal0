@@ -49,6 +49,17 @@ const deliveryChannelLabels: Record<string, string> = {
   both: "كلاهما",
 };
 
+const triggerEventLabels: Record<string, string> = {
+  on_booking: "عند الحجز",
+  on_registration: "عند التسجيل",
+  on_confirmed: "عند التأكيد",
+  on_attended: "عند الحضور",
+  on_completed: "عند الاكتمال",
+  on_cancelled: "عند الإلغاء",
+  reminder_24h: "تذكير 24 ساعة",
+  reminder_1h: "تذكير ساعة",
+};
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function MessageSettingsPage() {
   return (
@@ -67,11 +78,15 @@ function MessageSettingsContent() {
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
   const [editedContent, setEditedContent] = useState("");
   const [editedChannel, setEditedChannel] = useState("whatsapp_integration");
+  const [editedTemplateId, setEditedTemplateId] = useState<number | null>(null);
   const [testPhone, setTestPhone] = useState("");
   const [auditSearch, setAuditSearch] = useState("");
 
   // Queries
   const { data: allMessages, isLoading, refetch } = trpc.messageSettings.list.useQuery();
+  const { data: metaTemplates } = trpc.whatsapp.getTemplates.useQuery(undefined, {
+    select: (data: any) => (data?.templates || []).filter((t: any) => t.metaStatus === 'APPROVED'),
+  });
   const { data: auditLogs, isLoading: auditLoading } = trpc.whatsapp.getAuditLogs.useQuery(
     { limit: 50 },
     { enabled: activeTab === "audit" }
@@ -126,6 +141,7 @@ function MessageSettingsContent() {
     setSelectedMessage(message);
     setEditedContent(message.messageContent);
     setEditedChannel(message.deliveryChannel);
+    setEditedTemplateId(message.whatsappTemplateId || null);
     setEditDialogOpen(true);
   };
 
@@ -145,6 +161,7 @@ function MessageSettingsContent() {
       id: selectedMessage.id,
       messageContent: editedContent,
       deliveryChannel: editedChannel as any,
+      whatsappTemplateId: editedTemplateId,
     });
   };
 
@@ -329,6 +346,16 @@ function MessageSettingsContent() {
                       <Badge variant="outline" className="text-[10px]">
                         {deliveryChannelLabels[message.deliveryChannel as keyof typeof deliveryChannelLabels]}
                       </Badge>
+                      {message.triggerEvent && (
+                        <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-300 bg-blue-50 dark:bg-blue-900/20">
+                          ⚡ {triggerEventLabels[message.triggerEvent] || message.triggerEvent}
+                        </Badge>
+                      )}
+                      {message.whatsappTemplateId && (
+                        <Badge variant="outline" className="text-[10px] text-green-600 border-green-300 bg-green-50 dark:bg-green-900/20">
+                          📝 {(metaTemplates as any[] || []).find((t: any) => t.id === message.whatsappTemplateId)?.name || `قالب #${message.whatsappTemplateId}`}
+                        </Badge>
+                      )}
                       {message.availableVariables && (
                         <Badge variant="secondary" className="text-[10px]">
                           {JSON.parse(message.availableVariables).length} متغيرات
@@ -604,6 +631,37 @@ function MessageSettingsContent() {
                   </SelectContent>
                 </Select>
               </div>
+              {/* WhatsApp Template Selector - يظهر فقط عند اختيار WhatsApp Business API */}
+              {(editedChannel === "whatsapp_api" || editedChannel === "both") && (
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">
+                    <span>قالب WhatsApp Meta</span>
+                    <Badge variant="outline" className="text-[10px] text-green-600 border-green-300">مُعتمد من Meta</Badge>
+                  </Label>
+                  <Select
+                    value={editedTemplateId ? String(editedTemplateId) : "none"}
+                    onValueChange={(v) => setEditedTemplateId(v === "none" ? null : Number(v))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر قالب Meta (اختياري)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">بدون قالب (استخدام النص المباشر)</SelectItem>
+                      {(metaTemplates as any[] || []).map((t: any) => (
+                        <SelectItem key={t.id} value={String(t.id)}>
+                          <div className="flex items-center gap-2">
+                            <span>{t.name}</span>
+                            <Badge variant="outline" className="text-[10px]">{t.category}</Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground">
+                    عند اختيار قالب Meta، سيتم إرسال القالب المعتمد بدلاً من النص المباشر عبر WhatsApp Business API
+                  </p>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <Label>محتوى الرسالة</Label>
                 <Textarea

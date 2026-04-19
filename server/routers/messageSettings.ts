@@ -35,6 +35,7 @@ export const messageSettingsRouter = router({
       isEnabled: z.number().min(0).max(1).optional(),
       deliveryChannel: z.enum(["whatsapp_api", "whatsapp_integration", "both"]).optional(),
       description: z.string().optional(),
+      whatsappTemplateId: z.number().nullable().optional(),
     }))
     .mutation(async ({ input }) => {
       return await db.updateMessageSetting(input);

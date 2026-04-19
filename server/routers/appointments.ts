@@ -22,6 +22,7 @@ import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
 import { sendAppointmentLeadEvent, sendStatusChangeEvent } from "../facebookCAPI";
 import { sendAppointmentConfirmation } from "../services/whatsappAppointments";
+import { dispatchWhatsAppMessage } from "../services/whatsappMessageDispatcher";
 
 export const appointmentsRouter = router({
   submit: publicProcedure
@@ -331,20 +332,51 @@ export const appointmentsRouter = router({
         }
       }
 
-      // Send welcome message when status changes to "attended" (Patient Journey)
-      if (input.status === "حضر" || input.status === "attended") {
+      // ── WhatsApp Dispatcher: إرسال رسالة تلقائية بناءً على الحالة الجديدة ──
+      {
         const db = await getDb();
         if (db) {
-          const [appointment] = await db.select().from(appointments).where(eq(appointments.id, input.id)).limit(1);
-          if (appointment && appointment.phone) {
-            const { sendPatientArrivalWelcome } = await import("../messaging");
-            const doctor = await getDoctorById(appointment.doctorId || 0);
-            await sendPatientArrivalWelcome({
-              phone: appointment.phone,
-              name: appointment.fullName || "المريض",
-              doctor: doctor?.name || "غير محدد",
-              time: appointment.preferredTime || "غير محدد",
-            });
+          const [appt] = await db.select().from(appointments).where(eq(appointments.id, input.id)).limit(1);
+          if (appt?.phone) {
+            const doctor = await getDoctorById(appt.doctorId || 0);
+            const triggerMap: Record<string, string> = {
+              "confirmed": "on_confirmed",
+              "مؤكد": "on_confirmed",
+              "attended": "on_arrived",
+              "حضر": "on_arrived",
+              "completed": "on_completed",
+              "مكتمل": "on_completed",
+              "cancelled": "on_cancelled",
+              "ملغي": "on_cancelled",
+            };
+            const triggerEvent = triggerMap[input.status];
+            if (triggerEvent) {
+              dispatchWhatsAppMessage({
+                entityType: "appointment",
+                triggerEvent: triggerEvent as any,
+                phone: appt.phone,
+                recipientName: appt.fullName || undefined,
+                variables: {
+                  name: appt.fullName || "المريض",
+                  doctor: doctor?.name || "غير محدد",
+                  date: appt.preferredDate || "غير محدد",
+                  time: appt.preferredTime || "غير محدد",
+                  service: appt.procedure || "فحص عام",
+                },
+                entityId: input.id,
+                sentBy: ctx.user?.id,
+              }).catch(err => console.error("[WhatsApp Dispatcher] Appointment status trigger error:", err));
+            }
+            // Legacy: Send welcome message when status changes to attended
+            if (input.status === "حضر" || input.status === "attended") {
+              const { sendPatientArrivalWelcome } = await import("../messaging");
+              sendPatientArrivalWelcome({
+                phone: appt.phone,
+                name: appt.fullName || "المريض",
+                doctor: doctor?.name || "غير محدد",
+                time: appt.preferredTime || "غير محدد",
+              }).catch(err => console.error("[WhatsApp] Arrival welcome error:", err));
+            }
           }
         }
       }
