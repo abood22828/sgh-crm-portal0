@@ -21,7 +21,7 @@ import { sendNewAppointmentTelegram } from "../telegram";
 import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
 import { sendAppointmentLeadEvent, sendStatusChangeEvent } from "../facebookCAPI";
-import { sendAppointmentConfirmation } from "../services/whatsappAppointments";
+// sendAppointmentConfirmation moved to dispatchWhatsAppMessage flow
 import { dispatchWhatsAppMessage } from "../services/whatsappMessageDispatcher";
 
 export const appointmentsRouter = router({
@@ -181,33 +181,24 @@ export const appointmentsRouter = router({
         patientMessage: input.patientMessage,
       });
 
-      // Send automated booking confirmation message (Patient Journey)
+      // Send automated booking confirmation message (Patient Journey) via dispatcher
       if (result) {
-        const { sendBookingConfirmationInteractive } = await import("../messaging");
-        sendBookingConfirmationInteractive({
+        dispatchWhatsAppMessage({
+          entityType: "appointment",
+          triggerEvent: "on_create",
           phone: input.phone,
-          name: input.fullName,
-          date: input.preferredDate || "غير محدد",
-          time: input.preferredTime || "غير محدد",
-          doctor: doctor?.name || "غير محدد",
-          service: input.procedure || "فحص عام",
-          bookingId: result.insertId,
-          bookingType: "appointment",
+          recipientName: input.fullName,
+          variables: {
+            name: input.fullName,
+            doctor: doctor?.name || "غير محدد",
+            date: input.preferredDate || "غير محدد",
+            time: input.preferredTime || "غير محدد",
+            service: input.procedure || "فحص عام",
+          },
+          entityId: result.insertId,
         }).catch(error => {
-          console.error("[WhatsApp] Failed to send booking confirmation:", error);
+          console.error("[WhatsApp Dispatcher] Failed to send appointment on_create:", error);
         });
-
-        // حفظ سجل إشعار WhatsApp في قاعدة البيانات (fire-and-forget)
-        if (doctor) {
-          sendAppointmentConfirmation({
-            appointmentId: result.insertId,
-            phone: input.phone,
-            patientName: input.fullName,
-            doctorName: doctor.name || "غير محدد",
-            appointmentTime: new Date(),
-            department: doctor.specialty || "عام",
-          }).catch(err => console.error("[WhatsApp Notifications] Failed to save notification:", err));
-        }
       }
 
       // Send Facebook Conversions API event (fire-and-forget)

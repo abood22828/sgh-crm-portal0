@@ -16,6 +16,7 @@ interface ChatWindowProps {
   conversationId: number | null;
   lastMessageAt?: string | Date | null;
   onConversationUpdate?: () => void;
+  phone?: string | null; // رقم هاتف العميل لإرسال القوالب
 }
 
 /** Returns true if the last message was more than 24 hours ago (or never) */
@@ -47,7 +48,7 @@ function mergeMessages(dbMsgs: any[], localMsgs: any[]): any[] {
   );
 }
 
-export default function ChatWindow({ conversationId, lastMessageAt, onConversationUpdate }: ChatWindowProps) {
+export default function ChatWindow({ conversationId, lastMessageAt, onConversationUpdate, phone }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [messageText, setMessageText] = useState("");
   const [localMessages, setLocalMessages] = useState<any[]>([]);
@@ -238,14 +239,20 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
 
   const handleSendTemplate = (template: { id: number; name: string; content: string; metaName?: string | null; languageCode?: string | null }) => {
     if (!conversationId) return;
+    if (!phone) {
+      toast.error("لا يوجد رقم هاتف لهذه المحادثة");
+      return;
+    }
     // استخدام metaName (الاسم المعتمد من Meta) إذا كان متاحاً، وإلا name
     const templateName = template.metaName || template.name;
     const languageCode = template.languageCode || "ar";
-    // TODO: ربط مع المحادثة للحصول على رقم الهاتف
-    // في الوقت الحالي نستخدم toast للتأكد من اختيار القالب
-    toast.info('تم اختيار القالب: ' + templateName);
-    // سيتم تطبيق الإرسال الفعلي بعد ربط البيانات
-    console.log('Template selected:', templateName, languageCode);
+    sendTemplateMutation.mutate({
+      phone,
+      templateName,
+      language: languageCode,
+      conversationId,
+      templateContent: template.content,
+    });
   };
 
   return (

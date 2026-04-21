@@ -9,7 +9,7 @@ import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
 import { sendOfferLeadEvent, sendStatusChangeEvent } from "../facebookCAPI";
 import { normalizePhoneNumber } from "../db";
-import { sendOfferLeadConfirmation } from "../services/whatsappAppointments";
+// sendOfferLeadConfirmation moved to dispatchWhatsAppMessage flow
 import { dispatchWhatsAppMessage } from "../services/whatsappMessageDispatcher";
 
 export const offerLeadsRouter = router({
@@ -116,29 +116,23 @@ export const offerLeadsRouter = router({
         });
       }
 
-      // Send automated offer booking confirmation message (Patient Journey)
+      // Send automated offer booking confirmation message (Patient Journey) via dispatcher
       // Run in background - don't block the response
       if (offer) {
-        const { sendOfferBookingConfirmationInteractive, formatDateForMessage, formatTimeForMessage } = await import("../messaging");
-        sendOfferBookingConfirmationInteractive({
+        dispatchWhatsAppMessage({
+          entityType: "offer_lead",
+          triggerEvent: "on_create",
           phone: input.phone,
-          name: input.fullName,
-          service: offer.title,
-          date: offer.startDate ? formatDateForMessage(new Date(offer.startDate)) : "غير محدد",
-          time: offer.startDate ? formatTimeForMessage(new Date(offer.startDate)) : "غير محدد",
-          bookingId: Number(lead.insertId),
+          recipientName: input.fullName,
+          variables: {
+            name: input.fullName,
+            service: offer.title,
+            date: offer.startDate ? new Date(offer.startDate).toLocaleDateString("ar-YE") : "غير محدد",
+          },
+          entityId: Number(lead.insertId),
         }).catch(error => {
-          console.error("[WhatsApp] Failed to send offer booking confirmation:", error);
+          console.error("[WhatsApp Dispatcher] Failed to send offer lead on_create:", error);
         });
-
-        // حفظ سجل إشعار WhatsApp في قاعدة البيانات (fire-and-forget)
-        sendOfferLeadConfirmation({
-          offerLeadId: Number(lead.insertId),
-          phone: input.phone,
-          patientName: input.fullName,
-          offerName: offer.title,
-
-        }).catch(err => console.error("[WhatsApp Notifications] Failed to save offer notification:", err));
       }
 
       // Send Facebook Conversions API event (fire-and-forget)

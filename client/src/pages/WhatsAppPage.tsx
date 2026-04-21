@@ -704,7 +704,7 @@ function WhatsAppContent() {
                     onToggleImportant={handleToggleImportant}
                   />
                   <div className="flex-1 overflow-hidden">
-                    <ChatWindow conversationId={selectedConversation} lastMessageAt={selectedConv?.lastMessageAt} onConversationUpdate={handleConversationUpdate} />
+                    <ChatWindow conversationId={selectedConversation} lastMessageAt={selectedConv?.lastMessageAt} onConversationUpdate={handleConversationUpdate} phone={selectedConv?.phoneNumber} />
                   </div>
                 </>
               ) : (
@@ -732,7 +732,7 @@ function WhatsAppContent() {
                   onToggleImportant={handleToggleImportant}
                 />
                 <div className="flex-1 overflow-hidden">
-                  <ChatWindow conversationId={selectedConversation} lastMessageAt={selectedConv?.lastMessageAt} onConversationUpdate={handleConversationUpdate} />
+                  <ChatWindow conversationId={selectedConversation} lastMessageAt={selectedConv?.lastMessageAt} onConversationUpdate={handleConversationUpdate} phone={selectedConv?.phoneNumber} />
                 </div>
               </>
             ) : (

@@ -13,7 +13,7 @@
  */
 
 import { eq, and } from "drizzle-orm";
-import { getDb } from "../db";
+import { getDb, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, normalizePhoneNumber } from "../db";
 import { messageSettings, whatsappTemplates, whatsappNotifications } from "../../drizzle/schema";
 import { sendWhatsAppTextMessage, sendWhatsAppTemplateMessage } from "../whatsappCloudAPI";
 
@@ -157,6 +157,13 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
             messageId: result.messageId,
             sentBy: opts.sentBy,
           });
+          // حفظ المحادثة والرسالة في قاعدة البيانات
+          await ensureConversationAndSaveMessage({
+            phone,
+            customerName: opts.recipientName,
+            messageContent: `[قالب: ${template.name}] ${interpolate(setting.messageContent, variables)}`,
+            messageId: result.messageId,
+          });
           return { success: true, messageType, channel: "whatsapp_api" };
         }
         // Fallback إلى نص عادي إذا فشل القالب
@@ -183,6 +190,17 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
         sentBy: opts.sentBy,
       });
 
+      // حفظ المحادثة والرسالة في قاعدة البيانات عند النجاح
+      if (result.success) {
+        const content = interpolate(setting.messageContent, variables);
+        await ensureConversationAndSaveMessage({
+          phone,
+          customerName: opts.recipientName,
+          messageContent: content,
+          messageId: result.messageId,
+        });
+      }
+
       return {
         success: result.success,
         messageType,
@@ -195,5 +213,64 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
   } catch (error: any) {
     console.error(`[WhatsApp Dispatcher] Error dispatching ${entityType}:${triggerEvent}:`, error);
     return { success: false, error: error.message };
+  }
+}
+
+/**
+ * إنشاء أو تحديث المحادثة في قاعدة البيانات بعد إرسال رسالة تلقائية
+ * يضمن ظهور الرسائل التلقائية في صفحة إدارة المحادثات
+ */
+export async function ensureConversationAndSaveMessage(params: {
+  phone: string;
+  customerName?: string;
+  messageContent: string;
+  messageId?: string;
+  entityType?: string;
+  entityId?: number;
+}): Promise<void> {
+  try {
+    const normalizedPhone = normalizePhoneNumber(params.phone);
+    if (!normalizedPhone) return;
+
+    // 1. البحث عن محادثة موجودة أو إنشاء محادثة جديدة
+    let conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+    const now = new Date();
+
+    if (!conversation) {
+      // إنشاء محادثة جديدة
+      await createWhatsAppConversation({
+        phoneNumber: normalizedPhone,
+        customerName: params.customerName || null,
+        lastMessage: params.messageContent.substring(0, 200),
+        lastMessageAt: now,
+        unreadCount: 0,
+        isImportant: 0,
+        isArchived: 0,
+      });
+      // جلب المحادثة المُنشأة
+      conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+    } else {
+      // تحديث المحادثة الموجودة
+      await updateWhatsAppConversation(conversation.id, {
+        lastMessage: params.messageContent.substring(0, 200),
+        lastMessageAt: now,
+        customerName: params.customerName || conversation.customerName || null,
+      });
+    }
+
+    if (!conversation) return;
+
+    // 2. حفظ الرسالة في جدول whatsapp_messages
+    await createWhatsAppMessage({
+      conversationId: conversation.id,
+      direction: "outbound",
+      content: params.messageContent,
+      messageType: "text",
+      status: "sent",
+      whatsappMessageId: params.messageId || null,
+      sentAt: now,
+    });
+  } catch (err) {
+    console.error("[WhatsApp Dispatcher] Failed to ensure conversation/message:", err);
   }
 }

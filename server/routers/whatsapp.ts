@@ -310,20 +310,51 @@ export const whatsappRouter = router({
         phone: z.string().min(9).max(15),
         templateName: z.string().min(1),
         language: z.string().optional(),
+        conversationId: z.number().optional(), // لحفظ الرسالة في المحادثة
+        templateContent: z.string().optional(), // محتوى القالب للحفظ
       })
     )
     .mutation(async ({ input }) => {
       const { sendTemplateMessage } = await import("../services/whatsappTemplates");
-      return sendTemplateMessage({
+      const result = await sendTemplateMessage({
         phone: input.phone,
         templateName: input.templateName,
         language: input.language,
       });
+
+      // حفظ الرسالة في المحادثة إذا نجح الإرسال
+      if (result.success && input.conversationId) {
+        try {
+          const { createWhatsAppMessage, updateWhatsAppConversation } = await import("../db");
+          const content = input.templateContent || `[قالب: ${input.templateName}]`;
+          await createWhatsAppMessage({
+            conversationId: input.conversationId,
+            direction: "outbound",
+            content,
+            messageType: "template",
+            status: "sent",
+            whatsappMessageId: result.messageId || null,
+            sentAt: new Date(),
+          });
+          await updateWhatsAppConversation(input.conversationId, {
+            lastMessage: content.substring(0, 200),
+            lastMessageAt: new Date(),
+          });
+        } catch (err) {
+          console.error("[WhatsApp] Failed to save template message to conversation:", err);
+        }
+      }
+
+      return result;
     }),
 
   getTemplates: protectedProcedure.query(async () => {
-    const { getAvailableTemplates } = await import("../services/whatsappTemplates");
-    return getAvailableTemplates();
+    // جلب القوالب من قاعدة البيانات المحلية (بعد المزامنة مع Meta)
+    const { whatsappTemplates } = await import("../../drizzle/schema");
+    const dbConn = await import("../db").then(m => m.getDb());
+    if (!dbConn) return { success: true, templates: [] };
+    const templates = await dbConn.select().from(whatsappTemplates).orderBy(whatsappTemplates.name);
+    return { success: true, templates };
   }),
 
   getTemplateStatus: protectedProcedure

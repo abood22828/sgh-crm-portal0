@@ -9,7 +9,7 @@ import { serverCache, CacheKeys, CacheTTL } from "../cache";
 import { createAuditLog } from "./auditLogs";
 import { sendCampRegistrationEvent, sendStatusChangeEvent } from "../facebookCAPI";
 import { normalizePhoneNumber } from "../db";
-import { sendCampRegistrationConfirmation } from "../services/whatsappAppointments";
+// sendCampRegistrationConfirmation moved to dispatchWhatsAppMessage flow
 import { dispatchWhatsAppMessage } from "../services/whatsappMessageDispatcher";
 
 export const campRegistrationsRouter = router({
@@ -121,31 +121,24 @@ export const campRegistrationsRouter = router({
         });
       }
 
-      // Send automated camp registration confirmation message (Patient Journey)
+      // Send automated camp registration confirmation message (Patient Journey) via dispatcher
       // Run in background - don't block the response
       if (camp) {
-        const { sendCampRegistrationConfirmationInteractive, formatDateForMessage, formatTimeForMessage } = await import("../messaging");
-        sendCampRegistrationConfirmationInteractive({
+        dispatchWhatsAppMessage({
+          entityType: "camp_registration",
+          triggerEvent: "on_create",
           phone: input.phone,
-          name: input.fullName,
-          campName: camp.name,
-          date: camp.startDate ? formatDateForMessage(new Date(camp.startDate)) : "غير محدد",
-          time: camp.startDate ? formatTimeForMessage(new Date(camp.startDate)) : "غير محدد",
-          location: "المستشفى السعودي الألماني - صنعاء",
-          bookingId: Number(registration.insertId),
+          recipientName: input.fullName,
+          variables: {
+            name: input.fullName,
+            campName: camp.name,
+            date: camp.startDate ? new Date(camp.startDate).toLocaleDateString("ar-YE") : "غير محدد",
+            location: "المستشفى السعودي الألماني - صنعاء",
+          },
+          entityId: Number(registration.insertId),
         }).catch(error => {
-          console.error("[WhatsApp] Failed to send camp registration confirmation:", error);
+          console.error("[WhatsApp Dispatcher] Failed to send camp registration on_create:", error);
         });
-
-        // حفظ سجل إشعار WhatsApp في قاعدة البيانات (fire-and-forget)
-        sendCampRegistrationConfirmation({
-          registrationId: Number(registration.insertId),
-          phone: input.phone,
-          patientName: input.fullName,
-          campName: camp.name,
-          campDate: camp.startDate ? new Date(camp.startDate) : undefined,
-          campLocation: "المستشفى السعودي الألماني - صنعاء",
-        }).catch(err => console.error("[WhatsApp Notifications] Failed to save camp notification:", err));
       }
 
       // Send Facebook Conversions API event (fire-and-forget)
@@ -362,8 +355,9 @@ export const campRegistrationsRouter = router({
               recipientName: reg.fullName || undefined,
               variables: {
                 name: reg.fullName || "المسجل",
-                camp: camp?.name || "المخيم",
+                campName: camp?.name || "المخيم",
                 date: camp?.startDate ? new Date(camp.startDate).toLocaleDateString("ar-YE") : "غير محدد",
+                location: "المستشفى السعودي الألماني - صنعاء",
               },
               entityId: input.id,
               sentBy: ctx.user?.id,
