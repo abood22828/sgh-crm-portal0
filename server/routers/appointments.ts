@@ -358,16 +358,7 @@ export const appointmentsRouter = router({
                 sentBy: ctx.user?.id,
               }).catch(err => console.error("[WhatsApp Dispatcher] Appointment status trigger error:", err));
             }
-            // Legacy: Send welcome message when status changes to attended
-            if (input.status === "حضر" || input.status === "attended") {
-              const { sendPatientArrivalWelcome } = await import("../messaging");
-              sendPatientArrivalWelcome({
-                phone: appt.phone,
-                name: appt.fullName || "المريض",
-                doctor: doctor?.name || "غير محدد",
-                time: appt.preferredTime || "غير محدد",
-              }).catch(err => console.error("[WhatsApp] Arrival welcome error:", err));
-            }
+            // ملاحظة: تم إزالة sendPatientArrivalWelcome القديمة - dispatchWhatsAppMessage يتولى الإرسال عبر إعدادات الرسائل
           }
         }
       }

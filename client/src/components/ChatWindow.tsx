@@ -54,8 +54,10 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
   const [localMessages, setLocalMessages] = useState<any[]>([]);
   // Track the last conversationId to reset state on change
   const prevConvIdRef = useRef<number | null>(null);
+  // تتحدث بعد إرسال قالب بنجاح لفتح نافذة الكتابة
+  const [localLastMessageAt, setLocalLastMessageAt] = useState<Date | null>(null);
 
-  const outsideWindow = isOutsideWindow(lastMessageAt);
+  const outsideWindow = isOutsideWindow(localLastMessageAt ?? lastMessageAt);
 
   const { data: messagesData, refetch: refetchMessages } = trpc.whatsapp.messages.listByConversation.useQuery(
     { conversationId: conversationId! },
@@ -79,9 +81,11 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
 
   const sendTemplateMutation = trpc.whatsapp.sendTemplate.useMutation({
     onSuccess: () => {
+      // فتح نافذة الكتابة فوراً بتحديث وقت آخر رسالة محلياً
+      setLocalLastMessageAt(new Date());
       refetchMessages();
       onConversationUpdate?.();
-      toast.success("تم إرسال القالب بنجاح");
+      toast.success("تم إرسال القالب بنجاح — يمكنك الآن إرسال رسائل عادية");
     },
     onError: (err: any) => {
       toast.error(`فشل إرسال القالب: ${err?.message || 'خطأ غير معروف'}`);

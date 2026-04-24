@@ -323,6 +323,13 @@
       "when": 1776569726719,
       "tag": "0045_steady_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "5",
+      "when": 1776906144486,
+      "tag": "0046_hard_pandemic",
+      "breakpoints": true
     }
   ]
 }

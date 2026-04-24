@@ -95,8 +95,12 @@ export const whatsappRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const { id, ...data } = input;
-        return await db.updateWhatsAppConversation(id, data);
+        const { id, important, archived, ...rest } = input;
+        const updateData: Record<string, any> = { ...rest };
+        // تحويل important/archived إلى أسماء الحقول الصحيحة في DB
+        if (important !== undefined) updateData.isImportant = important ? 1 : 0;
+        if (archived !== undefined) updateData.isArchived = archived ? 1 : 0;
+        return await db.updateWhatsAppConversation(id, updateData);
       }),
 
     markAsRead: protectedProcedure

@@ -347,15 +347,7 @@ export const offerLeadsRouter = router({
               sentBy: ctx.user?.id,
             }).catch(err => console.error("[WhatsApp Dispatcher] Offer status trigger error:", err));
           }
-          // Legacy: Send welcome message when status changes to confirmed
-          if (input.status === "confirmed") {
-            const { sendOfferPatientArrivalWelcome } = await import("../messaging");
-            sendOfferPatientArrivalWelcome({
-              phone: lead.phone,
-              name: lead.fullName || "المريض",
-              service: offer?.title || "العرض",
-            }).catch(err => console.error("[WhatsApp] Offer arrival welcome error:", err));
-          }
+          // ملاحظة: تم إزالة sendOfferPatientArrivalWelcome القديمة - dispatchWhatsAppMessage يتولى الإرسال عبر إعدادات الرسائل
         }
       }
 

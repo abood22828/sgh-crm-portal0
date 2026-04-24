@@ -131,18 +131,35 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
         .limit(1);
 
       if (template && template.metaStatus === "APPROVED") {
-        // بناء مكونات القالب - استخدام المتغيرات كـ parameters
-        const bodyParams = Object.values(variables).map((v) => ({ type: "text" as const, text: v }));
+        // بناء مكونات القالب - استخدام المتغيرات كـ parameters بالترتيب الصحيح
+        // القوالب في Meta تستخدم {{1}}, {{2}} أو {{name}}, {{date}} إلخ
+        const templateVars: string[] = [];
+        try {
+          const parsedVars = JSON.parse(template.variables || '[]') as string[];
+          // ترتيب المتغيرات: إذا كانت رقمية (1,2,3) نستخدم ترتيب Object.values
+          // إذا كانت نصية (name, date) نستخدم الترتيب المحدد في القالب
+          const isNumeric = parsedVars.every(v => /^\d+$/.test(v));
+          if (isNumeric) {
+            templateVars.push(...Object.values(variables));
+          } else {
+            for (const varName of parsedVars) {
+              templateVars.push(variables[varName] ?? '');
+            }
+          }
+        } catch {
+          templateVars.push(...Object.values(variables));
+        }
+        const bodyParams = templateVars.map((v) => ({ type: "text" as const, text: String(v) }));
 
         result = await sendWhatsAppTemplateMessage(phone, {
-          templateName: template.name,
+          templateName: template.metaName || template.name, // استخدام metaName الرسمي من Meta
           languageCode: (template.languageCode ?? "ar"),
-          components: [
+          components: bodyParams.length > 0 ? [
             {
               type: "body",
               parameters: bodyParams,
             },
-          ],
+          ] : [],
         });
 
         if (result.success) {

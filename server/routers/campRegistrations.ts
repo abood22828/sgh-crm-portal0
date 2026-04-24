@@ -363,15 +363,7 @@ export const campRegistrationsRouter = router({
               sentBy: ctx.user?.id,
             }).catch(err => console.error("[WhatsApp Dispatcher] Camp status trigger error:", err));
           }
-          // Legacy: Send welcome message when status changes to attended
-          if (input.status === "attended") {
-            const { sendCampPatientArrivalWelcome } = await import("../messaging");
-            sendCampPatientArrivalWelcome({
-              phone: reg.phone,
-              name: reg.fullName || "المريض",
-              campName: camp?.name || "المخيم",
-            }).catch(err => console.error("[WhatsApp] Camp arrival welcome error:", err));
-          }
+          // ملاحظة: تم إزالة sendCampPatientArrivalWelcome القديمة - dispatchWhatsAppMessage يتولى الإرسال عبر إعدادات الرسائل
         }
       }
 

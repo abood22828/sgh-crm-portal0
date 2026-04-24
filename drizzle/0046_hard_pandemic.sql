@@ -1,0 +1,1 @@
+ALTER TABLE `whatsapp_messages` MODIFY COLUMN `messageType` enum('text','image','document','audio','video','location','template') NOT NULL DEFAULT 'text';

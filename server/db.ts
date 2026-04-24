@@ -10,7 +10,19 @@ import { publish, channelForConversation } from './_core/pubsub';
  */
 export function normalizePhoneNumber(phone: string): string {
   if (!phone) return '';
-  return phone.replace(/[^0-9]/g, ''); // Remove all non-digit characters
+  // إزالة جميع الأحرف غير الرقمية
+  let cleaned = phone.replace(/[^0-9]/g, '');
+  // توحيد صيغة الرقم اليمني: دائماً بصيغة 967XXXXXXXXX
+  if (cleaned.startsWith('00967')) {
+    cleaned = cleaned.substring(2); // 00967 → 967
+  } else if (cleaned.startsWith('967') && cleaned.length >= 12) {
+    // صحيح بالفعل
+  } else if (cleaned.startsWith('0') && cleaned.length === 10) {
+    cleaned = '967' + cleaned.substring(1); // 0XXXXXXXXX → 967XXXXXXXXX
+  } else if (cleaned.length === 9 && !cleaned.startsWith('967')) {
+    cleaned = '967' + cleaned; // XXXXXXXXX → 967XXXXXXXXX
+  }
+  return cleaned;
 }
 
 let _db: ReturnType<typeof drizzle> | null = null;
