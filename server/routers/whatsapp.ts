@@ -496,10 +496,24 @@ export const whatsappRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const { sendAppointmentConfirmation } = await import(
-        "../services/whatsappAppointments"
+      const { dispatchWhatsAppMessage } = await import(
+        "../services/whatsappMessageDispatcher"
       );
-      return sendAppointmentConfirmation(input);
+      // استخدام dispatchWhatsAppMessage مع triggerEvent on_create
+      return dispatchWhatsAppMessage({
+        phone: input.phone,
+        entityType: "appointment",
+        entityId: input.appointmentId,
+        triggerEvent: "on_create",
+        recipientName: input.patientName,
+        variables: {
+          name: input.patientName,
+          doctor: input.doctorName,
+          date: input.appointmentTime.toLocaleDateString("ar-SA"),
+          time: input.appointmentTime.toLocaleTimeString("ar-SA"),
+          service: input.department,
+        },
+      });
     }),
 
   sendAppointmentReminder: protectedProcedure
@@ -679,8 +693,9 @@ export const whatsappRouter = router({
       entityId: z.number(),
     }))
     .mutation(async ({ input }) => {
-      const { sendAppointmentConfirmation, sendCampRegistrationConfirmation, sendOfferLeadConfirmation } =
-        await import("../services/whatsappAppointments");
+      const { dispatchWhatsAppMessage } = await import(
+        "../services/whatsappMessageDispatcher"
+      );
       const dbConn = await db.getDb();
       if (!dbConn) return { success: false, error: "لا يمكن الاتصال بقاعدة البيانات" };
 
@@ -690,13 +705,18 @@ export const whatsappRouter = router({
         const rows = await dbConn.select().from(appointments).where(eq(appointments.id, input.entityId)).limit(1);
         if (!rows.length) return { success: false, error: "الموعد غير موجود" };
         const appt = rows[0];
-        return sendAppointmentConfirmation({
-          appointmentId: appt.id,
+        return dispatchWhatsAppMessage({
           phone: appt.phone,
-          patientName: appt.fullName,
-          doctorName: "",
-          appointmentTime: appt.appointmentDate instanceof Date ? appt.appointmentDate : new Date(appt.appointmentDate || appt.createdAt),
-          department: appt.procedure || "",
+          entityType: "appointment",
+          entityId: appt.id,
+          triggerEvent: "on_create",
+          recipientName: appt.fullName,
+          variables: {
+            name: appt.fullName,
+            date: appt.appointmentDate instanceof Date ? appt.appointmentDate.toLocaleDateString("ar-SA") : new Date(appt.appointmentDate || appt.createdAt).toLocaleDateString("ar-SA"),
+            time: appt.appointmentDate instanceof Date ? appt.appointmentDate.toLocaleTimeString("ar-SA") : new Date(appt.appointmentDate || appt.createdAt).toLocaleTimeString("ar-SA"),
+            service: appt.procedure || "",
+          },
         });
       }
 
@@ -711,12 +731,17 @@ export const whatsappRouter = router({
           const campRows = await dbConn.select().from(camps).where(eq(camps.id, reg.campId)).limit(1);
           campName = campRows[0]?.name || "";
         }
-        return sendCampRegistrationConfirmation({
-          registrationId: reg.id,
+        return dispatchWhatsAppMessage({
           phone: reg.phone,
-          patientName: reg.fullName,
-          campName,
-          campDate: reg.createdAt instanceof Date ? reg.createdAt : new Date(reg.createdAt),
+          entityType: "camp_registration",
+          entityId: reg.id,
+          triggerEvent: "on_create",
+          recipientName: reg.fullName,
+          variables: {
+            name: reg.fullName,
+            camp_name: campName,
+            date: reg.createdAt instanceof Date ? reg.createdAt.toLocaleDateString("ar-SA") : new Date(reg.createdAt).toLocaleDateString("ar-SA"),
+          },
         });
       }
 
@@ -731,11 +756,16 @@ export const whatsappRouter = router({
           const offerRows = await dbConn.select().from(offers).where(eq(offers.id, lead.offerId)).limit(1);
           offerName = offerRows[0]?.title || "";
         }
-        return sendOfferLeadConfirmation({
-          offerLeadId: lead.id,
+        return dispatchWhatsAppMessage({
           phone: lead.phone,
-          patientName: lead.fullName,
-          offerName,
+          entityType: "offer_lead",
+          entityId: lead.id,
+          triggerEvent: "on_create",
+          recipientName: lead.fullName,
+          variables: {
+            name: lead.fullName,
+            offer_name: offerName,
+          },
         });
       }
 
