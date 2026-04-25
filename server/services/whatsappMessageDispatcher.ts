@@ -122,7 +122,8 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
     // 2. إرسال الرسالة بناءً على القناة المختارة
     let result: { success: boolean; messageId?: string; error?: string };
 
-    if (channel === "whatsapp_api" && setting.whatsappTemplateId) {
+    // محاولة إرسال قالب Meta أولاً إذا كان موجوداً (بغض النظر عن channel)
+    if (setting.whatsappTemplateId) {
       // إرسال عبر قالب Meta
       const [template] = await db
         .select()
@@ -188,8 +189,8 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
       }
     }
 
-    // إرسال كنص عادي (whatsapp_integration أو fallback)
-    if (channel === "whatsapp_api" || channel === "whatsapp_integration" || channel === "both") {
+    // إرسال كنص عادي (whatsapp_integration أو fallback بعد فشل القالب)
+    if (channel === "whatsapp_integration" || channel === "both") {
       const content = interpolate(setting.messageContent, variables);
       result = await sendWhatsAppTextMessage(phone, content);
 

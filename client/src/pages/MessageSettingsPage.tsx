@@ -79,13 +79,14 @@ function MessageSettingsContent() {
   const [editedContent, setEditedContent] = useState("");
   const [editedChannel, setEditedChannel] = useState("whatsapp_integration");
   const [editedTemplateId, setEditedTemplateId] = useState<number | null>(null);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
   const [testPhone, setTestPhone] = useState("");
   const [auditSearch, setAuditSearch] = useState("");
 
   // Queries
   const { data: allMessages, isLoading, refetch } = trpc.messageSettings.list.useQuery();
   const { data: metaTemplates } = trpc.whatsapp.getTemplates.useQuery(undefined, {
-    select: (data: any) => (data?.templates || []).filter((t: any) => t.metaStatus === 'APPROVED'),
+    select: (data: any) => (data?.templates || []).filter((t: any) => t.metaStatus === 'APPROVED' && t.isActive === 1),
   });
   const { data: auditLogs, isLoading: auditLoading } = trpc.whatsapp.getAuditLogs.useQuery(
     { limit: 50 },
