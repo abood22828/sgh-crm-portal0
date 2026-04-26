@@ -132,6 +132,19 @@ export const whatsappRouter = router({
           const conv = await db.getWhatsAppConversationById(input.conversationId);
           if (!conv) throw new Error("Conversation not found");
 
+          // Server-side 24-hour window validation
+          const lastMessageTime = conv.lastMessageAt ? new Date(conv.lastMessageAt) : null;
+          const now = new Date();
+          const hoursSinceLastMessage = lastMessageTime 
+            ? (now.getTime() - lastMessageTime.getTime()) / (1000 * 60 * 60)
+            : Infinity;
+
+          if (hoursSinceLastMessage > 24) {
+            console.warn(`[WhatsApp] 24-hour window exceeded for conversation ${input.conversationId}. Last message was ${hoursSinceLastMessage.toFixed(1)} hours ago.`);
+            // Note: We still allow sending but log a warning. For strict enforcement, uncomment below:
+            // throw new Error("Cannot send free-form text message: 24-hour messaging window exceeded. Use a template message instead.");
+          }
+
           const result = await sendWhatsAppTextMessage(
             conv.phoneNumber,
             input.message

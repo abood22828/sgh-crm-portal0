@@ -62,6 +62,63 @@ async function getAppointmentsNeedingReminder(
 }
 
 /**
+ * إرسال تذكير مع إعادة المحاولة باستخدام تراجع أسي
+ */
+async function sendReminderWithRetry(
+  appt: any,
+  hoursUntil: number,
+  notifType: "reminder_24h" | "reminder_1h",
+  maxRetries: number = 3
+): Promise<{ success: boolean; error?: string }> {
+  const baseDelay = 1000; // 1 second base delay
+  const maxDelay = 10000; // 10 seconds max delay
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await sendAppointmentReminder({
+        appointmentId: appt.id,
+        phone: appt.phone,
+        patientName: appt.fullName || "المريض",
+        doctorName: "",
+        appointmentTime:
+          appt.appointmentDate instanceof Date
+            ? appt.appointmentDate
+            : new Date(appt.appointmentDate || appt.createdAt),
+        hoursUntil,
+      });
+
+      if (result.success) {
+        return { success: true };
+      }
+
+      // If failed and not last attempt, retry with exponential backoff
+      if (attempt < maxRetries) {
+        const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+        console.warn(
+          `${LOG_PREFIX} ${notifType} reminder failed for appointment #${appt.id} (attempt ${attempt + 1}/${maxRetries + 1}). Retrying in ${delay}ms...`
+        );
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        return { success: false, error: result.error };
+      }
+    } catch (err) {
+      if (attempt < maxRetries) {
+        const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+        console.error(
+          `${LOG_PREFIX} Error sending ${notifType} reminder for appointment #${appt.id} (attempt ${attempt + 1}/${maxRetries + 1}). Retrying in ${delay}ms...`,
+          err
+        );
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+      }
+    }
+  }
+
+  return { success: false, error: "Max retries exceeded" };
+}
+
+/**
  * إرسال تذكيرات 24 ساعة
  */
 async function send24HourReminders() {
@@ -91,33 +148,16 @@ async function send24HourReminders() {
       failed++;
       continue;
     }
-    try {
-      const result = await sendAppointmentReminder({
-        appointmentId: appt.id,
-        phone: appt.phone,
-        patientName: appt.fullName || "المريض",
-        doctorName: "",
-        appointmentTime:
-          appt.appointmentDate instanceof Date
-            ? appt.appointmentDate
-            : new Date(appt.appointmentDate || appt.createdAt),
-        hoursUntil: 24,
-      });
 
-      if (result.success) {
-        sent++;
-        console.log(`${LOG_PREFIX} 24h reminder sent for appointment #${appt.id}`);
-      } else {
-        failed++;
-        console.warn(
-          `${LOG_PREFIX} Failed to send 24h reminder for appointment #${appt.id}: ${result.error}`
-        );
-      }
-    } catch (err) {
+    const result = await sendReminderWithRetry(appt, 24, "reminder_24h");
+
+    if (result.success) {
+      sent++;
+      console.log(`${LOG_PREFIX} 24h reminder sent for appointment #${appt.id}`);
+    } else {
       failed++;
-      console.error(
-        `${LOG_PREFIX} Error sending 24h reminder for appointment #${appt.id}:`,
-        err
+      console.warn(
+        `${LOG_PREFIX} Failed to send 24h reminder for appointment #${appt.id} after retries: ${result.error}`
       );
     }
   }
@@ -155,33 +195,16 @@ async function send1HourReminders() {
       failed++;
       continue;
     }
-    try {
-      const result = await sendAppointmentReminder({
-        appointmentId: appt.id,
-        phone: appt.phone,
-        patientName: appt.fullName || "المريض",
-        doctorName: "",
-        appointmentTime:
-          appt.appointmentDate instanceof Date
-            ? appt.appointmentDate
-            : new Date(appt.appointmentDate || appt.createdAt),
-        hoursUntil: 1,
-      });
 
-      if (result.success) {
-        sent++;
-        console.log(`${LOG_PREFIX} 1h reminder sent for appointment #${appt.id}`);
-      } else {
-        failed++;
-        console.warn(
-          `${LOG_PREFIX} Failed to send 1h reminder for appointment #${appt.id}: ${result.error}`
-        );
-      }
-    } catch (err) {
+    const result = await sendReminderWithRetry(appt, 1, "reminder_1h");
+
+    if (result.success) {
+      sent++;
+      console.log(`${LOG_PREFIX} 1h reminder sent for appointment #${appt.id}`);
+    } else {
       failed++;
-      console.error(
-        `${LOG_PREFIX} Error sending 1h reminder for appointment #${appt.id}:`,
-        err
+      console.warn(
+        `${LOG_PREFIX} Failed to send 1h reminder for appointment #${appt.id} after retries: ${result.error}`
       );
     }
   }

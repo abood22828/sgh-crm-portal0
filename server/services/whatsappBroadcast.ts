@@ -6,13 +6,16 @@
  * ✅ Rate limiting: 1000 رسالة/دقيقة (وفق حدود Meta)
  * ✅ تأخير بين الرسائل لتجنب الحظر
  * ✅ متوافق مع وثائق Meta الرسمية
+ * ✅ تخزين الوظائف في قاعدة البيانات لضمان الاستمرارية
  *
  * ⚠️ تنبيه: الرسائل الجماعية يجب أن تستخدم قوالب معتمدة من Meta
  * وفق: https://developers.facebook.com/documentation/business-messaging/whatsapp/message-types/template-messages
  */
 
-import { normalizePhoneNumber } from "../db";
+import { normalizePhoneNumber, getDb } from "../db";
 import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
+import { whatsappBroadcasts } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export interface BroadcastJob {
   id: string;
@@ -26,21 +29,23 @@ export interface BroadcastJob {
   completedAt?: Date;
 }
 
-// In-memory store for broadcast jobs (يُنصح بنقلها لقاعدة البيانات في الإنتاج)
-const broadcastJobs = new Map<string, BroadcastJob>();
-
 export async function sendBroadcast(params: {
   message: string;
   recipients: string[];
   priority?: "high" | "normal" | "low";
   delay?: number;
-}): Promise<{ success: boolean; jobId?: string; error?: string }> {
+  createdBy?: number;
+}): Promise<{ success: boolean; jobId?: number; error?: string }> {
   try {
     if (!params.recipients || params.recipients.length === 0) {
       return { success: false, error: "No recipients provided" };
     }
 
-    const jobId = `broadcast_${Date.now()}`;
+    const db = await getDb();
+    if (!db) {
+      return { success: false, error: "Database not available" };
+    }
+
     const normalizedRecipients = params.recipients
       .map((phone) => normalizePhoneNumber(phone))
       .filter((phone) => phone && phone.length >= 9);
@@ -49,19 +54,20 @@ export async function sendBroadcast(params: {
       return { success: false, error: "No valid phone numbers" };
     }
 
-    // تسجيل الـ job
-    const job: BroadcastJob = {
-      id: jobId,
-      messageId: `broadcast_msg_${Date.now()}`,
+    // تسجيل الـ job في قاعدة البيانات
+    const [broadcast] = await db.insert(whatsappBroadcasts).values({
+      name: `Broadcast ${new Date().toISOString()}`,
       message: params.message,
-      recipients: normalizedRecipients,
-      status: "in_progress",
+      recipientCount: normalizedRecipients.length,
       sentCount: 0,
+      deliveredCount: 0,
+      readCount: 0,
       failedCount: 0,
-      createdAt: new Date(),
-    };
-    broadcastJobs.set(jobId, job);
+      status: "sending",
+      createdBy: params.createdBy || 1,
+    }).returning();
 
+    const jobId = broadcast.id;
     console.log(`[WhatsApp Broadcast] Starting broadcast ${jobId} to ${normalizedRecipients.length} recipients`);
 
     // إرسال الرسائل بشكل متسلسل مع تأخير لتجنب Rate Limiting
@@ -85,18 +91,29 @@ export async function sendBroadcast(params: {
         failedCount++;
       }
 
+      // تحديث التقدم كل 10 رسائل
+      if (i % 10 === 0) {
+        await db.update(whatsappBroadcasts)
+          .set({ sentCount, failedCount })
+          .where(eq(whatsappBroadcasts.id, jobId));
+      }
+
       // تأخير بين الرسائل
       if (i < normalizedRecipients.length - 1) {
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
-    // تحديث حالة الـ job
-    job.status = failedCount === normalizedRecipients.length ? "failed" : "completed";
-    job.sentCount = sentCount;
-    job.failedCount = failedCount;
-    job.completedAt = new Date();
-    broadcastJobs.set(jobId, job);
+    // تحديث حالة الـ job النهائية
+    const finalStatus = failedCount === normalizedRecipients.length ? "failed" : "completed";
+    await db.update(whatsappBroadcasts)
+      .set({
+        status: finalStatus,
+        sentCount,
+        failedCount,
+        completedAt: new Date(),
+      })
+      .where(eq(whatsappBroadcasts.id, jobId));
 
     console.log(`[WhatsApp Broadcast] Broadcast ${jobId} completed: ${sentCount} sent, ${failedCount} failed`);
 
@@ -113,17 +130,22 @@ export async function sendBroadcast(params: {
   }
 }
 
-export async function getBroadcastStatus(jobId: string): Promise<{
+export async function getBroadcastStatus(jobId: number): Promise<{
   success: boolean;
-  status?: BroadcastJob;
+  status?: any;
   error?: string;
 }> {
   try {
-    const job = broadcastJobs.get(jobId);
-    if (!job) {
+    const db = await getDb();
+    if (!db) {
+      return { success: false, error: "Database not available" };
+    }
+
+    const [broadcast] = await db.select().from(whatsappBroadcasts).where(eq(whatsappBroadcasts.id, jobId)).limit(1);
+    if (!broadcast) {
       return { success: false, error: "Broadcast job not found" };
     }
-    return { success: true, status: job };
+    return { success: true, status: broadcast };
   } catch (error) {
     console.error("[WhatsApp Broadcast] Failed to get broadcast status:", error);
     return {
@@ -145,13 +167,18 @@ export async function getBroadcastStats(): Promise<{
   error?: string;
 }> {
   try {
-    const jobs = Array.from(broadcastJobs.values());
+    const db = await getDb();
+    if (!db) {
+      return { success: false, error: "Database not available" };
+    }
+
+    const broadcasts = await db.select().from(whatsappBroadcasts);
     const stats = {
-      totalBroadcasts: jobs.length,
-      completedBroadcasts: jobs.filter((j) => j.status === "completed").length,
-      failedBroadcasts: jobs.filter((j) => j.status === "failed").length,
-      totalMessagesSent: jobs.reduce((sum, j) => sum + j.sentCount, 0),
-      totalMessagesFailed: jobs.reduce((sum, j) => sum + j.failedCount, 0),
+      totalBroadcasts: broadcasts.length,
+      completedBroadcasts: broadcasts.filter((b: any) => b.status === "completed").length,
+      failedBroadcasts: broadcasts.filter((b: any) => b.status === "failed").length,
+      totalMessagesSent: broadcasts.reduce((sum: number, b: any) => sum + (b.sentCount || 0), 0),
+      totalMessagesFailed: broadcasts.reduce((sum: number, b: any) => sum + (b.failedCount || 0), 0),
     };
     return { success: true, stats };
   } catch (error) {

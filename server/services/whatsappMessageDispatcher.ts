@@ -82,6 +82,21 @@ function interpolate(template: string, vars: Record<string, string>): string {
 }
 
 /**
+ * التحقق من صحة المتغيرات المطلوبة في القالب
+ * يُرجع قائمة المتغيرات المفقودة
+ */
+function validateVariables(template: string, vars: Record<string, string>): string[] {
+  const missing: string[] = [];
+  template.replace(/\{(\w+)\}/g, (_, key) => {
+    if (!vars[key] || vars[key] === '') {
+      missing.push(key);
+    }
+    return '';
+  });
+  return missing;
+}
+
+/**
  * الدالة الرئيسية: ترسل الرسالة المناسبة بناءً على entityType + triggerEvent
  */
 export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
@@ -119,6 +134,14 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
     const channel = setting.deliveryChannel;
     const messageType = setting.messageType;
 
+    // التحقق من صحة المتغيرات المطلوبة في القالب
+    const missingVars = validateVariables(setting.messageContent, variables);
+    if (missingVars.length > 0) {
+      console.error(`[WhatsApp Dispatcher] Missing required variables for ${entityType}:${triggerEvent}: ${missingVars.join(', ')}`);
+      // Log the failure but still send with placeholders (as fallback behavior)
+      // Alternatively, could return { success: false, error: `Missing variables: ${missingVars.join(', ')}` };
+    }
+
     // 2. إرسال الرسالة بناءً على القناة المختارة
     let result: { success: boolean; messageId?: string; error?: string };
 
@@ -131,7 +154,11 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
         .where(eq(whatsappTemplates.id, setting.whatsappTemplateId))
         .limit(1);
 
-      if (template && template.metaStatus === "APPROVED") {
+      if (!template) {
+        console.error(`[WhatsApp Dispatcher] Template with ID ${setting.whatsappTemplateId} not found in database`);
+      } else if (template.metaStatus !== "APPROVED") {
+        console.error(`[WhatsApp Dispatcher] Template "${template.name}" (ID: ${setting.whatsappTemplateId}) is not APPROVED. Current status: ${template.metaStatus}`);
+      } else {
         // بناء مكونات القالب - استخدام المتغيرات كـ parameters بالترتيب الصحيح
         // القوالب في Meta تستخدم {{1}}, {{2}} أو {{name}}, {{date}} إلخ
         const templateVars: string[] = [];
@@ -152,8 +179,11 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
         }
         const bodyParams = templateVars.map((v) => ({ type: "text" as const, text: String(v) }));
 
+        const templateNameToSend = template.metaName || template.name;
+        console.log(`[WhatsApp Dispatcher] Sending template "${templateNameToSend}" (metaName: ${template.metaName}) to ${phone}`);
+
         result = await sendWhatsAppTemplateMessage(phone, {
-          templateName: template.metaName || template.name, // استخدام metaName الرسمي من Meta
+          templateName: templateNameToSend,
           languageCode: (template.languageCode ?? "ar"),
           components: bodyParams.length > 0 ? [
             {
@@ -181,11 +211,13 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
             customerName: opts.recipientName,
             messageContent: `[قالب: ${template.name}] ${interpolate(setting.messageContent, variables)}`,
             messageId: result.messageId,
+            entityType,
+            entityId,
           });
           return { success: true, messageType, channel: "whatsapp_api" };
         }
         // Fallback إلى نص عادي إذا فشل القالب
-        console.warn(`[WhatsApp Dispatcher] Template send failed, falling back to text: ${result.error}`);
+        console.error(`[WhatsApp Dispatcher] Template send failed for "${templateNameToSend}". Error: ${result.error}. Falling back to text message.`);
       }
     }
 
@@ -216,6 +248,8 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
           customerName: opts.recipientName,
           messageContent: content,
           messageId: result.messageId,
+          entityType,
+          entityId,
         });
       }
 
@@ -254,6 +288,22 @@ export async function ensureConversationAndSaveMessage(params: {
     let conversation = await getWhatsAppConversationByPhone(normalizedPhone);
     const now = new Date();
 
+    // ربط المحادثة بالكيان المناسب بناءً على entityType
+    const entityLinks: Record<string, any> = {};
+    if (params.entityType && params.entityId) {
+      switch (params.entityType) {
+        case "appointment":
+          entityLinks.appointmentId = params.entityId;
+          break;
+        case "camp_registration":
+          entityLinks.campRegistrationId = params.entityId;
+          break;
+        case "offer_lead":
+          entityLinks.offerLeadId = params.entityId;
+          break;
+      }
+    }
+
     if (!conversation) {
       // إنشاء محادثة جديدة
       await createWhatsAppConversation({
@@ -264,6 +314,7 @@ export async function ensureConversationAndSaveMessage(params: {
         unreadCount: 0,
         isImportant: 0,
         isArchived: 0,
+        ...entityLinks,
       });
       // جلب المحادثة المُنشأة
       conversation = await getWhatsAppConversationByPhone(normalizedPhone);
@@ -273,6 +324,7 @@ export async function ensureConversationAndSaveMessage(params: {
         lastMessage: params.messageContent.substring(0, 200),
         lastMessageAt: now,
         customerName: params.customerName || conversation.customerName || null,
+        ...entityLinks,
       });
     }
 
@@ -286,7 +338,7 @@ export async function ensureConversationAndSaveMessage(params: {
       messageType: "text",
       status: "sent",
       whatsappMessageId: params.messageId || null,
-      sentAt: now,
+      isAutomated: 1,
     });
   } catch (err) {
     console.error("[WhatsApp Dispatcher] Failed to ensure conversation/message:", err);

@@ -50,7 +50,12 @@ export function createWebhookRouter(): Router {
       res.status(200).json({ success: true });
 
       const body = req.body;
-      if (!body || body.object !== "whatsapp_business_account") {
+      if (!body) {
+        console.error("[Webhook] Empty payload received");
+        return;
+      }
+
+      if (body.object !== "whatsapp_business_account") {
         console.log("[Webhook] Ignoring non-WhatsApp webhook");
         return;
       }
@@ -266,6 +271,13 @@ export function createWebhookRouter(): Router {
     } catch (error) {
       console.error("[Webhook] Error processing webhook:", error);
       // Don't throw - we already sent 200 to Meta
+      // Log detailed error information for debugging
+      if (error instanceof Error) {
+        console.error("[Webhook] Error details:", {
+          message: error.message,
+          stack: error.stack,
+        });
+      }
     }
   });
 
