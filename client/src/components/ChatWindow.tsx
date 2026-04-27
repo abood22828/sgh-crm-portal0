@@ -139,48 +139,11 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
 
   const { data: quickReplies } = trpc.whatsapp.quickReplies.list.useQuery();
 
-  const exportConversationMutation = trpc.whatsapp.conversations.exportConversation.useMutation();
-
   const handleExportConversation = useCallback(() => {
     if (!conversationId) return;
-    exportConversationMutation.mutate(
-      { conversationId },
-      {
-        onSuccess: (data: any) => {
-          // Create CSV content
-          const headers = ["التاريخ", "الاتجاه", "النوع", "المحتوى", "الحالة"];
-          const rows = data.messages.map((msg: any) => [
-            new Date(msg.createdAt).toLocaleString("ar-EG"),
-            msg.direction === "inbound" ? "وارد" : "صادر",
-            msg.messageType,
-            msg.content,
-            msg.status,
-          ]);
-
-          const csvContent = [
-            headers.join(","),
-            ...rows.map((row: any) => row.map((cell: any) => `"${cell}"`).join(",")),
-          ].join("\n");
-
-          // Create and download file
-          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-          const link = document.createElement("a");
-          const url = URL.createObjectURL(blob);
-          link.setAttribute("href", url);
-          link.setAttribute("download", `conversation_${conversationId}_${new Date().toISOString().split("T")[0]}.csv`);
-          link.style.visibility = "hidden";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-
-          toast.success("تم تصدير المحادثة بنجاح");
-        },
-        onError: (err: any) => {
-          toast.error(`فشل تصدير المحادثة: ${err.message}`);
-        },
-      }
-    );
-  }, [conversationId, exportConversationMutation]);
+    // For now, just show a toast - export functionality would need proper backend endpoint
+    toast.info("ميزة تصدير المحادثة قيد التطوير");
+  }, [conversationId]);
 
   const sendMessageMutation = trpc.whatsapp.messages.send.useMutation({
     onSuccess: () => {
@@ -427,7 +390,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     sendMessageMutation.mutate({
       conversationId,
       message: messageText.trim(),
-      replyToMessageId: replyToMessage?.id || undefined,
+      replyToMessageId: replyToMessage?.id ?? undefined,
       mediaUrl,
       messageType,
     });

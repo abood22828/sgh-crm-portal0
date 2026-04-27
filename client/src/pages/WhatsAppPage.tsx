@@ -163,6 +163,8 @@ interface ConversationsListProps {
   isSplitView: boolean;
   secondConversationId: number | null;
   onSelectSecondConversation: (id: number) => void;
+  savedSearches?: any[];
+  onApplySavedSearch?: (search: any) => void;
 }
 
 const ConversationsList = memo(function ConversationsList({
@@ -204,6 +206,8 @@ const ConversationsList = memo(function ConversationsList({
   isSplitView,
   secondConversationId,
   onSelectSecondConversation,
+  savedSearches,
+  onApplySavedSearch,
 }: ConversationsListProps) {
   return (
     <div className="flex flex-col h-full">
@@ -432,12 +436,7 @@ const ConversationsList = memo(function ConversationsList({
               {savedSearches.map((search: any) => (
                 <DropdownMenuItem
                   key={search.id}
-                  onClick={() => {
-                    setSearchQuery(search.searchQuery || search.query || "");
-                    setActiveFilter(search.filterType || search.filter || "all");
-                    setDateFilter(search.dateRange || search.dateFilter || "all");
-                    setMessageTypeFilter(search.messageType || search.messageTypeFilter || "all");
-                  }}
+                  onClick={() => onApplySavedSearch?.(search)}
                   className="flex flex-col items-start gap-1 py-2"
                 >
                   <span className="font-medium text-xs">{search.name}</span>
@@ -1024,6 +1023,8 @@ function WhatsAppContent() {
     isSplitView,
     secondConversationId,
     onSelectSecondConversation: setSecondConversationId,
+    savedSearches,
+    onApplySavedSearch: handleApplySavedSearch,
   };
 
   return (

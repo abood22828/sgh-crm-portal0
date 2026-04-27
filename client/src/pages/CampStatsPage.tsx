@@ -715,19 +715,19 @@ export default function CampStatsPage() {
         const camp = camps?.find((c: any) => c.id === campId);
         return {
           campName: camp?.name || `مخيم ${campId}`,
-          pending: statusCounts.pending || 0,
-          contacted: statusCounts.contacted || 0,
-          no_answer: statusCounts.no_answer || 0,
-          confirmed: statusCounts.confirmed || 0,
-          attended: statusCounts.attended || 0,
-          completed: statusCounts.completed || 0,
-          cancelled: statusCounts.cancelled || 0,
+          pending: Number(statusCounts.pending) || 0,
+          contacted: Number(statusCounts.contacted) || 0,
+          no_answer: Number(statusCounts.no_answer) || 0,
+          confirmed: Number(statusCounts.confirmed) || 0,
+          attended: Number(statusCounts.attended) || 0,
+          completed: Number(statusCounts.completed) || 0,
+          cancelled: Number(statusCounts.cancelled) || 0,
         };
       })
       .sort((a, b) => {
-        const totalA = Object.values(a).reduce((sum, val) => sum + (typeof val === "number" ? val : Number(val) || 0), 0);
-        const totalB = Object.values(b).reduce((sum, val) => sum + (typeof val === "number" ? val : Number(val) || 0), 0);
-        return (totalB as number) - (totalA as number);
+        const totalA = Object.values(a).reduce((sum: number, val) => sum + val, 0);
+        const totalB = Object.values(b).reduce((sum: number, val) => sum + val, 0);
+        return totalB - totalA;
       })
       .slice(0, 10);
   }, [filteredRegistrations, camps]);
