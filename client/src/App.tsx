@@ -65,7 +65,6 @@ const DigitalMarketingTasksPage = lazy(() => import("./pages/admin/DigitalMarket
 const PatientPortalLogin = lazy(() => import("./pages/PatientPortalLogin"));
 const PatientDashboard = lazy(() => import("./pages/PatientDashboard"));
 const MessageSettingsPage = lazy(() => import("./pages/MessageSettingsPage"));
-const QueueDashboard = lazy(() => import("./pages/QueueDashboard"));
 const PWAStatsPage = lazy(() => import("./pages/PWAStatsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const BIPage = lazy(() => import("./pages/BIPage"));
@@ -118,7 +117,6 @@ function Router() {
       <Route path={"/dashboard/whatsapp/integration"} component={WhatsAppIntegration} />
       <Route path={"/dashboard/messages"} component={MessagesPage} />
       <Route path={"/dashboard/message-settings"} component={MessageSettingsPage} />
-      <Route path={"/dashboard/queue"} component={QueueDashboard} />
       <Route path={"/dashboard/reports"} component={ReportsPageNew} />
       <Route path={"/dashboard/campaigns"} component={CampaignsPage} />
       <Route path={"/dashboard/analytics"} component={AnalyticsPage} />
