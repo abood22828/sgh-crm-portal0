@@ -48,26 +48,26 @@ export const campRegistrationsRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      // التحقق من عدم تكرار التسجيل بنفس الرقم ونفس المخيم خلال 3 أيام
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-      const allRegs = await db
-        .select({ id: campRegistrations.id, phone: campRegistrations.phone })
-        .from(campRegistrations)
-        .where(
-          and(
-            eq(campRegistrations.campId, input.campId),
-            gte(campRegistrations.createdAt, threeDaysAgo)
-          )
-        )
-        .limit(100);
-      const existingReg = allRegs.filter(r => normalizePhoneNumber(r.phone) === normalizedPhone);
-      if (existingReg.length > 0) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "لقد تم تسجيل طلب بنفس رقم الهاتف لهذا المخيم خلال الأيام الثلاثة الماضية",
-        });
-      }
+      // التحقق من عدم تكرار التسجيل بنفس الرقم ونفس المخيم خلال 3 أيام - معطل
+      // const threeDaysAgo = new Date();
+      // threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      // const allRegs = await db
+      //   .select({ id: campRegistrations.id, phone: campRegistrations.phone })
+      //   .from(campRegistrations)
+      //   .where(
+      //     and(
+      //       eq(campRegistrations.campId, input.campId),
+      //       gte(campRegistrations.createdAt, threeDaysAgo)
+      //     )
+      //   )
+      //   .limit(100);
+      // const existingReg = allRegs.filter(r => normalizePhoneNumber(r.phone) === normalizedPhone);
+      // if (existingReg.length > 0) {
+      //   throw new TRPCError({
+      //     code: "CONFLICT",
+      //     message: "لقد تم تسجيل طلب بنفس رقم الهاتف لهذا المخيم خلال الأيام الثلاثة الماضية",
+      //   });
+      // }
 
       // Build timestamp fields based on initial status
       const nowCamp = new Date();

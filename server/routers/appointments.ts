@@ -55,30 +55,33 @@ export const appointmentsRouter = router({
       gclid: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      // التحقق من عدم تكرار الحجز بنفس الرقم ونفس الطبيب خلال 3 أيام
+      // التحقق من عدم تكرار الحجز بنفس الرقم ونفس الطبيب خلال 3 أيام - معطل
+      // const normalizedPhone = normalizePhoneNumber(input.phone);
+      // const db = await getDb();
+      // if (db) {
+      //   const threeDaysAgo = new Date();
+      //   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      //   const allAppointments = await db
+      //     .select({ id: appointments.id, phone: appointments.phone })
+      //     .from(appointments)
+      //     .where(
+      //       and(
+      //         gte(appointments.createdAt, threeDaysAgo),
+      //         eq(appointments.doctorId, input.doctorId)
+      //       )
+      //     )
+      //     .limit(100);
+      //   const existing = allAppointments.filter(a => normalizePhoneNumber(a.phone) === normalizedPhone);
+      //   if (existing.length > 0) {
+      //     throw new TRPCError({
+      //       code: "CONFLICT",
+      //       message: "لقد تم تسجيل حجز بنفس رقم الهاتف مع هذا الطبيب خلال الأيام الثلاثة الماضية",
+      //     });
+      //   }
+      // }
+
       const normalizedPhone = normalizePhoneNumber(input.phone);
       const db = await getDb();
-      if (db) {
-        const threeDaysAgo = new Date();
-        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-        const allAppointments = await db
-          .select({ id: appointments.id, phone: appointments.phone })
-          .from(appointments)
-          .where(
-            and(
-              gte(appointments.createdAt, threeDaysAgo),
-              eq(appointments.doctorId, input.doctorId)
-            )
-          )
-          .limit(100);
-        const existing = allAppointments.filter(a => normalizePhoneNumber(a.phone) === normalizedPhone);
-        if (existing.length > 0) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "لقد تم تسجيل حجز بنفس رقم الهاتف مع هذا الطبيب خلال الأيام الثلاثة الماضية",
-          });
-        }
-      }
 
       // Get or create campaign by slug
       let campaign = await getCampaignBySlug(input.campaignSlug);

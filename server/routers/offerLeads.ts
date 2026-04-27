@@ -46,26 +46,26 @@ export const offerLeadsRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      // التحقق من عدم تكرار الطلب بنفس الرقم ونفس العرض خلال 3 أيام
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-      const allLeads = await db
-        .select({ id: offerLeads.id, phone: offerLeads.phone })
-        .from(offerLeads)
-        .where(
-          and(
-            eq(offerLeads.offerId, input.offerId),
-            gte(offerLeads.createdAt, threeDaysAgo)
-          )
-        )
-        .limit(100);
-      const existingLead = allLeads.filter(l => normalizePhoneNumber(l.phone) === normalizedPhone);
-      if (existingLead.length > 0) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "لقد تم تسجيل طلب بنفس رقم الهاتف لهذا العرض خلال الأيام الثلاثة الماضية",
-        });
-      }
+      // التحقق من عدم تكرار الطلب بنفس الرقم ونفس العرض خلال 3 أيام - معطل
+      // const threeDaysAgo = new Date();
+      // threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      // const allLeads = await db
+      //   .select({ id: offerLeads.id, phone: offerLeads.phone })
+      //   .from(offerLeads)
+      //   .where(
+      //     and(
+      //       eq(offerLeads.offerId, input.offerId),
+      //       gte(offerLeads.createdAt, threeDaysAgo)
+      //     )
+      //   )
+      //   .limit(100);
+      // const existingLead = allLeads.filter(l => normalizePhoneNumber(l.phone) === normalizedPhone);
+      // if (existingLead.length > 0) {
+      //   throw new TRPCError({
+      //     code: "CONFLICT",
+      //     message: "لقد تم تسجيل طلب بنفس رقم الهاتف لهذا العرض خلال الأيام الثلاثة الماضية",
+      //   });
+      // }
 
       // Build timestamp fields based on initial status
       const nowOffer = new Date();
