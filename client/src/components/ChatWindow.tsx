@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { CheckCheck, Clock, XCircle, ChevronDown } from "lucide-react";
+import { CheckCheck, Clock, XCircle, ChevronDown, Image, FileText, Music, Video, MapPin, Users, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -220,6 +220,29 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     }
   };
 
+  const getMessageTypeIcon = (messageType: string) => {
+    switch (messageType) {
+      case "image":
+        return <Image className="h-4 w-4" />;
+      case "document":
+        return <FileText className="h-4 w-4" />;
+      case "audio":
+        return <Music className="h-4 w-4" />;
+      case "video":
+        return <Video className="h-4 w-4" />;
+      case "location":
+        return <MapPin className="h-4 w-4" />;
+      case "contacts":
+        return <Users className="h-4 w-4" />;
+      case "template":
+        return <MessageSquare className="h-4 w-4" />;
+      case "interactive":
+        return <MessageSquare className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
+
   const handleSend = () => {
     if (!messageText.trim() || !conversationId) return;
     const tempId = `temp-${Date.now()}`;
@@ -275,6 +298,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
               // inbound = رسالة من العميل → تظهر على اليمين (في RTL)
               // outbound = رسالة من الموظف → تظهر على اليسار (في RTL)
               const isOutbound = msg.direction === "outbound";
+              const typeIcon = getMessageTypeIcon(msg.messageType);
               return (
                 <div
                   key={msg.id || `${idx}`}
@@ -285,6 +309,12 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
                       ? "bg-white dark:bg-gray-800 text-foreground rounded-bl-none"
                       : "bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-br-none"
                   } max-w-[85%] sm:max-w-[70%] rounded-lg p-2.5 sm:p-3 shadow-sm`}>
+                    {typeIcon && (
+                      <div className={`flex items-center gap-1.5 mb-1 ${isOutbound ? "text-muted-foreground" : "text-white/80"}`}>
+                        {typeIcon}
+                        <span className="text-[10px] uppercase font-medium">{msg.messageType}</span>
+                      </div>
+                    )}
                     <div className="whitespace-pre-wrap break-words text-sm sm:text-base leading-relaxed">{msg.content}</div>
                     <div className={`flex items-center gap-1 mt-1 text-[10px] sm:text-xs ${isOutbound ? "text-muted-foreground" : "text-white/80"}`}>
                       <span>{new Date(msg.sentAt || msg.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}</span>
