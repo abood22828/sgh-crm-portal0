@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight, RefreshCw, Download, Calendar as CalendarIcon, Clock } from "lucide-react";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, ScatterChart, Scatter, ZAxis } from "recharts";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 import { toast } from "sonner";
@@ -302,6 +302,92 @@ export default function CampStatsPage() {
       }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 10);
+  }, [filteredRegistrations]);
+
+  // Funnel Data - Registration Journey
+  const funnelData = useMemo(() => {
+    const stages = [
+      { name: "إجمالي التسجيلات", value: totalRegistrations, color: "#3B82F6" },
+      { name: "قيد الانتظار", value: pendingCount, color: "#F59E0B" },
+      { name: "مؤكد", value: confirmedCount, color: "#10B981" },
+      { name: "حضر", value: attendedCount, color: "#8B5CF6" },
+      { name: "مكتمل", value: completedCount, color: "#EC4899" },
+    ].filter(item => item.value > 0);
+
+    // Calculate drop-off rates
+    const withDropOff = stages.map((stage, index) => {
+      const previousValue = index > 0 ? stages[index - 1].value : stage.value;
+      const dropOff = previousValue > 0 ? Math.round(((previousValue - stage.value) / previousValue) * 100) : 0;
+      return {
+        ...stage,
+        dropOff: index === 0 ? 0 : dropOff,
+        conversionRate: index === 0 ? 100 : (previousValue > 0 ? Math.round((stage.value / previousValue) * 100) : 0),
+      };
+    });
+
+    return withDropOff;
+  }, [totalRegistrations, pendingCount, confirmedCount, attendedCount, completedCount]);
+
+  // Stacked Bar Data - Status by Camp
+  const statusByCamp = useMemo(() => {
+    const campMap = new Map<number, { [key: string]: number }>();
+    
+    filteredRegistrations.forEach((r: any) => {
+      if (r.campId) {
+        const current = campMap.get(r.campId) || {};
+        current[r.status] = (current[r.status] || 0) + 1;
+        campMap.set(r.campId, current);
+      }
+    });
+
+    return Array.from(campMap.entries())
+      .map(([campId, statusCounts]) => {
+        const camp = camps?.find((c: any) => c.id === campId);
+        return {
+          campName: camp?.name || `مخيم ${campId}`,
+          pending: statusCounts.pending || 0,
+          contacted: statusCounts.contacted || 0,
+          no_answer: statusCounts.no_answer || 0,
+          confirmed: statusCounts.confirmed || 0,
+          attended: statusCounts.attended || 0,
+          completed: statusCounts.completed || 0,
+          cancelled: statusCounts.cancelled || 0,
+        };
+      })
+      .sort((a, b) => {
+        const totalA = Object.values(a).reduce((sum, val) => sum + val, 0);
+        const totalB = Object.values(b).reduce((sum, val) => sum + val, 0);
+        return totalB - totalA;
+      })
+      .slice(0, 10);
+  }, [filteredRegistrations, camps]);
+
+  // Scatter Plot Data - Age vs Procedures
+  const ageVsProcedures = useMemo(() => {
+    const data: { age: number; procedureCount: number; fullName: string }[] = [];
+    
+    filteredRegistrations.forEach((r: any) => {
+      if (r.age && r.procedures) {
+        let procedureCount = 0;
+        try {
+          const procs = JSON.parse(r.procedures);
+          if (Array.isArray(procs)) {
+            procedureCount = procs.length;
+          } else if (typeof procs === "string") {
+            procedureCount = 1;
+          }
+        } catch {
+          procedureCount = 1;
+        }
+        data.push({
+          age: r.age,
+          procedureCount,
+          fullName: r.fullName,
+        });
+      }
+    });
+
+    return data.slice(0, 100); // Limit to 100 points
   }, [filteredRegistrations]);
 
   return (
@@ -750,6 +836,124 @@ export default function CampStatsPage() {
                   <Bar dataKey="confirmed" fill="#10B981" name="مؤكد" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="attended" fill="#8B5CF6" name="حضر" radius={[4, 4, 0, 0]} />
                 </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Funnel Chart - Registration Journey */}
+        {funnelData.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                قمع رحلة التسجيل
+              </CardTitle>
+              <CardDescription>رحلة التسجيل من البداية إلى الإكمال مع نسب التسرب</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={funnelData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis type="number" tick={{ fill: "#6B7280" }} />
+                  <YAxis dataKey="name" type="category" width={120} tick={{ fill: "#6B7280" }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                    itemStyle={{ color: "#F3F4F6" }}
+                    formatter={(value: any, name: string, props: any) => {
+                      if (name === "dropOff") {
+                        return [`${value}%`, "نسبة التسرب"];
+                      }
+                      if (name === "conversionRate") {
+                        return [`${value}%`, "معدل التحويل"];
+                      }
+                      return [value, name];
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="value" fill="#3B82F6" name="العدد" radius={[0, 4, 4, 0]}>
+                    {funnelData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {funnelData.map((stage, index) => (
+                  <div key={index} className="text-center p-3 rounded-lg" style={{ backgroundColor: `${stage.color}20` }}>
+                    <div className="text-sm text-muted-foreground">{stage.name}</div>
+                    <div className="text-xl font-bold" style={{ color: stage.color }}>{stage.value}</div>
+                    {index > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        تسرب: {stage.dropOff}% | تحويل: {stage.conversionRate}%
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Stacked Bar Chart - Status by Camp */}
+        {statusByCamp.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                توزيع الحالات حسب المخيم
+              </CardTitle>
+              <CardDescription>مقارنة توزيع الحالات لكل مخيم</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={statusByCamp}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="campName" tick={{ fill: "#6B7280" }} angle={-45} textAnchor="end" height={100} />
+                  <YAxis tick={{ fill: "#6B7280" }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                    itemStyle={{ color: "#F3F4F6" }}
+                  />
+                  <Legend />
+                  <Bar dataKey="pending" stackId="a" fill="#F59E0B" name="قيد الانتظار" />
+                  <Bar dataKey="contacted" stackId="a" fill="#8B5CF6" name="تم التواصل" />
+                  <Bar dataKey="no_answer" stackId="a" fill="#6B7280" name="لا رد" />
+                  <Bar dataKey="confirmed" stackId="a" fill="#10B981" name="مؤكد" />
+                  <Bar dataKey="attended" stackId="a" fill="#3B82F6" name="حضر" />
+                  <Bar dataKey="completed" stackId="a" fill="#EC4899" name="مكتمل" />
+                  <Bar dataKey="cancelled" stackId="a" fill="#EF4444" name="ملغي" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Scatter Plot - Age vs Procedures */}
+        {ageVsProcedures.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                العمر مقابل الإجراءات
+              </CardTitle>
+              <CardDescription>تحليل العلاقة بين العمر وعدد الإجراءات المطلوبة</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <ScatterChart data={ageVsProcedures}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="age" name="العمر" unit=" سنة" tick={{ fill: "#6B7280" }} />
+                  <YAxis dataKey="procedureCount" name="عدد الإجراءات" tick={{ fill: "#6B7280" }} />
+                  <ZAxis dataKey="procedureCount" range={[50, 400]} />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: "3 3" }}
+                    contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                    itemStyle={{ color: "#F3F4F6" }}
+                    formatter={(value: any, name: string) => [value, name === "fullName" ? "الاسم" : name]}
+                  />
+                  <Scatter fill="#3B82F6" />
+                </ScatterChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
