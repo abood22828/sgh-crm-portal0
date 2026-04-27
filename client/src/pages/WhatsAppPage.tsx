@@ -1045,15 +1045,6 @@ function WhatsAppContent() {
                 variant="outline"
                 size="sm"
                 className="gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-2.5"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-              >
-                <Filter className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">{sidebarOpen ? "إخفاء" : "عرض"}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-2.5"
                 onClick={() => setIsSplitView(!isSplitView)}
                 disabled={!selectedConversation}
               >
@@ -1129,17 +1120,10 @@ function WhatsAppContent() {
           style={{ height: "calc(100vh - 140px)", minHeight: "400px" }}
         >
           {/* Desktop */}
-          <div className={`hidden lg:grid h-full transition-all duration-300 ${isSplitView ? 'lg:grid-cols-[340px_1fr_1fr]' : sidebarOpen ? 'lg:grid-cols-[340px_1fr_280px]' : 'lg:grid-cols-[1fr_280px]'}`}>
-            {sidebarOpen && !isSplitView && (
-              <div className="border-l dark:border-gray-800 h-full overflow-hidden flex flex-col">
-                <ConversationsList {...listProps} />
-              </div>
-            )}
-            {isSplitView && (
-              <div className="border-l dark:border-gray-800 h-full overflow-hidden flex flex-col">
-                <ConversationsList {...listProps} />
-              </div>
-            )}
+          <div className={`hidden lg:grid h-full transition-all duration-300 ${isSplitView ? 'lg:grid-cols-[340px_1fr_1fr]' : 'lg:grid-cols-[340px_1fr_280px]'}`}>
+            <div className="border-l dark:border-gray-800 h-full overflow-hidden flex flex-col">
+              <ConversationsList {...listProps} />
+            </div>
             <div className="h-full overflow-hidden flex flex-col border-l dark:border-gray-800">
               {selectedConversation ? (
                 <>
