@@ -11,7 +11,7 @@
  */
 
 import { eq, and, desc } from "drizzle-orm";
-import { getDb, normalizePhoneNumber } from "../db";
+import { getDb, normalizePhoneNumber, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation } from "../db";
 import { whatsappAutoReplies, InsertWhatsAppAutoReply } from "../../drizzle/schema";
 import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
 
@@ -172,13 +172,43 @@ export async function processIncomingMessage(params: {
       if (matched) {
         try {
           // ✅ إرسال الرد باستخدام Cloud API الرسمي
-          await sendWhatsAppTextMessage(normalizedPhone, rule.replyMessage);
+          const result = await sendWhatsAppTextMessage(normalizedPhone, rule.replyMessage);
 
           // تحديث عداد الاستخدام
           await db
             .update(whatsappAutoReplies)
             .set({ usageCount: rule.usageCount + 1, updatedAt: new Date() })
             .where(eq(whatsappAutoReplies.id, rule.id));
+
+          // حفظ الرد التلقائي في المحادثة
+          let conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+          if (!conversation) {
+            await createWhatsAppConversation({
+              phoneNumber: normalizedPhone,
+              lastMessage: rule.replyMessage.substring(0, 100),
+              lastMessageAt: new Date(),
+              unreadCount: 0,
+            });
+            conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+          }
+
+          if (conversation) {
+            await createWhatsAppMessage({
+              conversationId: conversation.id,
+              direction: "outbound",
+              content: rule.replyMessage,
+              messageType: "text",
+              status: "sent",
+              whatsappMessageId: result.messageId || null,
+              sentAt: new Date(),
+              isAutomated: 1,
+            });
+
+            await updateWhatsAppConversation(conversation.id, {
+              lastMessage: rule.replyMessage.substring(0, 100),
+              lastMessageAt: new Date(),
+            });
+          }
 
           console.log(`[WhatsApp AutoReply] ✅ Sent auto-reply to ${normalizedPhone} using rule "${rule.name}"`);
           return { success: true, replied: true };

@@ -15,7 +15,7 @@ import crypto from "crypto";
 import { Request, Response } from "express";
 import { eq } from "drizzle-orm";
 import { ENV } from "../_core/env";
-import { getDb } from "../db";
+import { getDb, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, normalizePhoneNumber } from "../db";
 import { whatsappTemplates } from "../../drizzle/schema";
 import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
 import { processIncomingMessage } from "../services/whatsappAutoReply";
@@ -139,9 +139,88 @@ async function handleIncomingMessage(message: any, metadata: any) {
     }
 
     // ── 3. حفظ الرسالة في قاعدة البيانات ─────────────────────────────────────
-    // TODO: إضافة جدول whatsappMessages في schema لحفظ الرسائل الواردة
-    // const db = await getDb();
-    // if (db) { await db.insert(whatsappMessages).values({...}); }
+    const db = await getDb();
+    if (!db) {
+      console.error("[WhatsApp Webhook] Database not available");
+      return;
+    }
+
+    const normalizedPhone = normalizePhoneNumber(from);
+    if (!normalizedPhone) {
+      console.error("[WhatsApp Webhook] Invalid phone number");
+      return;
+    }
+
+    // الحصول على أو إنشاء المحادثة
+    let conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+    if (!conversation) {
+      await createWhatsAppConversation({
+        phoneNumber: normalizedPhone,
+        lastMessage: text?.body?.substring(0, 100) || "رسالة جديدة",
+        lastMessageAt: new Date(),
+        unreadCount: 1,
+      });
+      conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+      console.log(`[WhatsApp Webhook] ✅ Created new conversation for ${normalizedPhone}`);
+    }
+
+    if (!conversation) {
+      console.error("[WhatsApp Webhook] Failed to create or retrieve conversation");
+      return;
+    }
+
+    // تحديد نوع المحتوى
+    let content = "";
+    let messageType = "text";
+
+    if (type === "text" && text?.body) {
+      content = text.body;
+      messageType = "text";
+    } else if (type === "image" && text?.body) {
+      content = text.body;
+      messageType = "image";
+    } else if (type === "document" && text?.body) {
+      content = text.body;
+      messageType = "document";
+    } else if (type === "video" && text?.body) {
+      content = text.body;
+      messageType = "video";
+    } else if (type === "audio" && text?.body) {
+      content = text.body;
+      messageType = "audio";
+    } else if (type === "location") {
+      content = "📍 موقع";
+      messageType = "location";
+    } else if (type === "button" && button?.text) {
+      content = button.text;
+      messageType = "interactive";
+    } else if (type === "interactive" && interactive) {
+      content = interactive.type || "تفاعل";
+      messageType = "interactive";
+    } else {
+      content = "رسالة غير مدعومة";
+      messageType = "unknown";
+    }
+
+    // حفظ الرسالة
+    await createWhatsAppMessage({
+      conversationId: conversation.id,
+      direction: "inbound",
+      content,
+      messageType,
+      status: "received",
+      whatsappMessageId: messageId || null,
+      sentAt: new Date(parseInt(timestamp) * 1000),
+    });
+
+    // تحديث المحادثة
+    await updateWhatsAppConversation(conversation.id, {
+      lastMessage: content.substring(0, 100),
+      lastMessageAt: new Date(),
+      unreadCount: (conversation.unreadCount || 0) + 1,
+    });
+
+    console.log(`[WhatsApp Webhook] ✅ Saved message to conversation ${conversation.id}`);
 
   } catch (error) {
     console.error("[WhatsApp Webhook] Error handling incoming message:", error);
