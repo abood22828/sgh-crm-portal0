@@ -1130,12 +1130,7 @@ function WhatsAppContent() {
         >
           {/* Desktop */}
           <div className={`hidden lg:grid h-full transition-all duration-300 ${isSplitView ? 'lg:grid-cols-[340px_1fr_1fr]' : sidebarOpen ? 'lg:grid-cols-[340px_1fr_280px]' : 'lg:grid-cols-[1fr_280px]'}`}>
-            {sidebarOpen && !isSplitView && (
-              <div className="border-l dark:border-gray-800 h-full overflow-hidden flex flex-col">
-                <ConversationsList {...listProps} />
-              </div>
-            )}
-            {isSplitView && (
+            {(sidebarOpen || isSplitView) && (
               <div className="border-l dark:border-gray-800 h-full overflow-hidden flex flex-col">
                 <ConversationsList {...listProps} />
               </div>
