@@ -24,24 +24,11 @@ export default function WhatsAppAnalytics() {
   // Queries
   const broadcastStatsQuery = trpc.whatsapp.getBroadcastStats.useQuery();
   const autoReplyRulesQuery = trpc.whatsapp.getAutoReplyRules.useQuery();
+  const messageStatsQuery = trpc.whatsapp.getMessageStats.useQuery();
 
-  // Sample data for charts
-  const messageStats = [
-    { name: "السبت", sent: 120, delivered: 115, failed: 5 },
-    { name: "الأحد", sent: 180, delivered: 175, failed: 5 },
-    { name: "الاثنين", sent: 150, delivered: 145, failed: 5 },
-    { name: "الثلاثاء", sent: 200, delivered: 195, failed: 5 },
-    { name: "الأربعاء", sent: 170, delivered: 165, failed: 5 },
-    { name: "الخميس", sent: 190, delivered: 185, failed: 5 },
-    { name: "الجمعة", sent: 210, delivered: 205, failed: 5 },
-  ];
-
-  const messageTypes = [
-    { name: "نصية", value: 45 },
-    { name: "قوالب", value: 30 },
-    { name: "وسائط", value: 15 },
-    { name: "تفاعلية", value: 10 },
-  ];
+  // Use real data from API, fallback to empty arrays if loading/error
+  const messageStats = messageStatsQuery.data?.dailyStats || [];
+  const messageTypes = messageStatsQuery.data?.typeStats || [];
 
   const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
 

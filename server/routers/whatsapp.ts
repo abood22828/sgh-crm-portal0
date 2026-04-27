@@ -698,6 +698,76 @@ export const whatsappRouter = router({
     return getBroadcastStats();
   }),
 
+  getMessageStats: protectedProcedure.query(async () => {
+    try {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const { whatsappMessages } = await import("../../drizzle/schema");
+      const { gte, lte, and, sql } = await import("drizzle-orm");
+
+      // Get messages from last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const messages = await db
+        .select()
+        .from(whatsappMessages)
+        .where(gte(whatsappMessages.sentAt, sevenDaysAgo));
+
+      // Group by day (last 7 days)
+      const days = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+      const dailyStats = days.map((day, index) => {
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() - (6 - index));
+        targetDate.setHours(0, 0, 0, 0);
+        const nextDate = new Date(targetDate);
+        nextDate.setDate(nextDate.getDate() + 1);
+
+        const dayMessages = messages.filter((m: any) => {
+          const msgDate = new Date(m.sentAt);
+          return msgDate >= targetDate && msgDate < nextDate;
+        });
+
+        return {
+          name: day,
+          sent: dayMessages.filter((m: any) => m.direction === "outbound").length,
+          delivered: dayMessages.filter((m: any) => m.status === "delivered").length,
+          failed: dayMessages.filter((m: any) => m.status === "failed").length,
+        };
+      });
+
+      // Group by message type
+      const typeStats = [
+        { name: "نصية", value: messages.filter((m: any) => m.messageType === "text").length },
+        { name: "قوالب", value: messages.filter((m: any) => m.messageType === "template").length },
+        { name: "وسائط", value: messages.filter((m: any) => ["image", "video", "document", "audio"].includes(m.messageType)).length },
+        { name: "تفاعلية", value: messages.filter((m: any) => m.messageType === "interactive").length },
+      ];
+
+      // Calculate percentages for pie chart
+      const totalMessages = messages.length || 1;
+      const typeStatsWithPercentage = typeStats.map((stat) => ({
+        ...stat,
+        value: Math.round((stat.value / totalMessages) * 100),
+      }));
+
+      return {
+        success: true,
+        dailyStats,
+        typeStats: typeStatsWithPercentage,
+      };
+    } catch (error) {
+      console.error("[WhatsApp] Failed to get message stats:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+        dailyStats: [],
+        typeStats: [],
+      };
+    }
+  }),
+
   scheduleBroadcast: protectedProcedure
     .input(
       z.object({
