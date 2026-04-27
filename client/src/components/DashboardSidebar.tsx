@@ -37,6 +37,7 @@ import {
   VolumeX,
   Sun,
   Moon,
+  Cloud,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
@@ -218,6 +219,9 @@ const allToolsGroups: NavGroup[] = [
     icon: MessageCircle,
     items: [
       { id: "whatsapp", title: "واتساب", href: "/dashboard/whatsapp", icon: MessageCircle },
+      { id: "whatsapp-templates", title: "قوالب واتساب", href: "/dashboard/whatsapp/templates", icon: FileText },
+      { id: "whatsapp-connection", title: "اتصال واتساب", href: "/dashboard/whatsapp/connection", icon: Cloud },
+      { id: "whatsapp-auto-reply", title: "الردود التلقائية", href: "/dashboard/whatsapp/auto-reply", icon: SettingsIcon },
       { id: "messages", title: "الرسائل", href: "/dashboard/messages", icon: MessageSquare },
       { id: "message-settings", title: "إعدادات الرسائل", href: "/dashboard/message-settings", icon: SettingsIcon },
       { id: "queue", title: "طوابير الرسائل", href: "/dashboard/queue", icon: SettingsIcon },
