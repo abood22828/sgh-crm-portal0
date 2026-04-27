@@ -322,11 +322,47 @@ function AbandonedFormsTable() {
 // ===== Main BI Page =====
 export default function BIPage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
+  const [autoRefresh, setAutoRefresh] = useState(false);
   const { start, end } = useMemo(() => getDateRange(dateRange), [dateRange]);
 
-  const { data: funnelData, isLoading: funnelLoading } = trpc.tracking.conversionFunnel.useQuery({ startDate: start, endDate: end });
-  const { data: sourceData, isLoading: sourceLoading } = trpc.tracking.sourceBreakdown.useQuery({ startDate: start, endDate: end });
-  const { data: campaignData, isLoading: campaignLoading } = trpc.tracking.campaignPerformance.useQuery({ startDate: start, endDate: end });
+  const { data: funnelData, isLoading: funnelLoading, refetch: refetchFunnel } = trpc.tracking.conversionFunnel.useQuery(
+    { startDate: start, endDate: end },
+    { refetchInterval: autoRefresh ? 60000 : false } // Auto-refresh every 60 seconds
+  );
+  const { data: sourceData, isLoading: sourceLoading, refetch: refetchSource } = trpc.tracking.sourceBreakdown.useQuery(
+    { startDate: start, endDate: end },
+    { refetchInterval: autoRefresh ? 60000 : false }
+  );
+  const { data: campaignData, isLoading: campaignLoading, refetch: refetchCampaign } = trpc.tracking.campaignPerformance.useQuery(
+    { startDate: start, endDate: end },
+    { refetchInterval: autoRefresh ? 60000 : false }
+  );
+
+  const handleRefresh = async () => {
+    await Promise.all([refetchFunnel(), refetchSource(), refetchCampaign()]);
+    toast.success("تم تحديث البيانات");
+  };
+
+  const handleExport = () => {
+    const data = {
+      dateRange: { start, end },
+      funnel: funnelData,
+      sources: sourceData,
+      campaigns: campaignData,
+      exportedAt: new Date().toISOString(),
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bi-report-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("تم تصدير البيانات بنجاح");
+  };
 
   const totalSessions = funnelData?.totalSessions ?? 0;
   const converted = funnelData?.converted ?? 0;
@@ -349,6 +385,23 @@ export default function BIPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className={autoRefresh ? "bg-green-50 border-green-200" : ""}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${autoRefresh ? "animate-spin" : ""}`} />
+              {autoRefresh ? "إيقاف التحديث" : "تحديث تلقائي"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              تحديث
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="w-4 h-4 mr-2" />
+              تصدير
+            </Button>
             <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
               <SelectTrigger className="w-36">
                 <SelectValue />
