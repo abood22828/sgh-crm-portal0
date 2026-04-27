@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertCircle, CheckCircle2, Clock, Send, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "wouter";
 
 export default function WhatsAppDashboard() {
   return (
@@ -231,18 +232,26 @@ function WhatsAppDashboardContent() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Button variant="outline" className="w-full justify-start">
-            عرض الرسائل المرسلة
-          </Button>
-          <Button variant="outline" className="w-full justify-start">
-            عرض الرسائل الواردة
-          </Button>
-          <Button variant="outline" className="w-full justify-start">
-            إحصائيات الرسائل
-          </Button>
-          <Button variant="outline" className="w-full justify-start">
-            إدارة القوالب
-          </Button>
+          <Link href="/dashboard/whatsapp">
+            <Button variant="outline" className="w-full justify-start">
+              عرض الرسائل المرسلة
+            </Button>
+          </Link>
+          <Link href="/dashboard/whatsapp">
+            <Button variant="outline" className="w-full justify-start">
+              عرض الرسائل الواردة
+            </Button>
+          </Link>
+          <Link href="/dashboard/whatsapp/analytics">
+            <Button variant="outline" className="w-full justify-start">
+              إحصائيات الرسائل
+            </Button>
+          </Link>
+          <Link href="/dashboard/whatsapp/templates">
+            <Button variant="outline" className="w-full justify-start">
+              إدارة القوالب
+            </Button>
+          </Link>
         </CardContent>
       </Card>
 
