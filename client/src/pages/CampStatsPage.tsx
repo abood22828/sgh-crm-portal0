@@ -2,22 +2,27 @@
  * CampStatsPage - صفحة تقارير إحصائية للمخيمات
  * Camp statistics and reports page
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight } from "lucide-react";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight, RefreshCw, Download, Calendar as CalendarIcon } from "lucide-react";
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
+import { toast } from "sonner";
 
 export default function CampStatsPage() {
   const [, setLocation] = useLocation();
   const [selectedCamp, setSelectedCamp] = useState<string>("all");
+  const [autoRefresh, setAutoRefresh] = useState(false);
   
   const { data: camps, isLoading: campsLoading } = trpc.camps.getAll.useQuery();
-  const { data: registrations, isLoading: registrationsLoading } = trpc.campRegistrations.list.useQuery();
+  const { data: registrations, isLoading: registrationsLoading, refetch } = trpc.campRegistrations.list.useQuery(
+    undefined,
+    { refetchInterval: autoRefresh ? 60000 : false }
+  );
 
   if (campsLoading || registrationsLoading) {
     return (
@@ -42,6 +47,41 @@ export default function CampStatsPage() {
   const confirmedCount = filteredRegistrations.filter((r: any) => r.status === "confirmed").length;
   const attendedCount = filteredRegistrations.filter((r: any) => r.status === "attended").length;
   const cancelledCount = filteredRegistrations.filter((r: any) => r.status === "cancelled").length;
+
+  const handleRefresh = async () => {
+    await refetch();
+    toast.success("تم تحديث البيانات");
+  };
+
+  const handleExport = () => {
+    const data = {
+      camp: selectedCamp === "all" ? "all" : camps?.find((c: any) => c.id.toString() === selectedCamp)?.name,
+      statistics: {
+        total: totalRegistrations,
+        pending: pendingCount,
+        confirmed: confirmedCount,
+        attended: attendedCount,
+        cancelled: cancelledCount,
+      },
+      statusDistribution: statusData,
+      ageDistribution: ageData,
+      sourceDistribution: sourceData,
+      popularProcedures: procedureData,
+      registrations: filteredRegistrations,
+      exportedAt: new Date().toISOString(),
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `camp-stats-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("تم تصدير البيانات بنجاح");
+  };
 
   // Status distribution for pie chart
   const statusData = [
@@ -127,6 +167,21 @@ export default function CampStatsPage() {
     }))
     .sort((a, b) => b.value - a.value);
 
+  // Daily registrations over time
+  const dailyRegistrations = useMemo(() => {
+    const dateMap = new Map<string, number>();
+    filteredRegistrations.forEach((r: any) => {
+      if (r.createdAt) {
+        const date = new Date(r.createdAt).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' });
+        dateMap.set(date, (dateMap.get(date) || 0) + 1);
+      }
+    });
+    return Array.from(dateMap.entries())
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-30); // Last 30 days
+  }, [filteredRegistrations]);
+
   return (
     <DashboardLayout
       pageTitle="إحصائيات المخيمات"
@@ -152,22 +207,40 @@ export default function CampStatsPage() {
               </p>
             </div>
 
-          {/* Camp Filter */}
-          <div className="w-full sm:w-56 md:w-64">
-            <Select value={selectedCamp} onValueChange={setSelectedCamp}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر المخيم" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع المخيمات</SelectItem>
-                {camps?.map((camp: any) => (
-                  <SelectItem key={camp.id} value={camp.id.toString()}>
-                    {camp.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                className={autoRefresh ? "bg-green-50 border-green-200" : ""}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${autoRefresh ? "animate-spin" : ""}`} />
+                {autoRefresh ? "إيقاف التحديث" : "تحديث تلقائي"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleRefresh}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                تحديث
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExport}>
+                <Download className="w-4 h-4 mr-2" />
+                تصدير
+              </Button>
+              <div className="w-full sm:w-56 md:w-64">
+                <Select value={selectedCamp} onValueChange={setSelectedCamp}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر المخيم" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع المخيمات</SelectItem>
+                    {camps?.map((camp: any) => (
+                      <SelectItem key={camp.id} value={camp.id.toString()}>
+                        {camp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
         </div>
 
         {/* Summary Cards */}
@@ -220,6 +293,31 @@ export default function CampStatsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Daily Registrations Chart */}
+        {dailyRegistrations.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5" />
+                التسجيلات اليومية
+              </CardTitle>
+              <CardDescription>عدد التسجيلات خلال آخر 30 يوم</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={dailyRegistrations}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="count" stroke="#00A651" name="عدد التسجيلات" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
