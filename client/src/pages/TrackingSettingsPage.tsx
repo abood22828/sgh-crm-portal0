@@ -15,6 +15,8 @@ import {
   BarChart3,
   Shield,
   Code2,
+  Play,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -96,6 +98,31 @@ export default function TrackingSettingsPage() {
   // Detect which env vars are configured (frontend-accessible ones only)
   const pixelId = import.meta.env.VITE_META_PIXEL_ID;
   const isPixelConfigured = !!pixelId && pixelId !== "YOUR_PIXEL_ID";
+  const [isTesting, setIsTesting] = useState(false);
+
+  const handleTestPixel = async () => {
+    if (!isPixelConfigured) {
+      toast.error("Meta Pixel غير مُهيَّأ. يرجى إضافة VITE_META_PIXEL_ID");
+      return;
+    }
+
+    setIsTesting(true);
+    try {
+      // Send a test event to Meta Pixel
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        (window as any).fbq('track', 'TestEvent', {
+          test_event_code: import.meta.env.VITE_META_TEST_EVENT_CODE || 'TEST12345'
+        });
+        toast.success("تم إرسال حدث اختبار إلى Meta Pixel");
+      } else {
+        toast.error("Meta Pixel غير محمّل. يرجى التحقق من التكوين");
+      }
+    } catch (error) {
+      toast.error("فشل إرسال حدث الاختبار");
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   return (
     <DashboardLayout
@@ -151,6 +178,62 @@ export default function TrackingSettingsPage() {
           </Card>
         </div>
 
+        {/* ── Event Statistics ── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-blue-600" />
+              إحصائيات الأحداث المُرسَلة
+            </CardTitle>
+            <CardDescription>
+              ملخص الأحداث التي تم إرسالها إلى Meta Pixel و Conversions API
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="border rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm font-medium">PageView</span>
+                </div>
+                <p className="text-2xl font-bold">—</p>
+                <p className="text-xs text-muted-foreground">عرض الصفحة</p>
+              </div>
+              <div className="border rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-green-500" />
+                  <span className="text-sm font-medium">ViewContent</span>
+                </div>
+                <p className="text-2xl font-bold">—</p>
+                <p className="text-xs text-muted-foreground">مشاهدة المحتوى</p>
+              </div>
+              <div className="border rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-purple-500" />
+                  <span className="text-sm font-medium">Lead</span>
+                </div>
+                <p className="text-2xl font-bold">—</p>
+                <p className="text-xs text-muted-foreground">نماذج الحجز</p>
+              </div>
+              <div className="border rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm font-medium">CompleteRegistration</span>
+                </div>
+                <p className="text-2xl font-bold">—</p>
+                <p className="text-xs text-muted-foreground">التسجيل في المخيمات</p>
+              </div>
+            </div>
+
+            <Alert className="mt-4">
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                <strong>ملاحظة:</strong> إحصائيات الأحداث التفصيلية متاحة في <a href="/dashboard/bi" className="text-blue-600 hover:underline">صفحة تحليلات الأعمال (BI)</a> و <a href="https://www.facebook.com/events_manager2" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Meta Events Manager</a>.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+
         {/* ── Meta Pixel Setup ── */}
         <Card>
           <CardHeader>
@@ -191,6 +274,10 @@ export default function TrackingSettingsPage() {
             </div>
 
             <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleTestPixel} disabled={isTesting || !isPixelConfigured}>
+                <Play className="h-4 w-4 mr-2" />
+                {isTesting ? "جاري الاختبار..." : "اختبار Pixel"}
+              </Button>
               <Button variant="outline" size="sm" asChild>
                 <a
                   href="https://www.facebook.com/events_manager2/list/pixel"
