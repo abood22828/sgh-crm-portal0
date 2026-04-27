@@ -725,9 +725,9 @@ export default function CampStatsPage() {
         };
       })
       .sort((a, b) => {
-        const totalA = Object.values(a).reduce((sum, val) => sum + (typeof val === "number" ? val : 0), 0);
-        const totalB = Object.values(b).reduce((sum, val) => sum + (typeof val === "number" ? val : 0), 0);
-        return totalB - totalA;
+        const totalA = Object.values(a).reduce((sum, val) => sum + (typeof val === "number" ? val : Number(val) || 0), 0);
+        const totalB = Object.values(b).reduce((sum, val) => sum + (typeof val === "number" ? val : Number(val) || 0), 0);
+        return (totalB as number) - (totalA as number);
       })
       .slice(0, 10);
   }, [filteredRegistrations, camps]);

@@ -146,7 +146,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     exportConversationMutation.mutate(
       { conversationId },
       {
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
           // Create CSV content
           const headers = ["التاريخ", "الاتجاه", "النوع", "المحتوى", "الحالة"];
           const rows = data.messages.map((msg: any) => [
@@ -159,7 +159,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
 
           const csvContent = [
             headers.join(","),
-            ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+            ...rows.map((row: any) => row.map((cell: any) => `"${cell}"`).join(",")),
           ].join("\n");
 
           // Create and download file
@@ -175,7 +175,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
 
           toast.success("تم تصدير المحادثة بنجاح");
         },
-        onError: (err) => {
+        onError: (err: any) => {
           toast.error(`فشل تصدير المحادثة: ${err.message}`);
         },
       }
@@ -384,7 +384,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     if (!conversationId) return;
 
     let mediaUrl = null;
-    let messageType = "text" as const;
+    let messageType: "text" | "image" | "document" = "text";
 
     // Convert file to base64 if attached
     if (attachedFile) {
@@ -397,11 +397,11 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
 
         // Determine message type based on file
         if (attachedFile.type.startsWith("image/")) {
-          messageType = "image" as const;
+          messageType = "image";
         } else if (attachedFile.type === "application/pdf") {
-          messageType = "document" as const;
+          messageType = "document";
         } else {
-          messageType = "document" as const;
+          messageType = "document";
         }
       } catch (error) {
         toast.error("فشل تحميل الملف");
@@ -427,7 +427,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     sendMessageMutation.mutate({
       conversationId,
       message: messageText.trim(),
-      replyToMessageId: replyToMessage?.id,
+      replyToMessageId: replyToMessage?.id || undefined,
       mediaUrl,
       messageType,
     });

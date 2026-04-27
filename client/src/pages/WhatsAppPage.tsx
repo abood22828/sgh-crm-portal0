@@ -419,7 +419,7 @@ const ConversationsList = memo(function ConversationsList({
       )}
 
       {/* Saved Searches */}
-      {savedSearches && savedSearches.length > 0 && (
+      {onSaveSearchClick && savedSearches && savedSearches.length > 0 && (
         <div className="px-2 pt-1 pb-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -432,11 +432,16 @@ const ConversationsList = memo(function ConversationsList({
               {savedSearches.map((search: any) => (
                 <DropdownMenuItem
                   key={search.id}
-                  onClick={() => handleApplySavedSearch(search)}
+                  onClick={() => {
+                    setSearchQuery(search.searchQuery || search.query || "");
+                    setActiveFilter(search.filterType || search.filter || "all");
+                    setDateFilter(search.dateRange || search.dateFilter || "all");
+                    setMessageTypeFilter(search.messageType || search.messageTypeFilter || "all");
+                  }}
                   className="flex flex-col items-start gap-1 py-2"
                 >
                   <span className="font-medium text-xs">{search.name}</span>
-                  <span className="text-[10px] text-muted-foreground line-clamp-1">{search.query}</span>
+                  <span className="text-[10px] text-muted-foreground line-clamp-1">{search.searchQuery || search.query}</span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -865,7 +870,7 @@ function WhatsAppContent() {
   const handleNewMessageOpenChange = useCallback((open: boolean) => setIsNewMessageOpen(open), []);
   const handleSearchChange = useCallback((v: string) => setSearchQuery(v), []);
   const handleAssignConversation = useCallback((id: number, userId: number) => {
-    assignConversationMutation.mutate({ conversationId: id, userId });
+    assignConversationMutation.mutate({ id, userId });
   }, [assignConversationMutation]);
 
   const handleNewMessagePhoneChange = useCallback((v: string) => setNewMessagePhone(v), []);
@@ -883,10 +888,6 @@ function WhatsAppContent() {
     updateConversationMutation.mutate({ id, important: !conv?.isImportant });
     toast.success(conv?.isImportant ? "تم إلغاء التعيين كمهمة" : "تم تعيين المحادثة كمهمة");
   }, [conversations, updateConversationMutation]);
-
-  const handleAssignConversation = useCallback((id: number, userId: number) => {
-    assignConversationMutation.mutate({ id, userId });
-  }, [assignConversationMutation]);
 
   const handleSaveSearch = useCallback(() => {
     if (!searchName.trim()) {
