@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, CheckCircle, AlertCircle, Send, MessageSquare, RefreshCw, Copy, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, CheckCircle, AlertCircle, Send, MessageSquare, RefreshCw, Copy, Check, Search, Ban, TrendingUp, Clock } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -16,6 +18,9 @@ export default function WhatsAppIntegration() {
   const [parameters, setParameters] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [sentMessages, setSentMessages] = useState<any[]>([]);
 
   // Queries
   const { data: templates, isLoading: templatesLoading, refetch: refetchTemplates } =
@@ -25,6 +30,7 @@ export default function WhatsAppIntegration() {
       { templateName },
       { enabled: !!templateName }
     );
+  const { data: securityStats } = trpc.whatsapp.getSecurityStats.useQuery();
 
   // Mutations
   const sendWelcomeGreeting = trpc.whatsappTemplateTest.sendWelcomeGreeting.useMutation();
@@ -36,6 +42,13 @@ export default function WhatsAppIntegration() {
       return;
     }
 
+    // Check if phone is blocked
+    const blockedPhones = securityStats?.stats?.blockedPhones || 0;
+    if (blockedPhones > 0) {
+      // This is a simple check - in real implementation, we'd check specific phone
+      toast.warning("⚠️ يرجى التحقق من أن الرقم غير محظور");
+    }
+
     setIsLoading(true);
     try {
       const result = await sendWelcomeGreeting.mutateAsync({
@@ -45,6 +58,15 @@ export default function WhatsAppIntegration() {
 
       if (result.success) {
         toast.success("✅ تم إرسال رسالة الترحيب بنجاح!");
+        // Add to sent messages history
+        setSentMessages(prev => [...prev, {
+          type: "welcome",
+          phone,
+          recipient: fullName,
+          template: "sgh_welcome_greeting_ar",
+          status: "sent",
+          sentAt: new Date().toISOString(),
+        }]);
         setPhone("");
         setFullName("");
       } else {
@@ -61,6 +83,12 @@ export default function WhatsAppIntegration() {
     if (!phone) {
       toast.error("يرجى إدخال رقم الهاتف");
       return;
+    }
+
+    // Check if phone is blocked
+    const blockedPhones = securityStats?.stats?.blockedPhones || 0;
+    if (blockedPhones > 0) {
+      toast.warning("⚠️ يرجى التحقق من أن الرقم غير محظور");
     }
 
     const expectedParams = templateDetails?.template?.variables?.length || 0;
@@ -81,6 +109,15 @@ export default function WhatsAppIntegration() {
 
       if (result.success) {
         toast.success("✅ تم إرسال الرسالة بنجاح!");
+        // Add to sent messages history
+        setSentMessages(prev => [...prev, {
+          type: "template",
+          phone,
+          template: templateName,
+          parameters,
+          status: "sent",
+          sentAt: new Date().toISOString(),
+        }]);
         setPhone("");
         setParameters([]);
       } else {
@@ -98,6 +135,23 @@ export default function WhatsAppIntegration() {
     setCopiedId(id);
     toast.success("تم النسخ!");
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Filter templates
+  const filteredTemplates = templates?.templates?.filter((tmpl: any) => {
+    const matchesSearch = searchQuery === "" || 
+      tmpl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tmpl.metaName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = filterCategory === "all" || tmpl.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  }) || [];
+
+  // Get unique categories
+  const categories = Array.from(new Set(templates?.templates?.map((t: any) => t.category) || []));
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleString("ar-SA", { dateStyle: "short", timeStyle: "short" });
   };
 
   return (
@@ -141,13 +195,56 @@ export default function WhatsAppIntegration() {
               ✅ {templates?.count || 0} قالب معتمد من Meta وجاهز للاستخدام
             </AlertDescription>
           </Alert>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-blue-500" />
+                  القوالب المعتمدة
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{templates?.count || 0}</div>
+                <p className="text-xs text-muted-foreground">قالب</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-green-500" />
+                  الرسائل المرسلة
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{sentMessages.length}</div>
+                <p className="text-xs text-muted-foreground">رسالة</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Ban className="w-4 h-4 text-red-500" />
+                  الأرقام المحظورة
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{securityStats?.stats?.blockedPhones || 0}</div>
+                <p className="text-xs text-muted-foreground">رقم</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Main Content */}
         <Tabs defaultValue="welcome" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="welcome">رسالة ترحيب</TabsTrigger>
             <TabsTrigger value="templates">جميع القوالب</TabsTrigger>
+            <TabsTrigger value="history">سجل الإرسال</TabsTrigger>
           </TabsList>
 
           {/* Tab 1: Welcome Greeting */}
@@ -255,6 +352,29 @@ export default function WhatsAppIntegration() {
           {/* Tab 2: All Templates */}
           <TabsContent value="templates">
             <div className="space-y-6">
+              {/* Search and Filter */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <Input
+                    placeholder="بحث في القوالب..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="فلترة حسب الفئة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">الكل</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Templates List */}
               <Card>
                 <CardHeader>
@@ -262,7 +382,7 @@ export default function WhatsAppIntegration() {
                   <CardDescription>
                     {templatesLoading
                       ? "جاري التحميل..."
-                      : `${templates?.count || 0} قالب معتمد من Meta`}
+                      : `${filteredTemplates.length} قالب معتمد من Meta`}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -270,9 +390,9 @@ export default function WhatsAppIntegration() {
                     <div className="flex justify-center py-8">
                       <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                     </div>
-                  ) : templates?.templates && templates.templates.length > 0 ? (
+                  ) : filteredTemplates.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {templates.templates.map((tmpl) => (
+                      {filteredTemplates.map((tmpl: any) => (
                         <div
                           key={tmpl.id}
                           className="p-3 border border-gray-200 rounded-lg hover:border-green-400 hover:bg-green-50 cursor-pointer transition"
@@ -286,6 +406,9 @@ export default function WhatsAppIntegration() {
                               <p className="text-xs text-gray-500 mt-1">
                                 {tmpl.metaName}
                               </p>
+                              <Badge variant="outline" className="mt-2 text-xs">
+                                {tmpl.category}
+                              </Badge>
                             </div>
                             <div className="text-right">
                               <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded font-medium">
@@ -391,6 +514,62 @@ export default function WhatsAppIntegration() {
                 </Card>
               )}
             </div>
+          </TabsContent>
+
+          {/* Tab 3: Send History */}
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  سجل الإرسال
+                </CardTitle>
+                <CardDescription>تتبع الرسائل المرسلة من هذه الصفحة</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {sentMessages.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p>لا توجد رسائل مرسلة بعد</p>
+                    <p className="text-sm mt-1">ستظهر هنا الرسائل التي ترسلها من هذه الصفحة</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {sentMessages.map((msg, index) => (
+                      <div key={index} className="p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-sm">{msg.phone}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {msg.type === "welcome" ? "ترحيب" : "قالب"}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                                {msg.status}
+                              </Badge>
+                            </div>
+                            {msg.recipient && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                المستلم: {msg.recipient}
+                              </p>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">
+                              القالب: {msg.template}
+                            </p>
+                          </div>
+                          <div className="text-left">
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="w-3 h-3" />
+                              {formatDate(msg.sentAt)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
