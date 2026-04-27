@@ -502,8 +502,8 @@ export default function CampStatsPage() {
   };
 
   filteredRegistrations.forEach((r: any) => {
-    if (r.gender) {
-      genderGroups[r.gender]++;
+    if (r.gender && (r.gender === "male" || r.gender === "female")) {
+      genderGroups[r.gender as "male" | "female"]++;
     }
   });
 
@@ -725,8 +725,8 @@ export default function CampStatsPage() {
         };
       })
       .sort((a, b) => {
-        const totalA = Object.values(a).reduce((sum, val) => sum + val, 0);
-        const totalB = Object.values(b).reduce((sum, val) => sum + val, 0);
+        const totalA = Object.values(a).reduce((sum, val) => sum + (typeof val === "number" ? val : 0), 0);
+        const totalB = Object.values(b).reduce((sum, val) => sum + (typeof val === "number" ? val : 0), 0);
         return totalB - totalA;
       })
       .slice(0, 10);
