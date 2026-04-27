@@ -47,6 +47,14 @@ export default function CampStatsPage() {
   const confirmedCount = filteredRegistrations.filter((r: any) => r.status === "confirmed").length;
   const attendedCount = filteredRegistrations.filter((r: any) => r.status === "attended").length;
   const cancelledCount = filteredRegistrations.filter((r: any) => r.status === "cancelled").length;
+  const completedCount = filteredRegistrations.filter((r: any) => r.status === "completed").length;
+  const contactedCount = filteredRegistrations.filter((r: any) => r.status === "contacted").length;
+  const noAnswerCount = filteredRegistrations.filter((r: any) => r.status === "no_answer").length;
+
+  // Calculate rates
+  const attendanceRate = confirmedCount > 0 ? Math.round((attendedCount / confirmedCount) * 100) : 0;
+  const cancellationRate = totalRegistrations > 0 ? Math.round((cancelledCount / totalRegistrations) * 100) : 0;
+  const completionRate = attendedCount > 0 ? Math.round((completedCount / attendedCount) * 100) : 0;
 
   const handleRefresh = async () => {
     await refetch();
@@ -85,10 +93,13 @@ export default function CampStatsPage() {
 
   // Status distribution for pie chart
   const statusData = [
-    { name: "قيد الانتظار", value: pendingCount, color: "#FFA500" },
-    { name: "مؤكد", value: confirmedCount, color: "#00A651" },
-    { name: "حضر", value: attendedCount, color: "#0066CC" },
-    { name: "ملغي", value: cancelledCount, color: "#DC3545" },
+    { name: "قيد الانتظار", value: pendingCount, color: "#F59E0B" },
+    { name: "تم التواصل", value: contactedCount, color: "#8B5CF6" },
+    { name: "لا رد", value: noAnswerCount, color: "#6B7280" },
+    { name: "مؤكد", value: confirmedCount, color: "#10B981" },
+    { name: "حضر", value: attendedCount, color: "#3B82F6" },
+    { name: "مكتمل", value: completedCount, color: "#8B5CF6" },
+    { name: "ملغي", value: cancelledCount, color: "#EF4444" },
   ].filter(item => item.value > 0);
 
   // Age distribution
@@ -111,8 +122,25 @@ export default function CampStatsPage() {
   });
 
   const ageData = Object.entries(ageGroups)
-    .map(([name, value]) => ({ name, value }))
+    .map(([name, value]) => ({ name, value, color: "#10B981" }))
     .filter(item => item.value > 0);
+
+  // Gender distribution
+  const genderGroups = {
+    male: 0,
+    female: 0,
+  };
+
+  filteredRegistrations.forEach((r: any) => {
+    if (r.gender) {
+      genderGroups[r.gender]++;
+    }
+  });
+
+  const genderData = [
+    { name: "ذكور", value: genderGroups.male, color: "#3B82F6" },
+    { name: "إناث", value: genderGroups.female, color: "#EC4899" },
+  ].filter(item => item.value > 0);
 
   // Popular procedures
   const procedureCounts: Record<string, number> = {};
@@ -135,7 +163,7 @@ export default function CampStatsPage() {
   });
 
   const procedureData = Object.entries(procedureCounts)
-    .map(([name, value]) => ({ name, value }))
+    .map(([name, value]) => ({ name, value, color: "#3B82F6" }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 10); // Top 10 procedures
 
@@ -294,6 +322,57 @@ export default function CampStatsPage() {
           </Card>
         </div>
 
+        {/* Additional KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                مكتمل
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">{completedCount}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                ملغي
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{cancelledCount}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                معدل الحضور
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{attendanceRate}%</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                معدل الإلغاء
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{cancellationRate}%</div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Daily Registrations Chart */}
         {dailyRegistrations.length > 0 && (
           <Card>
@@ -354,6 +433,44 @@ export default function CampStatsPage() {
             </CardContent>
           </Card>
 
+          {/* Gender Distribution */}
+          {genderData.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  توزيع الجنس
+                </CardTitle>
+                <CardDescription>توزيع المسجلين حسب الجنس</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={genderData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(entry) => `${entry.name}: ${entry.value} (${Math.round((entry.value / (genderData[0].value + genderData[1].value)) * 100)}%)`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {genderData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Charts Row 1.5 - Source Distribution */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Source Distribution */}
           <Card>
             <CardHeader>
@@ -403,12 +520,15 @@ export default function CampStatsPage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={ageData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="name" tick={{ fill: "#6B7280" }} />
+                    <YAxis tick={{ fill: "#6B7280" }} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                      itemStyle={{ color: "#F3F4F6" }}
+                    />
                     <Legend />
-                    <Bar dataKey="value" fill="#00A651" name="عدد المسجلين" />
+                    <Bar dataKey="value" fill="#10B981" name="عدد المسجلين" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -428,12 +548,15 @@ export default function CampStatsPage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={procedureData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={100} />
-                    <Tooltip />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis type="number" tick={{ fill: "#6B7280" }} />
+                    <YAxis dataKey="name" type="category" width={120} tick={{ fill: "#6B7280" }} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                      itemStyle={{ color: "#F3F4F6" }}
+                    />
                     <Legend />
-                    <Bar dataKey="value" fill="#0066CC" name="عدد الطلبات" />
+                    <Bar dataKey="value" fill="#3B82F6" name="عدد الطلبات" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
