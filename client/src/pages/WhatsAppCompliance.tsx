@@ -5,10 +5,12 @@
 
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BarChart,
   Bar,
@@ -30,6 +32,11 @@ import {
   Eye,
   Trash2,
   Download,
+  RefreshCw,
+  Search,
+  Ban,
+  Users,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,6 +47,8 @@ export default function WhatsAppCompliance() {
   );
   const [messageToValidate, setMessageToValidate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterReason, setFilterReason] = useState<string>("all");
 
   // Queries
   const securityStatsQuery = trpc.whatsapp.getSecurityStats.useQuery();
@@ -146,74 +155,143 @@ export default function WhatsAppCompliance() {
     }
   };
 
-  // Sample data for charts
+  const handleRefresh = () => {
+    securityStatsQuery.refetch();
+    auditStatsQuery.refetch();
+    blockedPhonesQuery.refetch();
+  };
+
+  const handleExportData = () => {
+    const data = {
+      securityStats: securityStatsQuery.data?.stats,
+      auditStats: auditStatsQuery.data?.stats,
+      blockedPhones: blockedPhonesQuery.data?.phones,
+      exportedAt: new Date().toISOString(),
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `whatsapp-compliance-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("تم تصدير البيانات بنجاح");
+  };
+
+  // Filter blocked phones
+  const filteredPhones = blockedPhonesQuery.data?.phones?.filter((phone: any) => {
+    const matchesSearch = searchQuery === "" || phone.phone.includes(searchQuery);
+    const matchesFilter = filterReason === "all" || phone.reason?.includes(filterReason);
+    return matchesSearch && matchesFilter;
+  }) || [];
+
+  // Calculate compliance percentage from real data
+  const auditStats = auditStatsQuery.data?.stats;
+  const totalMessages = auditStats?.totalMessages || 0;
+  const errorCount = auditStats?.errorCount || 0;
+  const compliantPercentage = totalMessages > 0 
+    ? Math.round(((totalMessages - errorCount) / totalMessages) * 100) 
+    : 100;
+  const nonCompliantPercentage = totalMessages > 0 
+    ? Math.round((errorCount / totalMessages) * 100) 
+    : 0;
+
   const complianceData = [
-    { name: "متوافق", value: 95 },
-    { name: "غير متوافق", value: 5 },
+    { name: "متوافق", value: compliantPercentage },
+    { name: "غير متوافق", value: nonCompliantPercentage },
   ];
 
+  // Sample data for trend chart (audit logs are in-memory, so using sample data)
   const auditTrendData = [
-    { date: "الاثنين", sent: 150, received: 120, errors: 5 },
-    { date: "الثلاثاء", sent: 180, received: 145, errors: 8 },
-    { date: "الأربعاء", sent: 200, received: 165, errors: 3 },
-    { date: "الخميس", sent: 170, received: 140, errors: 6 },
-    { date: "الجمعة", sent: 210, received: 185, errors: 4 },
-    { date: "السبت", sent: 190, received: 160, errors: 7 },
-    { date: "الأحد", sent: 220, received: 195, errors: 5 },
+    { date: "الاثنين", sent: auditStats?.sentMessages || 0, received: auditStats?.receivedMessages || 0, errors: auditStats?.errorCount || 0 },
+    { date: "الثلاثاء", sent: auditStats?.sentMessages || 0, received: auditStats?.receivedMessages || 0, errors: auditStats?.errorCount || 0 },
+    { date: "الأربعاء", sent: auditStats?.sentMessages || 0, received: auditStats?.receivedMessages || 0, errors: auditStats?.errorCount || 0 },
+    { date: "الخميس", sent: auditStats?.sentMessages || 0, received: auditStats?.receivedMessages || 0, errors: auditStats?.errorCount || 0 },
+    { date: "الجمعة", sent: auditStats?.sentMessages || 0, received: auditStats?.receivedMessages || 0, errors: auditStats?.errorCount || 0 },
+    { date: "السبت", sent: auditStats?.sentMessages || 0, received: auditStats?.receivedMessages || 0, errors: auditStats?.errorCount || 0 },
+    { date: "الأحد", sent: auditStats?.sentMessages || 0, received: auditStats?.receivedMessages || 0, errors: auditStats?.errorCount || 0 },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">الامتثال والأمان</h1>
-        <p className="text-muted-foreground">إدارة الامتثال مع معايير Meta والأمان</p>
-      </div>
+    <DashboardLayout pageTitle="الامتثال والأمان" pageDescription="إدارة الامتثال مع معايير Meta والأمان">
+      <div className="space-y-6">
+        {/* Header with Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">الامتثال والأمان</h1>
+            <p className="text-muted-foreground text-sm">إدارة الامتثال مع معايير Meta والأمان</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+              <RefreshCw className={`w-4 h-4 ml-2 ${isLoading ? "animate-spin" : ""}`} />
+              تحديث
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportData}>
+              <Download className="w-4 h-4 ml-2" />
+              تصدير
+            </Button>
+          </div>
+        </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">الأرقام المحظورة</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{securityStatsQuery.data?.stats?.blockedPhones || 0}</div>
-            <p className="text-xs text-muted-foreground">رقم محظور</p>
-          </CardContent>
-        </Card>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Ban className="w-4 h-4 text-red-500" />
+                الأرقام المحظورة
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{securityStatsQuery.data?.stats?.blockedPhones || 0}</div>
+              <p className="text-xs text-muted-foreground">رقم محظور</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">طلبات الإلغاء</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{securityStatsQuery.data?.stats?.optOutCount || 0}</div>
-            <p className="text-xs text-muted-foreground">طلب إلغاء</p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Users className="w-4 h-4 text-orange-500" />
+                طلبات الإلغاء
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{securityStatsQuery.data?.stats?.optOutCount || 0}</div>
+              <p className="text-xs text-muted-foreground">طلب إلغاء</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">الرسائل المرسلة</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{auditStatsQuery.data?.stats?.sentMessages || 0}</div>
-            <p className="text-xs text-muted-foreground">رسالة</p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-500" />
+                الرسائل المرسلة
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{auditStatsQuery.data?.stats?.sentMessages || 0}</div>
+              <p className="text-xs text-muted-foreground">رسالة</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">الأخطاء</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {auditStatsQuery.data?.stats?.errorCount || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">خطأ</p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <XCircle className="w-4 h-4 text-red-500" />
+                الأخطاء
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {auditStatsQuery.data?.stats?.errorCount || 0}
+              </div>
+              <p className="text-xs text-muted-foreground">خطأ</p>
+            </CardContent>
+          </Card>
+        </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -256,7 +334,7 @@ export default function WhatsAppCompliance() {
                   <CheckCircle className="w-5 h-5 text-green-600" />
                   <span>متوافق</span>
                 </div>
-                <span className="font-bold">95%</span>
+                <span className="font-bold">{compliantPercentage}%</span>
               </div>
 
               <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
@@ -264,12 +342,12 @@ export default function WhatsAppCompliance() {
                   <XCircle className="w-5 h-5 text-red-600" />
                   <span>غير متوافق</span>
                 </div>
-                <span className="font-bold">5%</span>
+                <span className="font-bold">{nonCompliantPercentage}%</span>
               </div>
 
               <div className="p-3 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-900">
-                  ✅ جميع الرسائل تم فحصها ضد معايير Meta
+                  ✅ تم فحص {totalMessages} رسالة ضد معايير Meta
                 </p>
               </div>
             </div>
@@ -327,16 +405,17 @@ export default function WhatsAppCompliance() {
 
             <div>
               <label className="text-sm font-medium">السبب</label>
-              <select
-                value={blockReason}
-                onChange={(e) => setBlockReason(e.target.value as any)}
-                className="mt-1 w-full px-3 py-2 border rounded-md"
-              >
-                <option value="manual">يدوي</option>
-                <option value="opt_out">إلغاء الاشتراك</option>
-                <option value="spam">رسائل عشوائية</option>
-                <option value="invalid">رقم غير صحيح</option>
-              </select>
+              <Select value={blockReason} onValueChange={(value: any) => setBlockReason(value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">يدوي</SelectItem>
+                  <SelectItem value="opt_out">إلغاء الاشتراك</SelectItem>
+                  <SelectItem value="spam">رسائل عشوائية</SelectItem>
+                  <SelectItem value="invalid">رقم غير صحيح</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-end">
@@ -346,12 +425,36 @@ export default function WhatsAppCompliance() {
             </div>
           </div>
 
+          {/* Search and Filter */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <Input
+                placeholder="بحث برقم الهاتف..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <Select value={filterReason} onValueChange={setFilterReason}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="فلترة حسب السبب" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                <SelectItem value="manual">يدوي</SelectItem>
+                <SelectItem value="opt_out">إلغاء الاشتراك</SelectItem>
+                <SelectItem value="spam">رسائل عشوائية</SelectItem>
+                <SelectItem value="invalid">رقم غير صحيح</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Blocked Phones List */}
-          {blockedPhonesQuery.data?.phones && blockedPhonesQuery.data.phones.length > 0 && (
+          {filteredPhones.length > 0 ? (
             <div className="mt-6 space-y-2">
-              <h3 className="font-semibold">الأرقام المحظورة:</h3>
+              <h3 className="font-semibold">الأرقام المحظورة ({filteredPhones.length}):</h3>
               <div className="space-y-2 max-h-64 overflow-y-auto">
-                {blockedPhonesQuery.data.phones.map((phone) => (
+                {filteredPhones.map((phone: any) => (
                   <div
                     key={phone.phone}
                     className="flex items-center justify-between p-3 bg-muted rounded-lg"
@@ -370,6 +473,11 @@ export default function WhatsAppCompliance() {
                   </div>
                 ))}
               </div>
+            </div>
+          ) : (
+            <div className="mt-6 text-center py-8 text-muted-foreground">
+              <Ban className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>لا توجد أرقام محظورة</p>
             </div>
           )}
         </CardContent>
@@ -391,6 +499,7 @@ export default function WhatsAppCompliance() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
