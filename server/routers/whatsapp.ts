@@ -690,7 +690,7 @@ export const whatsappRouter = router({
     .input(z.object({ jobId: z.string() }))
     .query(async ({ input }) => {
       const { getBroadcastStatus } = await import("../services/whatsappBroadcast");
-      return getBroadcastStatus(input.jobId);
+      return getBroadcastStatus(parseInt(input.jobId));
     }),
 
   getBroadcastStats: protectedProcedure.query(async () => {
@@ -700,8 +700,8 @@ export const whatsappRouter = router({
 
   getMessageStats: protectedProcedure.query(async () => {
     try {
-      const db = await getDb();
-      if (!db) throw new Error("Database not available");
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new Error("Database not available");
 
       const { whatsappMessages } = await import("../../drizzle/schema");
       const { gte, lte, and, sql } = await import("drizzle-orm");
@@ -710,10 +710,10 @@ export const whatsappRouter = router({
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const messages = await db
+      const messages = await dbConn
         .select()
         .from(whatsappMessages)
-        .where(gte(whatsappMessages.sentAt, sevenDaysAgo));
+        .where(gte(whatsappMessages.createdAt, sevenDaysAgo));
 
       // Group by day (last 7 days)
       const days = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];

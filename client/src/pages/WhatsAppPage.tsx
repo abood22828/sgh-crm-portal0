@@ -52,7 +52,7 @@ interface Conversation {
 
 interface User {
   id: number;
-  name: string;
+  name: string | null;
   username: string;
 }
 

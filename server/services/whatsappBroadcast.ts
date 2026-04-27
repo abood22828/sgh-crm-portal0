@@ -65,9 +65,15 @@ export async function sendBroadcast(params: {
       failedCount: 0,
       status: "sending",
       createdBy: params.createdBy || 1,
-    }).returning();
+    });
 
-    const jobId = broadcast.id;
+    const result = await db.select({ id: whatsappBroadcasts.id }).from(whatsappBroadcasts).orderBy(whatsappBroadcasts.id).limit(1);
+    const jobId = result[0]?.id;
+    
+    if (!jobId) {
+      throw new Error("Failed to create broadcast job");
+    }
+    
     console.log(`[WhatsApp Broadcast] Starting broadcast ${jobId} to ${normalizedRecipients.length} recipients`);
 
     // إرسال الرسائل بشكل متسلسل مع تأخير لتجنب Rate Limiting
