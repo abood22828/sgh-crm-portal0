@@ -2,11 +2,20 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Smartphone, Monitor, TrendingUp, Users, Download, Activity } from "lucide-react";
-import { useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Smartphone, Monitor, TrendingUp, Users, Download, Activity, RefreshCw, Calendar } from "lucide-react";
+import { useMemo, useState } from "react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { toast } from "sonner";
 
 export default function PWAStatsPage() {
-  const { data: stats, isLoading } = trpc.pwa.getStats.useQuery();
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const { data: stats, isLoading, refetch } = trpc.pwa.getStats.useQuery(
+    undefined,
+    {
+      refetchInterval: autoRefresh ? 30000 : false, // Auto-refresh every 30 seconds
+    }
+  );
 
   const publicTotal = stats?.public ?? 0;
   const adminTotal = stats?.admin ?? 0;
@@ -23,9 +32,92 @@ export default function PWAStatsPage() {
     return Array.from(platformMap.entries()).map(([platform, count]) => ({ platform, count }));
   }, [stats]);
 
+  // Prepare daily stats for chart
+  const chartData = useMemo(() => {
+    if (!stats?.dailyStats) return [];
+    const dailyMap = new Map<string, { public: number; admin: number }>();
+    
+    stats.dailyStats.forEach((stat: any) => {
+      const date = stat.date;
+      if (!dailyMap.has(date)) {
+        dailyMap.set(date, { public: 0, admin: 0 });
+      }
+      const existing = dailyMap.get(date)!;
+      if (stat.appType === 'public') {
+        existing.public += stat.count;
+      } else {
+        existing.admin += stat.count;
+      }
+    });
+
+    return Array.from(dailyMap.entries()).map(([date, counts]) => ({
+      date: new Date(date).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' }),
+      public: counts.public,
+      admin: counts.admin,
+      total: counts.public + counts.admin,
+    }));
+  }, [stats]);
+
+  const handleRefresh = async () => {
+    await refetch();
+    toast.success("تم تحديث البيانات");
+  };
+
+  const handleExport = () => {
+    const data = {
+      summary: {
+        total: totalInstalls,
+        public: publicTotal,
+        admin: adminTotal,
+      },
+      platformDistribution: platformData,
+      recentInstalls: stats?.recentInstalls || [],
+      dailyStats: stats?.dailyStats || [],
+      exportedAt: new Date().toISOString(),
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pwa-stats-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("تم تصدير البيانات بنجاح");
+  };
+
   return (
     <DashboardLayout pageTitle="إحصائيات PWA" pageDescription="تتبع عمليات تثبيت تطبيقات الويب التقدمية">
       <div className="p-6 space-y-6">
+        {/* Header with Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">إحصائيات PWA</h1>
+            <p className="text-muted-foreground text-sm">تتبع عمليات تثبيت تطبيقات الويب التقدمية</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className={autoRefresh ? "bg-green-50 border-green-200" : ""}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${autoRefresh ? "animate-spin" : ""}`} />
+              {autoRefresh ? "إيقاف التحديث" : "تحديث تلقائي"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              تحديث
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="w-4 h-4 mr-2" />
+              تصدير
+            </Button>
+          </div>
+        </div>
+
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
@@ -73,6 +165,39 @@ export default function PWAStatsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Daily Stats Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Calendar className="h-4 w-4" />
+              الإحصائيات اليومية (آخر 30 يوم)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="h-64 bg-muted animate-pulse rounded" />
+            ) : chartData.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">لا توجد بيانات يومية بعد</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="public" stroke="#3b82f6" name="تطبيق الجمهور" strokeWidth={2} />
+                  <Line type="monotone" dataKey="admin" stroke="#6366f1" name="تطبيق الإدارة" strokeWidth={2} />
+                  <Line type="monotone" dataKey="total" stroke="#10b981" name="الإجمالي" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
 
         {/* App Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
