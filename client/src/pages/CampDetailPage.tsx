@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, Phone, Calendar, MapPin, Loader2, Heart, Users, CheckCircle2, Clock, Star, MessageSquare, Tag, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, Phone, Calendar, MapPin, Loader2, Heart, Users, CheckCircle2, Clock, Star, MessageSquare, Tag, ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
 import { getCompleteTrackingData } from "@/lib/tracking";
 import { trackViewContent, trackMetaCompleteRegistration, updatePixelUserData } from "@/components/MetaPixel";
 import { toast } from "sonner";
@@ -45,6 +45,7 @@ function CampDetailContent({ slug }: { slug: string }) {
     { slug },
     { enabled: !!slug && slug !== ":slug" }
   );
+  const { data: registrations } = trpc.campRegistrations.list.useQuery();
   const submitRegistration = trpc.campRegistrations.submit.useMutation();
   // eventId موحّد لتجنب تكرار الحدث بين Pixel وCAPI (Deduplication)
   const [regEventId] = useState(() => `camp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
@@ -84,6 +85,19 @@ function CampDetailContent({ slug }: { slug: string }) {
       return camp.availableProcedures.split('\n').filter((p: string) => p.trim());
     }
   }, [camp]);
+
+  // Calculate camp statistics
+  const campStats = useMemo(() => {
+    if (!camp || !registrations) return null;
+    
+    const campRegistrations = registrations.filter((r: any) => r.campId === camp.id);
+    const total = campRegistrations.length;
+    const confirmed = campRegistrations.filter((r: any) => r.status === "confirmed" || r.status === "attended" || r.status === "completed").length;
+    const attended = campRegistrations.filter((r: any) => r.status === "attended" || r.status === "completed").length;
+    const attendanceRate = confirmed > 0 ? Math.round((attended / confirmed) * 100) : 0;
+    
+    return { total, confirmed, attended, attendanceRate };
+  }, [camp, registrations]);
 
   // إرسال حدث ViewContent عند تحميل صفحة المخيم
   useEffect(() => {
@@ -320,6 +334,16 @@ function CampDetailContent({ slug }: { slug: string }) {
                       <div className="text-white/90 text-xs">
                         {formatDate(camp.startDate)} - {formatDate(camp.endDate)}
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {campStats && campStats.total > 0 && (
+                  <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm p-3 rounded-lg">
+                    <TrendingUp className="h-5 w-5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <div className="font-semibold">معدل الحضور</div>
+                      <div className="text-white/90 text-xs">{campStats.attendanceRate}%</div>
                     </div>
                   </div>
                 )}

@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Search, Heart, Calendar, ArrowLeft, Clock, CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Search, Heart, Calendar, ArrowLeft, Clock, CheckCircle2, Users } from "lucide-react";
 import InstallPWAButton from "@/components/InstallPWAButton";
 
 export default function CampsListPage() {
@@ -25,6 +26,7 @@ function CampsListContent() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: camps, isLoading } = trpc.camps.getAll.useQuery();
+  const { data: registrations } = trpc.campRegistrations.list.useQuery();
 
   // Separate active and expired camps based on endDate
   const now = new Date();
@@ -45,96 +47,131 @@ function CampsListContent() {
     camp.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const CampCard = ({ camp, isExpired = false }: { camp: any; isExpired?: boolean }) => (
-    <Card
-      key={camp.id}
-      className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-t-4 border-red-500 overflow-hidden"
-      onClick={() => setLocation(`/camps/${camp.slug || camp.id}`)}
-    >
-      <CardContent className="p-0">
-        {camp.imageUrl ? (
-          <div className="relative h-44 sm:h-56 md:h-64 overflow-hidden">
-            <img
-              src={camp.imageUrl}
-              alt={camp.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute top-2.5 sm:top-4 right-2.5 sm:right-4">
-              <div className={`${isExpired ? 'bg-gray-500' : 'bg-red-500'} text-white px-2.5 sm:px-4 py-1 sm:py-2 rounded-full font-bold text-[10px] sm:text-sm flex items-center gap-1 sm:gap-2`}>
-                {isExpired ? (
-                  <>
-                    <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    منتهي
-                  </>
-                ) : (
-                  <>
-                    <Heart className="h-3 w-3 sm:h-4 sm:w-4 fill-white" />
-                    مخيم خيري
-                  </>
-                )}
+  // Calculate registration stats for each camp
+  const getCampStats = (campId: number) => {
+    const campRegistrations = registrations?.filter((r: any) => r.campId === campId) || [];
+    const total = campRegistrations.length;
+    const confirmed = campRegistrations.filter((r: any) => r.status === "confirmed" || r.status === "attended" || r.status === "completed").length;
+    const attended = campRegistrations.filter((r: any) => r.status === "attended" || r.status === "completed").length;
+    return { total, confirmed, attended };
+  };
+
+  const CampCard = ({ camp, isExpired = false }: { camp: any; isExpired?: boolean }) => {
+    const stats = getCampStats(camp.id);
+    
+    return (
+      <Card
+        key={camp.id}
+        className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-t-4 border-red-500 overflow-hidden"
+        onClick={() => setLocation(`/camps/${camp.slug || camp.id}`)}
+      >
+        <CardContent className="p-0">
+          {camp.imageUrl ? (
+            <div className="relative h-44 sm:h-56 md:h-64 overflow-hidden">
+              <img
+                src={camp.imageUrl}
+                alt={camp.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute top-2.5 sm:top-4 right-2.5 sm:right-4">
+                <div className={`${isExpired ? 'bg-gray-500' : 'bg-red-500'} text-white px-2.5 sm:px-4 py-1 sm:py-2 rounded-full font-bold text-[10px] sm:text-sm flex items-center gap-1 sm:gap-2`}>
+                  {isExpired ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      منتهي
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="h-3 w-3 sm:h-4 sm:w-4 fill-white" />
+                      مخيم خيري
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 md:p-6">
+                <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white mb-1 sm:mb-2 line-clamp-2">{camp.name}</h3>
               </div>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 md:p-6">
-              <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white mb-1 sm:mb-2 line-clamp-2">{camp.name}</h3>
-            </div>
-          </div>
-        ) : (
-          <div className="relative h-44 sm:h-56 md:h-64 bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center">
-            <div className="absolute top-2.5 sm:top-4 right-2.5 sm:right-4">
-              <div className={`${isExpired ? 'bg-gray-500' : 'bg-red-500'} text-white px-2.5 sm:px-4 py-1 sm:py-2 rounded-full font-bold text-[10px] sm:text-sm flex items-center gap-1 sm:gap-2`}>
-                {isExpired ? (
-                  <>
-                    <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    منتهي
-                  </>
-                ) : (
-                  <>
-                    <Heart className="h-3 w-3 sm:h-4 sm:w-4 fill-white" />
-                    مخيم خيري
-                  </>
-                )}
+          ) : (
+            <div className="relative h-44 sm:h-56 md:h-64 bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center">
+              <div className="absolute top-2.5 sm:top-4 right-2.5 sm:right-4">
+                <div className={`${isExpired ? 'bg-gray-500' : 'bg-red-500'} text-white px-2.5 sm:px-4 py-1 sm:py-2 rounded-full font-bold text-[10px] sm:text-sm flex items-center gap-1 sm:gap-2`}>
+                  {isExpired ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      منتهي
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="h-3 w-3 sm:h-4 sm:w-4 fill-white" />
+                      مخيم خيري
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-            <Heart className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 text-white/30 fill-white/30" />
-            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 md:p-6">
-              <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white mb-1 sm:mb-2 line-clamp-2">{camp.name}</h3>
-            </div>
-          </div>
-        )}
-
-        <div className="p-3.5 sm:p-5 md:p-6">
-          {camp.description && (
-            <p className="text-muted-foreground mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 text-right text-xs sm:text-sm md:text-base">
-              {camp.description}
-            </p>
-          )}
-
-          {(camp.startDate || camp.endDate) && (
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs md:text-sm text-muted-foreground mb-3 sm:mb-4">
-              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>
-                {camp.startDate && formatDate(camp.startDate)}
-                {camp.startDate && camp.endDate && ' - '}
-                {camp.endDate && formatDate(camp.endDate)}
-              </span>
+              <Heart className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 text-white/30 fill-white/30" />
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 md:p-6">
+                <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white mb-1 sm:mb-2 line-clamp-2">{camp.name}</h3>
+              </div>
             </div>
           )}
 
-          <Button 
-            className={`w-full text-xs sm:text-sm md:text-base h-9 sm:h-10 md:h-11 ${isExpired ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700'}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setLocation(`/camps/${camp.slug || camp.id}`);
-            }}
-          >
-            {isExpired ? 'عرض التفاصيل' : 'سجّل الآن'}
-            <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+          <div className="p-3.5 sm:p-5 md:p-6">
+            {camp.description && (
+              <p className="text-muted-foreground mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 text-right text-xs sm:text-sm md:text-base">
+                {camp.description}
+              </p>
+            )}
+
+            {/* Registration Stats */}
+            {stats.total > 0 && (
+              <div className="flex items-center gap-2 mb-3 sm:mb-4 flex-wrap">
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  {stats.total} تسجيل
+                </Badge>
+                {stats.confirmed > 0 && (
+                  <Badge variant="outline" className="flex items-center gap-1 border-green-500 text-green-600">
+                    <CheckCircle2 className="h-3 w-3" />
+                    {stats.confirmed} مؤكد
+                  </Badge>
+                )}
+                {stats.attended > 0 && (
+                  <Badge variant="outline" className="flex items-center gap-1 border-blue-500 text-blue-600">
+                    <Clock className="h-3 w-3" />
+                    {stats.attended} حضر
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {(camp.startDate || camp.endDate) && (
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs md:text-sm text-muted-foreground mb-3 sm:mb-4">
+                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span>
+                  {camp.startDate && formatDate(camp.startDate)}
+                  {camp.startDate && camp.endDate && ' - '}
+                  {camp.endDate && formatDate(camp.endDate)}
+                </span>
+              </div>
+            )}
+
+            <Button 
+              className={`w-full text-xs sm:text-sm md:text-base h-9 sm:h-10 md:h-11 ${isExpired ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700'}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setLocation(`/camps/${camp.slug || camp.id}`);
+              }}
+            >
+              {isExpired ? 'عرض التفاصيل' : 'سجّل الآن'}
+              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6" dir="rtl">
