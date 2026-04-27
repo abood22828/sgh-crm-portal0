@@ -103,10 +103,14 @@ function Router() {
       <Route path={"/access-request"} component={AccessRequest} />
 
       {/* Dashboard routes with persistent sidebar */}
+      <Route path="/dashboard">
+        <DashboardShell>
+          <AdminDashboard />
+        </DashboardShell>
+      </Route>
       <Route path="/dashboard/*">
         <DashboardShell>
           <Switch>
-            <Route path={"/dashboard"} component={AdminDashboard} />
             <Route path={"/dashboard/profile"} component={ProfilePage} />
             <Route path={"/dashboard/management"} component={ManagementPage} />
             <Route path={"/dashboard/content"} component={ContentManagementPage} />
@@ -148,9 +152,16 @@ function Router() {
         </DashboardShell>
       </Route>
 
-      <Route path={"/admin"} component={AdminDashboard} />
-      <Route path={"/admin/"} component={AdminDashboard} />
-      <Route path={"/admin/offline"} component={OfflinePage} />
+      {/* Admin routes with persistent sidebar */}
+      <Route path="/admin/*">
+        <DashboardShell>
+          <Switch>
+            <Route path={"/admin"} component={AdminDashboard} />
+            <Route path={"/admin/"} component={AdminDashboard} />
+            <Route path={"/admin/offline"} component={OfflinePage} />
+          </Switch>
+        </DashboardShell>
+      </Route>
 
       <Route path={"/patient-portal"} component={PatientPortalLogin} />
       <Route path={"/patient-portal/dashboard"} component={PatientDashboard} />
