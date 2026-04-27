@@ -202,10 +202,10 @@ export const whatsappRouter = router({
       .query(async ({ input }) => {
         const dbConn = await db.getDb();
         if (!dbConn) throw new Error("Database not available");
-        
+
         const { whatsappMessages } = await import("../../drizzle/schema");
         const { eq, count, sql } = await import("drizzle-orm");
-        
+
         const messages = await dbConn
           .select()
           .from(whatsappMessages)
@@ -224,23 +224,54 @@ export const whatsappRouter = router({
         let responseCount = 0;
         for (let i = 1; i < messages.length; i++) {
           if (messages[i].direction === "outbound" && messages[i-1].direction === "inbound") {
-            const prevTime = new Date(messages[i-1].createdAt || messages[i-1].sentAt).getTime();
-            const currTime = new Date(messages[i].createdAt || messages[i].sentAt).getTime();
+            const prevTime = new Date(messages[i-1].createdAt).getTime();
+            const currTime = new Date(messages[i].createdAt).getTime();
             avgResponseTime += (currTime - prevTime);
             responseCount++;
           }
         }
         avgResponseTime = responseCount > 0 ? avgResponseTime / responseCount : 0;
-        
+
         return {
           totalMessages,
           inboundMessages,
           outboundMessages,
           templateMessages,
-          firstMessageAt: firstMessage?.createdAt || firstMessage?.sentAt,
-          lastMessageAt: lastMessage?.createdAt || lastMessage?.sentAt,
+          firstMessageAt: firstMessage?.createdAt,
+          lastMessageAt: lastMessage?.createdAt,
           avgResponseTimeMs: avgResponseTime,
           avgResponseTimeMinutes: Math.round(avgResponseTime / (1000 * 60)),
+        };
+      }),
+
+    exportConversation: protectedProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+
+        const { whatsappMessages, whatsappConversations } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+
+        const conversation = await dbConn
+          .select()
+          .from(whatsappConversations)
+          .where(eq(whatsappConversations.id, input.conversationId))
+          .limit(1);
+
+        if (!conversation || conversation.length === 0) {
+          throw new Error("Conversation not found");
+        }
+
+        const messages = await dbConn
+          .select()
+          .from(whatsappMessages)
+          .where(eq(whatsappMessages.conversationId, input.conversationId))
+          .orderBy(whatsappMessages.createdAt);
+
+        return {
+          conversation: conversation[0],
+          messages,
         };
       }),
   }),
@@ -259,6 +290,8 @@ export const whatsappRouter = router({
           conversationId: z.number(),
           message: z.string(),
           replyToMessageId: z.number().optional(),
+          mediaUrl: z.string().optional(),
+          messageType: z.enum(["text", "image", "document", "audio", "video", "location", "template", "interactive", "contacts", "unknown"]).optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -276,7 +309,7 @@ export const whatsappRouter = router({
           // Server-side 24-hour window validation
           const lastMessageTime = conv.lastMessageAt ? new Date(conv.lastMessageAt) : null;
           const now = new Date();
-          const hoursSinceLastMessage = lastMessageTime 
+          const hoursSinceLastMessage = lastMessageTime
             ? (now.getTime() - lastMessageTime.getTime()) / (1000 * 60 * 60)
             : Infinity;
 
@@ -296,11 +329,12 @@ export const whatsappRouter = router({
               conversationId: input.conversationId,
               direction: "outbound",
               content: input.message,
-              messageType: "text",
+              messageType: input.messageType || "text",
               status: "sent",
               sentBy: ctx.user.id,
               whatsappMessageId: result.messageId,
               replyToMessageId: input.replyToMessageId,
+              mediaUrl: input.mediaUrl,
             });
 
             await db.updateWhatsAppConversation(input.conversationId, {

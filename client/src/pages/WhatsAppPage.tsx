@@ -25,7 +25,7 @@ import {
   Smartphone, Wifi, WifiOff, Loader2 as LoaderIcon, ArrowRight,
   ChevronLeft, AlertCircle, Archive, Filter, BarChart2,
   Clock, CheckCheck, MessageSquare, MoreVertical, Star,
-  RefreshCw, TrendingUp, Users, X, Bookmark,
+  RefreshCw, TrendingUp, Users, X, Bookmark, CheckSquare,
 } from "lucide-react";
 import ChatWindow from "@/components/ChatWindow";
 import ConversationInfo from "@/components/ConversationInfo";
@@ -152,6 +152,14 @@ interface ConversationsListProps {
   onAssignConversation: (id: number, userId: number) => void;
   activeUsers: User[] | undefined;
   onSaveSearchClick?: () => void;
+  isSelectionMode: boolean;
+  selectedConversations: Set<number>;
+  onToggleSelection: (id: number) => void;
+  onSelectAll: () => void;
+  onClearSelection: () => void;
+  onBulkArchive: () => void;
+  onBulkMarkImportant: () => void;
+  onToggleSelectionMode: () => void;
 }
 
 const ConversationsList = memo(function ConversationsList({
@@ -182,6 +190,14 @@ const ConversationsList = memo(function ConversationsList({
   onAssignConversation,
   activeUsers,
   onSaveSearchClick,
+  isSelectionMode,
+  selectedConversations,
+  onToggleSelection,
+  onSelectAll,
+  onClearSelection,
+  onBulkArchive,
+  onBulkMarkImportant,
+  onToggleSelectionMode,
 }: ConversationsListProps) {
   return (
     <div className="flex flex-col h-full">
@@ -193,6 +209,15 @@ const ConversationsList = memo(function ConversationsList({
             <h2 className="text-sm sm:text-base font-bold text-white">المحادثات</h2>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 px-2 gap-1 text-[10px] bg-white/20 hover:bg-white/30 text-white border-0"
+              onClick={onToggleSelectionMode}
+            >
+              <CheckSquare className="h-3 w-3" />
+              <span className="hidden sm:inline">{isSelectionMode ? "إلغاء" : "تحديد"}</span>
+            </Button>
             {statusLoading ? (
               <Badge className="gap-1 text-[10px] h-5 bg-white/20 text-white border-0">
                 <LoaderIcon className="h-2.5 w-2.5 animate-spin" />
@@ -343,6 +368,50 @@ const ConversationsList = memo(function ConversationsList({
         <StatsBar conversations={allConversations} />
       </div>
 
+      {/* Bulk Actions Toolbar */}
+      {isSelectionMode && selectedConversations.size > 0 && (
+        <div className="px-2 pt-2 pb-1 flex gap-2 items-center bg-white/10">
+          <span className="text-xs text-white font-medium">
+            تم تحديد {selectedConversations.size}
+          </span>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-6 px-2 text-[10px] bg-white/20 hover:bg-white/30 text-white border-0"
+            onClick={onSelectAll}
+          >
+            تحديد الكل
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-6 px-2 text-[10px] bg-white/20 hover:bg-white/30 text-white border-0"
+            onClick={onClearSelection}
+          >
+            إلغاء التحديد
+          </Button>
+          <div className="flex-1" />
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-6 px-2 text-[10px] bg-amber-500/80 hover:bg-amber-500 text-white border-0"
+            onClick={onBulkMarkImportant}
+          >
+            <Star className="h-3 w-3 ml-1" />
+            مهمة
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-6 px-2 text-[10px] bg-gray-500/80 hover:bg-gray-500 text-white border-0"
+            onClick={onBulkArchive}
+          >
+            <Archive className="h-3 w-3 ml-1" />
+            أرشفة
+          </Button>
+        </div>
+      )}
+
       {/* Saved Searches */}
       {savedSearches && savedSearches.length > 0 && (
         <div className="px-2 pt-1 pb-1">
@@ -387,10 +456,29 @@ const ConversationsList = memo(function ConversationsList({
                     selectedConversation === conv.id ? "bg-green-100 dark:bg-green-900/30 border-r-4 border-green-600" : ""
                   } ${conv.isArchived ? "opacity-60" : ""}`}
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3" onClick={() => onSelectConversation(conv.id)}>
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    {isSelectionMode && (
+                      <div
+                        className="flex-shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleSelection(conv.id);
+                        }}
+                      >
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                          selectedConversations.has(conv.id)
+                            ? "bg-green-500 border-green-500"
+                            : "border-gray-300 dark:border-gray-600"
+                        }`}>
+                          {selectedConversations.has(conv.id) && (
+                            <CheckSquare className="h-3 w-3 text-white" />
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <div className={`relative p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
                       conv.isImportant ? "bg-gradient-to-br from-yellow-400 to-orange-500" : "bg-gradient-to-br from-green-500 to-emerald-600"
-                    }`}>
+                    }`} onClick={() => onSelectConversation(conv.id)}>
                       <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                       {conv.isImportant === 1 && (
                         <Star className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 fill-yellow-400" />
@@ -605,6 +693,8 @@ function WhatsAppContent() {
   const [newMessageTemplateId, setNewMessageTemplateId] = useState<number | null>(null);
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
   const [mobileShowChat, setMobileShowChat] = useState(false);
+  const [selectedConversations, setSelectedConversations] = useState<Set<number>>(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   // Queries
   const { data: conversations, isLoading: conversationsLoading, refetch: refetchConversations } =
@@ -632,6 +722,20 @@ function WhatsAppContent() {
       refetchConversations();
     },
     onError: () => toast.error("فشل تعيين المحادثة"),
+  });
+
+  const bulkArchiveMutation = trpc.whatsapp.conversations.bulkArchive.useMutation({
+    onSuccess: () => {
+      refetchConversations();
+    },
+    onError: () => toast.error("فشل أرشفة المحادثات"),
+  });
+
+  const bulkMarkImportantMutation = trpc.whatsapp.conversations.bulkMarkImportant.useMutation({
+    onSuccess: () => {
+      refetchConversations();
+    },
+    onError: () => toast.error("فشل تعيين المحادثات كمهمة"),
   });
 
   const saveSearchMutation = trpc.whatsapp.savedSearches.create.useMutation({
@@ -717,6 +821,47 @@ function WhatsAppContent() {
     setDateFilter(savedSearch.dateFilter || "all");
     setMessageTypeFilter(savedSearch.messageTypeFilter || "all");
   }, []);
+
+  const handleToggleSelection = useCallback((id: number) => {
+    setSelectedConversations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    if (filteredConversations) {
+      const allIds = new Set(filteredConversations.map(c => c.id));
+      setSelectedConversations(allIds);
+    }
+  }, [filteredConversations]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedConversations(new Set());
+  }, []);
+
+  const handleBulkArchive = useCallback(() => {
+    if (selectedConversations.size === 0) return;
+    const ids = Array.from(selectedConversations);
+    bulkArchiveMutation.mutate({ ids });
+    toast.success(`تم أرشفة ${ids.length} محادثة`);
+    handleClearSelection();
+    setIsSelectionMode(false);
+  }, [selectedConversations, handleClearSelection]);
+
+  const handleBulkMarkImportant = useCallback(() => {
+    if (selectedConversations.size === 0) return;
+    const ids = Array.from(selectedConversations);
+    bulkMarkImportantMutation.mutate({ ids, important: 1 });
+    toast.success(`تم تعيين ${ids.length} محادثة كمهمة`);
+    handleClearSelection();
+    setIsSelectionMode(false);
+  }, [selectedConversations, handleClearSelection]);
 
   const handleSendNewMessage = useCallback(() => {
     if (!newMessagePhone.trim()) { toast.error("يرجى إدخال رقم الهاتف"); return; }
@@ -841,6 +986,14 @@ function WhatsAppContent() {
     onAssignConversation: handleAssignConversation,
     activeUsers,
     onSaveSearchClick: () => setSaveSearchOpen(true),
+    isSelectionMode,
+    selectedConversations,
+    onToggleSelection: handleToggleSelection,
+    onSelectAll: handleSelectAll,
+    onClearSelection: handleClearSelection,
+    onBulkArchive: handleBulkArchive,
+    onBulkMarkImportant: handleBulkMarkImportant,
+    onToggleSelectionMode: () => setIsSelectionMode(!isSelectionMode),
   };
 
   return (

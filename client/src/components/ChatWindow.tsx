@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { CheckCheck, Clock, XCircle, ChevronDown, Image, FileText, Music, Video, MapPin, Users, MessageSquare, User, MoreVertical, Reply, Trash2, Forward } from "lucide-react";
+import { CheckCheck, Clock, XCircle, ChevronDown, Image, FileText, Music, Video, MapPin, Users, MessageSquare, User, MoreVertical, Reply, Trash2, Forward, Download, Paperclip, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -10,6 +10,17 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import useSSE from "@/hooks/useSSE";
 import { toast } from "sonner";
 
@@ -60,6 +71,15 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
   // Track the message being replied to
   const [replyToMessage, setReplyToMessage] = useState<any | null>(null);
 
+  // Track attached file
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Track scheduled message dialog
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [scheduledMessage, setScheduledMessage] = useState("");
+  const [scheduledDate, setScheduledDate] = useState("");
+
   const outsideWindow = isOutsideWindow(localLastMessageAt ?? lastMessageAt);
 
   const { data: messagesData, refetch: refetchMessages } = trpc.whatsapp.messages.listByConversation.useQuery(
@@ -74,6 +94,49 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
   const { data: activeUsers } = trpc.users.getActiveUsers.useQuery();
 
   const { data: quickReplies } = trpc.whatsapp.quickReplies.list.useQuery();
+
+  const exportConversationMutation = trpc.whatsapp.conversations.exportConversation.useMutation();
+
+  const handleExportConversation = useCallback(() => {
+    if (!conversationId) return;
+    exportConversationMutation.mutate(
+      { conversationId },
+      {
+        onSuccess: (data) => {
+          // Create CSV content
+          const headers = ["التاريخ", "الاتجاه", "النوع", "المحتوى", "الحالة"];
+          const rows = data.messages.map((msg: any) => [
+            new Date(msg.createdAt).toLocaleString("ar-EG"),
+            msg.direction === "inbound" ? "وارد" : "صادر",
+            msg.messageType,
+            msg.content,
+            msg.status,
+          ]);
+
+          const csvContent = [
+            headers.join(","),
+            ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+          ].join("\n");
+
+          // Create and download file
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", `conversation_${conversationId}_${new Date().toISOString().split("T")[0]}.csv`);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          toast.success("تم تصدير المحادثة بنجاح");
+        },
+        onError: (err) => {
+          toast.error(`فشل تصدير المحادثة: ${err.message}`);
+        },
+      }
+    );
+  }, [conversationId, exportConversationMutation]);
 
   const sendMessageMutation = trpc.whatsapp.messages.send.useMutation({
     onSuccess: () => {
@@ -272,18 +335,48 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     }
   };
 
-  const handleSend = () => {
-    if (!messageText.trim() || !conversationId) return;
-    const tempId = `temp-${Date.now()}`;
+  const handleSend = useCallback(async () => {
+    if (!messageText.trim() && !attachedFile) return;
+    if (!conversationId) return;
+
+    let mediaUrl = null;
+    let messageType = "text" as const;
+
+    // Convert file to base64 if attached
+    if (attachedFile) {
+      try {
+        const reader = new FileReader();
+        mediaUrl = await new Promise<string>((resolve) => {
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(attachedFile);
+        });
+
+        // Determine message type based on file
+        if (attachedFile.type.startsWith("image/")) {
+          messageType = "image" as const;
+        } else if (attachedFile.type === "application/pdf") {
+          messageType = "document" as const;
+        } else {
+          messageType = "document" as const;
+        }
+      } catch (error) {
+        toast.error("فشل تحميل الملف");
+        return;
+      }
+    }
+
     const optimistic = {
-      id: tempId,
+      id: `temp-${Date.now()}`,
       conversationId,
-      direction: "outbound",
-      content: messageText.trim(),
-      messageType: "text",
-      status: "pending",
+      direction: "outbound" as const,
+      content: messageText || attachedFile?.name || "",
+      messageType,
+      status: "sent" as const,
       sentAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      sentBy: userId,
       replyToMessageId: replyToMessage?.id,
+      mediaUrl,
     };
     setLocalMessages((prev) => [...prev, optimistic]);
     scrollToBottom();
@@ -291,10 +384,13 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
       conversationId,
       message: messageText.trim(),
       replyToMessageId: replyToMessage?.id,
+      mediaUrl,
+      messageType,
     });
     setMessageText("");
     setReplyToMessage(null);
-  };
+    handleRemoveFile();
+  }, [conversationId, messageText, replyToMessage, sendMessageMutation, userId, attachedFile, handleRemoveFile]);
 
   const handleReply = (msg: any) => {
     setReplyToMessage(msg);
@@ -316,6 +412,39 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
 
   const handleInsertQuickReply = (content: string) => {
     setMessageText(prev => prev + (prev ? " " : "") + content);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("حجم الملف كبير جداً. الحد الأقصى 10MB");
+        return;
+      }
+      setAttachedFile(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setAttachedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleScheduleMessage = () => {
+    if (!scheduledMessage.trim() || !scheduledDate) {
+      toast.error("يرجى إدخال الرسالة وتاريخ الجدولة");
+      return;
+    }
+    if (!conversationId) return;
+
+    // For now, just show a toast - full implementation would need backend endpoint
+    toast.info("ميزة جدولة الرسائل قيد التطوير");
+    setScheduleDialogOpen(false);
+    setScheduledMessage("");
+    setScheduledDate("");
   };
 
   const handleSendTemplate = (template: { id: number; name: string; content: string; metaName?: string | null; languageCode?: string | null }) => {
@@ -450,6 +579,21 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
             </Button>
           </div>
         )}
+
+        {/* Attached file indicator */}
+        {attachedFile && (
+          <div className="mb-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-green-600" />
+              <span className="text-green-700 dark:text-green-300">{attachedFile.name}</span>
+              <span className="text-xs text-muted-foreground">({(attachedFile.size / 1024).toFixed(1)} KB)</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleRemoveFile} className="h-6 w-6 p-0">
+              <XCircle className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         
         {outsideWindow ? (
           <div className="flex gap-2 items-center">
@@ -504,6 +648,91 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
               rows={1}
               className="flex-1 resize-none min-h-[40px] max-h-[120px] text-sm sm:text-base"
             />
+            {/* Attach file button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,application/pdf,.doc,.docx"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10"
+              title="إرفاق ملف"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            {/* Schedule message button */}
+            <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10"
+                  title="جدولة رسالة"
+                >
+                  <Calendar className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>جدولة رسالة</DialogTitle>
+                  <DialogDescription>
+                    حدد تاريخ ووقت إرسال الرسالة
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="scheduled-message">الرسالة</Label>
+                    <Textarea
+                      id="scheduled-message"
+                      placeholder="اكتب الرسالة المراد جدولتها..."
+                      value={scheduledMessage}
+                      onChange={(e) => setScheduledMessage(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="scheduled-date">التاريخ والوقت</Label>
+                    <Input
+                      id="scheduled-date"
+                      type="datetime-local"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      min={new Date().toISOString().slice(0, 16)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setScheduleDialogOpen(false)}>
+                    إلغاء
+                  </Button>
+                  <Button onClick={handleScheduleMessage}>
+                    جدولة
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            {/* Export button */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10"
+              title="تصدير المحادثة"
+              onClick={handleExportConversation}
+              disabled={exportConversationMutation.isPending}
+            >
+              {exportConversationMutation.isPending ? (
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeDasharray="31.4 31.4" fill="none" />
+                </svg>
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+            </Button>
             {/* Quick Replies button */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
