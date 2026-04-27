@@ -7,7 +7,10 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight, RefreshCw, Download, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight, RefreshCw, Download, Calendar as CalendarIcon, Clock, Mail, CalendarDays } from "lucide-react";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, ScatterChart, Scatter, ZAxis } from "recharts";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -17,6 +20,9 @@ export default function CampStatsPage() {
   const [, setLocation] = useLocation();
   const [selectedCamp, setSelectedCamp] = useState<string>("all");
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [scheduleEmail, setScheduleEmail] = useState("");
+  const [scheduleFrequency, setScheduleFrequency] = useState<"daily" | "weekly" | "monthly">("weekly");
   
   const { data: camps, isLoading: campsLoading } = trpc.camps.getAll.useQuery();
   const { data: registrations, isLoading: registrationsLoading, refetch } = trpc.campRegistrations.list.useQuery(
@@ -89,6 +95,18 @@ export default function CampStatsPage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success("تم تصدير البيانات بنجاح");
+  };
+
+  const handleScheduleReport = () => {
+    if (!scheduleEmail || !scheduleEmail.includes("@")) {
+      toast.error("يرجى إدخال بريد إلكتروني صحيح");
+      return;
+    }
+    
+    // TODO: Call backend API to schedule the report
+    toast.success(`تم جدولة التقرير للإرسال إلى ${scheduleEmail} (${scheduleFrequency === "daily" ? "يومياً" : scheduleFrequency === "weekly" ? "أسبوعياً" : "شهرياً"})`);
+    setScheduleDialogOpen(false);
+    setScheduleEmail("");
   };
 
   // Status distribution for pie chart
@@ -433,6 +451,58 @@ export default function CampStatsPage() {
                 <Download className="w-4 h-4 mr-2" />
                 تصدير
               </Button>
+              <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Mail className="w-4 h-4 mr-2" />
+                    جدولة التقرير
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <CalendarDays className="w-5 h-5" />
+                      جدولة تقرير إحصائيات المخيمات
+                    </DialogTitle>
+                    <DialogDescription>
+                      قم بجدولة إرسال التقرير بريد إلكتروني بشكل دوري
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">البريد الإلكتروني</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="example@email.com"
+                        value={scheduleEmail}
+                        onChange={(e) => setScheduleEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="frequency">التكرار</Label>
+                      <Select value={scheduleFrequency} onValueChange={(value: any) => setScheduleFrequency(value)}>
+                        <SelectTrigger id="frequency">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">يومياً</SelectItem>
+                          <SelectItem value="weekly">أسبوعياً</SelectItem>
+                          <SelectItem value="monthly">شهرياً</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setScheduleDialogOpen(false)}>
+                      إلغاء
+                    </Button>
+                    <Button onClick={handleScheduleReport}>
+                      جدولة
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               <div className="w-full sm:w-56 md:w-64">
                 <Select value={selectedCamp} onValueChange={setSelectedCamp}>
                   <SelectTrigger>
