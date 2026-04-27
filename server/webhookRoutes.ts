@@ -16,6 +16,125 @@ const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || "sgh_crm_webho
 // Global channel for all users to receive new message notifications
 const GLOBAL_CHANNEL = "global:whatsapp";
 
+/**
+ * Helper function to save inbound messages and publish SSE events
+ */
+async function saveInboundMessage(
+  userPhone: string,
+  content: string,
+  messageType: string,
+  whatsappMessageId?: string,
+  metadata?: string
+) {
+  try {
+    const db = await getDb();
+    if (!db) {
+      console.error("[Webhook] Database not available");
+      return;
+    }
+
+    // ensure conversation exists
+    const normalizedPhone = normalizePhoneNumber(userPhone);
+    let conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+    
+    if (!conversation) {
+      // Search for customer name from customer records
+      const customerInfo = await getCustomerInfoByPhone(normalizedPhone);
+      const customerName = customerInfo?.name || null;
+      
+      await createWhatsAppConversation({
+        phoneNumber: normalizedPhone,
+        customerName: customerName,
+        lastMessageAt: new Date(),
+        unreadCount: 1,
+        isImportant: 0,
+        isArchived: 0,
+      });
+      conversation = await getWhatsAppConversationByPhone(normalizedPhone);
+    } else if (conversation.customerName === null || conversation.customerName === 'عميل جديد') {
+      // Update old conversations with "عميل جديد" to actual customer name
+      const customerInfo = await getCustomerInfoByPhone(normalizedPhone);
+      if (customerInfo?.name) {
+        await updateWhatsAppConversation(conversation.id, {
+          customerName: customerInfo.name,
+        });
+        conversation = { ...conversation, customerName: customerInfo.name };
+      }
+    }
+
+    if (conversation) {
+      const newMessageResult = await createWhatsAppMessage({
+        conversationId: conversation.id,
+        direction: 'inbound',
+        content: content,
+        messageType: messageType,
+        status: 'received',
+        whatsappMessageId: whatsappMessageId || null,
+        sentAt: new Date(),
+        metadata: metadata || null,
+      });
+      const newMessageId = (newMessageResult as any)?.[0]?.insertId || null;
+
+      const updatedUnreadCount = (conversation.unreadCount || 0) + 1;
+      await updateWhatsAppConversation(conversation.id, {
+        lastMessage: content.substring(0, 100),
+        lastMessageAt: new Date(),
+        unreadCount: updatedUnreadCount,
+      });
+
+      // 🔔 Publish SSE: new message to conversation channel (ChatWindow listens)
+      publish(
+        channelForConversation(conversation.id),
+        'new_message',
+        {
+          id: newMessageId,
+          conversationId: conversation.id,
+          direction: 'inbound',
+          content: content,
+          messageType: messageType,
+          status: 'received',
+          whatsappMessageId: whatsappMessageId || null,
+          sentAt: new Date().toISOString(),
+          metadata: metadata || null,
+        }
+      );
+
+      // 🔔 Publish SSE: global notification for sidebar badge
+      publish(
+        GLOBAL_CHANNEL,
+        'new_inbound_message',
+        {
+          conversationId: conversation.id,
+          phoneNumber: normalizedPhone,
+          customerName: conversation.customerName,
+          content: content.substring(0, 100),
+          unreadCount: updatedUnreadCount,
+          timestamp: new Date().toISOString(),
+        }
+      );
+
+      // 🔔 Publish SSE: user-specific channel for real-time updates
+      const ownerId = parseInt(process.env.OWNER_ID || '1', 10);
+      publish(
+        channelForUser(ownerId),
+        'new_inbound_message',
+        {
+          conversationId: conversation.id,
+          phoneNumber: normalizedPhone,
+          customerName: conversation.customerName,
+          content: content.substring(0, 100),
+          unreadCount: updatedUnreadCount,
+          timestamp: new Date().toISOString(),
+        }
+      );
+
+      console.log(`[Webhook] SSE published for conversation ${conversation.id}`);
+    }
+  } catch (err) {
+    console.error('[Webhook] Failed to persist incoming message', err);
+  }
+}
+
 export function createWebhookRouter(): Router {
   const router = Router();
 
@@ -163,107 +282,61 @@ export function createWebhookRouter(): Router {
                   .where(eq(campRegistrations.id, bookingId));
                 console.log(`[Webhook] Camp registration ${bookingId} updated to ${newStatus}`);
               }
+            } else if (message.type === "interactive" && message.interactive) {
+              // معالجة الرسائل التفاعلية (قوائم، أزرار سريعة)
+              console.log(`[Webhook] Interactive message from ${userPhone}:`, JSON.stringify(message.interactive));
+              
+              const interactive = message.interactive;
+              let content = "رسالة تفاعلية";
+              let payload = null;
+
+              if (interactive.type === "button_reply" && interactive.button_reply) {
+                payload = interactive.button_reply.payload;
+                content = `رد على زر: ${interactive.button_reply.title}`;
+                console.log(`[Webhook] Button reply: ${payload} - ${interactive.button_reply.title}`);
+              } else if (interactive.type === "list_reply" && interactive.list_reply) {
+                payload = interactive.list_reply.id;
+                content = `رد على قائمة: ${interactive.list_reply.title}`;
+                console.log(`[Webhook] List reply: ${payload} - ${interactive.list_reply.title}`);
+              }
+
+              // حفظ الرسالة التفاعلية كرسالة نصية
+              await saveInboundMessage(userPhone, content, 'interactive', message.id, payload);
             } else if (message.type === "text" && message.text) {
               console.log(`[Webhook] Text message from ${userPhone}: ${message.text.body}`);
-              try {
-                // ensure conversation exists
-                const normalizedPhone = normalizePhoneNumber(userPhone);
-                let conversation = await getWhatsAppConversationByPhone(normalizedPhone);
-                
-                if (!conversation) {
-                  // Search for customer name from customer records
-                  const customerInfo = await getCustomerInfoByPhone(normalizedPhone);
-                  const customerName = customerInfo?.name || null;
-                  
-                  await createWhatsAppConversation({
-                    phoneNumber: normalizedPhone,
-                    customerName: customerName,
-                    lastMessageAt: new Date(),
-                    unreadCount: 1,
-                    isImportant: 0,
-                    isArchived: 0,
-                  });
-                  conversation = await getWhatsAppConversationByPhone(normalizedPhone);
-                } else if (conversation.customerName === null || conversation.customerName === 'عميل جديد') {
-                  // Update old conversations with "عميل جديد" to actual customer name
-                  const customerInfo = await getCustomerInfoByPhone(normalizedPhone);
-                  if (customerInfo?.name) {
-                    await updateWhatsAppConversation(conversation.id, {
-                      customerName: customerInfo.name,
-                    });
-                    conversation = { ...conversation, customerName: customerInfo.name };
-                  }
-                }
-
-                if (conversation) {
-                  const newMessageResult = await createWhatsAppMessage({
-                    conversationId: conversation.id,
-                    direction: 'inbound',
-                    content: message.text.body,
-                    messageType: 'text',
-                    status: 'received',
-                    whatsappMessageId: message.id || null,
-                    sentAt: new Date(),
-                  });
-                  const newMessageId = (newMessageResult as any)?.[0]?.insertId || null;
-
-                  const updatedUnreadCount = (conversation.unreadCount || 0) + 1;
-                  await updateWhatsAppConversation(conversation.id, {
-                    lastMessage: message.text.body.substring(0, 100),
-                    lastMessageAt: new Date(),
-                    unreadCount: updatedUnreadCount,
-                  });
-
-                  // 🔔 Publish SSE: new message to conversation channel (ChatWindow listens)
-                  publish(
-                    channelForConversation(conversation.id),
-                    'new_message',
-                    {
-                      id: newMessageId,
-                      conversationId: conversation.id,
-                      direction: 'inbound',
-                      content: message.text.body,
-                      messageType: 'text',
-                      status: 'received',
-                      whatsappMessageId: message.id || null,
-                      sentAt: new Date().toISOString(),
-                    }
-                  );
-
-                  // 🔔 Publish SSE: global notification for sidebar badge
-                  publish(
-                    GLOBAL_CHANNEL,
-                    'new_inbound_message',
-                    {
-                      conversationId: conversation.id,
-                      phoneNumber: normalizedPhone,
-                      customerName: conversation.customerName,
-                      content: message.text.body.substring(0, 100),
-                      unreadCount: updatedUnreadCount,
-                      timestamp: new Date().toISOString(),
-                    }
-                  );
-
-                  // 🔔 Publish SSE: user-specific channel for real-time updates
-                  const ownerId = parseInt(process.env.OWNER_ID || '1', 10);
-                  publish(
-                    channelForUser(ownerId),
-                    'new_inbound_message',
-                    {
-                      conversationId: conversation.id,
-                      phoneNumber: normalizedPhone,
-                      customerName: conversation.customerName,
-                      content: message.text.body.substring(0, 100),
-                      unreadCount: updatedUnreadCount,
-                      timestamp: new Date().toISOString(),
-                    }
-                  );
-
-                  console.log(`[Webhook] SSE published for conversation ${conversation.id}`);
-                }
-              } catch (err) {
-                console.error('[Webhook] Failed to persist incoming message', err);
-              }
+              await saveInboundMessage(userPhone, message.text.body, 'text', message.id);
+            } else if (message.type === "image" && message.image) {
+              console.log(`[Webhook] Image message from ${userPhone}: ${message.image.caption || '(no caption)'}`);
+              const content = message.image.caption || `📷 صورة (${message.image.mime_type})`;
+              await saveInboundMessage(userPhone, content, 'image', message.id, JSON.stringify(message.image));
+            } else if (message.type === "audio" && message.audio) {
+              console.log(`[Webhook] Audio message from ${userPhone}`);
+              await saveInboundMessage(userPhone, '🎵 رسالة صوتية', 'audio', message.id, JSON.stringify(message.audio));
+            } else if (message.type === "video" && message.video) {
+              console.log(`[Webhook] Video message from ${userPhone}: ${message.video.caption || '(no caption)'}`);
+              const content = message.video.caption || `🎥 فيديو (${message.video.mime_type})`;
+              await saveInboundMessage(userPhone, content, 'video', message.id, JSON.stringify(message.video));
+            } else if (message.type === "document" && message.document) {
+              console.log(`[Webhook] Document message from ${userPhone}: ${message.document.filename || '(no filename)'}`);
+              const content = `📄 ملف: ${message.document.filename || 'غير معروف'}`;
+              await saveInboundMessage(userPhone, content, 'document', message.id, JSON.stringify(message.document));
+            } else if (message.type === "location" && message.location) {
+              console.log(`[Webhook] Location message from ${userPhone}: ${message.location.latitude}, ${message.location.longitude}`);
+              const content = `📍 الموقع: ${message.location.latitude}, ${message.location.longitude}`;
+              await saveInboundMessage(userPhone, content, 'location', message.id, JSON.stringify(message.location));
+            } else if (message.type === "contacts" && message.contacts) {
+              console.log(`[Webhook] Contacts message from ${userPhone}: ${message.contacts.length} contacts`);
+              const content = `👥 ${message.contacts.length} جهة اتصال`;
+              await saveInboundMessage(userPhone, content, 'contacts', message.id, JSON.stringify(message.contacts));
+            } else if (message.type === "template" && message.template) {
+              console.log(`[Webhook] Template response from ${userPhone}: ${message.template.name}`);
+              const content = `رد على قالب: ${message.template.name}`;
+              await saveInboundMessage(userPhone, content, 'template', message.id, JSON.stringify(message.template));
+            } else {
+              console.warn(`[Webhook] Unsupported message type: ${message.type} from ${userPhone}`);
+              console.log(`[Webhook] Full message:`, JSON.stringify(message, null, 2));
+              // حفظ كرسالة نصية عامة
+              await saveInboundMessage(userPhone, `[نوع غير مدعوم: ${message.type}]`, 'unknown', message.id);
             }
           }
         }
