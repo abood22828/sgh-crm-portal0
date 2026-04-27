@@ -135,6 +135,18 @@ function MessageSettingsContent() {
     onError: () => toast.error("فشل استئناف المهمة"),
   });
 
+  const syncTemplatesMutation = trpc.whatsapp.templates.syncStatus.useMutation({
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success(`تم مزامنة ${result.messageTemplates.synced + result.whatsappTemplates.synced} قالب`);
+      } else {
+        toast.error("فشلت المزامنة");
+      }
+      refetch();
+    },
+    onError: () => toast.error("فشلت المزامنة"),
+  });
+
   // Handlers
   const filteredMessages = allMessages?.filter((msg: any) => msg.category === selectedCategory);
 
@@ -236,10 +248,22 @@ function MessageSettingsContent() {
             <p className="text-sm text-muted-foreground">إدارة وتخصيص جميع الرسائل التلقائية</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5">
-          <RefreshCw className="h-3.5 w-3.5" />
-          تحديث
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => syncTemplatesMutation.mutate()} 
+            disabled={syncTemplatesMutation.isPending}
+            className="gap-1.5"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${syncTemplatesMutation.isPending ? 'animate-spin' : ''}`} />
+            مزامنة القوالب
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5">
+            <RefreshCw className="h-3.5 w-3.5" />
+            تحديث
+          </Button>
+        </div>
       </div>
 
       {/* Stats Overview */}

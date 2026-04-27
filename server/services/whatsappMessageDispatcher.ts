@@ -217,7 +217,14 @@ export async function dispatchWhatsAppMessage(opts: DispatchOptions): Promise<{
           return { success: true, messageType, channel: "whatsapp_api" };
         }
         // Fallback إلى نص عادي إذا فشل القالب
-        console.error(`[WhatsApp Dispatcher] Template send failed for "${templateNameToSend}". Error: ${result.error}. Falling back to text message.`);
+        console.error(`[WhatsApp Dispatcher] Template send failed for "${templateNameToSend}"`);
+        console.error(`[WhatsApp Dispatcher] - Template ID: ${template.id}`);
+        console.error(`[WhatsApp Dispatcher] - Template status: ${template.metaStatus}`);
+        console.error(`[WhatsApp Dispatcher] - Template metaName: ${template.metaName}`);
+        console.error(`[WhatsApp Dispatcher] - Language code: ${template.languageCode}`);
+        console.error(`[WhatsApp Dispatcher] - Variables provided: ${JSON.stringify(variables)}`);
+        console.error(`[WhatsApp Dispatcher] - Error details: ${result.error}`);
+        console.error(`[WhatsApp Dispatcher] - Falling back to text message`);
       }
     }
 

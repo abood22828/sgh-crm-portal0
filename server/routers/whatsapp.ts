@@ -251,6 +251,29 @@ export const whatsappRouter = router({
       return result;
     }),
 
+    syncStatus: protectedProcedure.mutation(async () => {
+      const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+      const hasToken = !!process.env.META_ACCESS_TOKEN;
+
+      if (!phoneId) {
+        return {
+          success: false,
+          error: "WHATSAPP_PHONE_NUMBER_ID غير مُعيَّن في متغيرات البيئة",
+        };
+      }
+      if (!hasToken) {
+        return {
+          success: false,
+          error: "META_ACCESS_TOKEN غير مُعيَّن في متغيرات البيئة",
+        };
+      }
+
+      const { syncAllTemplates } = await import("../services/templateSyncService");
+      const result = await syncAllTemplates(phoneId);
+      console.log(`[syncStatus] Result:`, JSON.stringify(result));
+      return result;
+    }),
+
     create: protectedProcedure
       .input(
         z.object({
