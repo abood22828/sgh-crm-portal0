@@ -725,8 +725,8 @@ export default function CampStatsPage() {
         };
       })
       .sort((a, b) => {
-        const totalA = Object.values(a).reduce((sum: number, val) => sum + val, 0);
-        const totalB = Object.values(b).reduce((sum: number, val) => sum + val, 0);
+        const totalA = Object.values(a).reduce((sum: number, val) => sum + (typeof val === "number" ? val : Number(val) || 0), 0);
+        const totalB = Object.values(b).reduce((sum: number, val) => sum + (typeof val === "number" ? val : Number(val) || 0), 0);
         return totalB - totalA;
       })
       .slice(0, 10);

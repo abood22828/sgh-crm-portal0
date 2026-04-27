@@ -390,8 +390,8 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     sendMessageMutation.mutate({
       conversationId,
       message: messageText.trim(),
-      replyToMessageId: replyToMessage?.id ?? undefined,
-      mediaUrl,
+      replyToMessageId: replyToMessage?.id || undefined,
+      mediaUrl: mediaUrl || undefined,
       messageType,
     });
     setMessageText("");
@@ -723,15 +723,8 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
               className="h-10 w-10"
               title="تصدير المحادثة"
               onClick={handleExportConversation}
-              disabled={exportConversationMutation.isPending}
             >
-              {exportConversationMutation.isPending ? (
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeDasharray="31.4 31.4" fill="none" />
-                </svg>
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
+              <Download className="h-4 w-4" />
             </Button>
             {/* Font size buttons */}
             <div className="flex gap-1">
