@@ -7,7 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight, RefreshCw, Download, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight, RefreshCw, Download, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -210,6 +210,100 @@ export default function CampStatsPage() {
       .slice(-30); // Last 30 days
   }, [filteredRegistrations]);
 
+  // UTM Analysis
+  const utmSourceCounts = new Map<string, number>();
+  const utmMediumCounts = new Map<string, number>();
+  const utmCampaignCounts = new Map<string, number>();
+
+  filteredRegistrations.forEach((r: any) => {
+    if (r.utmSource) {
+      utmSourceCounts.set(r.utmSource, (utmSourceCounts.get(r.utmSource) || 0) + 1);
+    }
+    if (r.utmMedium) {
+      utmMediumCounts.set(r.utmMedium, (utmMediumCounts.get(r.utmMedium) || 0) + 1);
+    }
+    if (r.utmCampaign) {
+      utmCampaignCounts.set(r.utmCampaign, (utmCampaignCounts.get(r.utmCampaign) || 0) + 1);
+    }
+  });
+
+  const utmSourceData = Array.from(utmSourceCounts.entries())
+    .map(([name, value]) => ({ name, value, color: "#8B5CF6" }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10);
+
+  const utmMediumData = Array.from(utmMediumCounts.entries())
+    .map(([name, value]) => ({ name, value, color: "#EC4899" }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10);
+
+  const utmCampaignData = Array.from(utmCampaignCounts.entries())
+    .map(([name, value]) => ({ name, value, color: "#F59E0B" }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10);
+
+  // Time Metrics
+  const timeMetrics = useMemo(() => {
+    const toConfirmTimes: number[] = [];
+    const toAttendTimes: number[] = [];
+    const toCancelTimes: number[] = [];
+
+    filteredRegistrations.forEach((r: any) => {
+      if (r.createdAt && r.confirmedAt) {
+        toConfirmTimes.push(new Date(r.confirmedAt).getTime() - new Date(r.createdAt).getTime());
+      }
+      if (r.confirmedAt && r.attendedAt) {
+        toAttendTimes.push(new Date(r.attendedAt).getTime() - new Date(r.confirmedAt).getTime());
+      }
+      if (r.createdAt && r.cancelledAt) {
+        toCancelTimes.push(new Date(r.cancelledAt).getTime() - new Date(r.createdAt).getTime());
+      }
+    });
+
+    const avgToConfirm = toConfirmTimes.length > 0 
+      ? Math.round(toConfirmTimes.reduce((a, b) => a + b, 0) / toConfirmTimes.length / (1000 * 60 * 60 * 24)) 
+      : 0;
+    const avgToAttend = toAttendTimes.length > 0 
+      ? Math.round(toAttendTimes.reduce((a, b) => a + b, 0) / toAttendTimes.length / (1000 * 60 * 60 * 24)) 
+      : 0;
+    const avgToCancel = toCancelTimes.length > 0 
+      ? Math.round(toCancelTimes.reduce((a, b) => a + b, 0) / toCancelTimes.length / (1000 * 60 * 60 * 24)) 
+      : 0;
+
+    return { avgToConfirm, avgToAttend, avgToCancel };
+  }, [filteredRegistrations]);
+
+  // Campaign Performance (by campaignId)
+  const campaignPerformance = useMemo(() => {
+    const campaignMap = new Map<number, { total: number; confirmed: number; attended: number }>();
+    
+    filteredRegistrations.forEach((r: any) => {
+      if (r.campaignId) {
+        const current = campaignMap.get(r.campaignId) || { total: 0, confirmed: 0, attended: 0 };
+        current.total++;
+        if (r.status === "confirmed" || r.status === "attended" || r.status === "completed") {
+          current.confirmed++;
+        }
+        if (r.status === "attended" || r.status === "completed") {
+          current.attended++;
+        }
+        campaignMap.set(r.campaignId, current);
+      }
+    });
+
+    return Array.from(campaignMap.entries())
+      .map(([campaignId, stats]) => ({
+        campaignId,
+        total: stats.total,
+        confirmed: stats.confirmed,
+        attended: stats.attended,
+        conversionRate: stats.total > 0 ? Math.round((stats.confirmed / stats.total) * 100) : 0,
+        attendanceRate: stats.confirmed > 0 ? Math.round((stats.attended / stats.confirmed) * 100) : 0,
+      }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 10);
+  }, [filteredRegistrations]);
+
   return (
     <DashboardLayout
       pageTitle="إحصائيات المخيمات"
@@ -373,6 +467,45 @@ export default function CampStatsPage() {
           </Card>
         </div>
 
+        {/* Time Metrics KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                متوسط وقت التأكيد
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{timeMetrics.avgToConfirm} يوم</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                متوسط وقت الحضور
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{timeMetrics.avgToAttend} يوم</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                متوسط وقت الإلغاء
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{timeMetrics.avgToCancel} يوم</div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Daily Registrations Chart */}
         {dailyRegistrations.length > 0 && (
           <Card>
@@ -503,7 +636,124 @@ export default function CampStatsPage() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          {/* UTM Source Distribution */}
+          {utmSourceData.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChartIcon className="w-5 h-5" />
+                  UTM Source
+                </CardTitle>
+                <CardDescription>توزيع التسجيلات حسب مصدر UTM</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={utmSourceData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis type="number" tick={{ fill: "#6B7280" }} />
+                    <YAxis dataKey="name" type="category" width={100} tick={{ fill: "#6B7280" }} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                      itemStyle={{ color: "#F3F4F6" }}
+                    />
+                    <Legend />
+                    <Bar dataKey="value" fill="#8B5CF6" name="عدد التسجيلات" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
         </div>
+
+        {/* Charts Row 2 - UTM Medium & Campaign */}
+        {(utmMediumData.length > 0 || utmCampaignData.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {utmMediumData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChartIcon className="w-5 h-5" />
+                    UTM Medium
+                  </CardTitle>
+                  <CardDescription>توزيع التسجيلات حسب وسيلة UTM</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={utmMediumData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis type="number" tick={{ fill: "#6B7280" }} />
+                      <YAxis dataKey="name" type="category" width={100} tick={{ fill: "#6B7280" }} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                        itemStyle={{ color: "#F3F4F6" }}
+                      />
+                      <Legend />
+                      <Bar dataKey="value" fill="#EC4899" name="عدد التسجيلات" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {utmCampaignData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChartIcon className="w-5 h-5" />
+                    UTM Campaign
+                  </CardTitle>
+                  <CardDescription>أفضل حملات UTM</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={utmCampaignData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis type="number" tick={{ fill: "#6B7280" }} />
+                      <YAxis dataKey="name" type="category" width={100} tick={{ fill: "#6B7280" }} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                        itemStyle={{ color: "#F3F4F6" }}
+                      />
+                      <Legend />
+                      <Bar dataKey="value" fill="#F59E0B" name="عدد التسجيلات" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Campaign Performance */}
+        {campaignPerformance.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                أداء الحملات الإعلانية
+              </CardTitle>
+              <CardDescription>مقارنة أداء الحملات حسب التسجيلات ومعدلات التحويل</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={campaignPerformance}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="campaignId" tick={{ fill: "#6B7280" }} label={{ value: "معرف الحملة", position: "insideBottom", offset: -5, fill: "#6B7280" }} />
+                  <YAxis tick={{ fill: "#6B7280" }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                    itemStyle={{ color: "#F3F4F6" }}
+                  />
+                  <Legend />
+                  <Bar dataKey="total" fill="#3B82F6" name="إجمالي التسجيلات" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="confirmed" fill="#10B981" name="مؤكد" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="attended" fill="#8B5CF6" name="حضر" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
