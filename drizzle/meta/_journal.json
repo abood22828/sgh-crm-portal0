@@ -330,6 +330,13 @@
       "when": 1776906144486,
       "tag": "0046_hard_pandemic",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "5",
+      "when": 1777256748215,
+      "tag": "0047_concerned_tusk",
+      "breakpoints": true
     }
   ]
 }
