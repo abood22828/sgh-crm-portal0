@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Phone, Mail, Calendar, MessageSquare, Clock, MoreVertical, Loader2, AlertCircle, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Phone, Mail, Calendar, MessageSquare, Clock, MoreVertical, Loader2, AlertCircle, MessageCircle, ChevronDown, ChevronUp, Link2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import {
@@ -16,6 +16,24 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface ConversationInfoProps {
@@ -76,7 +94,11 @@ export default function ConversationInfo({
   const [editingNotes, setEditingNotes] = useState(false);
   const [editedNotes, setEditedNotes] = useState(conversation.notes || "");
 
-
+  // Link entity dialog state
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkEntityType, setLinkEntityType] = useState<"lead" | "appointment" | "offer" | "camp">("lead");
+  const [linkEntityId, setLinkEntityId] = useState<number | null>(null);
+  const [linkEntitySearch, setLinkEntitySearch] = useState("");
 
   const { data: infoData, isLoading: infoLoading } = trpc.whatsapp.conversations.getCustomerInfo.useQuery(
     { phone: conversation.phoneNumber },
@@ -110,6 +132,33 @@ export default function ConversationInfo({
     },
     onError: () => toast.error("فشل تحديث الملاحظات"),
   });
+
+  const handleLinkEntity = () => {
+    if (!linkEntityId) {
+      toast.error("يرجى اختيار كيان للربط");
+      return;
+    }
+
+    const updateData: any = {};
+    if (linkEntityType === "lead") updateData.leadId = linkEntityId;
+    else if (linkEntityType === "appointment") updateData.appointmentId = linkEntityId;
+    else if (linkEntityType === "offer") updateData.offerLeadId = linkEntityId;
+    else if (linkEntityType === "camp") updateData.campRegistrationId = linkEntityId;
+
+    updateNameMutation.mutate(
+      { conversationId: conversation.id, ...updateData },
+      {
+        onSuccess: () => {
+          toast.success("تم ربط المحادثة بالكيان");
+          setLinkDialogOpen(false);
+          setLinkEntityId(null);
+          setLinkEntitySearch("");
+          onConversationUpdate?.();
+        },
+        onError: () => toast.error("فشل ربط المحادثة"),
+      }
+    );
+  };
 
   useEffect(() => {
     if (infoData) setCustomerInfo(infoData as any);
@@ -271,6 +320,11 @@ export default function ConversationInfo({
                   أرشفة المحادثة
                 </DropdownMenuItem>
               )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setLinkDialogOpen(true)}>
+                <Link2 className="h-3.5 w-3.5 ml-2" />
+                ربط بكيان
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -297,6 +351,30 @@ export default function ConversationInfo({
           <Mail className="h-3.5 w-3.5 ml-1" />
           <span className="hidden sm:inline">بريد</span>
           <span className="sm:hidden">✉️</span>
+        </Button>
+      </div>
+
+      {/* Create Quick Actions */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 text-xs"
+          onClick={() => toast.info("ميزة إنشاء موعد قيد التطوير")}
+        >
+          <Calendar className="h-3.5 w-3.5 ml-1" />
+          <span className="hidden sm:inline">إنشاء موعد</span>
+          <span className="sm:hidden">📅</span>
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 text-xs"
+          onClick={() => toast.info("ميزة إنشاء عرض قيد التطوير")}
+        >
+          <Mail className="h-3.5 w-3.5 ml-1" />
+          <span className="hidden sm:inline">إنشاء عرض</span>
+          <span className="sm:hidden">🏥</span>
         </Button>
       </div>
 
@@ -622,6 +700,54 @@ export default function ConversationInfo({
           </Badge>
         )}
       </div>
+
+      {/* Link Entity Dialog */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>ربط المحادثة بكيان</DialogTitle>
+            <DialogDescription>
+              اختر نوع الكيان وحدد الكيان المراد ربطه
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="entity-type">نوع الكيان</Label>
+              <Select value={linkEntityType} onValueChange={(value: any) => setLinkEntityType(value)}>
+                <SelectTrigger id="entity-type">
+                  <SelectValue placeholder="اختر نوع الكيان" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lead">عميل محتمل</SelectItem>
+                  <SelectItem value="appointment">موعد طبي</SelectItem>
+                  <SelectItem value="offer">عرض طبي</SelectItem>
+                  <SelectItem value="camp">تسجيل مخيم</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="entity-search">البحث عن الكيان</Label>
+              <Input
+                id="entity-search"
+                placeholder="ابحث بالاسم أو الهاتف..."
+                value={linkEntitySearch}
+                onChange={(e) => setLinkEntitySearch(e.target.value)}
+              />
+            </div>
+            <div className="text-xs text-muted-foreground">
+              ملاحظة: هذه الميزة قيد التطوير. سيتم إضافة البحث الفعلي والربط قريباً.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button onClick={handleLinkEntity}>
+              ربط
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

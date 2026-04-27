@@ -25,7 +25,7 @@ import {
   Smartphone, Wifi, WifiOff, Loader2 as LoaderIcon, ArrowRight,
   ChevronLeft, AlertCircle, Archive, Filter, BarChart2,
   Clock, CheckCheck, MessageSquare, MoreVertical, Star,
-  RefreshCw, TrendingUp, Users, X, Bookmark, CheckSquare,
+  RefreshCw, TrendingUp, Users, X, Bookmark, CheckSquare, LayoutGrid,
 } from "lucide-react";
 import ChatWindow from "@/components/ChatWindow";
 import ConversationInfo from "@/components/ConversationInfo";
@@ -160,6 +160,9 @@ interface ConversationsListProps {
   onBulkArchive: () => void;
   onBulkMarkImportant: () => void;
   onToggleSelectionMode: () => void;
+  isSplitView: boolean;
+  secondConversationId: number | null;
+  onSelectSecondConversation: (id: number) => void;
 }
 
 const ConversationsList = memo(function ConversationsList({
@@ -198,6 +201,9 @@ const ConversationsList = memo(function ConversationsList({
   onBulkArchive,
   onBulkMarkImportant,
   onToggleSelectionMode,
+  isSplitView,
+  secondConversationId,
+  onSelectSecondConversation,
 }: ConversationsListProps) {
   return (
     <div className="flex flex-col h-full">
@@ -478,7 +484,21 @@ const ConversationsList = memo(function ConversationsList({
                     )}
                     <div className={`relative p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
                       conv.isImportant ? "bg-gradient-to-br from-yellow-400 to-orange-500" : "bg-gradient-to-br from-green-500 to-emerald-600"
-                    }`} onClick={() => onSelectConversation(conv.id)}>
+                    }`} onClick={() => {
+                      if (isSplitView) {
+                        if (selectedConversation === conv.id) {
+                          onSelectConversation(conv.id);
+                        } else if (secondConversationId === conv.id) {
+                          onSelectSecondConversation(conv.id);
+                        } else if (!secondConversationId) {
+                          onSelectSecondConversation(conv.id);
+                        } else {
+                          onSelectConversation(conv.id);
+                        }
+                      } else {
+                        onSelectConversation(conv.id);
+                      }
+                    }}>
                       <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                       {conv.isImportant === 1 && (
                         <Star className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 fill-yellow-400" />
@@ -695,6 +715,8 @@ function WhatsAppContent() {
   const [mobileShowChat, setMobileShowChat] = useState(false);
   const [selectedConversations, setSelectedConversations] = useState<Set<number>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [isSplitView, setIsSplitView] = useState(false);
+  const [secondConversationId, setSecondConversationId] = useState<number | null>(null);
 
   // Queries
   const { data: conversations, isLoading: conversationsLoading, refetch: refetchConversations } =
@@ -994,6 +1016,9 @@ function WhatsAppContent() {
     onBulkArchive: handleBulkArchive,
     onBulkMarkImportant: handleBulkMarkImportant,
     onToggleSelectionMode: () => setIsSelectionMode(!isSelectionMode),
+    isSplitView,
+    secondConversationId,
+    onSelectSecondConversation: setSecondConversationId,
   };
 
   return (
@@ -1018,6 +1043,16 @@ function WhatsAppContent() {
               >
                 <Filter className="h-3.5 w-3.5" />
                 <span className="hidden md:inline">{sidebarOpen ? "إخفاء" : "عرض"}</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-2.5"
+                onClick={() => setIsSplitView(!isSplitView)}
+                disabled={!selectedConversation}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">{isSplitView ? "إلغاء التقسيم" : "تقسيم"}</span>
               </Button>
               <Button
                 variant="outline"
@@ -1088,13 +1123,18 @@ function WhatsAppContent() {
           style={{ height: "calc(100vh - 140px)", minHeight: "400px" }}
         >
           {/* Desktop */}
-          <div className={`hidden lg:grid h-full transition-all duration-300 ${sidebarOpen ? 'lg:grid-cols-[340px_1fr_280px]' : 'lg:grid-cols-[1fr_280px]'}`}>
-            {sidebarOpen && (
+          <div className={`hidden lg:grid h-full transition-all duration-300 ${isSplitView ? 'lg:grid-cols-[340px_1fr_1fr]' : sidebarOpen ? 'lg:grid-cols-[340px_1fr_280px]' : 'lg:grid-cols-[1fr_280px]'}`}>
+            {sidebarOpen && !isSplitView && (
               <div className="border-l dark:border-gray-800 h-full overflow-hidden flex flex-col">
                 <ConversationsList {...listProps} />
               </div>
             )}
-            <div className="h-full overflow-hidden flex flex-col">
+            {isSplitView && (
+              <div className="border-l dark:border-gray-800 h-full overflow-hidden flex flex-col">
+                <ConversationsList {...listProps} />
+              </div>
+            )}
+            <div className="h-full overflow-hidden flex flex-col border-l dark:border-gray-800">
               {selectedConversation ? (
                 <>
                   <ChatAreaHeader
@@ -1110,15 +1150,36 @@ function WhatsAppContent() {
                 <EmptyChatPlaceholder />
               )}
             </div>
-            <div className="h-full overflow-y-auto border-l dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-              {selectedConv ? (
-                <ConversationInfo conversation={selectedConv} onConversationUpdate={handleConversationUpdate} />
-              ) : (
-                <div className="p-4 text-center text-muted-foreground text-sm">
-                  اختر محادثة لعرض التفاصيل
-                </div>
-              )}
-            </div>
+            {isSplitView ? (
+              <div className="h-full overflow-hidden flex flex-col">
+                {secondConversationId ? (
+                  <>
+                    <ChatAreaHeader
+                      selectedConv={conversations?.find(c => c.id === secondConversationId)}
+                      onBackToList={() => setSecondConversationId(null)}
+                      onToggleImportant={(id) => handleToggleImportant(id)}
+                    />
+                    <div className="flex-1 overflow-hidden">
+                      <ChatWindow conversationId={secondConversationId} lastMessageAt={conversations?.find(c => c.id === secondConversationId)?.lastMessageAt} onConversationUpdate={handleConversationUpdate} phone={conversations?.find(c => c.id === secondConversationId)?.phoneNumber} />
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-4 text-center text-muted-foreground text-sm flex items-center justify-center h-full">
+                    اختر محادثة ثانية من القائمة
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="h-full overflow-y-auto border-l dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+                {selectedConv ? (
+                  <ConversationInfo conversation={selectedConv} onConversationUpdate={handleConversationUpdate} />
+                ) : (
+                  <div className="p-4 text-center text-muted-foreground text-sm">
+                    اختر محادثة لعرض التفاصيل
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Mobile */}

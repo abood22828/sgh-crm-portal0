@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { CheckCheck, Clock, XCircle, ChevronDown, Image, FileText, Music, Video, MapPin, Users, MessageSquare, User, MoreVertical, Reply, Trash2, Forward, Download, Paperclip, Calendar } from "lucide-react";
+import { CheckCheck, Clock, XCircle, ChevronDown, Image, FileText, Music, Video, MapPin, Users, MessageSquare, User, MoreVertical, Reply, Trash2, Forward, Download, Paperclip, Calendar, Plus, Minus, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -79,6 +79,40 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [scheduledMessage, setScheduledMessage] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
+
+  // Track message font size
+  const [messageFontSize, setMessageFontSize] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('whatsapp-message-font-size');
+      return saved ? parseInt(saved, 10) : 14;
+    }
+    return 14;
+  });
+
+  const handleFontSizeChange = useCallback((delta: number) => {
+    setMessageFontSize(prev => {
+      const newSize = Math.max(12, Math.min(20, prev + delta));
+      localStorage.setItem('whatsapp-message-font-size', newSize.toString());
+      return newSize;
+    });
+  }, []);
+
+  // Track night mode
+  const [isNightMode, setIsNightMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('whatsapp-night-mode');
+      return saved === 'true';
+    }
+    return false;
+  });
+
+  const handleToggleNightMode = useCallback(() => {
+    setIsNightMode(prev => {
+      const newValue = !prev;
+      localStorage.setItem('whatsapp-night-mode', newValue.toString());
+      return newValue;
+    });
+  }, []);
 
   const outsideWindow = isOutsideWindow(localLastMessageAt ?? lastMessageAt);
 
@@ -467,7 +501,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
 
   return (
     <div className="flex flex-col h-full" dir="rtl">
-      <div className="flex-1 overflow-y-auto p-4 bg-[#e5ddd5] dark:bg-gray-900/50">
+      <div className={`flex-1 overflow-y-auto p-4 ${isNightMode ? 'bg-gray-900' : 'bg-[#e5ddd5] dark:bg-gray-900/50'}`}>
         {(!localMessages || localMessages.length === 0) ? (
           <div className="text-center text-muted-foreground py-12">
             <div className="bg-green-100 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
@@ -519,7 +553,7 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
                         <span className="text-[10px] uppercase font-medium">{msg.messageType}</span>
                       </div>
                     )}
-                    <div className="whitespace-pre-wrap break-words text-sm sm:text-base leading-relaxed">{msg.content}</div>
+                    <div className="whitespace-pre-wrap break-words leading-relaxed" style={{ fontSize: `${messageFontSize}px` }}>{msg.content}</div>
                     <div className={`flex items-center justify-between mt-1 text-[10px] sm:text-xs ${isOutbound ? "text-muted-foreground" : "text-white/80"}`}>
                       <span>{new Date(msg.sentAt || msg.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}</span>
                       <div className="flex items-center gap-1">
@@ -732,6 +766,39 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
               ) : (
                 <Download className="h-4 w-4" />
               )}
+            </Button>
+            {/* Font size buttons */}
+            <div className="flex gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10"
+                title="تصغير الخط"
+                onClick={() => handleFontSizeChange(-1)}
+                disabled={messageFontSize <= 12}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10"
+                title="تكبير الخط"
+                onClick={() => handleFontSizeChange(1)}
+                disabled={messageFontSize >= 20}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {/* Night mode button */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10"
+              title={isNightMode ? "الوضع الفاتح" : "الوضع الليلي"}
+              onClick={handleToggleNightMode}
+            >
+              {isNightMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
             {/* Quick Replies button */}
             <DropdownMenu>
