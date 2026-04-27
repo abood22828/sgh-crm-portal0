@@ -25,7 +25,7 @@ import {
   Smartphone, Wifi, WifiOff, Loader2 as LoaderIcon, ArrowRight,
   ChevronLeft, AlertCircle, Archive, Filter, BarChart2,
   Clock, CheckCheck, MessageSquare, MoreVertical, Star,
-  RefreshCw, TrendingUp, Users, X,
+  RefreshCw, TrendingUp, Users, X, Bookmark,
 } from "lucide-react";
 import ChatWindow from "@/components/ChatWindow";
 import ConversationInfo from "@/components/ConversationInfo";
@@ -151,6 +151,7 @@ interface ConversationsListProps {
   onToggleImportant: (id: number) => void;
   onAssignConversation: (id: number, userId: number) => void;
   activeUsers: User[] | undefined;
+  onSaveSearchClick?: () => void;
 }
 
 const ConversationsList = memo(function ConversationsList({
@@ -180,6 +181,7 @@ const ConversationsList = memo(function ConversationsList({
   onToggleImportant,
   onAssignConversation,
   activeUsers,
+  onSaveSearchClick,
 }: ConversationsListProps) {
   return (
     <div className="flex flex-col h-full">
@@ -303,6 +305,15 @@ const ConversationsList = memo(function ConversationsList({
               <X className="h-3.5 w-3.5" />
             </button>
           )}
+          {searchQuery && onSaveSearchClick && (
+            <button
+              onClick={onSaveSearchClick}
+              className="absolute left-8 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+              title="حفظ البحث"
+            >
+              <Bookmark className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -331,6 +342,32 @@ const ConversationsList = memo(function ConversationsList({
       <div className="px-2 pt-2">
         <StatsBar conversations={allConversations} />
       </div>
+
+      {/* Saved Searches */}
+      {savedSearches && savedSearches.length > 0 && (
+        <div className="px-2 pt-1 pb-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-6 text-xs text-white/80 hover:text-white hover:bg-white/10 w-full justify-start gap-2">
+                <Bookmark className="h-3 w-3" />
+                البحثات المحفوظة
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              {savedSearches.map((search: any) => (
+                <DropdownMenuItem
+                  key={search.id}
+                  onClick={() => handleApplySavedSearch(search)}
+                  className="flex flex-col items-start gap-1 py-2"
+                >
+                  <span className="font-medium text-xs">{search.name}</span>
+                  <span className="text-[10px] text-muted-foreground line-clamp-1">{search.query}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
 
       {/* List */}
       <ScrollArea className="flex-1 overflow-hidden">
@@ -558,6 +595,11 @@ function WhatsAppContent() {
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [dateFilter, setDateFilter] = useState<"all" | "today" | "week" | "month">("all");
+  const [messageTypeFilter, setMessageTypeFilter] = useState<"all" | "text" | "image" | "template">("all");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [saveSearchOpen, setSaveSearchOpen] = useState(false);
+  const [searchName, setSearchName] = useState("");
   const [newMessagePhone, setNewMessagePhone] = useState("");
   const [newMessageText, setNewMessageText] = useState("");
   const [newMessageTemplateId, setNewMessageTemplateId] = useState<number | null>(null);
@@ -574,6 +616,7 @@ function WhatsAppContent() {
     refetchOnWindowFocus: false,
   });
   const { data: activeUsers } = trpc.users.getActiveUsers.useQuery();
+  const { data: savedSearches } = trpc.whatsapp.savedSearches.list.useQuery();
 
   // Mutations
   const markConversationAsReadMutation = trpc.whatsapp.conversations.markAsRead.useMutation();
@@ -585,10 +628,19 @@ function WhatsAppContent() {
 
   const assignConversationMutation = trpc.whatsapp.conversations.assignToUser.useMutation({
     onSuccess: () => {
-      toast.success("تم تعيين المحادثة بنجاح");
+      toast.success("تم تعيين المحادثة");
       refetchConversations();
     },
     onError: () => toast.error("فشل تعيين المحادثة"),
+  });
+
+  const saveSearchMutation = trpc.whatsapp.savedSearches.create.useMutation({
+    onSuccess: () => {
+      toast.success("تم حفظ البحث");
+      setSaveSearchOpen(false);
+      setSearchName("");
+    },
+    onError: () => toast.error("فشل حفظ البحث"),
   });
 
   const sendNewMessageMutation = trpc.whatsapp.messages.send.useMutation({
@@ -641,6 +693,31 @@ function WhatsAppContent() {
     assignConversationMutation.mutate({ id, userId });
   }, [assignConversationMutation]);
 
+  const handleSaveSearch = useCallback(() => {
+    if (!searchName.trim()) {
+      toast.error("يرجى إدخال اسم للبحث");
+      return;
+    }
+    if (!searchQuery.trim()) {
+      toast.error("يرجى إدخال نص البحث");
+      return;
+    }
+    saveSearchMutation.mutate({
+      name: searchName,
+      query: searchQuery,
+      filter: activeFilter,
+      dateFilter,
+      messageTypeFilter,
+    });
+  }, [searchName, searchQuery, activeFilter, dateFilter, messageTypeFilter, saveSearchMutation]);
+
+  const handleApplySavedSearch = useCallback((savedSearch: any) => {
+    setSearchQuery(savedSearch.query);
+    setActiveFilter(savedSearch.filter);
+    setDateFilter(savedSearch.dateFilter || "all");
+    setMessageTypeFilter(savedSearch.messageTypeFilter || "all");
+  }, []);
+
   const handleSendNewMessage = useCallback(() => {
     if (!newMessagePhone.trim()) { toast.error("يرجى إدخال رقم الهاتف"); return; }
     if (newMessageTemplateId) {
@@ -689,6 +766,32 @@ function WhatsAppContent() {
       default: result = result.filter(c => !c.isArchived); break;
     }
 
+    // Apply date filter
+    if (dateFilter !== "all") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      result = result.filter(c => {
+        if (!c.lastMessageAt) return false;
+        const lastMsgDate = new Date(c.lastMessageAt);
+        switch (dateFilter) {
+          case "today": return lastMsgDate >= today;
+          case "week": return lastMsgDate >= weekAgo;
+          case "month": return lastMsgDate >= monthAgo;
+          default: return true;
+        }
+      });
+    }
+
+    // Apply message type filter (simplified - would need last message type from API)
+    // For now, this is a placeholder that would need backend support
+    if (messageTypeFilter !== "all") {
+      // This would require the API to return lastMessageType
+      // result = result.filter(c => c.lastMessageType === messageTypeFilter);
+    }
+
     // Apply search
     if (searchQuery) {
       result = result.filter(c =>
@@ -705,7 +808,7 @@ function WhatsAppContent() {
       const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
       return bTime - aTime;
     });
-  }, [conversations, activeFilter, searchQuery]);
+  }, [conversations, activeFilter, searchQuery, dateFilter, messageTypeFilter]);
 
   const selectedConv = conversations?.find((c: Conversation) => c.id === selectedConversation);
   const isSendingNewMessage = sendNewMessageMutation.isPending || sendTemplateMutation.isPending;
@@ -737,6 +840,7 @@ function WhatsAppContent() {
     onToggleImportant: handleToggleImportant,
     onAssignConversation: handleAssignConversation,
     activeUsers,
+    onSaveSearchClick: () => setSaveSearchOpen(true),
   };
 
   return (
@@ -753,6 +857,15 @@ function WhatsAppContent() {
               <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground hidden xs:block">تواصل مع العملاء عبر واتساب بيزنس</p>
             </div>
             <div className="flex gap-1 sm:gap-2 items-center flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-2.5"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+              >
+                <Filter className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">{sidebarOpen ? "إخفاء" : "عرض"}</span>
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -784,16 +897,50 @@ function WhatsAppContent() {
           </div>
         </div>
 
+        {/* Save Search Dialog */}
+        <Dialog open={saveSearchOpen} onOpenChange={setSaveSearchOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>حفظ البحث</DialogTitle>
+              <DialogDescription>احفظ البحث الحالي لاستخدامه لاحقاً</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="search-name">اسم البحث</Label>
+                <Input
+                  id="search-name"
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  placeholder="مثال: عملاء غير مقروءين"
+                  dir="rtl"
+                />
+              </div>
+              <div>
+                <Label>نص البحث</Label>
+                <p className="text-sm text-muted-foreground mt-1">{searchQuery}</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSaveSearchOpen(false)}>إلغاء</Button>
+              <Button onClick={handleSaveSearch} disabled={saveSearchMutation.isPending}>
+                {saveSearchMutation.isPending ? "جاري الحفظ..." : "حفظ"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Main Chat Layout */}
         <div
           className="bg-white dark:bg-gray-900 rounded-xl shadow-xl overflow-hidden border dark:border-gray-800"
           style={{ height: "calc(100vh - 140px)", minHeight: "400px" }}
         >
           {/* Desktop */}
-          <div className="hidden lg:grid lg:grid-cols-[340px_1fr_280px] h-full">
-            <div className="border-l dark:border-gray-800 h-full overflow-hidden flex flex-col">
-              <ConversationsList {...listProps} />
-            </div>
+          <div className={`hidden lg:grid h-full transition-all duration-300 ${sidebarOpen ? 'lg:grid-cols-[340px_1fr_280px]' : 'lg:grid-cols-[1fr_280px]'}`}>
+            {sidebarOpen && (
+              <div className="border-l dark:border-gray-800 h-full overflow-hidden flex flex-col">
+                <ConversationsList {...listProps} />
+              </div>
+            )}
             <div className="h-full overflow-hidden flex flex-col">
               {selectedConversation ? (
                 <>
@@ -812,7 +959,7 @@ function WhatsAppContent() {
             </div>
             <div className="h-full overflow-y-auto border-l dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
               {selectedConv ? (
-                <ConversationInfo conversation={selectedConv} />
+                <ConversationInfo conversation={selectedConv} onConversationUpdate={handleConversationUpdate} />
               ) : (
                 <div className="p-4 text-center text-muted-foreground text-sm">
                   اختر محادثة لعرض التفاصيل
