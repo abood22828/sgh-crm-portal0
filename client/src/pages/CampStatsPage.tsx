@@ -10,11 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight, RefreshCw, Download, Calendar as CalendarIcon, Clock, Mail, CalendarDays } from "lucide-react";
+import { Loader2, TrendingUp, Users, Calendar, Activity, PieChart as PieChartIcon, ArrowRight, RefreshCw, Download, Calendar as CalendarIcon, Clock, Mail, CalendarDays, Printer } from "lucide-react";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, ScatterChart, Scatter, ZAxis } from "recharts";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function CampStatsPage() {
   const [, setLocation] = useLocation();
@@ -30,6 +33,7 @@ export default function CampStatsPage() {
     { refetchInterval: autoRefresh ? 60000 : false }
   );
   const scheduleReportMutation = trpc.campRegistrations.scheduleReport.useMutation();
+  const { user } = useAuth();
 
   if (campsLoading || registrationsLoading) {
     return (
@@ -117,6 +121,344 @@ export default function CampStatsPage() {
     } catch (error) {
       toast.error("حدث خطأ أثناء جدولة التقرير");
     }
+  };
+
+  const handlePrintReport = () => {
+    const printWindow = window.open("", "_blank", "width=800,height=1200");
+    
+    if (!printWindow) {
+      toast.error("تعذر فتح نافذة الطباعة. الرجاء السماح بالنوافذ المنبثقة.");
+      return;
+    }
+
+    const campName = selectedCamp === "all" ? "جميع المخيمات" : camps?.find((c: any) => c.id.toString() === selectedCamp)?.name || "غير محدد";
+    const printDate = new Date();
+    const userName = user?.name || "غير محدد";
+
+    const reportHTML = `
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>تقرير إحصائيات المخيمات</title>
+        <style>
+          @media print {
+            @page {
+              size: A4;
+              margin: 10mm;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+          
+          body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+          }
+          
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #00a651;
+          }
+          
+          .header img {
+            height: 50px;
+            max-width: 150px;
+            object-fit: contain;
+          }
+          
+          .header .phone {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00a651;
+          }
+          
+          .report-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+          }
+          
+          .report-subtitle {
+            text-align: center;
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+          }
+          
+          .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+          }
+          
+          .stat-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+          }
+          
+          .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+          }
+          
+          .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+          }
+          
+          .section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+          }
+          
+          .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #00a651;
+            padding-bottom: 8px;
+          }
+          
+          .chart-placeholder {
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+          }
+          
+          .chart-placeholder-text {
+            font-size: 14px;
+            color: #666;
+          }
+          
+          .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+          }
+          
+          .data-table th,
+          .data-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: right;
+          }
+          
+          .data-table th {
+            background-color: #00a651;
+            color: white;
+            font-weight: bold;
+          }
+          
+          .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+          
+          .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #00a651;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          
+          .slogan {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0088cc;
+          }
+          
+          .meta {
+            font-size: 12px;
+            color: #666;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <img src="/sgh-logo-full.png" alt="المستشفى السعودي الألماني">
+          <div class="phone">8000018</div>
+        </div>
+        
+        <div class="report-title">تقرير إحصائيات المخيمات</div>
+        <div class="report-subtitle">${campName} - ${format(printDate, "dd/MM/yyyy HH:mm", { locale: ar })}</div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">إجمالي التسجيلات</div>
+            <div class="stat-value">${totalRegistrations}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">قيد الانتظار</div>
+            <div class="stat-value">${pendingCount}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">مؤكد</div>
+            <div class="stat-value">${confirmedCount}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">حضر</div>
+            <div class="stat-value">${attendedCount}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">مكتمل</div>
+            <div class="stat-value">${completedCount}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">ملغي</div>
+            <div class="stat-value">${cancelledCount}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">معدل الحضور</div>
+            <div class="stat-value">${attendanceRate}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">معدل الإلغاء</div>
+            <div class="stat-value">${cancellationRate}%</div>
+          </div>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">توزيع الحالات</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>الحالة</th>
+                <th>العدد</th>
+                <th>النسبة</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${statusData.map(item => {
+                const percentage = totalRegistrations > 0 ? Math.round((item.value / totalRegistrations) * 100) : 0;
+                return `
+                  <tr>
+                    <td>${item.name}</td>
+                    <td>${item.value}</td>
+                    <td>${percentage}%</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">توزيع الأعمار</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>الفئة العمرية</th>
+                <th>العدد</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ageData.map(item => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.value}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">توزيع الجنس</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>الجنس</th>
+                <th>العدد</th>
+                <th>النسبة</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${genderData.map(item => {
+                const total = genderData.reduce((sum, g) => sum + g.value, 0);
+                const percentage = total > 0 ? Math.round((item.value / total) * 100) : 0;
+                return `
+                  <tr>
+                    <td>${item.name}</td>
+                    <td>${item.value}</td>
+                    <td>${percentage}%</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">مقاييس الوقت</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>المقياس</th>
+                <th>القيمة</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>متوسط وقت التأكيد</td>
+                <td>${timeMetrics.avgToConfirm} يوم</td>
+              </tr>
+              <tr>
+                <td>متوسط وقت الحضور</td>
+                <td>${timeMetrics.avgToAttend} يوم</td>
+              </tr>
+              <tr>
+                <td>متوسط وقت الإلغاء</td>
+                <td>${timeMetrics.avgToCancel} يوم</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="footer">
+          <div class="slogan">نرعاكم كأهالينا</div>
+          <div class="meta">
+            <div>المستخدم: ${userName}</div>
+            <div>${format(printDate, "dd/MM/yyyy HH:mm", { locale: ar })}</div>
+          </div>
+        </div>
+        
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(() => window.close(), 1000);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(reportHTML);
+    printWindow.document.close();
   };
 
   // Status distribution for pie chart
@@ -485,6 +827,10 @@ export default function CampStatsPage() {
               <Button variant="outline" size="sm" onClick={handleExport}>
                 <Download className="w-4 h-4 mr-2" />
                 تصدير
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePrintReport}>
+                <Printer className="w-4 h-4 mr-2" />
+                طباعة
               </Button>
               <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
                 <DialogTrigger asChild>
