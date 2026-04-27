@@ -16,6 +16,34 @@ import {
 import { normalizePhoneNumber } from "../db";
 // whatsappBot removed — using sendWhatsAppTextMessage (Cloud API) directly
 
+// Simple in-memory rate limiter for manual messages
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute window
+const RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 messages per minute per user
+
+function checkRateLimit(userId: number): { allowed: boolean; remaining: number; resetTime: number } {
+  const now = Date.now();
+  const key = `user:${userId}`;
+  const entry = rateLimitStore.get(key);
+
+  if (!entry || now > entry.resetTime) {
+    // Create new entry or reset expired one
+    rateLimitStore.set(key, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW,
+    });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetTime: now + RATE_LIMIT_WINDOW };
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetTime: entry.resetTime };
+  }
+
+  entry.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetTime: entry.resetTime };
+}
+
 export const whatsappRouter = router({
   // WhatsApp Cloud API Status
   connection: router({
@@ -129,6 +157,13 @@ export const whatsappRouter = router({
       )
       .mutation(async ({ input, ctx }) => {
         try {
+          // Rate limiting check
+          const rateLimit = checkRateLimit(ctx.user.id);
+          if (!rateLimit.allowed) {
+            const resetInSeconds = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+            throw new Error(`Rate limit exceeded. Please wait ${resetInSeconds} seconds before sending more messages.`);
+          }
+
           const conv = await db.getWhatsAppConversationById(input.conversationId);
           if (!conv) throw new Error("Conversation not found");
 
@@ -167,7 +202,7 @@ export const whatsappRouter = router({
             });
           }
 
-          return result;
+          return { ...result, rateLimit };
         } catch (error: any) {
           console.error("[WhatsApp] Failed to send message:", error);
           throw new Error(error.message || "Failed to send message");

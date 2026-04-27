@@ -3,15 +3,9 @@
  * لوحة تحكم تحليلات WhatsApp
  */
 
-import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  BarChart,
-  Bar,
   LineChart,
   Line,
   XAxis,
@@ -24,99 +18,12 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { MessageCircle, Send, Settings, TrendingUp, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
+import { MessageCircle, TrendingUp } from "lucide-react";
 
 export default function WhatsAppAnalytics() {
-  const [broadcastMessage, setBroadcastMessage] = useState("");
-  const [broadcastRecipients, setBroadcastRecipients] = useState("");
-  const [autoReplyTrigger, setAutoReplyTrigger] = useState("");
-  const [autoReplyResponse, setAutoReplyResponse] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
   // Queries
   const broadcastStatsQuery = trpc.whatsapp.getBroadcastStats.useQuery();
   const autoReplyRulesQuery = trpc.whatsapp.getAutoReplyRules.useQuery();
-
-  // Mutations
-  const sendBroadcastMutation = trpc.whatsapp.sendBroadcast.useMutation();
-  const addAutoReplyMutation = trpc.whatsapp.addAutoReplyRule.useMutation();
-  const deleteAutoReplyMutation = trpc.whatsapp.deleteAutoReplyRule.useMutation();
-
-  const handleSendBroadcast = async () => {
-    if (!broadcastMessage || !broadcastRecipients) {
-      toast.error("يرجى إدخال الرسالة والمستقبلين");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const recipients = broadcastRecipients
-        .split("\n")
-        .map((r) => r.trim())
-        .filter((r) => r.length > 0);
-
-      const result = await sendBroadcastMutation.mutateAsync({
-        message: broadcastMessage,
-        recipients,
-        priority: "normal",
-      });
-
-      if (result.success) {
-        toast.success(`تم إرسال البث إلى ${recipients.length} مستقبل`);
-        setBroadcastMessage("");
-        setBroadcastRecipients("");
-      } else {
-        toast.error(result.error || "فشل إرسال البث");
-      }
-    } catch (error) {
-      toast.error("حدث خطأ أثناء إرسال البث");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAddAutoReply = async () => {
-    if (!autoReplyTrigger || !autoReplyResponse) {
-      toast.error("يرجى إدخال المحفز والرد");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const result = await addAutoReplyMutation.mutateAsync({
-        name: autoReplyTrigger,
-        triggerType: "keyword" as const,
-        triggerValue: autoReplyTrigger,
-        replyMessage: autoReplyResponse,
-      });
-
-      if (result.success) {
-        toast.success("تم إضافة قاعدة الرد التلقائي");
-        setAutoReplyTrigger("");
-        setAutoReplyResponse("");
-        autoReplyRulesQuery.refetch();
-      } else {
-        toast.error(result.error || "فشل إضافة القاعدة");
-      }
-    } catch (error) {
-      toast.error("حدث خطأ أثناء إضافة القاعدة");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteAutoReply = async (ruleId: number) => {
-    try {
-      const result = await deleteAutoReplyMutation.mutateAsync({ ruleId });
-      if (result.success) {
-        toast.success("تم حذف القاعدة");
-        autoReplyRulesQuery.refetch();
-      }
-    } catch (error) {
-      toast.error("فشل حذف القاعدة");
-    }
-  };
 
   // Sample data for charts
   const messageStats = [
@@ -260,107 +167,6 @@ export default function WhatsAppAnalytics() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Broadcast Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Send className="w-5 h-5" />
-            إرسال بث جماعي
-          </CardTitle>
-          <CardDescription>إرسال رسالة إلى عدة مستقبلين في نفس الوقت</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">الرسالة</label>
-            <Textarea
-              placeholder="أدخل الرسالة..."
-              value={broadcastMessage}
-              onChange={(e) => setBroadcastMessage(e.target.value)}
-              className="mt-1"
-              rows={3}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">المستقبلون (واحد في كل سطر)</label>
-            <Textarea
-              placeholder="967777165305&#10;967777165306&#10;967777165307"
-              value={broadcastRecipients}
-              onChange={(e) => setBroadcastRecipients(e.target.value)}
-              className="mt-1"
-              rows={4}
-            />
-          </div>
-
-          <Button onClick={handleSendBroadcast} disabled={isLoading} className="w-full">
-            {isLoading ? "جاري الإرسال..." : "إرسال البث"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Auto Reply Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            قواعس الرد التلقائي
-          </CardTitle>
-          <CardDescription>إضافة قواعس للرد التلقائي على الرسائل الواردة</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium">المحفز (الكلمة المفتاحية)</label>
-              <Input
-                placeholder="مثال: مرحبا"
-                value={autoReplyTrigger}
-                onChange={(e) => setAutoReplyTrigger(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">الرد</label>
-              <Input
-                placeholder="مثال: أهلا وسهلا"
-                value={autoReplyResponse}
-                onChange={(e) => setAutoReplyResponse(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-          </div>
-
-          <Button onClick={handleAddAutoReply} disabled={isLoading} className="w-full">
-            {isLoading ? "جاري الإضافة..." : "إضافة قاعدة"}
-          </Button>
-
-          {/* Rules List */}
-          {autoReplyRulesQuery.data?.rules && autoReplyRulesQuery.data.rules.length > 0 && (
-            <div className="mt-6 space-y-2">
-              <h3 className="font-semibold">القواعس النشطة:</h3>
-              {autoReplyRulesQuery.data.rules.map((rule) => (
-                <div
-                  key={rule.id}
-                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-sm">{rule.triggerValue || rule.triggerType}</p>
-                    <p className="text-xs text-muted-foreground">{rule.replyMessage}</p>
-                  </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteAutoReply(rule.id)}
-                  >
-                    حذف
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
