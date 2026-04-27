@@ -38,6 +38,15 @@ import {
   Sun,
   Moon,
   Cloud,
+  Shield,
+  Database,
+  TrendingUp,
+  Smartphone,
+  Radio,
+  FolderKanban,
+  PieChart,
+  User,
+  Gauge,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
@@ -197,12 +206,14 @@ const allToolsGroups: NavGroup[] = [
     icon: ClipboardList,
     defaultOpen: true,
     items: [
+      { id: "bookings", title: "الحجوزات", href: "/dashboard/bookings", icon: FolderKanban },
       { id: "leads", title: "العملاء المحتملين", href: "/dashboard/bookings/leads", icon: UserCheck },
       { id: "appointments", title: "مواعيد الأطباء", href: "/dashboard/bookings/appointments", icon: Calendar },
       { id: "offer-leads", title: "عروض العملاء", href: "/dashboard/bookings/offer-leads", icon: Gift },
       { id: "camp-registrations", title: "تسجيلات المخيمات", href: "/dashboard/bookings/camp-registrations", icon: Tent },
       { id: "customers", title: "ملفات العملاء", href: "/dashboard/bookings/customers", icon: Contact },
       { id: "tasks", title: "المهام", href: "/dashboard/bookings/tasks", icon: CheckSquare },
+      { id: "camp-stats", title: "إحصائيات المخيمات", href: "/dashboard/camp-stats", icon: Database },
     ],
   },
   {
@@ -222,9 +233,13 @@ const allToolsGroups: NavGroup[] = [
       { id: "whatsapp-templates", title: "قوالب واتساب", href: "/dashboard/whatsapp/templates", icon: FileText },
       { id: "whatsapp-connection", title: "اتصال واتساب", href: "/dashboard/whatsapp/connection", icon: Cloud },
       { id: "whatsapp-auto-reply", title: "الردود التلقائية", href: "/dashboard/whatsapp/auto-reply", icon: SettingsIcon },
+      { id: "whatsapp-analytics", title: "تحليلات واتساب", href: "/dashboard/whatsapp/analytics", icon: TrendingUp },
+      { id: "whatsapp-broadcast", title: "بث واتساب", href: "/dashboard/whatsapp/broadcast", icon: Radio },
+      { id: "whatsapp-compliance", title: "الامتثال والأمان", href: "/dashboard/whatsapp/compliance", icon: Shield },
+      { id: "whatsapp-appointments", title: "سجل الإشعارات", href: "/dashboard/whatsapp/appointments", icon: Smartphone },
+      { id: "whatsapp-integration", title: "تكامل واتساب", href: "/dashboard/whatsapp/integration", icon: Cloud },
       { id: "messages", title: "الرسائل", href: "/dashboard/messages", icon: MessageSquare },
       { id: "message-settings", title: "إعدادات الرسائل", href: "/dashboard/message-settings", icon: SettingsIcon },
-      { id: "queue", title: "طوابير الرسائل", href: "/dashboard/queue", icon: SettingsIcon },
     ],
   },
   {
@@ -243,15 +258,21 @@ const allToolsGroups: NavGroup[] = [
     items: [
       { id: "reports", title: "التقارير", href: "/dashboard/reports", icon: FileText },
       { id: "analytics", title: "التحليلات", href: "/dashboard/analytics", icon: BarChart3 },
+      { id: "bi", title: "تحليلات الأعمال", href: "/dashboard/bi", icon: PieChart },
+      { id: "pwa-stats", title: "إحصائيات PWA", href: "/dashboard/pwa-stats", icon: Gauge },
     ],
   },
   {
     label: "الإدارة العامة",
     icon: SettingsIcon,
     items: [
+      { id: "profile", title: "الملف الشخصي", href: "/dashboard/profile", icon: User },
       { id: "users", title: "المستخدمين", href: "/dashboard/users", icon: Users },
       { id: "campaigns", title: "الحملات والمشاريع", href: "/dashboard/campaigns", icon: Target },
+      { id: "projects", title: "المشاريع", href: "/dashboard/projects", icon: FolderKanban },
       { id: "review-approval", title: "المراجعة والاعتماد", href: "/dashboard/review-approval", icon: CheckSquare },
+      { id: "tracking-settings", title: "إعدادات التتبع", href: "/dashboard/tracking-settings", icon: SettingsIcon },
+      { id: "settings", title: "الإعدادات", href: "/dashboard/settings", icon: SettingsIcon },
     ],
   },
 ];
