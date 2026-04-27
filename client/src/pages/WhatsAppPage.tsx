@@ -465,6 +465,7 @@ const ConversationsList = memo(function ConversationsList({
                   className={`group relative p-3 sm:p-4 cursor-pointer transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 active:bg-green-100 ${
                     selectedConversation === conv.id ? "bg-green-100 dark:bg-green-900/30 border-r-4 border-green-600" : ""
                   } ${conv.isArchived ? "opacity-60" : ""}`}
+                  onClick={() => onSelectConversation(conv.id)}
                 >
                   <div className="flex items-center gap-2.5 sm:gap-3">
                     {isSelectionMode && (
@@ -488,21 +489,7 @@ const ConversationsList = memo(function ConversationsList({
                     )}
                     <div className={`relative p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
                       conv.isImportant ? "bg-gradient-to-br from-yellow-400 to-orange-500" : "bg-gradient-to-br from-green-500 to-emerald-600"
-                    }`} onClick={() => {
-                      if (isSplitView) {
-                        if (selectedConversation === conv.id) {
-                          onSelectConversation(conv.id);
-                        } else if (secondConversationId === conv.id) {
-                          onSelectSecondConversation(conv.id);
-                        } else if (!secondConversationId) {
-                          onSelectSecondConversation(conv.id);
-                        } else {
-                          onSelectConversation(conv.id);
-                        }
-                      } else {
-                        onSelectConversation(conv.id);
-                      }
-                    }}>
+                    }`}>
                       <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                       {conv.isImportant === 1 && (
                         <Star className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 fill-yellow-400" />
