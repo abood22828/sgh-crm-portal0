@@ -154,6 +154,95 @@ export const whatsappRouter = router({
           notes: input.notes,
         });
       }),
+
+    updateName: protectedProcedure
+      .input(z.object({ id: z.number(), customerName: z.string() }))
+      .mutation(async ({ input }) => {
+        return await db.updateWhatsAppConversation(input.id, {
+          customerName: input.customerName,
+        });
+      }),
+
+    bulkArchive: protectedProcedure
+      .input(z.object({ ids: z.array(z.number()) }))
+      .mutation(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        
+        const { whatsappConversations } = await import("../../drizzle/schema");
+        const { eq, inArray } = await import("drizzle-orm");
+        
+        await dbConn
+          .update(whatsappConversations)
+          .set({ isArchived: 1, updatedAt: new Date() })
+          .where(inArray(whatsappConversations.id, input.ids));
+        
+        return { success: true, count: input.ids.length };
+      }),
+
+    bulkMarkImportant: protectedProcedure
+      .input(z.object({ ids: z.array(z.number()), important: z.number() }))
+      .mutation(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        
+        const { whatsappConversations } = await import("../../drizzle/schema");
+        const { inArray } = await import("drizzle-orm");
+        
+        await dbConn
+          .update(whatsappConversations)
+          .set({ isImportant: input.important, updatedAt: new Date() })
+          .where(inArray(whatsappConversations.id, input.ids));
+        
+        return { success: true, count: input.ids.length };
+      }),
+
+    getStats: protectedProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        
+        const { whatsappMessages } = await import("../../drizzle/schema");
+        const { eq, count, sql } = await import("drizzle-orm");
+        
+        const messages = await dbConn
+          .select()
+          .from(whatsappMessages)
+          .where(eq(whatsappMessages.conversationId, input.conversationId));
+        
+        const totalMessages = messages.length;
+        const inboundMessages = messages.filter(m => m.direction === "inbound").length;
+        const outboundMessages = messages.filter(m => m.direction === "outbound").length;
+        const templateMessages = messages.filter(m => m.messageType === "template").length;
+        
+        const firstMessage = messages[0];
+        const lastMessage = messages[messages.length - 1];
+        
+        // Calculate average response time (simplified)
+        let avgResponseTime = 0;
+        let responseCount = 0;
+        for (let i = 1; i < messages.length; i++) {
+          if (messages[i].direction === "outbound" && messages[i-1].direction === "inbound") {
+            const prevTime = new Date(messages[i-1].createdAt || messages[i-1].sentAt).getTime();
+            const currTime = new Date(messages[i].createdAt || messages[i].sentAt).getTime();
+            avgResponseTime += (currTime - prevTime);
+            responseCount++;
+          }
+        }
+        avgResponseTime = responseCount > 0 ? avgResponseTime / responseCount : 0;
+        
+        return {
+          totalMessages,
+          inboundMessages,
+          outboundMessages,
+          templateMessages,
+          firstMessageAt: firstMessage?.createdAt || firstMessage?.sentAt,
+          lastMessageAt: lastMessage?.createdAt || lastMessage?.sentAt,
+          avgResponseTimeMs: avgResponseTime,
+          avgResponseTimeMinutes: Math.round(avgResponseTime / (1000 * 60)),
+        };
+      }),
   }),
 
   // Messages

@@ -69,6 +69,26 @@ interface Template {
 
 type FilterType = "all" | "unread" | "important" | "archived" | "unnamed" | "unreplied";
 
+// Helper function to get time elapsed color
+function getTimeElapsedColor(lastMessageAt: string | Date | null): string {
+  if (!lastMessageAt) return "text-gray-500";
+  const hours = (Date.now() - new Date(lastMessageAt).getTime()) / (1000 * 60 * 60);
+  if (hours < 1) return "text-green-600";
+  if (hours < 24) return "text-blue-600";
+  if (hours < 168) return "text-orange-600"; // 7 days
+  return "text-red-600";
+}
+
+// Helper function to get time elapsed text
+function getTimeElapsedText(lastMessageAt: string | Date | null): string {
+  if (!lastMessageAt) return "";
+  const hours = (Date.now() - new Date(lastMessageAt).getTime()) / (1000 * 60 * 60);
+  if (hours < 1) return "أقل من ساعة";
+  if (hours < 24) return `${Math.floor(hours)} ساعة`;
+  if (hours < 168) return `${Math.floor(hours / 24)} يوم`;
+  return `${Math.floor(hours / 168)} أسبوع`;
+}
+
 // ─── Stats Bar ────────────────────────────────────────────────────────────────
 function StatsBar({ conversations }: { conversations: Conversation[] | undefined }) {
   const total = conversations?.length || 0;
@@ -360,11 +380,12 @@ const ConversationsList = memo(function ConversationsList({
                         <p className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-[140px]">
                           {conv.lastMessage || "لا توجد رسائل"}
                         </p>
-                        <p className="text-[9px] text-muted-foreground flex-shrink-0">
-                          {conv.lastMessageAt
-                            ? formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: true, locale: ar })
-                            : ""}
-                        </p>
+                        <div className="flex items-center gap-1">
+                          <div className={`w-1.5 h-1.5 rounded-full ${getTimeElapsedColor(conv.lastMessageAt)}`} />
+                          <p className={`text-[9px] flex-shrink-0 ${getTimeElapsedColor(conv.lastMessageAt)}`}>
+                            {getTimeElapsedText(conv.lastMessageAt)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <ChevronLeft className="h-4 w-4 text-muted-foreground lg:hidden flex-shrink-0" />

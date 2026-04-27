@@ -73,6 +73,8 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
 
   const { data: activeUsers } = trpc.users.getActiveUsers.useQuery();
 
+  const { data: quickReplies } = trpc.whatsapp.quickReplies.list.useQuery();
+
   const sendMessageMutation = trpc.whatsapp.messages.send.useMutation({
     onSuccess: () => {
       setMessageText("");
@@ -312,6 +314,10 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
     toast.info("ميزة إعادة التوجيه قيد التطوير");
   };
 
+  const handleInsertQuickReply = (content: string) => {
+    setMessageText(prev => prev + (prev ? " " : "") + content);
+  };
+
   const handleSendTemplate = (template: { id: number; name: string; content: string; metaName?: string | null; languageCode?: string | null }) => {
     if (!conversationId) return;
     if (!phone) {
@@ -498,6 +504,32 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
               rows={1}
               className="flex-1 resize-none min-h-[40px] max-h-[120px] text-sm sm:text-base"
             />
+            {/* Quick Replies button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-10 w-10" title="الردود السريعة">
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-72">
+                {!quickReplies || quickReplies.length === 0 ? (
+                  <DropdownMenuItem disabled>لا توجد ردود سريعة</DropdownMenuItem>
+                ) : (
+                  (quickReplies as any[])
+                    .filter((r) => r.isActive)
+                    .map((r) => (
+                      <DropdownMenuItem
+                        key={r.id}
+                        onClick={() => handleInsertQuickReply(r.content)}
+                        className="flex flex-col items-start gap-1 py-2"
+                      >
+                        <span className="font-medium text-sm">{r.name}</span>
+                        <span className="text-xs text-muted-foreground line-clamp-2">{r.content}</span>
+                      </DropdownMenuItem>
+                    ))
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             {/* Template button - always available */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
