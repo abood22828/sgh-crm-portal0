@@ -526,9 +526,9 @@ const ConversationsList = memo(function ConversationsList({
                           {conv.lastMessage || "لا توجد رسائل"}
                         </p>
                         <div className="flex items-center gap-1">
-                          <div className={`w-1.5 h-1.5 rounded-full ${getTimeElapsedColor(conv.lastMessageAt)}`} />
-                          <p className={`text-[9px] flex-shrink-0 ${getTimeElapsedColor(conv.lastMessageAt)}`}>
-                            {getTimeElapsedText(conv.lastMessageAt)}
+                          <div className={`w-1.5 h-1.5 rounded-full ${getTimeElapsedColor(conv.lastMessageAt || null)}`} />
+                          <p className={`text-[9px] flex-shrink-0 ${getTimeElapsedColor(conv.lastMessageAt || null)}`}>
+                            {getTimeElapsedText(conv.lastMessageAt || null)}
                           </p>
                         </div>
                       </div>
@@ -789,6 +789,71 @@ function WhatsAppContent() {
     onError: (error: any) => toast.error(`فشل إرسال القالب: ${error?.message || 'خطأ غير معروف'}`),
   });
 
+  // Derived - filtered conversations
+  const filteredConversations = useMemo(() => {
+    let result = conversations || [];
+
+    // Apply filter tab
+    switch (activeFilter) {
+      case "unread": result = result.filter(c => c.unreadCount > 0); break;
+      case "important": result = result.filter(c => c.isImportant === 1); break;
+      case "archived": result = result.filter(c => c.isArchived === 1); break;
+      case "unnamed": result = result.filter(c => !c.customerName || c.customerName.trim() === ""); break;
+      case "unreplied": 
+        // Conversations where last message was inbound and no outbound reply
+        result = result.filter(c => {
+          // This is a simplified check - in a real implementation, you'd check the last message direction
+          // For now, we'll use a heuristic: if there's a last message and it's from customer
+          return c.lastMessage && !c.lastMessage.startsWith("تم الرد"); 
+        }); 
+        break;
+      default: result = result.filter(c => !c.isArchived); break;
+    }
+
+    // Apply date filter
+    if (dateFilter !== "all") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      result = result.filter(c => {
+        if (!c.lastMessageAt) return false;
+        const lastMsgDate = new Date(c.lastMessageAt);
+        switch (dateFilter) {
+          case "today": return lastMsgDate >= today;
+          case "week": return lastMsgDate >= weekAgo;
+          case "month": return lastMsgDate >= monthAgo;
+          default: return true;
+        }
+      });
+    }
+
+    // Apply message type filter (simplified - would need last message type from API)
+    // For now, this is a placeholder that would need backend support
+    if (messageTypeFilter !== "all") {
+      // This would require the API to return lastMessageType
+      // result = result.filter(c => c.lastMessageType === messageTypeFilter);
+    }
+
+    // Apply search
+    if (searchQuery) {
+      result = result.filter(c =>
+        c.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.phoneNumber?.includes(searchQuery) ||
+        c.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Sort: unread first, then by date
+    return result.sort((a, b) => {
+      if (a.unreadCount !== b.unreadCount) return (b.unreadCount || 0) - (a.unreadCount || 0);
+      const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return bTime - aTime;
+    });
+  }, [conversations, activeFilter, searchQuery, dateFilter, messageTypeFilter]);
+
   // Callbacks
   const handleSelectConversation = useCallback((id: number) => {
     setSelectedConversation(id);
@@ -797,11 +862,15 @@ function WhatsAppContent() {
   }, [markConversationAsReadMutation]);
 
   const handleBackToList = useCallback(() => setMobileShowChat(false), []);
+  const handleNewMessageOpenChange = useCallback((open: boolean) => setIsNewMessageOpen(open), []);
   const handleSearchChange = useCallback((v: string) => setSearchQuery(v), []);
+  const handleAssignConversation = useCallback((id: number, userId: number) => {
+    assignConversationMutation.mutate({ conversationId: id, userId });
+  }, [assignConversationMutation]);
+
   const handleNewMessagePhoneChange = useCallback((v: string) => setNewMessagePhone(v), []);
   const handleNewMessageTextChange = useCallback((v: string) => setNewMessageText(v), []);
   const handleNewMessageTemplateIdChange = useCallback((v: number | null) => setNewMessageTemplateId(v), []);
-  const handleNewMessageOpenChange = useCallback((v: boolean) => setIsNewMessageOpen(v), []);
 
   const handleArchiveConversation = useCallback((id: number) => {
     const conv = conversations?.find(c => c.id === id);
@@ -830,18 +899,18 @@ function WhatsAppContent() {
     }
     saveSearchMutation.mutate({
       name: searchName,
-      query: searchQuery,
-      filter: activeFilter,
-      dateFilter,
-      messageTypeFilter,
+      searchQuery: searchQuery,
+      filterType: activeFilter,
+      dateRange: dateFilter,
+      messageType: messageTypeFilter,
     });
   }, [searchName, searchQuery, activeFilter, dateFilter, messageTypeFilter, saveSearchMutation]);
 
   const handleApplySavedSearch = useCallback((savedSearch: any) => {
-    setSearchQuery(savedSearch.query);
-    setActiveFilter(savedSearch.filter);
-    setDateFilter(savedSearch.dateFilter || "all");
-    setMessageTypeFilter(savedSearch.messageTypeFilter || "all");
+    setSearchQuery(savedSearch.searchQuery || savedSearch.query || "");
+    setActiveFilter(savedSearch.filterType || savedSearch.filter || "all");
+    setDateFilter(savedSearch.dateRange || savedSearch.dateFilter || "all");
+    setMessageTypeFilter(savedSearch.messageType || savedSearch.messageTypeFilter || "all");
   }, []);
 
   const handleToggleSelection = useCallback((id: number) => {
@@ -911,71 +980,6 @@ function WhatsAppContent() {
       if ((e as any).type === 'new_inbound_message') refetchConversations();
     } catch (_) {}
   }, [refetchConversations]));
-
-  // Derived - filtered conversations
-  const filteredConversations = useMemo(() => {
-    let result = conversations || [];
-
-    // Apply filter tab
-    switch (activeFilter) {
-      case "unread": result = result.filter(c => c.unreadCount > 0); break;
-      case "important": result = result.filter(c => c.isImportant === 1); break;
-      case "archived": result = result.filter(c => c.isArchived === 1); break;
-      case "unnamed": result = result.filter(c => !c.customerName || c.customerName.trim() === ""); break;
-      case "unreplied": 
-        // Conversations where last message was inbound and no outbound reply
-        result = result.filter(c => {
-          // This is a simplified check - in a real implementation, you'd check the last message direction
-          // For now, we'll use a heuristic: if there's a last message and it's from customer
-          return c.lastMessage && !c.lastMessage.startsWith("تم الرد"); 
-        }); 
-        break;
-      default: result = result.filter(c => !c.isArchived); break;
-    }
-
-    // Apply date filter
-    if (dateFilter !== "all") {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-      result = result.filter(c => {
-        if (!c.lastMessageAt) return false;
-        const lastMsgDate = new Date(c.lastMessageAt);
-        switch (dateFilter) {
-          case "today": return lastMsgDate >= today;
-          case "week": return lastMsgDate >= weekAgo;
-          case "month": return lastMsgDate >= monthAgo;
-          default: return true;
-        }
-      });
-    }
-
-    // Apply message type filter (simplified - would need last message type from API)
-    // For now, this is a placeholder that would need backend support
-    if (messageTypeFilter !== "all") {
-      // This would require the API to return lastMessageType
-      // result = result.filter(c => c.lastMessageType === messageTypeFilter);
-    }
-
-    // Apply search
-    if (searchQuery) {
-      result = result.filter(c =>
-        c.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.phoneNumber?.includes(searchQuery) ||
-        c.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Sort: unread first, then by date
-    return result.sort((a, b) => {
-      if (a.unreadCount !== b.unreadCount) return (b.unreadCount || 0) - (a.unreadCount || 0);
-      const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
-      const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
-      return bTime - aTime;
-    });
-  }, [conversations, activeFilter, searchQuery, dateFilter, messageTypeFilter]);
 
   const selectedConv = conversations?.find((c: Conversation) => c.id === selectedConversation);
   const isSendingNewMessage = sendNewMessageMutation.isPending || sendTemplateMutation.isPending;

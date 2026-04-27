@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { CheckCheck, Clock, XCircle, ChevronDown, Image, FileText, Music, Video, MapPin, Users, MessageSquare, User, MoreVertical, Reply, Trash2, Forward, Download, Paperclip, Calendar, Plus, Minus, Moon, Sun } from "lucide-react";
+import { CheckCheck, Clock, XCircle, ChevronDown, Image, FileText, Music, Video, MapPin, Users, MessageSquare, User, MoreVertical, Reply, Trash2, Forward, Download, Paperclip, Calendar, Plus, Minus, Moon, Sun, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import useSSE from "@/hooks/useSSE";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface ChatWindowProps {
   conversationId: number | null;
@@ -61,6 +62,8 @@ function mergeMessages(dbMsgs: any[], localMsgs: any[]): any[] {
 }
 
 export default function ChatWindow({ conversationId, lastMessageAt, onConversationUpdate, phone }: ChatWindowProps) {
+  const { user } = useAuth();
+  const userId = user?.id;
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [messageText, setMessageText] = useState("");
   const [localMessages, setLocalMessages] = useState<any[]>([]);
@@ -95,6 +98,13 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
       localStorage.setItem('whatsapp-message-font-size', newSize.toString());
       return newSize;
     });
+  }, []);
+
+  const handleRemoveFile = useCallback(() => {
+    setAttachedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   }, []);
 
   // Track night mode
@@ -457,13 +467,6 @@ export default function ChatWindow({ conversationId, lastMessageAt, onConversati
         return;
       }
       setAttachedFile(file);
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setAttachedFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
     }
   };
 

@@ -137,7 +137,7 @@ function MessageSettingsContent() {
 
   const syncTemplatesMutation = trpc.whatsapp.templates.syncStatus.useMutation({
     onSuccess: (result) => {
-      if (result.success) {
+      if (result.success && "messageTemplates" in result && "whatsappTemplates" in result) {
         toast.success(`تم مزامنة ${result.messageTemplates.synced + result.whatsappTemplates.synced} قالب`);
       } else {
         toast.error("فشلت المزامنة");
