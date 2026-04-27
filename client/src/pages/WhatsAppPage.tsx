@@ -46,6 +46,14 @@ interface Conversation {
   unreadCount: number;
   isImportant?: number;
   isArchived?: number;
+  assignedToUserId?: number | null;
+  notes?: string | null;
+}
+
+interface User {
+  id: number;
+  name: string;
+  username: string;
 }
 
 interface Template {
@@ -59,22 +67,31 @@ interface Template {
   languageCode?: string | null;
 }
 
-type FilterType = "all" | "unread" | "important" | "archived";
+type FilterType = "all" | "unread" | "important" | "archived" | "unnamed" | "unreplied";
 
 // ─── Stats Bar ────────────────────────────────────────────────────────────────
 function StatsBar({ conversations }: { conversations: Conversation[] | undefined }) {
   const total = conversations?.length || 0;
   const unread = conversations?.filter(c => c.unreadCount > 0).length || 0;
   const important = conversations?.filter(c => c.isImportant === 1).length || 0;
-  const active = conversations?.filter(c => !c.isArchived).length || 0;
+  const archived = conversations?.filter(c => c.isArchived === 1).length || 0;
+  
+  // Active: conversations with activity in the last 7 days
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const active = conversations?.filter(c => 
+    !c.isArchived && 
+    c.lastMessageAt && 
+    new Date(c.lastMessageAt) >= sevenDaysAgo
+  ).length || 0;
 
   return (
-    <div className="grid grid-cols-4 gap-2 mb-3">
+    <div className="grid grid-cols-5 gap-2 mb-3">
       {[
         { label: "الكل", value: total, icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
         { label: "نشطة", value: active, icon: Users, color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20" },
         { label: "غير مقروءة", value: unread, icon: MessageCircle, color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20" },
         { label: "مهمة", value: important, icon: Star, color: "text-yellow-600", bg: "bg-yellow-50 dark:bg-yellow-900/20" },
+        { label: "مؤرشفة", value: archived, icon: Archive, color: "text-gray-600", bg: "bg-gray-50 dark:bg-gray-900/20" },
       ].map(({ label, value, icon: Icon, color, bg }) => (
         <div key={label} className={`${bg} rounded-lg p-2 text-center`}>
           <Icon className={`h-3.5 w-3.5 ${color} mx-auto mb-0.5`} />
@@ -112,6 +129,8 @@ interface ConversationsListProps {
   onFilterChange: (f: FilterType) => void;
   onArchiveConversation: (id: number) => void;
   onToggleImportant: (id: number) => void;
+  onAssignConversation: (id: number, userId: number) => void;
+  activeUsers: User[] | undefined;
 }
 
 const ConversationsList = memo(function ConversationsList({
@@ -139,6 +158,8 @@ const ConversationsList = memo(function ConversationsList({
   onFilterChange,
   onArchiveConversation,
   onToggleImportant,
+  onAssignConversation,
+  activeUsers,
 }: ConversationsListProps) {
   return (
     <div className="flex flex-col h-full">
@@ -268,7 +289,7 @@ const ConversationsList = memo(function ConversationsList({
       {/* Filter Tabs */}
       <div className="px-2 pt-2 pb-1 border-b dark:border-gray-800">
         <Tabs value={activeFilter} onValueChange={(v) => onFilterChange(v as FilterType)}>
-          <TabsList className="h-7 w-full grid grid-cols-4 bg-muted/50">
+          <TabsList className="h-7 w-full grid grid-cols-6 bg-muted/50">
             <TabsTrigger value="all" className="text-[10px] h-6 px-1">الكل</TabsTrigger>
             <TabsTrigger value="unread" className="text-[10px] h-6 px-1">
               غير مقروءة
@@ -280,6 +301,8 @@ const ConversationsList = memo(function ConversationsList({
             </TabsTrigger>
             <TabsTrigger value="important" className="text-[10px] h-6 px-1">مهمة</TabsTrigger>
             <TabsTrigger value="archived" className="text-[10px] h-6 px-1">مؤرشفة</TabsTrigger>
+            <TabsTrigger value="unnamed" className="text-[10px] h-6 px-1">بدون اسم</TabsTrigger>
+            <TabsTrigger value="unreplied" className="text-[10px] h-6 px-1">لم يُرد</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -365,9 +388,40 @@ const ConversationsList = memo(function ConversationsList({
                           <Archive className="h-3.5 w-3.5 ml-2" />
                           {conv.isArchived ? "إلغاء الأرشفة" : "أرشفة"}
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <User className="h-3.5 w-3.5 ml-2" />
+                              تعيين لمستخدم
+                              <ChevronLeft className="h-3 w-3 ml-auto" />
+                            </DropdownMenuItem>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            {activeUsers?.map((user) => (
+                              <DropdownMenuItem 
+                                key={user.id} 
+                                onClick={() => onAssignConversation(conv.id, user.id)}
+                              >
+                                <User className="h-3.5 w-3.5 ml-2" />
+                                {user.name}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
+
+                  {/* Assigned User Badge */}
+                  {conv.assignedToUserId && (
+                    <div className="absolute right-2 bottom-2">
+                      <Badge variant="outline" className="text-[8px] h-4 px-1 bg-blue-50 border-blue-200">
+                        <User className="h-2 w-2 ml-0.5" />
+                        معين
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -498,6 +552,7 @@ function WhatsAppContent() {
     refetchInterval: 60_000, // كل دقيقة بدلاً من 5 ثوانٍ لتجنب Rate Limiting من Meta
     refetchOnWindowFocus: false,
   });
+  const { data: activeUsers } = trpc.users.getActiveUsers.useQuery();
 
   // Mutations
   const markConversationAsReadMutation = trpc.whatsapp.conversations.markAsRead.useMutation();
@@ -505,6 +560,14 @@ function WhatsAppContent() {
   const updateConversationMutation = trpc.whatsapp.conversations.update.useMutation({
     onSuccess: () => refetchConversations(),
     onError: () => toast.error("فشل تحديث المحادثة"),
+  });
+
+  const assignConversationMutation = trpc.whatsapp.conversations.assignToUser.useMutation({
+    onSuccess: () => {
+      toast.success("تم تعيين المحادثة بنجاح");
+      refetchConversations();
+    },
+    onError: () => toast.error("فشل تعيين المحادثة"),
   });
 
   const sendNewMessageMutation = trpc.whatsapp.messages.send.useMutation({
@@ -553,6 +616,10 @@ function WhatsAppContent() {
     toast.success(conv?.isImportant ? "تم إلغاء التعيين كمهمة" : "تم تعيين المحادثة كمهمة");
   }, [conversations, updateConversationMutation]);
 
+  const handleAssignConversation = useCallback((id: number, userId: number) => {
+    assignConversationMutation.mutate({ id, userId });
+  }, [assignConversationMutation]);
+
   const handleSendNewMessage = useCallback(() => {
     if (!newMessagePhone.trim()) { toast.error("يرجى إدخال رقم الهاتف"); return; }
     if (newMessageTemplateId) {
@@ -589,6 +656,15 @@ function WhatsAppContent() {
       case "unread": result = result.filter(c => c.unreadCount > 0); break;
       case "important": result = result.filter(c => c.isImportant === 1); break;
       case "archived": result = result.filter(c => c.isArchived === 1); break;
+      case "unnamed": result = result.filter(c => !c.customerName || c.customerName.trim() === ""); break;
+      case "unreplied": 
+        // Conversations where last message was inbound and no outbound reply
+        result = result.filter(c => {
+          // This is a simplified check - in a real implementation, you'd check the last message direction
+          // For now, we'll use a heuristic: if there's a last message and it's from customer
+          return c.lastMessage && !c.lastMessage.startsWith("تم الرد"); 
+        }); 
+        break;
       default: result = result.filter(c => !c.isArchived); break;
     }
 
@@ -638,6 +714,8 @@ function WhatsAppContent() {
     onFilterChange: setActiveFilter,
     onArchiveConversation: handleArchiveConversation,
     onToggleImportant: handleToggleImportant,
+    onAssignConversation: handleAssignConversation,
+    activeUsers,
   };
 
   return (

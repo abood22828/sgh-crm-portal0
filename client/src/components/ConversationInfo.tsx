@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Calendar, MessageSquare, Clock, MoreVertical, Loader2, AlertCircle, MessageCircle } from "lucide-react";
+import { Phone, Mail, Calendar, MessageSquare, Clock, MoreVertical, Loader2, AlertCircle, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import {
@@ -10,6 +10,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { toast } from "sonner";
 
 interface ConversationInfoProps {
@@ -56,6 +61,9 @@ export default function ConversationInfo({
   const [customerRecords, setCustomerRecords] = useState<CustomerRecords | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Collapsible states
+  const [customerInfoOpen, setCustomerInfoOpen] = useState(true);
+  const [crmRecordsOpen, setCrmRecordsOpen] = useState(true);
 
 
 
@@ -184,7 +192,7 @@ export default function ConversationInfo({
       </Card>
 
       {/* Quick Action Buttons */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <Button
           size="sm"
           variant="outline"
@@ -194,16 +202,6 @@ export default function ConversationInfo({
           <Phone className="h-3.5 w-3.5 ml-1" />
           <span className="hidden sm:inline">اتصال</span>
           <span className="sm:hidden">☎️</span>
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 text-xs bg-green-50 hover:bg-green-100 dark:bg-green-900/20"
-          onClick={handleWhatsApp}
-        >
-          <MessageCircle className="h-3.5 w-3.5 ml-1" />
-          <span className="hidden sm:inline">واتس</span>
-          <span className="sm:hidden">💬</span>
         </Button>
         <Button
           size="sm"
@@ -265,66 +263,88 @@ export default function ConversationInfo({
       )}
 
       {!loading && customerInfo && (
-        <Card className="p-3 sm:p-4 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground">معلومات العميل الأساسية</p>
-            <div className="space-y-1.5">
-              <div>
-                <p className="text-xs text-muted-foreground">الاسم</p>
-                <p className="font-semibold text-sm text-foreground">{customerInfo.name}</p>
+        <Collapsible open={customerInfoOpen} onOpenChange={setCustomerInfoOpen}>
+          <Card className="p-3 sm:p-4 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
+            <CollapsibleTrigger asChild>
+              <div className="flex items-center justify-between cursor-pointer">
+                <p className="text-xs font-semibold text-muted-foreground">معلومات العميل الأساسية</p>
+                {customerInfoOpen ? (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
               </div>
-              {customerInfo.email && (
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2 mt-3">
+              <div className="space-y-1.5">
                 <div>
-                  <p className="text-xs text-muted-foreground">البريد الإلكتروني</p>
-                  <p className="text-xs text-foreground flex items-center gap-1">
-                    <Mail className="h-3 w-3" />
-                    {customerInfo.email}
-                  </p>
+                  <p className="text-xs text-muted-foreground">الاسم</p>
+                  <p className="font-semibold text-sm text-foreground">{customerInfo.name}</p>
                 </div>
-              )}
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">الحالة والنوع</p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge className={`text-xs ${getStatusBadgeColor(customerInfo.status)}`}>
-                    {customerInfo.status}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {getTypeLabel(customerInfo.type)}
-                  </Badge>
+                {customerInfo.email && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">البريد الإلكتروني</p>
+                    <p className="text-xs text-foreground flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      {customerInfo.email}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">الحالة والنوع</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className={`text-xs ${getStatusBadgeColor(customerInfo.status)}`}>
+                      {customerInfo.status}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {getTypeLabel(customerInfo.type)}
+                    </Badge>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </Card>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
       {/* Records Section */}
       {!loading && customerRecords && (
-        <div className="space-y-2">
-          {/* Appointments Card */}
-          {customerRecords.appointments.length > 0 && (
-            <Card className="p-3 sm:p-4 border-l-4 border-l-blue-500">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">📅</span>
-                <p className="text-xs font-semibold text-foreground">
-                  المواعيد الطبية ({customerRecords.appointments.length})
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                {customerRecords.appointments.slice(0, 3).map((apt) => (
-                  <div key={apt.id} className="text-xs p-2 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-between">
-                    <span className="truncate flex-1">{apt.fullName}</span>
-                    <Badge variant="outline" className="text-[10px] ml-2 flex-shrink-0">{apt.status}</Badge>
-                  </div>
-                ))}
-                {customerRecords.appointments.length > 3 && (
-                  <p className="text-xs text-muted-foreground text-center py-1">
-                    +{customerRecords.appointments.length - 3} مواعيد أخرى
+        <Collapsible open={crmRecordsOpen} onOpenChange={setCrmRecordsOpen}>
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between cursor-pointer p-2">
+              <p className="text-xs font-semibold text-muted-foreground">سجلات CRM</p>
+              {crmRecordsOpen ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-2 mt-2">
+            {/* Appointments Card */}
+            {customerRecords.appointments.length > 0 && (
+              <Card className="p-3 sm:p-4 border-l-4 border-l-blue-500">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">📅</span>
+                  <p className="text-xs font-semibold text-foreground">
+                    المواعيد الطبية ({customerRecords.appointments.length})
                   </p>
-                )}
-              </div>
-            </Card>
-          )}
+                </div>
+                <div className="space-y-1.5">
+                  {customerRecords.appointments.slice(0, 3).map((apt) => (
+                    <div key={apt.id} className="text-xs p-2 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-between">
+                      <span className="truncate flex-1">{apt.fullName}</span>
+                      <Badge variant="outline" className="text-[10px] ml-2 flex-shrink-0">{apt.status}</Badge>
+                    </div>
+                  ))}
+                  {customerRecords.appointments.length > 3 && (
+                    <p className="text-xs text-muted-foreground text-center py-1">
+                      +{customerRecords.appointments.length - 3} مواعيد أخرى
+                    </p>
+                  )}
+                </div>
+              </Card>
+            )}
 
           {/* Leads Card */}
           {customerRecords.leads.length > 0 && (
@@ -400,7 +420,8 @@ export default function ConversationInfo({
               </div>
             </Card>
           )}
-        </div>
+          </CollapsibleContent>
+        </Collapsible>
       )}
 
       {/* Related Items */}

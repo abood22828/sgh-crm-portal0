@@ -521,6 +521,7 @@ export const whatsappConversations = mysqlTable("whatsapp_conversations", {
   offerLeadId: int("offerLeadId"),
   campRegistrationId: int("campRegistrationId"),
   assignedToUserId: int("assignedToUserId"), // Assigned staff member
+  notes: text("notes"), // Notes about the conversation
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -543,6 +544,7 @@ export const whatsappMessages = mysqlTable("whatsapp_messages", {
   whatsappMessageId: varchar("whatsappMessageId", { length: 255 }), // WhatsApp API message ID
   sentBy: int("sentBy"), // User ID who sent (for outbound)
   isAutomated: int("isAutomated").default(0).notNull(), // 0 = manual, 1 = automated
+  replyToMessageId: int("replyToMessageId"), // ID of the message being replied to
   deliveredAt: timestamp("deliveredAt"),
   readAt: timestamp("readAt"),
   errorInfo: text("errorInfo"),
@@ -644,6 +646,67 @@ export const whatsappAnalytics = mysqlTable("whatsapp_analytics", {
 
 export type WhatsAppAnalytics = typeof whatsappAnalytics.$inferSelect;
 export type InsertWhatsAppAnalytics = typeof whatsappAnalytics.$inferInsert;
+
+/**
+ * Scheduled Messages table - stores messages scheduled for future sending
+ * جدول الرسائل المجدولة - يخزن الرسائل المقرر إرسالها مستقبلاً
+ */
+export const scheduledMessages = mysqlTable("scheduled_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversationId").notNull(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  content: text("content").notNull(),
+  messageType: mysqlEnum("messageType", ["text", "template"]).default("text").notNull(),
+  templateId: int("templateId"),
+  templateName: varchar("templateName", { length: 255 }),
+  languageCode: varchar("languageCode", { length: 20 }),
+  scheduledAt: timestamp("scheduledAt").notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "failed", "cancelled"]).default("pending").notNull(),
+  sentAt: timestamp("sentAt"),
+  errorInfo: text("errorInfo"),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ScheduledMessage = typeof scheduledMessages.$inferSelect;
+export type InsertScheduledMessage = typeof scheduledMessages.$inferInsert;
+
+/**
+ * Quick Replies table - stores quick reply templates
+ * جدول الردود السريعة - يخزن قوالب الردود السريعة
+ */
+export const quickReplies = mysqlTable("quick_replies", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  category: varchar("category", { length: 50 }), // e.g., "greeting", "thanks", "info"
+  isActive: int("isActive").default(1).notNull(),
+  usageCount: int("usageCount").default(0).notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type QuickReply = typeof quickReplies.$inferSelect;
+export type InsertQuickReply = typeof quickReplies.$inferInsert;
+
+/**
+ * Saved Searches table - stores saved search filters for conversations
+ * جدول البحثات المحفوظة - يخزن فلاتر البحث المحفوظة للمحادثات
+ */
+export const savedSearches = mysqlTable("saved_searches", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  searchQuery: varchar("searchQuery", { length: 500 }),
+  filterType: varchar("filterType", { length: 50 }), // all, unread, important, archived, unnamed, unreplied
+  dateRange: varchar("dateRange", { length: 50 }), // today, week, month, custom
+  messageType: varchar("messageType", { length: 50 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SavedSearch = typeof savedSearches.$inferSelect;
+export type InsertSavedSearch = typeof savedSearches.$inferInsert;
 
 /**
  * Message Settings table - stores automated message configurations

@@ -138,6 +138,22 @@ export const whatsappRouter = router({
           unreadCount: 0,
         });
       }),
+
+    assignToUser: protectedProcedure
+      .input(z.object({ id: z.number(), userId: z.number() }))
+      .mutation(async ({ input }) => {
+        return await db.updateWhatsAppConversation(input.id, {
+          assignedToUserId: input.userId,
+        });
+      }),
+
+    updateNotes: protectedProcedure
+      .input(z.object({ id: z.number(), notes: z.string() }))
+      .mutation(async ({ input }) => {
+        return await db.updateWhatsAppConversation(input.id, {
+          notes: input.notes,
+        });
+      }),
   }),
 
   // Messages
@@ -153,6 +169,7 @@ export const whatsappRouter = router({
         z.object({
           conversationId: z.number(),
           message: z.string(),
+          replyToMessageId: z.number().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -194,6 +211,7 @@ export const whatsappRouter = router({
               status: "sent",
               sentBy: ctx.user.id,
               whatsappMessageId: result.messageId,
+              replyToMessageId: input.replyToMessageId,
             });
 
             await db.updateWhatsAppConversation(input.conversationId, {
@@ -207,6 +225,74 @@ export const whatsappRouter = router({
           console.error("[WhatsApp] Failed to send message:", error);
           throw new Error(error.message || "Failed to send message");
         }
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ messageId: z.number() }))
+      .mutation(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        
+        const { whatsappMessages } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await dbConn.delete(whatsappMessages).where(eq(whatsappMessages.id, input.messageId));
+        
+        return { success: true };
+      }),
+
+    forward: protectedProcedure
+      .input(z.object({
+        messageId: z.number(),
+        targetConversationId: z.number(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        
+        const { whatsappMessages, whatsappConversations } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        
+        // Get original message
+        const originalMessages = await dbConn
+          .select()
+          .from(whatsappMessages)
+          .where(eq(whatsappMessages.id, input.messageId))
+          .limit(1);
+        
+        if (!originalMessages.length) throw new Error("Original message not found");
+        const original = originalMessages[0];
+        
+        // Get target conversation
+        const targetConvs = await dbConn
+          .select()
+          .from(whatsappConversations)
+          .where(eq(whatsappConversations.id, input.targetConversationId))
+          .limit(1);
+        
+        if (!targetConvs.length) throw new Error("Target conversation not found");
+        const targetConv = targetConvs[0];
+        
+        // Send the message to target conversation
+        const result = await sendWhatsAppTextMessage(targetConv.phoneNumber, original.content);
+        
+        if (result.success) {
+          await db.createWhatsAppMessage({
+            conversationId: input.targetConversationId,
+            direction: "outbound",
+            content: original.content,
+            messageType: original.messageType,
+            status: "sent",
+            sentBy: ctx.user.id,
+            whatsappMessageId: result.messageId,
+          });
+          
+          await db.updateWhatsAppConversation(input.targetConversationId, {
+            lastMessage: original.content,
+            lastMessageAt: new Date(),
+          });
+        }
+        
+        return result;
       }),
   }),
 
@@ -870,4 +956,110 @@ export const whatsappRouter = router({
       const result = await runAppointmentReminderJobs();
       return result;
     }),
+
+  // Quick Replies
+  quickReplies: router({
+    list: protectedProcedure.query(async () => {
+      const dbConn = await db.getDb();
+      if (!dbConn) return [];
+      const { quickReplies } = await import("../../drizzle/schema");
+      return await dbConn.select().from(quickReplies).orderBy(quickReplies.name);
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        content: z.string().min(1),
+        category: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { quickReplies } = await import("../../drizzle/schema");
+        const insertId = await dbConn.insert(quickReplies).values({
+          name: input.name,
+          content: input.content,
+          category: input.category,
+          createdBy: ctx.user.id,
+        }).$returningId();
+        return { id: insertId, ...input };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        content: z.string().optional(),
+        category: z.string().optional(),
+        isActive: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { quickReplies } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const { id, ...updateData } = input;
+        await dbConn
+          .update(quickReplies)
+          .set(updateData)
+          .where(eq(quickReplies.id, id));
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { quickReplies } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await dbConn.delete(quickReplies).where(eq(quickReplies.id, input.id));
+        return { success: true };
+      }),
+  }),
+
+  // Saved Searches
+  savedSearches: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const dbConn = await db.getDb();
+      if (!dbConn) return [];
+      const { savedSearches } = await import("../../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      return await dbConn.select().from(savedSearches).where(eq(savedSearches.userId, ctx.user.id));
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        searchQuery: z.string().optional(),
+        filterType: z.string().optional(),
+        dateRange: z.string().optional(),
+        messageType: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { savedSearches } = await import("../../drizzle/schema");
+        const insertId = await dbConn.insert(savedSearches).values({
+          userId: ctx.user.id,
+          name: input.name,
+          searchQuery: input.searchQuery,
+          filterType: input.filterType,
+          dateRange: input.dateRange,
+          messageType: input.messageType,
+        }).$returningId();
+        return { id: insertId, ...input };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { savedSearches } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await dbConn.delete(savedSearches).where(eq(savedSearches.id, input.id));
+        return { success: true };
+      }),
+  }),
 });
