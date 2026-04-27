@@ -16,7 +16,7 @@ import { Request, Response } from "express";
 import { eq } from "drizzle-orm";
 import { ENV } from "../_core/env";
 import { getDb, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, normalizePhoneNumber } from "../db";
-import { whatsappTemplates } from "../../drizzle/schema";
+import { whatsappTemplates, whatsappNotifications, whatsappMessages } from "../../drizzle/schema";
 import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
 import { processIncomingMessage } from "../services/whatsappAutoReply";
 
@@ -241,7 +241,8 @@ async function handleMessageStatus(status: any) {
     if (messageStatus === "failed" && errors?.length > 0) {
       const errorCode = errors[0]?.code;
       const errorTitle = errors[0]?.title;
-      console.error(`[WhatsApp Webhook] ❌ Message failed: ${errorTitle} (code: ${errorCode})`);
+      const errorMessage = errors[0]?.message;
+      console.error(`[WhatsApp Webhook] ❌ Message failed: ${errorTitle} (code: ${errorCode}) - ${errorMessage}`);
 
       // كود 131047: انتهت نافذة 24 ساعة — يجب إرسال قالب
       if (errorCode === 131047) {
@@ -249,9 +250,39 @@ async function handleMessageStatus(status: any) {
       }
     }
 
-    // TODO: تحديث حالة الرسالة في قاعدة البيانات
-    // const db = await getDb();
-    // if (db) { await db.update(whatsappMessages).set({ status: messageStatus }).where(eq(whatsappMessages.metaMessageId, messageId)); }
+    // تحديث حالة الرسالة في قاعدة البيانات
+    const db = await getDb();
+    if (!db) {
+      console.error("[WhatsApp Webhook] Database not available for status update");
+      return;
+    }
+
+    // تحديث حالة الرسالة في جدول whatsappMessages
+    const messageUpdate = await db
+      .update(whatsappMessages)
+      .set({
+        status: messageStatus,
+        deliveredAt: messageStatus === "delivered" ? new Date(parseInt(timestamp) * 1000) : undefined,
+        readAt: messageStatus === "read" ? new Date(parseInt(timestamp) * 1000) : undefined,
+      })
+      .where(eq(whatsappMessages.whatsappMessageId, messageId));
+
+    console.log(`[WhatsApp Webhook] ✅ Updated message status: ${messageId} → ${messageStatus}`);
+
+    // تحديث حالة الإشعار في جدول whatsappNotifications
+    const notificationUpdate = await db
+      .update(whatsappNotifications)
+      .set({
+        status: messageStatus,
+        errorMessage: messageStatus === "failed" && errors?.length > 0 
+          ? `${errors[0]?.title}: ${errors[0]?.message}` 
+          : null,
+        deliveredAt: messageStatus === "delivered" ? new Date(parseInt(timestamp) * 1000) : undefined,
+        readAt: messageStatus === "read" ? new Date(parseInt(timestamp) * 1000) : undefined,
+      })
+      .where(eq(whatsappNotifications.metaMessageId, messageId));
+
+    console.log(`[WhatsApp Webhook] ✅ Updated notification status: ${messageId} → ${messageStatus}`);
 
   } catch (error) {
     console.error("[WhatsApp Webhook] Error handling message status:", error);

@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,8 @@ import {
   TrendingUp,
   AlertCircle,
   Loader2,
+  Download,
+  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -84,6 +87,25 @@ export default function WhatsAppAppointments() {
     notificationStatsQuery.refetch();
   };
 
+  const handleExport = () => {
+    const data = {
+      stats: notificationStatsQuery.data?.stats,
+      logs: logsQuery.data?.logs,
+      exportedAt: new Date().toISOString(),
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `whatsapp-notifications-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("تم تصدير البيانات بنجاح");
+  };
+
   const formatDate = (dateStr: string | Date | null) => {
     if (!dateStr) return "—";
     const d = new Date(dateStr);
@@ -91,18 +113,25 @@ export default function WhatsAppAppointments() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">سجل إشعارات WhatsApp</h1>
-          <p className="text-muted-foreground">تتبع جميع الإشعارات المرسلة للمواعيد والتسجيلات والعروض</p>
+    <DashboardLayout pageTitle="سجل إشعارات WhatsApp" pageDescription="تتبع جميع الإشعارات المرسلة للمواعيد والتسجيلات والعروض">
+      <div className="space-y-6">
+        {/* Header with Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">سجل إشعارات WhatsApp</h1>
+            <p className="text-muted-foreground text-sm">تتبع جميع الإشعارات المرسلة للمواعيد والتسجيلات والعروض</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={logsQuery.isFetching}>
+              <RefreshCw className={`w-4 h-4 ml-2 ${logsQuery.isFetching ? "animate-spin" : ""}`} />
+              تحديث
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="w-4 h-4 ml-2" />
+              تصدير
+            </Button>
+          </div>
         </div>
-        <Button variant="outline" onClick={handleRefresh} disabled={logsQuery.isFetching}>
-          <RefreshCw className={`w-4 h-4 ml-2 ${logsQuery.isFetching ? "animate-spin" : ""}`} />
-          تحديث
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -333,6 +362,7 @@ export default function WhatsAppAppointments() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
