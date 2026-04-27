@@ -2,7 +2,7 @@ import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 import { visitSessions, abandonedForms, trackingEvents } from "../../drizzle/schema";
-import { eq, desc, and, gte, lte, isNull, sql, count } from "drizzle-orm";
+import { eq, desc, and, gte, lte, isNull, sql, count, asc } from "drizzle-orm";
 
 /**
  * Tracking Router - نظام تتبع الزوار والفرص الضائعة
@@ -345,6 +345,40 @@ export const trackingRouter = router({
         sessions: Number(r.sessions),
         conversions: Number(r.conversions),
         conversionRate: Number(r.conversionRate),
+      }));
+    }),
+
+  /**
+   * إحصائيات يومية للتحويلات
+   */
+  dailyStats: protectedProcedure
+    .input(z.object({
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const start = input.startDate ? new Date(input.startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const end = input.endDate ? new Date(input.endDate) : new Date();
+
+      const results = await db
+        .select({
+          date: sql<string>`DATE(${visitSessions.createdAt})`,
+          sessions: count(),
+          conversions: sql<number>`SUM(CASE WHEN ${visitSessions.converted} = 1 THEN 1 ELSE 0 END)`,
+        })
+        .from(visitSessions)
+        .where(and(gte(visitSessions.createdAt, start), lte(visitSessions.createdAt, end)))
+        .groupBy(sql`DATE(${visitSessions.createdAt})`)
+        .orderBy(asc(sql`DATE(${visitSessions.createdAt})`));
+
+      return results.map(r => ({
+        date: r.date,
+        sessions: Number(r.sessions),
+        conversions: Number(r.conversions),
+        conversionRate: r.sessions > 0 ? Math.round((Number(r.conversions) / Number(r.sessions)) * 100) : 0,
       }));
     }),
 });

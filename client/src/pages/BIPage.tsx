@@ -325,9 +325,29 @@ export default function BIPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const { start, end } = useMemo(() => getDateRange(dateRange), [dateRange]);
 
+  // Calculate previous period for comparison
+  const { start: prevStart, end: prevEnd } = useMemo(() => {
+    const days = dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : 90;
+    const currentEnd = new Date(end);
+    const currentStart = new Date(start);
+    const duration = currentEnd.getTime() - currentStart.getTime();
+    
+    const previousEnd = new Date(currentStart.getTime() - 1);
+    const previousStart = new Date(previousEnd.getTime() - duration);
+    
+    return {
+      start: previousStart.toISOString(),
+      end: previousEnd.toISOString(),
+    };
+  }, [dateRange, start, end]);
+
   const { data: funnelData, isLoading: funnelLoading, refetch: refetchFunnel } = trpc.tracking.conversionFunnel.useQuery(
     { startDate: start, endDate: end },
-    { refetchInterval: autoRefresh ? 60000 : false } // Auto-refresh every 60 seconds
+    { refetchInterval: autoRefresh ? 60000 : false }
+  );
+  const { data: prevFunnelData, isLoading: prevFunnelLoading } = trpc.tracking.conversionFunnel.useQuery(
+    { startDate: prevStart, endDate: prevEnd },
+    { enabled: !!start && !!end }
   );
   const { data: sourceData, isLoading: sourceLoading, refetch: refetchSource } = trpc.tracking.sourceBreakdown.useQuery(
     { startDate: start, endDate: end },
@@ -337,11 +357,46 @@ export default function BIPage() {
     { startDate: start, endDate: end },
     { refetchInterval: autoRefresh ? 60000 : false }
   );
+  const { data: dailyStats, isLoading: dailyStatsLoading } = trpc.tracking.dailyStats.useQuery(
+    { startDate: start, endDate: end },
+    { refetchInterval: autoRefresh ? 60000 : false }
+  );
+
+  // Calculate trends
+  const trends = useMemo(() => {
+    if (!funnelData || !prevFunnelData) return null;
+    
+    const calculateTrend = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
+
+    return {
+      totalSessions: calculateTrend(funnelData.totalSessions, prevFunnelData.totalSessions),
+      converted: calculateTrend(funnelData.converted, prevFunnelData.converted),
+      abandoned: calculateTrend(funnelData.abandoned, prevFunnelData.abandoned),
+      conversionRate: calculateTrend(
+        funnelData.totalSessions > 0 ? (funnelData.converted / funnelData.totalSessions) * 100 : 0,
+        prevFunnelData.totalSessions > 0 ? (prevFunnelData.converted / prevFunnelData.totalSessions) * 100 : 0
+      ),
+    };
+  }, [funnelData, prevFunnelData]);
 
   const handleRefresh = async () => {
     await Promise.all([refetchFunnel(), refetchSource(), refetchCampaign()]);
     toast.success("تم تحديث البيانات");
   };
+
+  // Format daily stats for chart
+  const dailyChartData = useMemo(() => {
+    if (!dailyStats) return [];
+    return dailyStats.map(stat => ({
+      date: new Date(stat.date).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' }),
+      sessions: stat.sessions,
+      conversions: stat.conversions,
+      conversionRate: stat.conversionRate,
+    }));
+  }, [dailyStats]);
 
   const handleExport = () => {
     const data = {
@@ -349,6 +404,7 @@ export default function BIPage() {
       funnel: funnelData,
       sources: sourceData,
       campaigns: campaignData,
+      trends,
       exportedAt: new Date().toISOString(),
     };
     
@@ -362,6 +418,38 @@ export default function BIPage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success("تم تصدير البيانات بنجاح");
+  };
+
+  const handleExportCSV = () => {
+    if (!sourceData || !campaignData) {
+      toast.error("لا توجد بيانات للتصدير");
+      return;
+    }
+
+    // Sources CSV
+    const sourcesCSV = [
+      ["المصدر", "الزيارات", "التحويلات", "معدل التحويل"],
+      ...sourceData.map(s => [s.source, s.total, s.conversions, s.rate + "%"])
+    ].map(row => row.join(",")).join("\n");
+
+    // Campaigns CSV
+    const campaignsCSV = [
+      ["الحملة", "المصدر", "الزيارات", "التحويلات", "معدل التحويل"],
+      ...campaignData.map(c => [c.campaign, c.source, c.sessions, c.conversions, c.conversionRate + "%"])
+    ].map(row => row.join(",")).join("\n");
+
+    const combinedCSV = `=== المصادر ===\n${sourcesCSV}\n\n=== الحملات ===\n${campaignsCSV}`;
+    
+    const blob = new Blob([combinedCSV], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bi-data-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("تم تصدير البيانات CSV بنجاح");
   };
 
   const totalSessions = funnelData?.totalSessions ?? 0;
@@ -398,9 +486,13 @@ export default function BIPage() {
               <RefreshCw className="w-4 h-4 mr-2" />
               تحديث
             </Button>
+            <Button variant="outline" size="sm" onClick={handleExportCSV}>
+              <Download className="w-4 h-4 mr-2" />
+              CSV
+            </Button>
             <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="w-4 h-4 mr-2" />
-              تصدير
+              JSON
             </Button>
             <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
               <SelectTrigger className="w-36">
@@ -423,6 +515,7 @@ export default function BIPage() {
             subtitle="جلسات مسجّلة"
             icon={<Users className="h-5 w-5" />}
             color="primary"
+            trend={trends?.totalSessions}
           />
           <MetricCard
             title="حجوزات مكتملة"
@@ -430,6 +523,7 @@ export default function BIPage() {
             subtitle={`معدل التحويل: ${conversionRate}%`}
             icon={<CheckCircle2 className="h-5 w-5" />}
             color="success"
+            trend={trends?.converted}
           />
           <MetricCard
             title="فرص ضائعة"
@@ -437,6 +531,7 @@ export default function BIPage() {
             subtitle={`${abandonedRate}% من الزوار`}
             icon={<AlertCircle className="h-5 w-5" />}
             color="danger"
+            trend={trends?.abandoned}
           />
           <MetricCard
             title="معدل التحويل"
@@ -444,15 +539,59 @@ export default function BIPage() {
             subtitle="من الزيارة إلى الحجز"
             icon={<Target className="h-5 w-5" />}
             color="purple"
+            trend={trends?.conversionRate}
           />
         </div>
 
+        {/* Smart Alerts */}
+        {trends && (
+          <div className="space-y-2">
+            {trends.conversionRate < -10 && (
+              <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                    <div className="text-sm text-red-700 dark:text-red-300">
+                      <span className="font-medium">تنبيه:</span> معدل التحويل انخفض بنسبة {Math.abs(trends.conversionRate).toFixed(1)}% مقارنة بالفترة السابقة
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {trends.abandoned > 20 && (
+              <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-800">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                    <div className="text-sm text-orange-700 dark:text-orange-300">
+                      <span className="font-medium">تنبيه:</span> الفرص الضائعة زادت بنسبة {trends.abandoned.toFixed(1)}% مقارنة بالفترة السابقة
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {trends.converted > 10 && (
+              <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+                    <div className="text-sm text-green-700 dark:text-green-300">
+                      <span className="font-medium">ممتاز:</span> الحجوزات المكتملة زادت بنسبة {trends.converted.toFixed(1)}% مقارنة بالفترة السابقة
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* Main Tabs */}
         <Tabs defaultValue="funnel" className="space-y-4">
-          <TabsList className="grid grid-cols-4 w-full max-w-lg">
+          <TabsList className="grid grid-cols-5 w-full max-w-2xl">
             <TabsTrigger value="funnel">قمع التحويل</TabsTrigger>
             <TabsTrigger value="sources">المصادر</TabsTrigger>
             <TabsTrigger value="campaigns">الحملات</TabsTrigger>
+            <TabsTrigger value="daily">الإحصائيات اليومية</TabsTrigger>
             <TabsTrigger value="abandoned">الفرص الضائعة</TabsTrigger>
           </TabsList>
 
@@ -692,6 +831,75 @@ export default function BIPage() {
                     <Target className="h-12 w-12 text-muted-foreground/30 mx-auto" />
                     <p className="text-muted-foreground">لا توجد بيانات حملات بعد</p>
                     <p className="text-xs text-muted-foreground">ستظهر البيانات عند وصول زوار من روابط تحتوي على معاملات UTM</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Daily Stats Tab */}
+          <TabsContent value="daily">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  الإحصائيات اليومية
+                </CardTitle>
+                <CardDescription>تتبع الزيارات والتحويلات يومياً خلال الفترة المحددة</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {dailyStatsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : dailyChartData && dailyChartData.length > 0 ? (
+                  <div className="space-y-4">
+                    <ResponsiveContainer width="100%" height={350}>
+                      <LineChart data={dailyChartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="sessions" stroke={COLORS.primary} name="الزيارات" strokeWidth={2} />
+                        <Line type="monotone" dataKey="conversions" stroke={COLORS.success} name="التحويلات" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+
+                    <div className="rounded-lg border overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="text-right p-3 font-medium">التاريخ</th>
+                            <th className="text-right p-3 font-medium">الزيارات</th>
+                            <th className="text-right p-3 font-medium">التحويلات</th>
+                            <th className="text-right p-3 font-medium">معدل التحويل</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dailyChartData.map((stat, idx) => (
+                            <tr key={idx} className="border-t hover:bg-muted/30">
+                              <td className="p-3 font-medium">{stat.date}</td>
+                              <td className="p-3">{stat.sessions.toLocaleString()}</td>
+                              <td className="p-3 text-green-600 font-medium">{stat.conversions.toLocaleString()}</td>
+                              <td className="p-3">
+                                <Badge
+                                  className={stat.conversionRate >= 10 ? "bg-green-100 text-green-700" : stat.conversionRate >= 5 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}
+                                >
+                                  {stat.conversionRate}%
+                                </Badge>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 space-y-3">
+                    <Calendar className="h-12 w-12 text-muted-foreground/30 mx-auto" />
+                    <p className="text-muted-foreground">لا توجد بيانات يومية بعد</p>
+                    <p className="text-xs text-muted-foreground">ستظهر البيانات عند وجود زيارات وتحويلات</p>
                   </div>
                 )}
               </CardContent>
