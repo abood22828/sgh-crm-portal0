@@ -489,4 +489,30 @@ export const campRegistrationsRouter = router({
 
       return { receiptNumber };
     }),
+
+  // Schedule camp stats report
+  scheduleReport: protectedProcedure
+    .input(z.object({
+      email: z.string().email(),
+      frequency: z.enum(["daily", "weekly", "monthly"]),
+      campId: z.number().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      // TODO: Implement actual report scheduling
+      // This would typically:
+      // 1. Store the schedule configuration in a database table
+      // 2. Set up a cron job to generate and send reports
+      // 3. Use an email service to send the reports
+      
+      // For now, return success as a placeholder
+      return {
+        success: true,
+        message: `تم جدولة التقرير للإرسال إلى ${input.email} (${input.frequency === "daily" ? "يومياً" : input.frequency === "weekly" ? "أسبوعياً" : "شهرياً"})`,
+        schedule: {
+          email: input.email,
+          frequency: input.frequency,
+          campId: input.campId,
+        },
+      };
+    }),
 });

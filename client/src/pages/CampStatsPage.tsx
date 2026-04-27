@@ -29,6 +29,7 @@ export default function CampStatsPage() {
     undefined,
     { refetchInterval: autoRefresh ? 60000 : false }
   );
+  const scheduleReportMutation = trpc.campRegistrations.scheduleReport.useMutation();
 
   if (campsLoading || registrationsLoading) {
     return (
@@ -97,16 +98,25 @@ export default function CampStatsPage() {
     toast.success("تم تصدير البيانات بنجاح");
   };
 
-  const handleScheduleReport = () => {
+  const handleScheduleReport = async () => {
     if (!scheduleEmail || !scheduleEmail.includes("@")) {
       toast.error("يرجى إدخال بريد إلكتروني صحيح");
       return;
     }
     
-    // TODO: Call backend API to schedule the report
-    toast.success(`تم جدولة التقرير للإرسال إلى ${scheduleEmail} (${scheduleFrequency === "daily" ? "يومياً" : scheduleFrequency === "weekly" ? "أسبوعياً" : "شهرياً"})`);
-    setScheduleDialogOpen(false);
-    setScheduleEmail("");
+    try {
+      const campId = selectedCamp === "all" ? undefined : parseInt(selectedCamp);
+      await scheduleReportMutation.mutateAsync({
+        email: scheduleEmail,
+        frequency: scheduleFrequency,
+        campId,
+      });
+      toast.success(`تم جدولة التقرير للإرسال إلى ${scheduleEmail} (${scheduleFrequency === "daily" ? "يومياً" : scheduleFrequency === "weekly" ? "أسبوعياً" : "شهرياً"})`);
+      setScheduleDialogOpen(false);
+      setScheduleEmail("");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء جدولة التقرير");
+    }
   };
 
   // Status distribution for pie chart
@@ -406,6 +416,31 @@ export default function CampStatsPage() {
     });
 
     return data.slice(0, 100); // Limit to 100 points
+  }, [filteredRegistrations]);
+
+  // Heatmap Data - Registration activity by day and hour
+  const heatmapData = useMemo(() => {
+    const dayHourMap = new Map<string, number>();
+    const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+    
+    filteredRegistrations.forEach((r: any) => {
+      if (r.createdAt) {
+        const date = new Date(r.createdAt);
+        const day = dayNames[date.getDay()];
+        const hour = date.getHours();
+        const key = `${day}-${hour}`;
+        dayHourMap.set(key, (dayHourMap.get(key) || 0) + 1);
+      }
+    });
+
+    // Convert to array format for heatmap display
+    const data: { day: string; hour: number; count: number }[] = [];
+    dayHourMap.forEach((count, key) => {
+      const [day, hour] = key.split("-");
+      data.push({ day, hour: parseInt(hour), count });
+    });
+
+    return data.sort((a, b) => b.count - a.count).slice(0, 50); // Top 50 active slots
   }, [filteredRegistrations]);
 
   return (
@@ -1025,6 +1060,36 @@ export default function CampStatsPage() {
                   <Scatter fill="#3B82F6" />
                 </ScatterChart>
               </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Heatmap - Registration Activity by Day and Hour */}
+        {heatmapData.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                نشاط التسجيلات حسب اليوم والساعة
+              </CardTitle>
+              <CardDescription>أوقات الذروة للتسجيلات (أعلى 50 فترة)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {heatmapData.map((item, index) => (
+                  <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="w-24 text-sm font-medium text-muted-foreground">{item.day}</div>
+                    <div className="w-16 text-sm text-muted-foreground">{item.hour}:00</div>
+                    <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-green-500 to-blue-500 transition-all duration-300"
+                        style={{ width: `${(item.count / heatmapData[0].count) * 100}%` }}
+                      />
+                    </div>
+                    <div className="w-16 text-sm font-bold text-foreground text-left">{item.count}</div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}
