@@ -42,6 +42,7 @@ const WhatsAppIntegration = lazy(() => import("./pages/WhatsAppIntegration"));
 const WhatsAppAccountHealthPage = lazy(() => import("./pages/WhatsAppAccountHealthPage"));
 const WhatsAppPhoneQualityPage = lazy(() => import("./pages/WhatsAppPhoneQualityPage"));
 const WhatsAppUserSubscriptionsPage = lazy(() => import("./pages/WhatsAppUserSubscriptionsPage"));
+const WhatsAppWebhookInspectorPage = lazy(() => import("./pages/WhatsAppWebhookInspectorPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const ReportsPageNew = lazy(() => import("./pages/admin/ReportsPage"));
@@ -131,6 +132,7 @@ function Router() {
             <Route path={"/dashboard/whatsapp/account-health"} component={WhatsAppAccountHealthPage} />
             <Route path={"/dashboard/whatsapp/phone-quality"} component={WhatsAppPhoneQualityPage} />
             <Route path={"/dashboard/whatsapp/subscriptions"} component={WhatsAppUserSubscriptionsPage} />
+            <Route path={"/dashboard/whatsapp/webhook-inspector"} component={WhatsAppWebhookInspectorPage} />
             <Route path={"/dashboard/messages"} component={MessagesPage} />
             <Route path={"/dashboard/message-settings"} component={MessageSettingsPage} />
             <Route path={"/dashboard/reports"} component={ReportsPageNew} />

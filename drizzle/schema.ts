@@ -1337,3 +1337,22 @@ export const whatsappTemplateQuality = mysqlTable("whatsapp_template_quality", {
 });
 export type WhatsappTemplateQuality = typeof whatsappTemplateQuality.$inferSelect;
 export type InsertWhatsappTemplateQuality = typeof whatsappTemplateQuality.$inferInsert;
+
+/**
+ * WhatsApp Webhook Events Log - سجل جميع أحداث webhook من Meta
+ * يستخدم لاكتشاف الأحداث الجديدة والتحليل
+ */
+export const whatsappWebhookEvents = mysqlTable("whatsapp_webhook_events", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: varchar("eventId", { length: 255 }), // معرف الحدث من Meta إن وجد
+  eventType: varchar("eventType", { length: 100 }).notNull(), // نوع الحدث (field)
+  subType: varchar("subType", { length: 100 }), // النوع الفرعي إن وجد
+  phoneNumber: varchar("phoneNumber", { length: 20 }), // رقم الهاتف المرتبط
+  rawPayload: text("rawPayload").notNull(), // البيانات الخام الكاملة (JSON)
+  processed: boolean("processed").default(false).notNull(), // هل تم معالجته
+  handlerExists: boolean("handlerExists").default(false).notNull(), // هل يوجد معالج له
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  processedAt: timestamp("processedAt"),
+});
+export type WhatsappWebhookEvent = typeof whatsappWebhookEvents.$inferSelect;
+export type InsertWhatsappWebhookEvent = typeof whatsappWebhookEvents.$inferInsert;

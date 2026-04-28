@@ -1500,4 +1500,56 @@ export const whatsappRouter = router({
         return await query.orderBy(desc(whatsappTemplateQuality.createdAt)).limit(input?.limit || 100);
       }),
   }),
+
+  // ─── Webhook Events Inspector ──────────────────────────────────────────────────
+
+  webhookEvents: router({
+    getAll: protectedProcedure
+      .input(z.object({
+        eventType: z.string().optional(),
+        processed: z.boolean().optional(),
+        handlerExists: z.boolean().optional(),
+        limit: z.number().default(100),
+      }).optional())
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappWebhookEvents } = await import("../../drizzle/schema");
+        const { eq, and, desc } = await import("drizzle-orm");
+
+        const conditions = [];
+        if (input?.eventType) {
+          conditions.push(eq(whatsappWebhookEvents.eventType, input.eventType));
+        }
+        if (input?.processed !== undefined) {
+          conditions.push(eq(whatsappWebhookEvents.processed, input.processed));
+        }
+        if (input?.handlerExists !== undefined) {
+          conditions.push(eq(whatsappWebhookEvents.handlerExists, input.handlerExists));
+        }
+
+        const query = conditions.length > 0
+          ? dbConn.select().from(whatsappWebhookEvents).where(and(...conditions))
+          : dbConn.select().from(whatsappWebhookEvents);
+
+        return await query
+          .orderBy(desc(whatsappWebhookEvents.createdAt))
+          .limit(input?.limit || 100);
+      }),
+
+    getUnhandledCount: protectedProcedure.query(async () => {
+      return await db.getUnhandledWebhookEventsCount();
+    }),
+
+    getEventTypes: protectedProcedure.query(async () => {
+      return await db.getUniqueEventTypes();
+    }),
+
+    markAsProcessed: protectedProcedure
+      .input(z.object({ id: z.number(), handlerExists: z.boolean().default(true) }))
+      .mutation(async ({ input }) => {
+        await db.markWebhookEventAsProcessed(input.id, input.handlerExists);
+        return { success: true };
+      }),
+  }),
 });

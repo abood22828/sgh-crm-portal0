@@ -15,7 +15,7 @@ import crypto from "crypto";
 import { Request, Response } from "express";
 import { eq } from "drizzle-orm";
 import { ENV } from "../_core/env";
-import { getDb, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, normalizePhoneNumber, createWhatsAppAccountAlert, createWhatsAppSecurityEvent, createWhatsAppPhoneQuality, createWhatsAppConversationQuality, createWhatsAppUserOptIn, updateWhatsAppUserOptIn, createWhatsAppTemplateQuality } from "../db";
+import { getDb, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, normalizePhoneNumber, createWhatsAppAccountAlert, createWhatsAppSecurityEvent, createWhatsAppPhoneQuality, createWhatsAppConversationQuality, createWhatsAppUserOptIn, updateWhatsAppUserOptIn, createWhatsAppTemplateQuality, logWebhookEvent } from "../db";
 import { whatsappTemplates, whatsappNotifications, whatsappMessages } from "../../drizzle/schema";
 import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
 import { processIncomingMessage } from "../services/whatsappAutoReply";
@@ -945,6 +945,21 @@ export async function processWebhookEvent(body: any) {
 
           default: {
             console.log(`[WhatsApp Webhook] Unhandled field: ${field}`, value);
+
+            // ── تسجيل الحدث غير المعروف في قاعدة البيانات ──────────────────────
+            // هذا يساعد في اكتشاف أحداث جديدة من Meta
+            try {
+              await logWebhookEvent({
+                eventType: field,
+                subType: value?.type || undefined,
+                phoneNumber: value?.phone_number || value?.phoneNumber || undefined,
+                rawPayload: JSON.stringify({ field, value, timestamp: new Date().toISOString() }),
+                processed: false,
+                handlerExists: false,
+              });
+            } catch (error) {
+              console.error("[WhatsApp Webhook] Failed to log unhandled event:", error);
+            }
           }
         }
       }

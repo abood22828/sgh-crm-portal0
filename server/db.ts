@@ -1047,6 +1047,67 @@ export async function createWhatsAppTemplateQuality(quality: any) {
   return db.insert(whatsappTemplateQuality).values(quality);
 }
 
+/**
+ * تسجيل حدث webhook في قاعدة البيانات
+ * يستخدم لاكتشاف الأحداث الجديدة وتحليلها
+ */
+export async function logWebhookEvent(event: {
+  eventId?: string;
+  eventType: string;
+  subType?: string;
+  phoneNumber?: string;
+  rawPayload: string;
+  processed?: boolean;
+  handlerExists?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) {
+    console.error("[Webhook Logger] Database not available");
+    return;
+  }
+
+  const { whatsappWebhookEvents } = await import('../drizzle/schema');
+
+  try {
+    await db.insert(whatsappWebhookEvents).values({
+      eventId: event.eventId || null,
+      eventType: event.eventType,
+      subType: event.subType || null,
+      phoneNumber: event.phoneNumber || null,
+      rawPayload: event.rawPayload,
+      processed: event.processed ?? false,
+      handlerExists: event.handlerExists ?? false,
+    });
+
+    // إذا كان الحدث جديداً (لا يوجد معالج له)، نسجل تحذير
+    if (!event.handlerExists) {
+      console.warn(`[Webhook Logger] ⚠️ New unhandled event type detected: ${event.eventType}${event.subType ? `/${event.subType}` : ''}`);
+    }
+  } catch (error) {
+    console.error("[Webhook Logger] Error logging webhook event:", error);
+  }
+}
+
+/**
+ * تحديث حالة معالجة حدث webhook
+ */
+export async function markWebhookEventAsProcessed(eventId: number, handlerExists: boolean = true) {
+  const db = await getDb();
+  if (!db) return;
+
+  const { whatsappWebhookEvents } = await import('../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
+
+  await db
+    .update(whatsappWebhookEvents)
+    .set({
+      processed: true,
+      processedAt: new Date(),
+      handlerExists,
+    })
+    .where(eq(whatsappWebhookEvents.id, eventId));
+}
+
 export async function getWhatsAppTemplateByMetaName(metaName: string) {
   const db = await getDb();
   if (!db) return undefined;
@@ -1061,7 +1122,7 @@ export async function getWhatsAppTemplateByMetaName(metaName: string) {
 export async function searchWhatsAppConversations(searchTerm: string) {
   const db = await getDb();
   if (!db) return [];
-  
+
   const { whatsappConversations } = await import('../drizzle/schema');
   return db.select().from(whatsappConversations).where(
     or(
@@ -1069,6 +1130,81 @@ export async function searchWhatsAppConversations(searchTerm: string) {
       like(whatsappConversations.phoneNumber, `%${searchTerm}%`)
     )
   ).orderBy(desc(whatsappConversations.lastMessageAt));
+}
+
+// ==================== Webhook Events Functions ====================
+
+export async function getWebhookEvents(filters: {
+  eventType?: string;
+  processed?: boolean;
+  handlerExists?: boolean;
+  limit?: number;
+} = {}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const { whatsappWebhookEvents } = await import('../drizzle/schema');
+  const { eq, and, desc } = await import('drizzle-orm');
+
+  let query = db.select().from(whatsappWebhookEvents);
+
+  const conditions = [];
+  if (filters.eventType) {
+    conditions.push(eq(whatsappWebhookEvents.eventType, filters.eventType));
+  }
+  if (filters.processed !== undefined) {
+    conditions.push(eq(whatsappWebhookEvents.processed, filters.processed));
+  }
+  if (filters.handlerExists !== undefined) {
+    conditions.push(eq(whatsappWebhookEvents.handlerExists, filters.handlerExists));
+  }
+
+  const finalQuery = conditions.length > 0
+    ? query.where(and(...conditions))
+    : query;
+
+  return await finalQuery
+    .orderBy(desc(whatsappWebhookEvents.createdAt))
+    .limit(filters.limit || 100);
+}
+
+export async function getUnhandledWebhookEventsCount() {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const { whatsappWebhookEvents } = await import('../drizzle/schema');
+  const { eq, and, sql } = await import('drizzle-orm');
+
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(whatsappWebhookEvents)
+    .where(
+      and(
+        eq(whatsappWebhookEvents.processed, false),
+        eq(whatsappWebhookEvents.handlerExists, false)
+      )
+    );
+
+  return result[0]?.count || 0;
+}
+
+export async function getUniqueEventTypes() {
+  const db = await getDb();
+  if (!db) return [];
+
+  const { whatsappWebhookEvents } = await import('../drizzle/schema');
+  const { sql } = await import('drizzle-orm');
+
+  const result = await db
+    .select({
+      eventType: whatsappWebhookEvents.eventType,
+      count: sql<number>`count(*)`,
+    })
+    .from(whatsappWebhookEvents)
+    .groupBy(whatsappWebhookEvents.eventType)
+    .orderBy(sql`count(*) DESC`);
+
+  return result;
 }
 
 export async function getUnreadWhatsAppConversationsCount() {

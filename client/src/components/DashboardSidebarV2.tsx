@@ -38,6 +38,7 @@ import {
   PieChart,
   Shield,
   Activity,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
@@ -92,6 +93,7 @@ const allNavItems: NavItem[] = [
   { id: "whatsapp-account-health", title: "صحة الحساب", href: "/dashboard/whatsapp/account-health", icon: Shield },
   { id: "whatsapp-phone-quality", title: "جودة الرقم", href: "/dashboard/whatsapp/phone-quality", icon: Smartphone },
   { id: "whatsapp-subscriptions", title: "الاشتراكات", href: "/dashboard/whatsapp/subscriptions", icon: Users },
+  { id: "whatsapp-webhook-inspector", title: "فاحص الأحداث", href: "/dashboard/whatsapp/webhook-inspector", icon: Terminal },
   { id: "messages", title: "الرسائل", href: "/dashboard/messages", icon: MessageSquare },
   { id: "message-settings", title: "إعدادات الرسائل", href: "/dashboard/message-settings", icon: SettingsIcon },
   { id: "management", title: "الإدارة", href: "/dashboard/management", icon: SettingsIcon },
