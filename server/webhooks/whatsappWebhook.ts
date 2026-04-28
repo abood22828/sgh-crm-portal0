@@ -197,17 +197,63 @@ async function handleIncomingMessage(message: any, metadata: any) {
     } else if (type === "interactive" && interactive) {
       // معالجة interactive messages (button_reply, list_reply, etc.)
       if (interactive.type === "button_reply" && interactive.button_reply) {
-        content = interactive.button_reply.title || interactive.button_reply.id || "زر";
-        messageType = "interactive";
+        const buttonId = interactive.button_reply.id;
+        const buttonTitle = interactive.button_reply.title;
+        content = `🔘 ${buttonTitle} (ID: ${buttonId})`;
+        messageType = "button_reply";
+        console.log(`[WhatsApp Webhook] 🔘 Button clicked: ${buttonTitle} (ID: ${buttonId}) from ${from}`);
+        await logWebhookEvent({
+          eventId: messageId,
+          eventType: "button_click",
+          subType: buttonId,
+          phoneNumber: from,
+          rawPayload: JSON.stringify({ buttonId, buttonTitle, interactive }),
+          processed: true,
+          handlerExists: true,
+        });
       } else if (interactive.type === "list_reply" && interactive.list_reply) {
-        content = interactive.list_reply.title || interactive.list_reply.id || "قائمة";
-        messageType = "interactive";
+        const listId = interactive.list_reply.id;
+        const listTitle = interactive.list_reply.title;
+        content = `📋 ${listTitle} (ID: ${listId})`;
+        messageType = "list_reply";
+        console.log(`[WhatsApp Webhook] 📋 List item selected: ${listTitle} (ID: ${listId}) from ${from}`);
+        await logWebhookEvent({
+          eventId: messageId,
+          eventType: "list_click",
+          subType: listId,
+          phoneNumber: from,
+          rawPayload: JSON.stringify({ listId, listTitle, interactive }),
+          processed: true,
+          handlerExists: true,
+        });
       } else if (interactive.type === "narrow_list_reply" && interactive.narrow_list_reply) {
-        content = interactive.narrow_list_reply.title || interactive.narrow_list_reply.id || "قائمة";
-        messageType = "interactive";
+        const listId = interactive.narrow_list_reply.id;
+        const listTitle = interactive.narrow_list_reply.title;
+        content = `📋 ${listTitle} (ID: ${listId})`;
+        messageType = "list_reply";
+        console.log(`[WhatsApp Webhook] 📋 Narrow list item selected: ${listTitle} (ID: ${listId}) from ${from}`);
+        await logWebhookEvent({
+          eventId: messageId,
+          eventType: "list_click",
+          subType: listId,
+          phoneNumber: from,
+          rawPayload: JSON.stringify({ listId, listTitle, interactive }),
+          processed: true,
+          handlerExists: true,
+        });
       } else {
         content = interactive.type || "تفاعل";
         messageType = "interactive";
+        console.log(`[WhatsApp Webhook] ❓ Unknown interactive type: ${interactive.type} from ${from}`);
+        await logWebhookEvent({
+          eventId: messageId,
+          eventType: "interactive",
+          subType: interactive.type,
+          phoneNumber: from,
+          rawPayload: JSON.stringify(interactive),
+          processed: false,
+          handlerExists: false,
+        });
       }
     } else {
       content = "رسالة غير مدعومة";
