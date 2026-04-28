@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { AlertTriangle, CheckCircle, RefreshCw, Search, Eye, Code, AlertCircle, Terminal } from "lucide-react";
+import { AlertTriangle, CheckCircle, RefreshCw, Search, Eye, Code, AlertCircle, Terminal, MessageSquare, FileText, Shield, TrendingUp, Users, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function WhatsAppWebhookInspectorPage() {
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
@@ -21,6 +23,16 @@ export default function WhatsAppWebhookInspectorPage() {
       limit: 100,
     },
     { refetchInterval: 10000 }
+  );
+
+  const { data: categoryEvents, isLoading: isLoadingCategory, refetch: refetchCategory } = trpc.whatsapp.webhookEvents.getEventsByCategory.useQuery(
+    { category: selectedCategory as any, limit: 100 },
+    { enabled: selectedCategory !== "all", refetchInterval: 10000 }
+  );
+
+  const { data: statsByType, isLoading: isLoadingStats } = trpc.whatsapp.webhookEvents.getStatsByType.useQuery(
+    undefined,
+    { refetchInterval: 30000 }
   );
 
   const { data: unhandledCount, refetch: refetchCount } = trpc.whatsapp.webhookEvents.getUnhandledCount.useQuery(
@@ -46,21 +58,38 @@ export default function WhatsAppWebhookInspectorPage() {
 
   const handleRefresh = () => {
     refetch();
+    refetchCategory();
     refetchCount();
     refetchTypes();
     toast.success("تم تحديث البيانات");
   };
 
+  const displayEvents = selectedCategory !== "all" ? categoryEvents : events;
+  const displayLoading = selectedCategory !== "all" ? isLoadingCategory : isLoading;
+
   const handleMarkAsProcessed = (eventId: number, hasHandler: boolean = false) => {
     markAsProcessedMutation.mutate({ id: eventId, handlerExists: hasHandler });
   };
 
-  const filteredEvents = events?.filter((event: any) => {
+  const filteredEvents = displayEvents?.filter((event: any) => {
     const matchesSearch =
       event.eventType.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (event.rawPayload && event.rawPayload.includes(searchTerm));
     return matchesSearch;
   });
+
+  const categories = [
+    { value: "all", label: "جميع الفئات", icon: BarChart3 },
+    { value: "messages", label: "الرسائل", icon: MessageSquare },
+    { value: "templates", label: "القوالب", icon: FileText },
+    { value: "account", label: "الحساب", icon: Shield },
+    { value: "security", label: "الأمان", icon: AlertTriangle },
+    { value: "quality", label: "الجودة", icon: TrendingUp },
+    { value: "subscriptions", label: "الاشتراكات", icon: Users },
+  ];
+
+  const totalEvents = statsByType?.reduce((sum, stat) => sum + (stat.count || 0), 0) || 0;
+  const processedEvents = displayEvents?.filter((e: any) => e.processed).length || 0;
 
   return (
     <div className="container mx-auto py-6 px-4" dir="rtl">
@@ -90,7 +119,7 @@ export default function WhatsAppWebhookInspectorPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">إجمالي الأحداث</p>
-                <p className="text-2xl font-bold">{events?.length || 0}</p>
+                <p className="text-2xl font-bold">{totalEvents}</p>
               </div>
               <Terminal className="h-8 w-8 text-gray-500" />
             </div>
@@ -127,7 +156,7 @@ export default function WhatsAppWebhookInspectorPage() {
               <div>
                 <p className="text-sm text-gray-600">تم معالجتها</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {events?.filter((e: any) => e.processed).length || 0}
+                  {processedEvents}
                 </p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
@@ -135,6 +164,66 @@ export default function WhatsAppWebhookInspectorPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Category Filter */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg">تصفية حسب الفئة</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <Button
+                  key={cat.value}
+                  variant={selectedCategory === cat.value ? "default" : "outline"}
+                  onClick={() => setSelectedCategory(cat.value)}
+                  className="gap-2"
+                >
+                  <Icon className="h-4 w-4" />
+                  {cat.label}
+                </Button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Event Stats by Type */}
+      {statsByType && statsByType.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg">إحصائيات الأحداث حسب النوع</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {statsByType
+                .sort((a, b) => (b.count || 0) - (a.count || 0))
+                .slice(0, 10)
+                .map((stat) => {
+                  const percentage = totalEvents > 0 ? ((stat.count || 0) / totalEvents) * 100 : 0;
+                  return (
+                    <div key={stat.eventType} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">{stat.eventType}</span>
+                        <span className="text-gray-600">
+                          {stat.count} ({percentage.toFixed(1)}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Event Types Summary */}
       {eventTypes && eventTypes.length > 0 && (
@@ -193,7 +282,7 @@ export default function WhatsAppWebhookInspectorPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {displayLoading ? (
                 <div className="text-center py-8">جاري التحميل...</div>
               ) : filteredEvents && filteredEvents.length > 0 ? (
                 <div className="space-y-4">

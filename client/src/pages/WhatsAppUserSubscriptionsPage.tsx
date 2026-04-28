@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Users, CheckCircle, XCircle, RefreshCw, Search, UserCheck, UserX } from "lucide-react";
+import { Users, CheckCircle, XCircle, RefreshCw, Search, UserCheck, UserX, Activity } from "lucide-react";
 import { toast } from "sonner";
 
 export default function WhatsAppUserSubscriptionsPage() {
@@ -23,6 +23,11 @@ export default function WhatsAppUserSubscriptionsPage() {
     { refetchInterval: 30000 }
   );
 
+  const { data: subscriptionWebhookEvents, isLoading: webhookLoading, refetch: refetchWebhook } = trpc.whatsapp.webhookEvents.getEventsByCategory.useQuery(
+    { category: "subscriptions", limit: 50 },
+    { refetchInterval: 30000 }
+  );
+
   const updateStatusMutation = trpc.whatsapp.userSubscriptions.updateStatus.useMutation({
     onSuccess: () => {
       toast.success("تم تحديث حالة الاشتراك");
@@ -37,6 +42,7 @@ export default function WhatsAppUserSubscriptionsPage() {
   const handleRefresh = () => {
     refetch();
     refetchStats();
+    refetchWebhook();
     toast.success("تم تحديث البيانات");
   };
 
@@ -163,6 +169,7 @@ export default function WhatsAppUserSubscriptionsPage() {
           <TabsTrigger value="all">الكل</TabsTrigger>
           <TabsTrigger value="opted_in">مشتركين</TabsTrigger>
           <TabsTrigger value="opted_out">غير مشتركين</TabsTrigger>
+          <TabsTrigger value="webhook-events">أحداث Webhook</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab}>
@@ -243,6 +250,56 @@ export default function WhatsAppUserSubscriptionsPage() {
                 <div className="text-center py-8 text-gray-500">
                   <Users className="h-12 w-12 mx-auto mb-2" />
                   <p>لا توجد اشتراكات متطابقة مع البحث</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="webhook-events">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                أحداث Webhook للاشتراكات
+              </CardTitle>
+              <CardDescription>أحداث الاشتراك الواردة مباشرة من Meta</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {webhookLoading ? (
+                <div className="text-center py-8">جاري التحميل...</div>
+              ) : subscriptionWebhookEvents && subscriptionWebhookEvents.length > 0 ? (
+                <div className="space-y-3">
+                  {subscriptionWebhookEvents.map((event: any) => (
+                    <div key={event.id} className="p-4 border rounded-lg bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-semibold">{event.eventType}</h4>
+                            {event.subType && (
+                              <Badge variant="outline">{event.subType}</Badge>
+                            )}
+                          </div>
+                          {event.phoneNumber && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              الرقم: {event.phoneNumber}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2">
+                            {new Date(event.createdAt).toLocaleString("ar-SA")}
+                          </p>
+                        </div>
+                        <Badge className={event.handlerExists ? "bg-green-500" : "bg-red-500"}>
+                          {event.handlerExists ? "معالج" : "غير معالج"}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="h-12 w-12 mx-auto mb-2" />
+                  <p>لا توجد أحداث اشتراك حالياً</p>
                 </div>
               )}
             </CardContent>

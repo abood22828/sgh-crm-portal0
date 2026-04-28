@@ -1551,5 +1551,85 @@ export const whatsappRouter = router({
         await db.markWebhookEventAsProcessed(input.id, input.handlerExists);
         return { success: true };
       }),
+
+    // إحصائيات الأحداث حسب النوع
+    getStatsByType: protectedProcedure.query(async () => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new Error("Database not available");
+      const { whatsappWebhookEvents } = await import("../../drizzle/schema");
+      const { sql } = await import("drizzle-orm");
+
+      const stats = await dbConn
+        .select({
+          eventType: whatsappWebhookEvents.eventType,
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(whatsappWebhookEvents)
+        .groupBy(whatsappWebhookEvents.eventType);
+
+      return stats;
+    }),
+
+    // الأحداث حسب الفئة (messages, templates, account, etc.)
+    getEventsByCategory: protectedProcedure
+      .input(z.object({
+        category: z.enum(['messages', 'templates', 'account', 'security', 'quality', 'subscriptions']),
+        limit: z.number().default(50),
+      }))
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappWebhookEvents } = await import("../../drizzle/schema");
+        const { like, desc } = await import("drizzle-orm");
+
+        const categoryPatterns = {
+          messages: 'message%',
+          templates: 'message_template%',
+          account: 'account%',
+          security: 'security',
+          quality: 'quality%',
+          subscriptions: 'opt%',
+        };
+
+        return await dbConn
+          .select()
+          .from(whatsappWebhookEvents)
+          .where(like(whatsappWebhookEvents.eventType, categoryPatterns[input.category]))
+          .orderBy(desc(whatsappWebhookEvents.createdAt))
+          .limit(input.limit);
+      }),
+
+    // أحداث القوالب المفصلة
+    getTemplateEvents: protectedProcedure
+      .input(z.object({
+        templateId: z.string().optional(),
+        limit: z.number().default(100),
+      }))
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappWebhookEvents } = await import("../../drizzle/schema");
+        const { like, desc, eq } = await import("drizzle-orm");
+
+        let query = dbConn
+          .select()
+          .from(whatsappWebhookEvents)
+          .where(like(whatsappWebhookEvents.eventType, 'message_template%'));
+
+        if (input.templateId) {
+          // تصفية حسب templateId من الـ rawPayload
+          const events = await query.orderBy(desc(whatsappWebhookEvents.createdAt)).limit(input.limit);
+          return events.filter(e => {
+            try {
+              const payload = JSON.parse(e.rawPayload);
+              return payload.message_template_id === input.templateId;
+            } catch {
+              return false;
+            }
+          });
+        }
+
+        return await query.orderBy(desc(whatsappWebhookEvents.createdAt)).limit(input.limit);
+      }),
   }),
 });

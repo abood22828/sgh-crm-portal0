@@ -3,11 +3,13 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Smartphone, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Smartphone, RefreshCw, TrendingUp, TrendingDown, Minus, Activity } from "lucide-react";
 import { toast } from "sonner";
 
 export default function WhatsAppPhoneQualityPage() {
   const [phoneFilter, setPhoneFilter] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
 
   const { data: currentQuality, isLoading: currentLoading, refetch: refetchCurrent } = trpc.whatsapp.phoneQuality.getCurrent.useQuery(
     undefined,
@@ -19,9 +21,15 @@ export default function WhatsAppPhoneQualityPage() {
     { refetchInterval: 60000 }
   );
 
+  const { data: qualityWebhookEvents, isLoading: webhookLoading, refetch: refetchWebhook } = trpc.whatsapp.webhookEvents.getEventsByCategory.useQuery(
+    { category: "quality", limit: 50 },
+    { refetchInterval: 60000 }
+  );
+
   const handleRefresh = () => {
     refetchCurrent();
     refetchHistory();
+    refetchWebhook();
     toast.success("تم تحديث البيانات");
   };
 
@@ -136,62 +144,122 @@ export default function WhatsAppPhoneQualityPage() {
         </CardContent>
       </Card>
 
-      {/* History Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>تاريخ الجودة</CardTitle>
-          <CardDescription>سجل تحديثات جودة رقم الهاتف</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {historyLoading ? (
-            <div className="text-center py-8">جاري التحميل...</div>
-          ) : qualityHistory && qualityHistory.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-right py-3 px-4">التاريخ</th>
-                    <th className="text-right py-3 px-4">رقم الهاتف</th>
-                    <th className="text-right py-3 px-4">التقييم</th>
-                    <th className="text-right py-3 px-4">الدرجة</th>
-                    <th className="text-right py-3 px-4">التفاصيل</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {qualityHistory.map((record: any, index: number) => (
-                    <tr key={record.id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        {new Date(record.createdAt).toLocaleString("ar-SA")}
-                      </td>
-                      <td className="py-3 px-4">{record.phoneNumber}</td>
-                      <td className="py-3 px-4">
-                        <Badge className={getRatingColor(record.qualityRating)}>
-                          {getRatingText(record.qualityRating)}
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+          <TabsTrigger value="webhook-events">أحداث Webhook</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          {/* History Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>تاريخ الجودة</CardTitle>
+              <CardDescription>سجل تحديثات جودة رقم الهاتف</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {historyLoading ? (
+                <div className="text-center py-8">جاري التحميل...</div>
+              ) : qualityHistory && qualityHistory.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-right py-3 px-4">التاريخ</th>
+                        <th className="text-right py-3 px-4">رقم الهاتف</th>
+                        <th className="text-right py-3 px-4">التقييم</th>
+                        <th className="text-right py-3 px-4">الدرجة</th>
+                        <th className="text-right py-3 px-4">التفاصيل</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {qualityHistory.map((record: any, index: number) => (
+                        <tr key={record.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4">
+                            {new Date(record.createdAt).toLocaleString("ar-SA")}
+                          </td>
+                          <td className="py-3 px-4">{record.phoneNumber}</td>
+                          <td className="py-3 px-4">
+                            <Badge className={getRatingColor(record.qualityRating)}>
+                              {getRatingText(record.qualityRating)}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4">{record.qualityScore || "N/A"}</td>
+                          <td className="py-3 px-4">
+                            {record.details && (
+                              <details>
+                                <summary className="cursor-pointer text-blue-600">عرض</summary>
+                                <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto max-h-32">
+                                  {JSON.stringify(JSON.parse(record.details), null, 2)}
+                                </pre>
+                              </details>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>لا يوجد تاريخ جودة متوفر</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="webhook-events">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                أحداث Webhook للجودة
+              </CardTitle>
+              <CardDescription>أحداث تحديث الجودة الواردة مباشرة من Meta</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {webhookLoading ? (
+                <div className="text-center py-8">جاري التحميل...</div>
+              ) : qualityWebhookEvents && qualityWebhookEvents.length > 0 ? (
+                <div className="space-y-3">
+                  {qualityWebhookEvents.map((event: any) => (
+                    <div key={event.id} className="p-4 border rounded-lg bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-semibold">{event.eventType}</h4>
+                            {event.subType && (
+                              <Badge variant="outline">{event.subType}</Badge>
+                            )}
+                          </div>
+                          {event.phoneNumber && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              الرقم: {event.phoneNumber}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2">
+                            {new Date(event.createdAt).toLocaleString("ar-SA")}
+                          </p>
+                        </div>
+                        <Badge className={event.handlerExists ? "bg-green-500" : "bg-red-500"}>
+                          {event.handlerExists ? "معالج" : "غير معالج"}
                         </Badge>
-                      </td>
-                      <td className="py-3 px-4">{record.qualityScore || "N/A"}</td>
-                      <td className="py-3 px-4">
-                        {record.details && (
-                          <details>
-                            <summary className="cursor-pointer text-blue-600">عرض</summary>
-                            <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto max-h-32">
-                              {JSON.stringify(JSON.parse(record.details), null, 2)}
-                            </pre>
-                          </details>
-                        )}
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>لا يوجد تاريخ جودة متوفر</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Activity className="h-12 w-12 mx-auto mb-2" />
+                  <p>لا توجد أحداث جودة حالياً</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

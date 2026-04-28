@@ -21,6 +21,16 @@ export default function WhatsAppAccountHealthPage() {
     { refetchInterval: 30000 }
   );
 
+  const { data: accountWebhookEvents, isLoading: webhookLoading, refetch: refetchWebhook } = trpc.whatsapp.webhookEvents.getEventsByCategory.useQuery(
+    { category: "account", limit: 50 },
+    { refetchInterval: 30000 }
+  );
+
+  const { data: securityWebhookEvents, isLoading: securityWebhookLoading, refetch: refetchSecurityWebhook } = trpc.whatsapp.webhookEvents.getEventsByCategory.useQuery(
+    { category: "security", limit: 50 },
+    { refetchInterval: 30000 }
+  );
+
   const resolveAlertMutation = trpc.whatsapp.accountHealth.resolveAlert.useMutation({
     onSuccess: () => {
       toast.success("تم تحديث حالة التنبيه");
@@ -68,6 +78,8 @@ export default function WhatsAppAccountHealthPage() {
   const handleRefresh = () => {
     refetchAlerts();
     refetchSecurity();
+    refetchWebhook();
+    refetchSecurityWebhook();
     toast.success("تم تحديث البيانات");
   };
 
@@ -191,6 +203,7 @@ export default function WhatsAppAccountHealthPage() {
         <TabsList className="mb-4">
           <TabsTrigger value="alerts">تنبيهات الحساب</TabsTrigger>
           <TabsTrigger value="security">أحداث الأمان</TabsTrigger>
+          <TabsTrigger value="webhook-events">أحداث Webhook</TabsTrigger>
         </TabsList>
 
         <TabsContent value="alerts">
@@ -301,6 +314,77 @@ export default function WhatsAppAccountHealthPage() {
                   <p>لا توجد أحداث أمان حالياً</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="webhook-events">
+          <Card>
+            <CardHeader>
+              <CardTitle>أحداث Webhook الخام</CardTitle>
+              <CardDescription>أحداث الحساب والأمان الواردة مباشرة من Meta</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="account">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="account">أحداث الحساب</TabsTrigger>
+                  <TabsTrigger value="security">أحداث الأمان</TabsTrigger>
+                </TabsList>
+                <TabsContent value="account">
+                  {webhookLoading ? (
+                    <div className="text-center py-8">جاري التحميل...</div>
+                  ) : accountWebhookEvents && accountWebhookEvents.length > 0 ? (
+                    <div className="space-y-3">
+                      {accountWebhookEvents.map((event: any) => (
+                        <div key={event.id} className="p-3 border rounded-lg bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold text-sm">{event.eventType}</h4>
+                              {event.subType && (
+                                <Badge variant="outline" className="text-xs mt-1">{event.subType}</Badge>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-500">
+                              {new Date(event.createdAt).toLocaleString("ar-SA")}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>لا توجد أحداث حساب حالياً</p>
+                    </div>
+                  )}
+                </TabsContent>
+                <TabsContent value="security">
+                  {securityWebhookLoading ? (
+                    <div className="text-center py-8">جاري التحميل...</div>
+                  ) : securityWebhookEvents && securityWebhookEvents.length > 0 ? (
+                    <div className="space-y-3">
+                      {securityWebhookEvents.map((event: any) => (
+                        <div key={event.id} className="p-3 border rounded-lg bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold text-sm">{event.eventType}</h4>
+                              {event.subType && (
+                                <Badge variant="outline" className="text-xs mt-1">{event.subType}</Badge>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-500">
+                              {new Date(event.createdAt).toLocaleString("ar-SA")}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>لا توجد أحداث أمان حالياً</p>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </TabsContent>

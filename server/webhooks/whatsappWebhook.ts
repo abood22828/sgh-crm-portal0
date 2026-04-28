@@ -481,7 +481,14 @@ export async function processWebhookEvent(body: any) {
 
           case "business_profile_update": {
             // ── تحديثات الملف التجاري ─────────────────────────────────────────
-            console.log("[WhatsApp Webhook] � Business profile update:", value);
+            console.log("[WhatsApp Webhook] 🏢 Business profile update:", value);
+            await logWebhookEvent({
+              eventType: "business_profile_update",
+              subType: value.event || "unknown",
+              phoneNumber: value.phone_number || null,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
@@ -503,13 +510,27 @@ export async function processWebhookEvent(body: any) {
 
           case "messaging_product": {
             // ── تحديثات منتج المراسلة ─────────────────────────────────────────
-            console.log("[WhatsApp Webhook] � Messaging product update:", value);
+            console.log("[WhatsApp Webhook] 📨 Messaging product update:", value);
+            await logWebhookEvent({
+              eventType: "messaging_product",
+              subType: value.event || "unknown",
+              phoneNumber: value.phone_number || null,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "conversation": {
             // ── تحديثات المحادثات ─────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] � Conversation update:", value);
+            console.log("[WhatsApp Webhook] 💬 Conversation update:", value);
+            await logWebhookEvent({
+              eventType: "conversation",
+              subType: value.event || "unknown",
+              phoneNumber: value.phone_number || null,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
@@ -628,36 +649,78 @@ export async function processWebhookEvent(body: any) {
           case "message_template_event": {
             // ── أحداث القوالب (message_template_event) ────────────────────────
             console.log("[WhatsApp Webhook] 📄 Message template event:", value);
+            await logWebhookEvent({
+              eventType: "message_template_event",
+              subType: value.event || "unknown",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_disable": {
             // ── تعطيل القوالب ─────────────────────────────────────────────────
             console.warn("[WhatsApp Webhook] ⚠️ Message template disabled:", value);
+            await logWebhookEvent({
+              eventType: "message_template_disable",
+              subType: value.reason || "unknown",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_enable": {
             // ── تفعيل القوالب ──────────────────────────────────────────────────
             console.log("[WhatsApp Webhook] ✅ Message template enabled:", value);
+            await logWebhookEvent({
+              eventType: "message_template_enable",
+              subType: "enabled",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "account_review_update": {
             // ── تحديثات مراجعة الحساب ─────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🔍 Account review update:", value);
+            await logWebhookEvent({
+              eventType: "account_review_update",
+              subType: value.status || "unknown",
+              phoneNumber: value.phone_number || null,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "account_update": {
             // ── تحديثات الحساب ────────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 👤 Account update:", value);
+            await logWebhookEvent({
+              eventType: "account_update",
+              subType: value.event || "unknown",
+              phoneNumber: value.phone_number || null,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "business_account_update": {
             // ── تحديثات حساب الأعمال ───────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🏢 Business account update:", value);
+            await logWebhookEvent({
+              eventType: "business_account_update",
+              subType: value.event || "unknown",
+              phoneNumber: value.phone_number || null,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
@@ -670,276 +733,598 @@ export async function processWebhookEvent(body: any) {
           case "message_template_name_update": {
             // ── تحديثات اسم القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 📝 Message template name update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_name_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_category_update": {
             // ── تحديثات فئة القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 📁 Message template category update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_category_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_language_update": {
             // ── تحديثات لغة القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🌐 Message template language update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_language_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_components_update": {
             // ── تحديثات مكونات القالب ─────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🔧 Message template components update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_components_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_example_update": {
             // ── تحديثات مثال القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 📋 Message template example update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_example_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_example_delete": {
             // ── حذف مثال القالب ────────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template example delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_example_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_example_create": {
             // ── إنشاء مثال القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template example create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_example_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_button_update": {
             // ── تحديثات أزرار القالب ──────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🔘 Message template button update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_button_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_button_delete": {
             // ── حذف أزرار القالب ─────────────────────────────────────────────
             console.log("[WhatsApp Webhook] ❌ Message template button delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_button_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_button_create": {
             // ── إنشاء أزرار القالب ───────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template button create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_button_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_header_update": {
             // ── تحديثات رأس القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 📰 Message template header update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_header_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_header_delete": {
             // ── حذف رأس القالب ─────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template header delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_header_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_header_create": {
             // ── إنشاء رأس القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template header create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_header_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_footer_update": {
             // ── تحديثات تذييل القالب ──────────────────────────────────────────
             console.log("[WhatsApp Webhook] 📝 Message template footer update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_footer_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_footer_delete": {
             // ── حذف تذييل القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template footer delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_footer_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_footer_create": {
             // ── إنشاء تذييل القالب ───────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template footer create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_footer_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_body_update": {
             // ── تحديثات نص القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 📄 Message template body update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_body_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_body_delete": {
             // ── حذف نص القالب ────────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template body delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_body_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_body_create": {
             // ── إنشاء نص القالب ───────────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template body create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_body_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_quick_reply_update": {
             // ── تحديثات الردود السريعة للقالب ───────────────────────────────────
             console.log("[WhatsApp Webhook] ⚡ Message template quick reply update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_quick_reply_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_quick_reply_delete": {
             // ── حذف الردود السريعة للقالب ───────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template quick reply delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_quick_reply_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_quick_reply_create": {
             // ── إنشاء الردود السريعة للقالب ─────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template quick reply create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_quick_reply_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_parameter_update": {
             // ── تحديثات معاملات القالب ───────────────────────────────────────
             console.log("[WhatsApp Webhook] 🔧 Message template parameter update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_parameter_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_parameter_delete": {
             // ── حذف معاملات القالب ─────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template parameter delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_parameter_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_parameter_create": {
             // ── إنشاء معاملات القالب ─────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template parameter create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_parameter_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_localization_update": {
             // ── تحديثات الترجمة المحلية للقالب ────────────────────────────────
             console.log("[WhatsApp Webhook] 🌍 Message template localization update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_localization_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_localization_delete": {
             // ── حذف الترجمة المحلية للقالب ───────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template localization delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_localization_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_localization_create": {
             // ── إنشاء الترجمة المحلية للقالب ─────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template localization create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_localization_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_analytics_update": {
             // ── تحديثات تحليلات القالب ────────────────────────────────────────
             console.log("[WhatsApp Webhook] 📊 Message template analytics update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_analytics_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_analytics_delete": {
             // ── حذف تحليلات القالب ───────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template analytics delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_analytics_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_analytics_create": {
             // ── إنشاء تحليلات القالب ─────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template analytics create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_analytics_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_usage_update": {
             // ── تحديثات استخدام القالب ───────────────────────────────────────
             console.log("[WhatsApp Webhook] 📈 Message template usage update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_usage_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_usage_delete": {
             // ── حذف استخدام القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template usage delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_usage_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_usage_create": {
             // ── إنشاء استخدام القالب ─────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template usage create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_usage_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_performance_update": {
             // ── تحديثات أداء القالب ──────────────────────────────────────────
             console.log("[WhatsApp Webhook] 📊 Message template performance update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_performance_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_performance_delete": {
             // ── حذف أداء القالب ──────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template performance delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_performance_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_performance_create": {
             // ── إنشاء أداء القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template performance create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_performance_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_audience_update": {
             // ── تحديثات جمهور القالب ─────────────────────────────────────────
             console.log("[WhatsApp Webhook] 👥 Message template audience update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_audience_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_audience_delete": {
             // ── حذف جمهور القالب ────────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template audience delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_audience_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_audience_create": {
             // ── إنشاء جمهور القالب ───────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template audience create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_audience_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_scheduling_update": {
             // ── تحديثات جدولة القالب ────────────────────────────────────────
             console.log("[WhatsApp Webhook] 📅 Message template scheduling update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_scheduling_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_scheduling_delete": {
             // ── حذف جدولة القالب ───────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template scheduling delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_scheduling_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_scheduling_create": {
             // ── إنشاء جدولة القالب ───────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template scheduling create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_scheduling_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_budget_update": {
             // ── تحديثات ميزانية القالب ────────────────────────────────────────
             console.log("[WhatsApp Webhook] 💰 Message template budget update:", value);
+            await logWebhookEvent({
+              eventType: "message_template_budget_update",
+              subType: "update",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_budget_delete": {
             // ── حذف ميزانية القالب ───────────────────────────────────────────
             console.log("[WhatsApp Webhook] 🗑️ Message template budget delete:", value);
+            await logWebhookEvent({
+              eventType: "message_template_budget_delete",
+              subType: "delete",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
           case "message_template_budget_create": {
             // ── إنشاء ميزانية القالب ───────────────────────────────────────────
             console.log("[WhatsApp Webhook] ➕ Message template budget create:", value);
+            await logWebhookEvent({
+              eventType: "message_template_budget_create",
+              subType: "create",
+              phoneNumber: undefined,
+              rawPayload: JSON.stringify(value),
+              handlerExists: true,
+            });
             break;
           }
 
