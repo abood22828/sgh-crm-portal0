@@ -481,6 +481,54 @@ export async function processWebhookEvent(body: any) {
             break;
           }
 
+          case "template_event": {
+            // ── أحداث القوالب (template_event) ─────────────────────────────────
+            console.log("[WhatsApp Webhook] 📄 Template event:", value);
+            break;
+          }
+
+          case "message_template_quality_update": {
+            // ── تحديثات جودة القوالب ───────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 📈 Message template quality update:", value);
+            break;
+          }
+
+          case "encrypted_phone_number_data": {
+            // ── بيانات رقم الهاتف المشفر ─────────────────────────────────────
+            console.log("[WhatsApp Webhook] 🔐 Encrypted phone number data:", value);
+            break;
+          }
+
+          case "subscription_message_quality_update": {
+            // ── تحديثات جودة رسائل الاشتراك ───────────────────────────────────
+            console.log("[WhatsApp Webhook] 📊 Subscription message quality update:", value);
+            break;
+          }
+
+          case "flows_update": {
+            // ── تحديثات Flows ─────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 🔄 Flows update:", value);
+            break;
+          }
+
+          case "flows_execution": {
+            // ── تنفيذ Flows ────────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] ⚡ Flows execution:", value);
+            break;
+          }
+
+          case "phone_number_name_update": {
+            // ── تحديثات اسم رقم الهاتف ───────────────────────────────────────
+            console.log("[WhatsApp Webhook] 📛 Phone number name update:", value);
+            break;
+          }
+
+          case "phone_number_code_verification": {
+            // ── التحقق من رمز رقم الهاتف ─────────────────────────────────────
+            console.log("[WhatsApp Webhook] ✅ Phone number code verification:", value);
+            break;
+          }
+
           default: {
             console.log(`[WhatsApp Webhook] Unhandled field: ${field}`, value);
           }
