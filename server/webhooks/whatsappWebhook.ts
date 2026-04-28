@@ -15,7 +15,7 @@ import crypto from "crypto";
 import { Request, Response } from "express";
 import { eq } from "drizzle-orm";
 import { ENV } from "../_core/env";
-import { getDb, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, normalizePhoneNumber } from "../db";
+import { getDb, getWhatsAppConversationByPhone, createWhatsAppConversation, createWhatsAppMessage, updateWhatsAppConversation, normalizePhoneNumber, createWhatsAppAccountAlert, createWhatsAppSecurityEvent, createWhatsAppPhoneQuality, createWhatsAppConversationQuality, createWhatsAppUserOptIn, updateWhatsAppUserOptIn, createWhatsAppTemplateQuality } from "../db";
 import { whatsappTemplates, whatsappNotifications, whatsappMessages } from "../../drizzle/schema";
 import { sendWhatsAppTextMessage } from "../whatsappCloudAPI";
 import { processIncomingMessage } from "../services/whatsappAutoReply";
@@ -378,6 +378,18 @@ async function handleAccountAlert(alert: any) {
   const { type: alertType, details } = alert;
   console.warn(`[WhatsApp Webhook] ⚠️  Account Alert: ${alertType}`, details);
 
+  // حفظ التنبيه في قاعدة البيانات
+  try {
+    await createWhatsAppAccountAlert({
+      alertType,
+      details: JSON.stringify(details),
+      severity: alertType === "ACCOUNT_BANNED" ? "critical" : alertType === "PHONE_NUMBER_QUALITY_UPDATED" ? "medium" : "low",
+      resolved: false,
+    });
+  } catch (error) {
+    console.error("[WhatsApp Webhook] Error saving account alert:", error);
+  }
+
   // تنبيهات مهمة تستدعي تدخلاً فورياً
   if (alertType === "ACCOUNT_BANNED") {
     console.error("[WhatsApp Webhook] 🚨 CRITICAL: WhatsApp Business Account BANNED!");
@@ -454,174 +466,162 @@ export async function processWebhookEvent(body: any) {
           case "phone_number_quality_update": {
             // ── تحديثات جودة رقم الهاتف ──────────────────────────────────────
             console.log("[WhatsApp Webhook] 📊 Phone number quality update:", value);
+            try {
+              await createWhatsAppPhoneQuality({
+                phoneNumber: value.phone_number_id || "unknown",
+                qualityScore: value.quality_score || null,
+                qualityRating: value.quality_rating || "unknown",
+                details: JSON.stringify(value),
+              });
+            } catch (error) {
+              console.error("[WhatsApp Webhook] Error saving phone quality:", error);
+            }
             break;
           }
 
           case "business_profile_update": {
             // ── تحديثات الملف التجاري ─────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 📋 Business profile update:", value);
+            console.log("[WhatsApp Webhook] � Business profile update:", value);
             break;
           }
 
           case "security": {
             // ── تحديثات الأمان ─────────────────────────────────────────────────
-            console.warn("[WhatsApp Webhook] 🔒 Security event:", value);
+            console.warn("[WhatsApp Webhook] � Security event:", value);
+            try {
+              await createWhatsAppSecurityEvent({
+                eventType: value.event_type || "unknown",
+                details: JSON.stringify(value),
+                severity: value.severity || "medium",
+                phoneNumber: value.phone_number || null,
+              });
+            } catch (error) {
+              console.error("[WhatsApp Webhook] Error saving security event:", error);
+            }
             break;
           }
 
           case "messaging_product": {
             // ── تحديثات منتج المراسلة ─────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 📱 Messaging product update:", value);
+            console.log("[WhatsApp Webhook] � Messaging product update:", value);
             break;
           }
 
           case "conversation": {
             // ── تحديثات المحادثات ─────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 💬 Conversation update:", value);
+            console.log("[WhatsApp Webhook] � Conversation update:", value);
             break;
           }
 
-          case "template_event": {
-            // ── أحداث القوالب (template_event) ─────────────────────────────────
-            console.log("[WhatsApp Webhook] 📄 Template event:", value);
-            break;
-          }
-
-          case "message_template_quality_update": {
-            // ── تحديثات جودة القوالب ───────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 📈 Message template quality update:", value);
-            break;
-          }
-
-          case "encrypted_phone_number_data": {
-            // ── بيانات رقم الهاتف المشفر ─────────────────────────────────────
-            console.log("[WhatsApp Webhook] 🔐 Encrypted phone number data:", value);
-            break;
-          }
-
-          case "subscription_message_quality_update": {
-            // ── تحديثات جودة رسائل الاشتراك ───────────────────────────────────
-            console.log("[WhatsApp Webhook] 📊 Subscription message quality update:", value);
-            break;
-          }
-
-          case "flows_update": {
-            // ── تحديثات Flows ─────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 🔄 Flows update:", value);
-            break;
-          }
-
-          case "flows_execution": {
-            // ── تنفيذ Flows ────────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] ⚡ Flows execution:", value);
-            break;
-          }
-
-          case "phone_number_name_update": {
-            // ── تحديثات اسم رقم الهاتف ───────────────────────────────────────
-            console.log("[WhatsApp Webhook] 📛 Phone number name update:", value);
-            break;
-          }
-
-          case "phone_number_code_verification": {
-            // ── التحقق من رمز رقم الهاتف ─────────────────────────────────────
-            console.log("[WhatsApp Webhook] ✅ Phone number code verification:", value);
-            break;
-          }
-
-          case "phone_number_update": {
-            // ── تحديثات رقم الهاتف ───────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 📱 Phone number update:", value);
-            break;
-          }
-
-          case "billing_events": {
-            // ── أحداث الفواتير ─────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 💰 Billing events:", value);
-            break;
-          }
-
-          case "health_events": {
-            // ── أحداث الصحة ────────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 🏥 Health events:", value);
+          case "conversation_quality_update": {
+            // ── تحديثات جودة المحادثات ─────────────────────────────────────────
+            console.log("[WhatsApp Webhook] � Conversation quality update:", value);
+            try {
+              await createWhatsAppConversationQuality({
+                phoneNumber: value.phone_number || "unknown",
+                qualityScore: value.quality_score || null,
+                details: JSON.stringify(value),
+              });
+            } catch (error) {
+              console.error("[WhatsApp Webhook] Error saving conversation quality:", error);
+            }
             break;
           }
 
           case "opt_in_updates": {
             // ── تحديثات الاشتراك ───────────────────────────────────────────────
             console.log("[WhatsApp Webhook] ✅ Opt-in updates:", value);
+            try {
+              const normalizedPhone = normalizePhoneNumber(value.phone_number);
+              if (value.status === "opted_in") {
+                await createWhatsAppUserOptIn({
+                  phoneNumber: normalizedPhone,
+                  optInType: "general",
+                  status: "opted_in",
+                  source: value.source || "webhook",
+                  details: JSON.stringify(value),
+                });
+              } else {
+                await updateWhatsAppUserOptIn(normalizedPhone, {
+                  status: "opted_out",
+                  details: JSON.stringify(value),
+                });
+              }
+            } catch (error) {
+              console.error("[WhatsApp Webhook] Error saving opt-in update:", error);
+            }
             break;
           }
 
           case "opt_out_updates": {
             // ── تحديثات إلغاء الاشتراك ─────────────────────────────────────────
             console.log("[WhatsApp Webhook] ❌ Opt-out updates:", value);
+            try {
+              const normalizedPhone = normalizePhoneNumber(value.phone_number);
+              await updateWhatsAppUserOptIn(normalizedPhone, {
+                status: "opted_out",
+                details: JSON.stringify(value),
+              });
+            } catch (error) {
+              console.error("[WhatsApp Webhook] Error saving opt-out update:", error);
+            }
             break;
           }
 
           case "marketing_opt_in_updates": {
             // ── تحديثات الاشتراك التسويقي ─────────────────────────────────────
             console.log("[WhatsApp Webhook] 📢 Marketing opt-in updates:", value);
+            try {
+              const normalizedPhone = normalizePhoneNumber(value.phone_number);
+              if (value.status === "opted_in") {
+                await createWhatsAppUserOptIn({
+                  phoneNumber: normalizedPhone,
+                  optInType: "marketing",
+                  status: "opted_in",
+                  source: value.source || "webhook",
+                  details: JSON.stringify(value),
+                });
+              } else {
+                await updateWhatsAppUserOptIn(normalizedPhone, {
+                  optInType: "marketing",
+                  status: "opted_out",
+                  details: JSON.stringify(value),
+                });
+              }
+            } catch (error) {
+              console.error("[WhatsApp Webhook] Error saving marketing opt-in update:", error);
+            }
             break;
           }
 
           case "marketing_opt_out_updates": {
             // ── تحديثات إلغاء الاشتراك التسويقي ───────────────────────────────
-            console.log("[WhatsApp Webhook] 📵 Marketing opt-out updates:", value);
+            console.log("[WhatsApp Webhook] � Marketing opt-out updates:", value);
+            try {
+              const normalizedPhone = normalizePhoneNumber(value.phone_number);
+              await updateWhatsAppUserOptIn(normalizedPhone, {
+                optInType: "marketing",
+                status: "opted_out",
+                details: JSON.stringify(value),
+              });
+            } catch (error) {
+              console.error("[WhatsApp Webhook] Error saving marketing opt-out update:", error);
+            }
             break;
           }
 
-          case "message_template_namespace_update": {
-            // ── تحديثات مساحة اسم القوالب ─────────────────────────────────────
-            console.log("[WhatsApp Webhook] 📄 Message template namespace update:", value);
-            break;
-          }
-
-          case "application_update": {
-            // ── تحديثات التطبيق ────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 📱 Application update:", value);
-            break;
-          }
-
-          case "waba_update": {
-            // ── تحديثات WhatsApp Business Account ─────────────────────────────
-            console.log("[WhatsApp Webhook] 🏢 WABA update:", value);
-            break;
-          }
-
-          case "product_update": {
-            // ── تحديثات المنتجات ────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 🛍️ Product update:", value);
-            break;
-          }
-
-          case "product_delete": {
-            // ── حذف المنتجات ───────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 🗑️ Product delete:", value);
-            break;
-          }
-
-          case "product_catalog_update": {
-            // ── تحديثات كتالوج المنتجات ────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 📦 Product catalog update:", value);
-            break;
-          }
-
-          case "order_update": {
-            // ── تحديثات الطلبات ─────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 🛒 Order update:", value);
-            break;
-          }
-
-          case "payment_update": {
-            // ── تحديثات الدفعات ─────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 💳 Payment update:", value);
-            break;
-          }
-
-          case "shipping_update": {
-            // ── تحديثات الشحن ──────────────────────────────────────────────────
-            console.log("[WhatsApp Webhook] 🚚 Shipping update:", value);
+          case "message_template_quality_update": {
+            // ── تحديثات جودة القوالب ───────────────────────────────────────────
+            console.log("[WhatsApp Webhook] � Message template quality update:", value);
+            try {
+              await createWhatsAppTemplateQuality({
+                templateId: value.message_template_id || "unknown",
+                qualityScore: value.quality_score || null,
+                details: JSON.stringify(value),
+              });
+            } catch (error) {
+              console.error("[WhatsApp Webhook] Error saving template quality:", error);
+            }
             break;
           }
 

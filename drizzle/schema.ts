@@ -1251,3 +1251,89 @@ export const whatsappBlockedNumbers = mysqlTable("whatsapp_blocked_numbers", {
 });
 export type WhatsappBlockedNumber = typeof whatsappBlockedNumbers.$inferSelect;
 export type InsertWhatsappBlockedNumber = typeof whatsappBlockedNumbers.$inferInsert;
+
+/**
+ * WhatsApp Account Alerts - تنبيهات الحساب من Meta
+ */
+export const whatsappAccountAlerts = mysqlTable("whatsapp_account_alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  alertType: varchar("alertType", { length: 100 }).notNull(),
+  details: text("details"), // JSON string
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  resolved: boolean("resolved").default(false).notNull(),
+  resolvedAt: timestamp("resolvedAt"),
+  resolvedBy: int("resolvedBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type WhatsappAccountAlert = typeof whatsappAccountAlerts.$inferSelect;
+export type InsertWhatsappAccountAlert = typeof whatsappAccountAlerts.$inferInsert;
+
+/**
+ * WhatsApp Security Events - أحداث الأمان
+ */
+export const whatsappSecurityEvents = mysqlTable("whatsapp_security_events", {
+  id: int("id").autoincrement().primaryKey(),
+  eventType: varchar("eventType", { length: 100 }).notNull(),
+  details: text("details"), // JSON string
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type WhatsappSecurityEvent = typeof whatsappSecurityEvents.$inferSelect;
+export type InsertWhatsappSecurityEvent = typeof whatsappSecurityEvents.$inferInsert;
+
+/**
+ * WhatsApp Phone Number Quality - جودة رقم الهاتف
+ */
+export const whatsappPhoneQuality = mysqlTable("whatsapp_phone_quality", {
+  id: int("id").autoincrement().primaryKey(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  qualityScore: int("qualityScore"), // 0-100
+  qualityRating: mysqlEnum("qualityRating", ["unknown", "yellow", "green", "gray", "red"]).default("unknown").notNull(),
+  details: text("details"), // JSON string
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type WhatsappPhoneQuality = typeof whatsappPhoneQuality.$inferSelect;
+export type InsertWhatsappPhoneQuality = typeof whatsappPhoneQuality.$inferInsert;
+
+/**
+ * WhatsApp Conversation Quality - جودة المحادثات
+ */
+export const whatsappConversationQuality = mysqlTable("whatsapp_conversation_quality", {
+  id: int("id").autoincrement().primaryKey(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  qualityScore: int("qualityScore"), // 0-100
+  details: text("details"), // JSON string
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type WhatsappConversationQuality = typeof whatsappConversationQuality.$inferSelect;
+export type InsertWhatsappConversationQuality = typeof whatsappConversationQuality.$inferInsert;
+
+/**
+ * WhatsApp User Opt-ins - اشتراكات المستخدمين
+ */
+export const whatsappUserOptIns = mysqlTable("whatsapp_user_opt_ins", {
+  id: int("id").autoincrement().primaryKey(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  optInType: mysqlEnum("optInType", ["general", "marketing"]).default("general").notNull(),
+  status: mysqlEnum("status", ["opted_in", "opted_out"]).default("opted_in").notNull(),
+  source: varchar("source", { length: 100 }), // e.g., "web", "whatsapp", "manual"
+  details: text("details"), // JSON string
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type WhatsappUserOptIn = typeof whatsappUserOptIns.$inferSelect;
+export type InsertWhatsappUserOptIn = typeof whatsappUserOptIns.$inferInsert;
+
+/**
+ * WhatsApp Template Quality - جودة القوالب
+ */
+export const whatsappTemplateQuality = mysqlTable("whatsapp_template_quality", {
+  id: int("id").autoincrement().primaryKey(),
+  templateId: varchar("templateId", { length: 255 }).notNull(),
+  qualityScore: int("qualityScore"), // 0-100
+  details: text("details"), // JSON string
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type WhatsappTemplateQuality = typeof whatsappTemplateQuality.$inferSelect;
+export type InsertWhatsappTemplateQuality = typeof whatsappTemplateQuality.$inferInsert;

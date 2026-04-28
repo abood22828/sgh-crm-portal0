@@ -984,9 +984,67 @@ export async function updateWhatsAppTemplate(id: number, template: any) {
 export async function deleteWhatsAppTemplate(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
   const { whatsappTemplates } = await import('../drizzle/schema');
   return db.delete(whatsappTemplates).where(eq(whatsappTemplates.id, id));
+}
+
+// ─── WhatsApp Event Logging Functions ─────────────────────────────────────────
+
+export async function createWhatsAppAccountAlert(alert: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { whatsappAccountAlerts } = await import('../drizzle/schema');
+  return db.insert(whatsappAccountAlerts).values(alert);
+}
+
+export async function createWhatsAppSecurityEvent(event: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { whatsappSecurityEvents } = await import('../drizzle/schema');
+  return db.insert(whatsappSecurityEvents).values(event);
+}
+
+export async function createWhatsAppPhoneQuality(quality: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { whatsappPhoneQuality } = await import('../drizzle/schema');
+  return db.insert(whatsappPhoneQuality).values(quality);
+}
+
+export async function createWhatsAppConversationQuality(quality: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { whatsappConversationQuality } = await import('../drizzle/schema');
+  return db.insert(whatsappConversationQuality).values(quality);
+}
+
+export async function createWhatsAppUserOptIn(optIn: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { whatsappUserOptIns } = await import('../drizzle/schema');
+  return db.insert(whatsappUserOptIns).values(optIn);
+}
+
+export async function updateWhatsAppUserOptIn(phone: string, updates: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { whatsappUserOptIns } = await import('../drizzle/schema');
+  return db.update(whatsappUserOptIns).set(updates).where(eq(whatsappUserOptIns.phoneNumber, phone));
+}
+
+export async function createWhatsAppTemplateQuality(quality: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { whatsappTemplateQuality } = await import('../drizzle/schema');
+  return db.insert(whatsappTemplateQuality).values(quality);
 }
 
 export async function getWhatsAppTemplateByMetaName(metaName: string) {
