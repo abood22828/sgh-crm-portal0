@@ -529,6 +529,102 @@ export async function processWebhookEvent(body: any) {
             break;
           }
 
+          case "phone_number_update": {
+            // ── تحديثات رقم الهاتف ───────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 📱 Phone number update:", value);
+            break;
+          }
+
+          case "billing_events": {
+            // ── أحداث الفواتير ─────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 💰 Billing events:", value);
+            break;
+          }
+
+          case "health_events": {
+            // ── أحداث الصحة ────────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 🏥 Health events:", value);
+            break;
+          }
+
+          case "opt_in_updates": {
+            // ── تحديثات الاشتراك ───────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] ✅ Opt-in updates:", value);
+            break;
+          }
+
+          case "opt_out_updates": {
+            // ── تحديثات إلغاء الاشتراك ─────────────────────────────────────────
+            console.log("[WhatsApp Webhook] ❌ Opt-out updates:", value);
+            break;
+          }
+
+          case "marketing_opt_in_updates": {
+            // ── تحديثات الاشتراك التسويقي ─────────────────────────────────────
+            console.log("[WhatsApp Webhook] 📢 Marketing opt-in updates:", value);
+            break;
+          }
+
+          case "marketing_opt_out_updates": {
+            // ── تحديثات إلغاء الاشتراك التسويقي ───────────────────────────────
+            console.log("[WhatsApp Webhook] 📵 Marketing opt-out updates:", value);
+            break;
+          }
+
+          case "message_template_namespace_update": {
+            // ── تحديثات مساحة اسم القوالب ─────────────────────────────────────
+            console.log("[WhatsApp Webhook] 📄 Message template namespace update:", value);
+            break;
+          }
+
+          case "application_update": {
+            // ── تحديثات التطبيق ────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 📱 Application update:", value);
+            break;
+          }
+
+          case "waba_update": {
+            // ── تحديثات WhatsApp Business Account ─────────────────────────────
+            console.log("[WhatsApp Webhook] 🏢 WABA update:", value);
+            break;
+          }
+
+          case "product_update": {
+            // ── تحديثات المنتجات ────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 🛍️ Product update:", value);
+            break;
+          }
+
+          case "product_delete": {
+            // ── حذف المنتجات ───────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 🗑️ Product delete:", value);
+            break;
+          }
+
+          case "product_catalog_update": {
+            // ── تحديثات كتالوج المنتجات ────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 📦 Product catalog update:", value);
+            break;
+          }
+
+          case "order_update": {
+            // ── تحديثات الطلبات ─────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 🛒 Order update:", value);
+            break;
+          }
+
+          case "payment_update": {
+            // ── تحديثات الدفعات ─────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 💳 Payment update:", value);
+            break;
+          }
+
+          case "shipping_update": {
+            // ── تحديثات الشحن ──────────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 🚚 Shipping update:", value);
+            break;
+          }
+
           default: {
             console.log(`[WhatsApp Webhook] Unhandled field: ${field}`, value);
           }
