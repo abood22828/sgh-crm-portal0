@@ -1255,4 +1255,249 @@ export const whatsappRouter = router({
         return { success: true };
       }),
   }),
+
+  // ─── Webhook Events & Account Health ─────────────────────────────────────────
+
+  accountHealth: router({
+    // Account Alerts
+    getAlerts: protectedProcedure
+      .input(z.object({
+        severity: z.enum(["low", "medium", "high", "critical"]).optional(),
+        resolved: z.boolean().optional(),
+        limit: z.number().default(50),
+      }).optional())
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappAccountAlerts } = await import("../../drizzle/schema");
+        const { eq, and, desc } = await import("drizzle-orm");
+
+        const conditions = [];
+        if (input?.severity) {
+          conditions.push(eq(whatsappAccountAlerts.severity, input.severity));
+        }
+        if (input?.resolved !== undefined) {
+          conditions.push(eq(whatsappAccountAlerts.resolved, input.resolved));
+        }
+
+        const query = conditions.length > 0
+          ? dbConn.select().from(whatsappAccountAlerts).where(and(...conditions))
+          : dbConn.select().from(whatsappAccountAlerts);
+
+        return await query.orderBy(desc(whatsappAccountAlerts.createdAt)).limit(input?.limit || 50);
+      }),
+
+    resolveAlert: protectedProcedure
+      .input(z.object({ id: z.number(), resolvedBy: z.number() }))
+      .mutation(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappAccountAlerts } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+
+        await dbConn
+          .update(whatsappAccountAlerts)
+          .set({
+            resolved: true,
+            resolvedAt: new Date(),
+            resolvedBy: input.resolvedBy,
+          })
+          .where(eq(whatsappAccountAlerts.id, input.id));
+
+        return { success: true };
+      }),
+
+    // Security Events
+    getSecurityEvents: protectedProcedure
+      .input(z.object({
+        severity: z.enum(["low", "medium", "high", "critical"]).optional(),
+        limit: z.number().default(50),
+      }).optional())
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappSecurityEvents } = await import("../../drizzle/schema");
+        const { eq, desc } = await import("drizzle-orm");
+
+        const query = input?.severity
+          ? dbConn.select().from(whatsappSecurityEvents).where(eq(whatsappSecurityEvents.severity, input.severity))
+          : dbConn.select().from(whatsappSecurityEvents);
+
+        return await query.orderBy(desc(whatsappSecurityEvents.createdAt)).limit(input?.limit || 50);
+      }),
+  }),
+
+  phoneQuality: router({
+    getHistory: protectedProcedure
+      .input(z.object({
+        phoneNumber: z.string().optional(),
+        limit: z.number().default(100),
+      }).optional())
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappPhoneQuality } = await import("../../drizzle/schema");
+        const { eq, desc } = await import("drizzle-orm");
+
+        const query = input?.phoneNumber
+          ? dbConn.select().from(whatsappPhoneQuality).where(eq(whatsappPhoneQuality.phoneNumber, input.phoneNumber))
+          : dbConn.select().from(whatsappPhoneQuality);
+
+        return await query.orderBy(desc(whatsappPhoneQuality.createdAt)).limit(input?.limit || 100);
+      }),
+
+    getCurrent: protectedProcedure.query(async () => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new Error("Database not available");
+      const { whatsappPhoneQuality } = await import("../../drizzle/schema");
+      const { desc } = await import("drizzle-orm");
+
+      const results = await dbConn
+        .select()
+        .from(whatsappPhoneQuality)
+        .orderBy(desc(whatsappPhoneQuality.createdAt))
+        .limit(1);
+
+      return results[0] || null;
+    }),
+  }),
+
+  conversationQuality: router({
+    getHistory: protectedProcedure
+      .input(z.object({
+        phoneNumber: z.string().optional(),
+        limit: z.number().default(100),
+      }).optional())
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappConversationQuality } = await import("../../drizzle/schema");
+        const { eq, desc } = await import("drizzle-orm");
+
+        const query = input?.phoneNumber
+          ? dbConn.select().from(whatsappConversationQuality).where(eq(whatsappConversationQuality.phoneNumber, input.phoneNumber))
+          : dbConn.select().from(whatsappConversationQuality);
+
+        return await query.orderBy(desc(whatsappConversationQuality.createdAt)).limit(input?.limit || 100);
+      }),
+  }),
+
+  userSubscriptions: router({
+    getAll: protectedProcedure
+      .input(z.object({
+        status: z.enum(["opted_in", "opted_out"]).optional(),
+        optInType: z.enum(["general", "marketing"]).optional(),
+        limit: z.number().default(100),
+      }).optional())
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappUserOptIns } = await import("../../drizzle/schema");
+        const { eq, and, desc } = await import("drizzle-orm");
+
+        const conditions = [];
+        if (input?.status) {
+          conditions.push(eq(whatsappUserOptIns.status, input.status));
+        }
+        if (input?.optInType) {
+          conditions.push(eq(whatsappUserOptIns.optInType, input.optInType));
+        }
+
+        const query = conditions.length > 0
+          ? dbConn.select().from(whatsappUserOptIns).where(and(...conditions))
+          : dbConn.select().from(whatsappUserOptIns);
+
+        return await query.orderBy(desc(whatsappUserOptIns.createdAt)).limit(input?.limit || 100);
+      }),
+
+    updateStatus: protectedProcedure
+      .input(z.object({
+        phoneNumber: z.string(),
+        status: z.enum(["opted_in", "opted_out"]),
+        optInType: z.enum(["general", "marketing"]),
+        source: z.string().default("manual"),
+      }))
+      .mutation(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappUserOptIns } = await import("../../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+
+        // Check if record exists
+        const existing = await dbConn
+          .select()
+          .from(whatsappUserOptIns)
+          .where(and(
+            eq(whatsappUserOptIns.phoneNumber, input.phoneNumber),
+            eq(whatsappUserOptIns.optInType, input.optInType)
+          ))
+          .limit(1);
+
+        if (existing.length > 0) {
+          // Update existing
+          await dbConn
+            .update(whatsappUserOptIns)
+            .set({
+              status: input.status,
+              source: input.source,
+              updatedAt: new Date(),
+            })
+            .where(and(
+              eq(whatsappUserOptIns.phoneNumber, input.phoneNumber),
+              eq(whatsappUserOptIns.optInType, input.optInType)
+            ));
+        } else {
+          // Create new
+          await dbConn.insert(whatsappUserOptIns).values({
+            phoneNumber: input.phoneNumber,
+            optInType: input.optInType,
+            status: input.status,
+            source: input.source,
+            details: JSON.stringify({ manualUpdate: true }),
+          });
+        }
+
+        return { success: true };
+      }),
+
+    getStats: protectedProcedure.query(async () => {
+      const dbConn = await db.getDb();
+      if (!dbConn) throw new Error("Database not available");
+      const { whatsappUserOptIns } = await import("../../drizzle/schema");
+      const { eq, sql } = await import("drizzle-orm");
+
+      const allSubs = await dbConn.select().from(whatsappUserOptIns);
+
+      return {
+        general: {
+          optedIn: allSubs.filter(s => s.optInType === "general" && s.status === "opted_in").length,
+          optedOut: allSubs.filter(s => s.optInType === "general" && s.status === "opted_out").length,
+        },
+        marketing: {
+          optedIn: allSubs.filter(s => s.optInType === "marketing" && s.status === "opted_in").length,
+          optedOut: allSubs.filter(s => s.optInType === "marketing" && s.status === "opted_out").length,
+        },
+      };
+    }),
+  }),
+
+  templateQuality: router({
+    getHistory: protectedProcedure
+      .input(z.object({
+        templateId: z.string().optional(),
+        limit: z.number().default(100),
+      }).optional())
+      .query(async ({ input }) => {
+        const dbConn = await db.getDb();
+        if (!dbConn) throw new Error("Database not available");
+        const { whatsappTemplateQuality } = await import("../../drizzle/schema");
+        const { eq, desc } = await import("drizzle-orm");
+
+        const query = input?.templateId
+          ? dbConn.select().from(whatsappTemplateQuality).where(eq(whatsappTemplateQuality.templateId, input.templateId))
+          : dbConn.select().from(whatsappTemplateQuality);
+
+        return await query.orderBy(desc(whatsappTemplateQuality.createdAt)).limit(input?.limit || 100);
+      }),
+  }),
 });
