@@ -457,6 +457,30 @@ export async function processWebhookEvent(body: any) {
             break;
           }
 
+          case "business_profile_update": {
+            // ── تحديثات الملف التجاري ─────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 📋 Business profile update:", value);
+            break;
+          }
+
+          case "security": {
+            // ── تحديثات الأمان ─────────────────────────────────────────────────
+            console.warn("[WhatsApp Webhook] 🔒 Security event:", value);
+            break;
+          }
+
+          case "messaging_product": {
+            // ── تحديثات منتج المراسلة ─────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 📱 Messaging product update:", value);
+            break;
+          }
+
+          case "conversation": {
+            // ── تحديثات المحادثات ─────────────────────────────────────────────
+            console.log("[WhatsApp Webhook] 💬 Conversation update:", value);
+            break;
+          }
+
           default: {
             console.log(`[WhatsApp Webhook] Unhandled field: ${field}`, value);
           }
