@@ -82,6 +82,7 @@ const allNavItems: NavItem[] = [
   { id: "camp-stats", title: "إحصائيات المخيمات", href: "/dashboard/camp-stats", icon: BarChart3 },
   { id: "tracking-settings", title: "إعدادات التتبع", href: "/dashboard/tracking-settings", icon: SettingsIcon },
   { id: "whatsapp", title: "الرسائل والمحادثات", href: "/dashboard/whatsapp", icon: MessageCircle },
+  { id: "whatsapp-dashboard", title: "لوحة تحكم واتساب", href: "/dashboard/whatsapp/whatsapp-dashboard", icon: BarChart3 },
   { id: "whatsapp-templates", title: "قوالب الرسائل", href: "/dashboard/whatsapp/templates", icon: FileText },
   { id: "whatsapp-analytics", title: "تحليلات واتساب", href: "/dashboard/whatsapp/analytics", icon: BarChart3 },
   { id: "whatsapp-broadcast", title: "بث واتساب", href: "/dashboard/whatsapp/broadcast", icon: Radio },
@@ -140,6 +141,7 @@ const allToolsGroups: NavGroup[] = [
     icon: MessageCircle,
     items: [
       { id: "whatsapp", title: "الرسائل والمحادثات", href: "/dashboard/whatsapp", icon: MessageCircle },
+      { id: "whatsapp-dashboard", title: "لوحة تحكم واتساب", href: "/dashboard/whatsapp/whatsapp-dashboard", icon: BarChart3 },
       { id: "whatsapp-templates", title: "قوالب الرسائل", href: "/dashboard/whatsapp/templates", icon: FileText },
       { id: "whatsapp-analytics", title: "تحليلات واتساب", href: "/dashboard/whatsapp/analytics", icon: BarChart3 },
       { id: "whatsapp-broadcast", title: "بث واتساب", href: "/dashboard/whatsapp/broadcast", icon: Radio },
