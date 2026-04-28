@@ -195,8 +195,20 @@ async function handleIncomingMessage(message: any, metadata: any) {
       content = button.text;
       messageType = "interactive";
     } else if (type === "interactive" && interactive) {
-      content = interactive.type || "تفاعل";
-      messageType = "interactive";
+      // معالجة interactive messages (button_reply, list_reply, etc.)
+      if (interactive.type === "button_reply" && interactive.button_reply) {
+        content = interactive.button_reply.title || interactive.button_reply.id || "زر";
+        messageType = "interactive";
+      } else if (interactive.type === "list_reply" && interactive.list_reply) {
+        content = interactive.list_reply.title || interactive.list_reply.id || "قائمة";
+        messageType = "interactive";
+      } else if (interactive.type === "narrow_list_reply" && interactive.narrow_list_reply) {
+        content = interactive.narrow_list_reply.title || interactive.narrow_list_reply.id || "قائمة";
+        messageType = "interactive";
+      } else {
+        content = interactive.type || "تفاعل";
+        messageType = "interactive";
+      }
     } else {
       content = "رسالة غير مدعومة";
       messageType = "unknown";
