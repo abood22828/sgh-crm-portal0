@@ -134,11 +134,12 @@ export async function syncTemplatesFromMeta(): Promise<{
 
     for (const template of templates) {
       try {
-        // استخراج محتوى الجسم والمتغيرات
+        // استخراج محتوى الجسم والمتغيرات والأزرار
         let content = "";
         let variables: string[] = [];
         let headerText: string | null = null;
         let footerText: string | null = null;
+        let buttons: any[] = [];
 
         if (template.components) {
           for (const component of template.components) {
@@ -151,6 +152,8 @@ export async function syncTemplatesFromMeta(): Promise<{
               variables = [...positional, ...named].map((m: string) => m.replace(/[{}]/g, ""));
             } else if (component.type === "FOOTER" && component.text) {
               footerText = component.text;
+            } else if (component.type === "BUTTONS" && component.buttons) {
+              buttons = component.buttons;
             }
           }
         }
@@ -181,6 +184,7 @@ export async function syncTemplatesFromMeta(): Promise<{
               languageCode: template.language,
               headerText: headerText ?? existing[0].headerText,
               footerText: footerText ?? existing[0].footerText,
+              buttons: buttons.length > 0 ? JSON.stringify(buttons) : existing[0].buttons,
               updatedAt: new Date(),
             })
             .where(eq(whatsappTemplates.metaName, template.name));
@@ -199,6 +203,7 @@ export async function syncTemplatesFromMeta(): Promise<{
             variables: JSON.stringify(variables),
             headerText,
             footerText,
+            buttons: buttons.length > 0 ? JSON.stringify(buttons) : null,
             createdBy: 1,
             createdAt: new Date(),
             updatedAt: new Date(),

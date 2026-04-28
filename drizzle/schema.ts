@@ -576,6 +576,7 @@ export const whatsappTemplates = mysqlTable("whatsapp_templates", {
   metaTemplateId: varchar("metaTemplateId", { length: 64 }), // Meta's internal template ID (returned after creation)
   headerText: text("headerText"), // Optional header component
   footerText: varchar("footerText", { length: 255 }), // Optional footer component
+  buttons: text("buttons"), // JSON array of buttons from template components
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
